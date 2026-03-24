@@ -1,0 +1,7 @@
+add_executable(unit_tests unit/test_dummy.cpp)
+target_link_libraries(unit_tests PRIVATE qrp_core GTest::gtest_main)
+add_test(NAME unit_tests COMMAND unit_tests)
+
+add_executable(integration_tests integration/test_valuation.cpp integration/test_risk.cpp)
+target_link_libraries(integration_tests PRIVATE qrp_core GTest::gtest_main)
+add_test(NAME integration_tests COMMAND integration_tests)

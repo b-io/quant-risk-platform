@@ -1,0 +1,37 @@
+{
+  "portfolio_id": "demo_macro_book",
+  "trades": [
+    {
+      "id": "swap_001",
+      "asset_class": "rates",
+      "type": "vanilla_swap",
+      "currency": "USD",
+      "notional": 10000000,
+      "start_date": "2025-03-24",
+      "maturity_date": "2030-03-24",
+      "direction": "pay_fixed",
+      "book": "macro_rates",
+      "strategy": "usd_curve",
+      "details": {
+        "fixed_rate": 0.0475,
+        "floating_index": "USD_LIBOR_3M"
+      }
+    },
+    {
+      "id": "bond_001",
+      "asset_class": "rates",
+      "type": "fixed_rate_bond",
+      "currency": "USD",
+      "notional": 5000000,
+      "start_date": "2024-01-01",
+      "maturity_date": "2029-01-01",
+      "direction": "long",
+      "book": "macro_rates",
+      "strategy": "usd_bond",
+      "details": {
+        "coupon_rate": 0.05,
+        "frequency": "Annual"
+      }
+    }
+  ]
+}

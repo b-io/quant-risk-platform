@@ -1,0 +1,4 @@
+nlohmann-json
+# quant-risk-platform is the name of the project, not a package on PyPI.
+# If you want to install the current project in editable mode, you would use:
+# pip install -e .

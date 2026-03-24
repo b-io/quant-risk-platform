@@ -1,41 +1,67 @@
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Linker files
-*.ilk
-
-# Debugger Files
-*.pdb
+# Build artifacts
+_deps/
+bin/
+build/
+dist/
+lib/
+vcpkg_installed/
 
 # Compiled Dynamic libraries
-*.so
-*.dylib
 *.dll
+*.dylib
+*.so
+
+# Compiled Object files
+*.lo
+*.obj
+*.o
+*.slo
+
+# Compiled Static libraries
+*.a
+*.la
+*.lai
+*.lib
+
+# Debug information files
+*.dwo
+*.pdb
+
+# Executables
+*.app
+*.exe
+*.out
 
 # Fortran module files
 *.mod
 *.smod
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
+# IDE
+.idea/
+.vscode/
+*.swo
+*.swp
+CMakeUserPresets.json
 
-# Executables
-*.exe
-*.out
-*.app
+# Linker files
+*.ilk
 
-# debug information files
-*.dwo
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Prerequisites
+*.d
+
+# Python
+.env/
+.venv/
+__pycache__/
+*$py.class
+*.py[cod]
+env/
+venv/
