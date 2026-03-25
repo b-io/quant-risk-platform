@@ -14,7 +14,7 @@ def run_demo():
     print("--- Quant Risk Platform Python Demo ---")
     
     # Load market and portfolio
-    market_dto = qrp.load_market("data/market/base_market.json")
+    market_dto = qrp.load_market("data/market/base_market_v2.json")
     portfolio = qrp.load_portfolio("data/portfolios/demo_macro_book.json")
     
     print(f"Loaded portfolio: {portfolio.portfolio_id} with {len(portfolio.trades)} trades.")
@@ -40,15 +40,20 @@ def run_demo():
     # P&L Explain Demo
     print("\nP&L Explain Demo:")
     # Simulate a market move: 10bp up
-    curr_market_dto = qrp.load_market("data/market/base_market.json")
-    for AC, markets in curr_market_dto.markets.items():
-        for name, curve in markets.items():
-            for node in curve.nodes:
-                node.value += 0.0010 
+    curr_market_dto = qrp.load_market("data/market/base_market_v2.json")
+    for quote in curr_market_dto.quotes:
+        quote.value += 0.0010 
     
     pnl_results = qrp.explain_pnl(portfolio, market_dto, curr_market_dto)
     for res in pnl_results:
-        print(f"  Trade: {res.trade_id}, Total P&L: {res.total_pnl:,.2f}, Market Move: {res.market_move_pnl:,.2f}")
+        print(f"  Trade: {res.trade_id}, Total P&L: {res.total_pnl:,.2f}, Carry: {res.carry_pnl:,.2f}, Market Move: {res.market_move_pnl:,.2f}")
+
+    # Monte Carlo Demo
+    print("\nMonte Carlo Simulation Demo:")
+    sim_result = qrp.run_simulation(portfolio, market_dto, 100)
+    print(f"  Simulation completed with {len(sim_result.portfolio_values)} paths.")
+    print(f"  95% VaR: {sim_result.var_95:,.2f}")
+    print(f"  95% ES : {sim_result.expected_shortfall_95:,.2f}")
 
 if __name__ == "__main__":
     run_demo()

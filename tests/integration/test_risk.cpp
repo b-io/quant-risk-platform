@@ -5,7 +5,7 @@
 #include <filesystem>
 
 TEST(RiskIntegrationTest, ComputeRiskSamplePortfolio) {
-    std::string market_path = "data/market/base_market.json";
+    std::string market_path = "data/market/base_market_v2.json";
     std::string portfolio_path = "data/portfolios/demo_macro_book.json";
 
     if (!std::filesystem::exists(market_path)) {

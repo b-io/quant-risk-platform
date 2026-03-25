@@ -12,8 +12,18 @@ set(QRP_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cpp/src)
 include(cmake/Dependencies.cmake)
 
 # Library
-file(GLOB_RECURSE QRP_SOURCES "${QRP_SRC_DIR}/*.cpp")
-add_library(qrp_core ${QRP_SOURCES})
+add_library(qrp_core
+    cpp/src/analytics/pnl_explain_service.cpp
+    cpp/src/analytics/risk_service.cpp
+    cpp/src/analytics/stress_engine.cpp
+    cpp/src/analytics/monte_carlo_engine.cpp
+    cpp/src/analytics/valuation_service.cpp
+    cpp/src/instruments/instrument_factory.cpp
+    cpp/src/io/json_loader.cpp
+    cpp/src/market/market_snapshot.cpp
+    cpp/src/market/scenario_engine.cpp
+    cpp/src/conventions/market_convention_registry.cpp
+)
 target_include_directories(qrp_core PUBLIC ${QRP_INCLUDE_DIR})
 target_link_libraries(qrp_core PRIVATE QuantLib::QuantLib nlohmann_json::nlohmann_json fmt::fmt)
 
@@ -22,6 +32,8 @@ add_executable(qrp_cli cpp/cli/main.cpp)
 target_link_libraries(qrp_cli PRIVATE qrp_core)
 
 # Python bindings
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+set(PYBIND11_FINDPYTHON ON)
 find_package(pybind11 REQUIRED)
 pybind11_add_module(quant_risk_platform cpp/bindings/module.cpp)
 target_link_libraries(quant_risk_platform PRIVATE qrp_core)
@@ -30,6 +42,14 @@ target_link_libraries(quant_risk_platform PRIVATE qrp_core)
 enable_testing()
 add_subdirectory(tests)
 
-# Benchmarks
-add_executable(benchmark_portfolio benchmarks/benchmark_portfolio.cpp)
-target_link_libraries(benchmark_portfolio PRIVATE qrp_core)
+# Benchmarks (guarded)
+# TODO: Restore full benchmark targets once benchmark sources are committed.
+option(QRP_BUILD_BENCHMARKS "Build benchmark targets" OFF)
+if(QRP_BUILD_BENCHMARKS)
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/benchmarks/benchmark_portfolio.cpp")
+        add_executable(benchmark_portfolio benchmarks/benchmark_portfolio.cpp)
+        target_link_libraries(benchmark_portfolio PRIVATE qrp_core)
+    else()
+        message(STATUS "QRP_BUILD_BENCHMARKS=ON but benchmark sources not found; skipping benchmarks")
+    endif()
+endif()

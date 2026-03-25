@@ -1,0 +1,33 @@
+{
+  "valuation_date": "2026-03-24",
+  "quotes": [
+    { "id": "USD_ON", "type": "Deposit", "currency": "USD", "tenor": "1D", "value": 0.0533 },
+    { "id": "USD_OIS_1M", "type": "OIS", "currency": "USD", "tenor": "1M", "value": 0.0534 },
+    { "id": "USD_OIS_3M", "type": "OIS", "currency": "USD", "tenor": "3M", "value": 0.0535 },
+    { "id": "USD_OIS_6M", "type": "OIS", "currency": "USD", "tenor": "6M", "value": 0.0536 },
+    { "id": "USD_OIS_1Y", "type": "OIS", "currency": "USD", "tenor": "1Y", "value": 0.0537 },
+    { "id": "USD_OIS_2Y", "type": "OIS", "currency": "USD", "tenor": "2Y", "value": 0.0538 },
+    { "id": "USD_OIS_5Y", "type": "OIS", "currency": "USD", "tenor": "5Y", "value": 0.0540 },
+    { "id": "USD_OIS_10Y", "type": "OIS", "currency": "USD", "tenor": "10Y", "value": 0.0545 },
+    { "id": "EUR_ON", "type": "Deposit", "currency": "EUR", "tenor": "1D", "value": 0.0390 },
+    { "id": "EUR_OIS_1M", "type": "OIS", "currency": "EUR", "tenor": "1M", "value": 0.0391 },
+    { "id": "EUR_OIS_1Y", "type": "OIS", "currency": "EUR", "tenor": "1Y", "value": 0.0395 },
+    { "id": "EUR_OIS_5Y", "type": "OIS", "currency": "EUR", "tenor": "5Y", "value": 0.0400 }
+  ],
+  "curves": [
+    {
+      "id": { "currency": "USD", "family": "OIS" },
+      "quote_ids": ["USD_ON", "USD_OIS_1M", "USD_OIS_3M", "USD_OIS_6M", "USD_OIS_1Y", "USD_OIS_2Y", "USD_OIS_5Y", "USD_OIS_10Y"],
+      "day_count": "ACT360",
+      "calendar": "US",
+      "interpolation": "LogLinear"
+    },
+    {
+      "id": { "currency": "EUR", "family": "OIS" },
+      "quote_ids": ["EUR_ON", "EUR_OIS_1M", "EUR_OIS_1Y", "EUR_OIS_5Y"],
+      "day_count": "ACT360",
+      "calendar": "Target",
+      "interpolation": "LogLinear"
+    }
+  ]
+}

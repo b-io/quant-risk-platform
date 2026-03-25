@@ -1,40 +1,42 @@
-#include <iostream>
-#include <chrono>
-#include <qrp/io/json_loader.hpp>
-#include <qrp/market/market_snapshot.hpp>
 #include <qrp/analytics/valuation_service.hpp>
 #include <qrp/analytics/risk_service.hpp>
-#include <fmt/core.h>
+#include <qrp/io/json_loader.hpp>
+#include <iostream>
+#include <chrono>
 
 int main() {
-    fmt::print("--- QRP Benchmark ---\n");
+    try {
+        std::cout << "Starting Portfolio Benchmark..." << std::endl;
 
-    std::string market_path = "data/market/base_market.json";
-    std::string portfolio_path = "data/portfolios/demo_macro_book.json";
+        auto market_dto = qrp::io::load_market("data/market/base_market.json");
+        auto portfolio = qrp::io::load_portfolio("data/portfolios/demo_macro_book.json");
+        qrp::market::MarketSnapshot market(market_dto);
 
-    auto market_dto = qrp::io::load_market(market_path);
-    auto portfolio_dto = qrp::io::load_portfolio(portfolio_path);
+        const int iterations = 100;
+        
+        // 1. Benchmark Valuation
+        auto start = std::chrono::high_resolution_clock::now();
+        for (int i = 0; i < iterations; ++i) {
+            auto results = qrp::analytics::ValuationService::price_portfolio(portfolio, market);
+        }
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+        
+        std::cout << "Valuation Benchmark (100 iterations): " << duration << " ms" << std::endl;
+        std::cout << "Trades per second: " << (iterations * portfolio.trades.size() * 1000.0 / duration) << std::endl;
 
-    // Build market
-    auto start = std::chrono::high_resolution_clock::now();
-    qrp::market::MarketSnapshot market(market_dto);
-    auto end = std::chrono::high_resolution_clock::now();
-    auto build_market_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    fmt::print("Market build time: {} ms\n", build_market_ms);
+        // 2. Benchmark Risk
+        start = std::chrono::high_resolution_clock::now();
+        auto risk_results = qrp::analytics::RiskService::compute_risk(portfolio, market_dto);
+        end = std::chrono::high_resolution_clock::now();
+        duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
-    // Pricing
-    start = std::chrono::high_resolution_clock::now();
-    auto results = qrp::analytics::ValuationService::price_portfolio(portfolio_dto, market);
-    end = std::chrono::high_resolution_clock::now();
-    auto price_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    fmt::print("Pricing ({} trades) time: {} ms\n", results.size(), price_ms);
+        std::cout << "Risk Benchmark (PV01 + Bucketed): " << duration << " ms" << std::endl;
 
-    // Risk
-    start = std::chrono::high_resolution_clock::now();
-    auto risk_results = qrp::analytics::RiskService::compute_risk(portfolio_dto, market_dto);
-    end = std::chrono::high_resolution_clock::now();
-    auto risk_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    fmt::print("Risk (PV01 + Bucketed) time: {} ms\n", risk_ms);
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
+    }
 
     return 0;
 }

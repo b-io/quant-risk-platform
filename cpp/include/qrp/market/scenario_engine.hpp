@@ -1,7 +1,7 @@
 #pragma once
 #include <qrp/domain/market_data.hpp>
-#include <qrp/market/market_snapshot.hpp>
 #include <map>
+#include <string>
 
 namespace qrp::market {
 
@@ -9,39 +9,32 @@ struct ScenarioDefinition {
     std::string name;
     std::map<std::string, double> parallel_shocks; // currency -> bump
     std::map<std::string, std::map<std::string, double>> node_shocks; // currency -> {tenor -> bump}
+    
+    // Twist shocks: shift = base_shift + slope * (tenor_in_years - pivot_tenor)
+    struct TwistShock {
+        double pivot_tenor; // e.g., 5.0 (years)
+        double slope;       // e.g., 0.0001 (1bp per year)
+    };
+    std::map<std::string, TwistShock> twist_shocks;
+
+    // Credit spread shocks
+    std::map<std::string, double> credit_shocks; // issuer/group -> bump
 };
 
 class ScenarioEngine {
 public:
     static domain::MarketSnapshot apply_scenario(
         const domain::MarketSnapshot& base_market,
-        const ScenarioDefinition& scenario) {
+        const ScenarioDefinition& scenario);
 
-        domain::MarketSnapshot shocked = base_market;
-
-        for (auto& [asset_class, market_objs] : shocked.markets) {
-            for (auto& [name, curve_def] : market_objs) {
-                // Apply parallel shock if currency matches
-                if (scenario.parallel_shocks.contains(curve_def.currency)) {
-                    double bump = scenario.parallel_shocks.at(curve_def.currency);
-                    for (auto& node : curve_def.nodes) {
-                        node.value += bump;
-                    }
-                }
-
-                // Apply node shocks
-                if (scenario.node_shocks.contains(curve_def.currency)) {
-                    const auto& nodes_to_shock = scenario.node_shocks.at(curve_def.currency);
-                    for (auto& node : curve_def.nodes) {
-                        if (nodes_to_shock.contains(node.tenor)) {
-                            node.value += nodes_to_shock.at(node.tenor);
-                        }
-                    }
-                }
-            }
-        }
-        return shocked;
-    }
+    /**
+     * @brief Apply a scenario directly to a built MarketState using handles.
+     * This is much more efficient than apply_scenario(DTO) as it doesn't rebuild curves.
+     */
+    static void apply_scenario_to_state(
+        MarketState& state,
+        const domain::MarketSnapshot& base_dto, // needed to know which quotes to bump
+        const ScenarioDefinition& scenario);
 };
 
 } // namespace qrp::market

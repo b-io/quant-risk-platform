@@ -2,12 +2,13 @@
 #include <qrp/io/json_loader.hpp>
 #include <qrp/market/market_snapshot.hpp>
 #include <qrp/analytics/valuation_service.hpp>
+#include <qrp/analytics/pricing_context.hpp>
 #include <filesystem>
 
 TEST(ValuationIntegrationTest, PriceSamplePortfolio) {
     // Note: In a real test environment, we'd ensure these files are available
     // For this environment, we'll assume they are in the project root relative path
-    std::string market_path = "data/market/base_market.json";
+    std::string market_path = "data/market/base_market_v2.json";
     std::string portfolio_path = "data/portfolios/demo_macro_book.json";
 
     if (!std::filesystem::exists(market_path)) {
@@ -19,7 +20,8 @@ TEST(ValuationIntegrationTest, PriceSamplePortfolio) {
 
     auto portfolio_dto = qrp::io::load_portfolio(portfolio_path);
 
-    auto results = qrp::analytics::ValuationService::price_portfolio(portfolio_dto, market);
+    qrp::analytics::PricingContext context(market.built_state());
+    auto results = qrp::analytics::ValuationService::price_portfolio(portfolio_dto, context);
 
     EXPECT_FALSE(results.empty());
     for (const auto& res : results) {

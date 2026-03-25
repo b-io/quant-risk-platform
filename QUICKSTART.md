@@ -40,7 +40,7 @@ If you are on Windows and prefer a Linux-first environment (highly recommended f
     Once inside your WSL distribution (e.g., Ubuntu), you **must** install the following packages for `vcpkg` and the build tools to work:
     ```bash
     sudo apt-get update
-    sudo apt-get install -y autoconf autoconf-archive automake build-essential cmake curl git libtool ninja-build pkg-config tar unzip zip
+    sudo apt-get install -y autoconf autoconf-archive automake build-essential cmake curl git libtool ninja-build pkg-config python3-dev tar unzip zip
     ```
 
 3.  **Verify the Installation**:
