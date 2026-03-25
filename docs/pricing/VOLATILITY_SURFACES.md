@@ -17,6 +17,7 @@ Volatility documentation should eventually cover:
 ## Planned design direction
 
 ### Data model
+
 Quotes should eventually include:
 
 - asset class,
@@ -29,9 +30,12 @@ Quotes should eventually include:
 - surface family ID.
 
 ### Builder layer
-The platform should expose a `VolSurfaceBuilder` interface that hides QuantLib-specific construction details behind platform abstractions.
+
+The platform should expose a `VolSurfaceBuilder` interface that hides QuantLib-specific construction details behind
+platform abstractions.
 
 ### Risk integration
+
 Volatility surfaces should integrate with:
 
 - pricing engines for optionality,

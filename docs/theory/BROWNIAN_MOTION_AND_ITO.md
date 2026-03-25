@@ -3,7 +3,8 @@
 ## 1. Why this chapter matters
 
 Many quantitative finance models are built on the idea that market variables evolve randomly through time.  
-A risk engine does not always need a stochastic model for deterministic sensitivities such as PV01 or scenario shocks, but it **does** need one for many simulation-based tasks:
+A risk engine does not always need a stochastic model for deterministic sensitivities such as PV01 or scenario shocks,
+but it **does** need one for many simulation-based tasks:
 
 - Monte Carlo pricing
 - exposure simulation
@@ -13,13 +14,16 @@ A risk engine does not always need a stochastic model for deterministic sensitiv
 
 The mathematical object that appears again and again is **Brownian motion**, also called the **Wiener process**.
 
-The physical intuition comes from the historical study of small particles suspended in a fluid whose irregular motion was later explained by incessant molecular collisions. The mathematical model abstracts that erratic behavior into an idealized stochastic process with precise probabilistic properties.
+The physical intuition comes from the historical study of small particles suspended in a fluid whose irregular motion
+was later explained by incessant molecular collisions. The mathematical model abstracts that erratic behavior into an
+idealized stochastic process with precise probabilistic properties.
 
 ---
 
 ## 2. From random walks to Brownian motion
 
-A good way to understand Brownian motion is to begin with a **discrete random walk** and ask what kind of scaling can produce a meaningful continuous-time limit.
+A good way to understand Brownian motion is to begin with a **discrete random walk** and ask what kind of scaling can
+produce a meaningful continuous-time limit.
 
 ### 2.1 A simple symmetric random walk
 
@@ -59,13 +63,15 @@ So the typical size of $S_n$ is of order $\sqrt{n}$. This square-root growth is 
 
 ### 2.2 Introducing a time step $\Delta t$
 
-Now suppose that one step takes time $\Delta t$. If we observe the walk up to time $t$, then the number of steps is approximately
+Now suppose that one step takes time $\Delta t$. If we observe the walk up to time $t$, then the number of steps is
+approximately
 
 $$
 N = \frac{t}{\Delta t}.
 $$
 
-We now ask: **how large should each spatial jump be** if we want the process to have a sensible limit as $\Delta t \to 0$?
+We now ask: **how large should each spatial jump be** if we want the process to have a sensible limit
+as $\Delta t \to 0$?
 
 Write the rescaled process as
 
@@ -156,11 +162,13 @@ $$
 W_t^{(\Delta t)} \Rightarrow \mathcal{N}(0,t).
 $$
 
-That already matches one of the defining properties of Brownian motion: at time $t$, the distribution should be Gaussian with mean $0$ and variance $t$.
+That already matches one of the defining properties of Brownian motion: at time $t$, the distribution should be Gaussian
+with mean $0$ and variance $t$.
 
 ### 2.5 From finite-dimensional convergence to a process limit
 
-Matching the marginal distribution at one time is not enough. We want the **entire path-valued process** to converge. The precise theorem is the functional central limit theorem, also called **Donsker's invariance principle**:
+Matching the marginal distribution at one time is not enough. We want the **entire path-valued process** to converge.
+The precise theorem is the functional central limit theorem, also called **Donsker's invariance principle**:
 
 $$
 W_t^{(\Delta t)}
@@ -170,7 +178,8 @@ $$
 
 where $W_t$ is standard Brownian motion.
 
-This means that when time is refined and jumps are shrunk by the factor $\sqrt{\Delta t}$, the random walk converges to a continuous-time Gaussian process with independent increments.
+This means that when time is refined and jumps are shrunk by the factor $\sqrt{\Delta t}$, the random walk converges to
+a continuous-time Gaussian process with independent increments.
 
 ### 2.6 A step-by-step variance check
 
@@ -242,7 +251,8 @@ $$
 W_{1.00}^{(\Delta t)} = 0.5 + 0.5 = 1.0.
 $$
 
-If we refine the partition, the path becomes more jagged, but the variance at time $1$ remains of order $1$ because each individual jump gets smaller like $\sqrt{\Delta t}$.
+If we refine the partition, the path becomes more jagged, but the variance at time $1$ remains of order $1$ because each
+individual jump gets smaller like $\sqrt{\Delta t}$.
 
 ### 2.8 Visual intuition
 
@@ -276,9 +286,13 @@ Those are precisely the features that define Brownian motion.
 
 ### 2.10 Historical and mathematical perspective
 
-Historically, Brownian motion comes from the observed irregular motion of microscopic particles suspended in a fluid. The physical explanation is that the particle is constantly hit by surrounding molecules. The mathematical model does not describe each collision individually; instead, it passes to an idealized limit in which only the aggregate random effect remains.
+Historically, Brownian motion comes from the observed irregular motion of microscopic particles suspended in a fluid.
+The physical explanation is that the particle is constantly hit by surrounding molecules. The mathematical model does
+not describe each collision individually; instead, it passes to an idealized limit in which only the aggregate random
+effect remains.
 
-That idealized limit is the **Wiener process**, which is the canonical continuous-time model of Brownian motion in probability theory, stochastic calculus, and mathematical finance.
+That idealized limit is the **Wiener process**, which is the canonical continuous-time model of Brownian motion in
+probability theory, stochastic calculus, and mathematical finance.
 
 ---
 
@@ -344,7 +358,8 @@ The path itself is wildly irregular. In fact, Brownian paths are continuous but 
 
 ## 4. Brownian motion as a model ingredient
 
-Brownian motion by itself is centered around zero and has no drift. Most financial quantities need a drift and a scale. This leads to processes of the form
+Brownian motion by itself is centered around zero and has no drift. Most financial quantities need a drift and a scale.
+This leads to processes of the form
 
 $$
 X_t = X_0 + \mu t + \sigma W_t.
@@ -366,7 +381,8 @@ $$
 r_t = r_0 + \mu t + \sigma W_t.
 $$
 
-This means the rate level changes additively over time. It can be useful as a simple teaching model, but it can also produce unrealistic negative or explosive behavior depending on parameters.
+This means the rate level changes additively over time. It can be useful as a simple teaching model, but it can also
+produce unrealistic negative or explosive behavior depending on parameters.
 
 ---
 
@@ -477,10 +493,8 @@ df(t,X_t)
 \left(
 \frac{\partial f}{\partial t}
 + a \frac{\partial f}{\partial x}
-+ \frac12 b^2 \frac{\partial^2 f}{\partial x^2}
-\right) dt
-+
- b \frac{\partial f}{\partial x} \, dW_t.
++ \frac12 b^2 \frac{\partial^2 f}{\partial x^2} \right) dt
++ b \frac{\partial f}{\partial x} \, dW_t.
 $$
 
 This is the stochastic analog of the ordinary chain rule, but with an extra second-derivative term.
@@ -625,7 +639,8 @@ or spread-factor models driven by Gaussian or mean-reverting processes.
 
 ### Commodities
 
-Spot or forward factors can be modeled with one or several Brownian drivers, sometimes with seasonality and convenience-yield components.
+Spot or forward factors can be modeled with one or several Brownian drivers, sometimes with seasonality and
+convenience-yield components.
 
 ---
 
@@ -646,7 +661,8 @@ X_{t+\Delta t} \approx X_t + a(t,X_t)\Delta t + b(t,X_t)\sqrt{\Delta t} Z,
 \qquad Z \sim \mathcal{N}(0,1).
 $$
 
-In C++, this should live in a dedicated Monte Carlo or stochastic-model module, not in the deterministic valuation service.
+In C++, this should live in a dedicated Monte Carlo or stochastic-model module, not in the deterministic valuation
+service.
 
 ---
 
@@ -654,7 +670,8 @@ In C++, this should live in a dedicated Monte Carlo or stochastic-model module, 
 
 ### Confusing physical and risk-neutral dynamics
 
-The drift under the real-world probability measure $\mathbb{P}$ is not generally the same as the drift under the pricing measure $\mathbb{Q}$.
+The drift under the real-world probability measure $\mathbb{P}$ is not generally the same as the drift under the pricing
+measure $\mathbb{Q}$.
 
 ### Using Brownian motion where jumps dominate
 

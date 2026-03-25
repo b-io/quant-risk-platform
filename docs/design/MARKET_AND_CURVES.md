@@ -42,6 +42,7 @@ Still missing or thin:
 A robust schema should distinguish:
 
 ### 3.1 Quote records
+
 Each quote should carry enough metadata to build the correct helper or surface node without guessing from tenor alone.
 
 Suggested fields:
@@ -62,6 +63,7 @@ Suggested fields:
 - optional source or contributor metadata.
 
 ### 3.2 Curve specifications
+
 A curve specification should identify:
 
 - the target curve ID,
@@ -78,7 +80,8 @@ A production rates platform should generally separate:
 - **discount curves** for collateral-consistent discounting,
 - **projection curves** for floating-rate forecast generation.
 
-This matters because post-crisis rates pricing is generally multi-curve rather than single-curve. Even if the current prototype still sometimes falls back to one curve, the design should preserve a clean separation.
+This matters because post-crisis rates pricing is generally multi-curve rather than single-curve. Even if the current
+prototype still sometimes falls back to one curve, the design should preserve a clean separation.
 
 ## 5. Conventions
 

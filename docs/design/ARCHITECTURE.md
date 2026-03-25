@@ -1,6 +1,8 @@
 # Quant Risk Platform Architecture
 
-This document is the **single design source of truth** for the platform architecture. It combines the previous high-level and low-level notes and explains not only **what** the components are, but also **why** the design choices were made.
+This document is the **single design source of truth** for the platform architecture. It combines the previous
+high-level and low-level notes and explains not only **what** the components are, but also **why** the design choices
+were made.
 
 ## 1. Design goals
 
@@ -91,14 +93,14 @@ sequenceDiagram
     participant F as InstrumentFactory
     participant A as Analytics service
 
-    U->>L: load market and portfolio files
-    L->>M: validated DTOs
-    M->>S: build curves and quote handles
-    S->>P: provide market access
-    A->>F: request instrument build
-    F->>P: resolve curves and conventions
-    A->>S: apply shocks via handles when needed
-    A->>U: return structured results
+    U ->> L: load market and portfolio files
+    L ->> M: validated DTOs
+    M ->> S: build curves and quote handles
+    S ->> P: provide market access
+    A ->> F: request instrument build
+    F ->> P: resolve curves and conventions
+    A ->> S: apply shocks via handles when needed
+    A ->> U: return structured results
 ```
 
 ## 5. Current code mapping
@@ -236,6 +238,6 @@ To keep the design coherent:
 - maintain **one canonical architecture document**: `docs/design/ARCHITECTURE.md`,
 - use specialized supporting notes only when they add real value,
 - every design note must explain both:
-  - the chosen design,
-  - why that design is preferred over simpler alternatives,
+    - the chosen design,
+    - why that design is preferred over simpler alternatives,
 - every important QuantLib choice should be justified in terms of correctness, performance, and extensibility.

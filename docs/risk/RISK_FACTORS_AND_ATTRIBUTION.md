@@ -17,7 +17,8 @@ The platform should move from implicit bumping to explicit factor definitions. A
 
 ## Why this matters
 
-Without explicit factor definitions, the engine can still produce numbers, but it cannot easily answer business questions such as:
+Without explicit factor definitions, the engine can still produce numbers, but it cannot easily answer business
+questions such as:
 
 - which curve contributed most to DV01,
 - which issuer family drove CS01,

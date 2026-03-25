@@ -2,7 +2,9 @@
 
 ## 1. Why Monte Carlo is useful
 
-Monte Carlo simulation is used when closed-form formulas are unavailable, when the portfolio contains nonlinear instruments, or when the quantity of interest depends on the full distribution of outcomes rather than only on local sensitivities.
+Monte Carlo simulation is used when closed-form formulas are unavailable, when the portfolio contains nonlinear
+instruments, or when the quantity of interest depends on the full distribution of outcomes rather than only on local
+sensitivities.
 
 Typical use cases include:
 
@@ -26,13 +28,15 @@ $$
 
 Monte Carlo estimates the distribution of $\Pi_T$ by simulating many possible future market states.
 
-If we generate $N$ scenarios and obtain simulated values $\Pi_T^{(1)}, \dots, \Pi_T^{(N)}$, then expectations are approximated by empirical averages:
+If we generate $N$ scenarios and obtain simulated values $\Pi_T^{(1)}, \dots, \Pi_T^{(N)}$, then expectations are
+approximated by empirical averages:
 
 $$
 \mathbb{E}[g(\Pi_T)] \approx \frac{1}{N}\sum_{i=1}^N g\left(\Pi_T^{(i)}\right).
 $$
 
-This is where the Law of Large Numbers enters: as $N \to \infty$, the empirical average converges to the true expectation.
+This is where the Law of Large Numbers enters: as $N \to \infty$, the empirical average converges to the true
+expectation.
 
 The Central Limit Theorem explains the statistical error:
 
@@ -172,7 +176,8 @@ $$
 \operatorname{ES}_{\alpha} \approx -\frac{1}{k}\sum_{i=1}^{k} \Pi_{(i)}.
 $$
 
-If P&L is defined as profit minus loss, then a negative value corresponds to a loss, which explains the minus signs above.
+If P&L is defined as profit minus loss, then a negative value corresponds to a loss, which explains the minus signs
+above.
 
 ---
 
@@ -196,13 +201,15 @@ Approximate the P&L distribution analytically, often with a delta or delta-gamma
 
 ### 7.3 Model-based Monte Carlo
 
-Specify a stochastic model for factor evolution, simulate future paths, then revalue under each path. This is the most flexible approach, but it is also the most computationally expensive.
+Specify a stochastic model for factor evolution, simulate future paths, then revalue under each path. This is the most
+flexible approach, but it is also the most computationally expensive.
 
 ---
 
 ## 8. What the current project should implement first
 
-For a first production-shaped implementation, the most reasonable starting point is not a full exotic path engine. It is a coherent factor Monte Carlo around the deterministic pricing engine.
+For a first production-shaped implementation, the most reasonable starting point is not a full exotic path engine. It is
+a coherent factor Monte Carlo around the deterministic pricing engine.
 
 ### First milestone
 
@@ -252,7 +259,8 @@ A clean design separates:
 
 ### Performance
 
-The engine should avoid rebuilding the full market and the full instrument set for each path whenever possible. In a QuantLib-based design, it is often more efficient to:
+The engine should avoid rebuilding the full market and the full instrument set for each path whenever possible. In a
+QuantLib-based design, it is often more efficient to:
 
 - construct instruments once,
 - hold market quotes through handles such as `SimpleQuote`,
@@ -261,7 +269,8 @@ The engine should avoid rebuilding the full market and the full instrument set f
 
 ### Statistical error
 
-Monte Carlo output should report not only point estimates but also estimation uncertainty. If $\hat m_N$ estimates a quantity with sample standard deviation $s$, then an approximate standard error is
+Monte Carlo output should report not only point estimates but also estimation uncertainty. If $\hat m_N$ estimates a
+quantity with sample standard deviation $s$, then an approximate standard error is
 
 $$
 \operatorname{SE}(\hat m_N) \approx \frac{s}{\sqrt{N}}.
@@ -324,4 +333,5 @@ $$
 \mathcal{N}(0, \operatorname{Var}(Y)).
 $$
 
-So Monte Carlo becomes more accurate as the number of paths grows, but only at the relatively slow rate $N^{-1/2}$. That is why variance reduction and efficient pricing infrastructure matter in practice.
+So Monte Carlo becomes more accurate as the number of paths grows, but only at the relatively slow rate $N^{-1/2}$. That
+is why variance reduction and efficient pricing infrastructure matter in practice.

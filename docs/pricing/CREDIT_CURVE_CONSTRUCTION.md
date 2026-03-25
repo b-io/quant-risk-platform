@@ -17,17 +17,20 @@ Credit documentation in this repository should eventually cover:
 ## Intended implementation path
 
 ### Phase 1
+
 - extend the market schema to support credit spread instruments,
 - define issuer / reference-entity identifiers,
 - define recovery-rate storage,
 - define a `CreditCurveBuilder` interface.
 
 ### Phase 2
+
 - bootstrap survival curves from CDS spreads or simplified spread inputs,
 - expose survival probabilities and default densities,
 - map credit factors for CS01 and stress.
 
 ### Phase 3
+
 - integrate credit curves into pricing and portfolio risk aggregation.
 
 ## Why this deserves its own folder

@@ -181,7 +181,8 @@ where $r$ is a funding rate and $q$ is a dividend yield under simple assumptions
 
 ## 6. Commodity market data
 
-Commodity markets often differ from equities because forward curves are central and storage, seasonality, and convenience yield matter.
+Commodity markets often differ from equities because forward curves are central and storage, seasonality, and
+convenience yield matter.
 
 ### Typical raw quotes
 

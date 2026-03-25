@@ -36,11 +36,13 @@ Current limitations:
 ## 3. Target service split
 
 ### Pricing
+
 - deterministic valuation,
 - structured valuation diagnostics,
 - curve and engine provenance.
 
 ### Risk
+
 - PV01 / DV01,
 - key-rate risk,
 - CS01,
@@ -48,6 +50,7 @@ Current limitations:
 - aggregation by business tags.
 
 ### Explain
+
 - market-move explain,
 - carry / roll-down,
 - cash and fixing effects,
@@ -55,16 +58,19 @@ Current limitations:
 - residual.
 
 ### Stress
+
 - generic scenarios,
 - historical stress replay,
 - scenario-set governance.
 
 ### VaR
+
 - historical simulation,
 - parametric delta-normal,
 - Monte Carlo VaR via the simulation framework.
 
 ### Monte Carlo
+
 - one-step factor simulation,
 - path simulation,
 - stochastic-process abstraction,

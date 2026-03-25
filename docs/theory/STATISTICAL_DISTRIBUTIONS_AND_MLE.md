@@ -2,13 +2,18 @@
 
 ## 1. Why distributions matter
 
-A probability distribution specifies how uncertainty is modeled. In applications, it tells us which values a random variable can take, how likely those values are, and how quantities such as means, variances, tail probabilities, and transformations should be computed.
+A probability distribution specifies how uncertainty is modeled. In applications, it tells us which values a random
+variable can take, how likely those values are, and how quantities such as means, variances, tail probabilities, and
+transformations should be computed.
 
-In quantitative finance, risk management, econometrics, statistics, and stochastic modeling, distributions appear everywhere:
+In quantitative finance, risk management, econometrics, statistics, and stochastic modeling, distributions appear
+everywhere:
 
-- **Bernoulli** variables model binary events such as default vs. survival, breach vs. no breach, success vs. failure, or trigger vs. no trigger.
+- **Bernoulli** variables model binary events such as default vs. survival, breach vs. no breach, success vs. failure,
+  or trigger vs. no trigger.
 - **Binomial** laws model the number of successes across a fixed number of comparable trials.
-- **Poisson** laws model counts of arrivals or events over time, such as transaction arrivals, operational incidents, or jump counts.
+- **Poisson** laws model counts of arrivals or events over time, such as transaction arrivals, operational incidents, or
+  jump counts.
 - **Exponential** laws model waiting times between events in simple constant-intensity settings.
 - **Normal** laws model measurement errors, residual shocks, and many large-sample approximations.
 - **Lognormal** and **Gamma** laws model strictly positive quantities.
@@ -23,7 +28,9 @@ The choice of distribution matters because it affects:
 4. the realism of tail-risk assessments,
 5. the tractability of simulation and analytical pricing.
 
-This chapter summarizes several important discrete and continuous families, their parameters, supports, moments, characteristic functions, standard maximum-likelihood estimators when available in closed form, and their main asymptotic properties.
+This chapter summarizes several important discrete and continuous families, their parameters, supports, moments,
+characteristic functions, standard maximum-likelihood estimators when available in closed form, and their main
+asymptotic properties.
 
 ---
 
@@ -35,7 +42,8 @@ $$
 X_1, \dots, X_n,
 $$
 
-where each observation is assumed to come from a distribution belonging to a parametric family indexed by a parameter $\theta \in \Theta$. We write the realized sample as
+where each observation is assumed to come from a distribution belonging to a parametric family indexed by a
+parameter $\theta \in \Theta$. We write the realized sample as
 
 $$
 X_1=x_1,\dots,X_n=x_n.
@@ -53,7 +61,8 @@ $$
 L(\theta; x_1,\dots,x_n)=\prod_{i=1}^n p(x_i;\theta).
 $$
 
-The likelihood is not a probability in $\theta$; rather, it measures how compatible different parameter values are with the observed sample.
+The likelihood is not a probability in $\theta$; rather, it measures how compatible different parameter values are with
+the observed sample.
 
 The **maximum likelihood estimator** (MLE) is defined by
 
@@ -79,13 +88,17 @@ This is easier to differentiate and numerically more stable.
 
 ### 2.1 Why maximum likelihood is so important
 
-Maximum likelihood plays a central role because it is systematic, general, and often statistically efficient. Once a probabilistic model is specified, the likelihood gives a principled way to estimate unknown parameters. Under suitable regularity conditions, MLEs are:
+Maximum likelihood plays a central role because it is systematic, general, and often statistically efficient. Once a
+probabilistic model is specified, the likelihood gives a principled way to estimate unknown parameters. Under suitable
+regularity conditions, MLEs are:
 
 - **consistent**, meaning they converge to the true parameter,
 - **asymptotically normal**, meaning their fluctuations are approximately Gaussian in large samples,
-- **asymptotically efficient**, meaning they often achieve the lowest possible variance asymptotically among regular estimators.
+- **asymptotically efficient**, meaning they often achieve the lowest possible variance asymptotically among regular
+  estimators.
 
-For simple models, the MLE can often be written explicitly. For more complex models, it is computed numerically using optimization methods.
+For simple models, the MLE can often be written explicitly. For more complex models, it is computed numerically using
+optimization methods.
 
 ### 2.2 A general score-equation view
 
@@ -185,7 +198,12 @@ So the MLE is simply the sample proportion of successes.
 
 ### Use cases
 
-The Bernoulli law is the simplest model for a single yes/no outcome. In credit risk, one may define $X_i=1$ if issuer $i$ defaults during a given horizon and $X_i=0$ otherwise. In operational-risk or control settings, one may set $X_i=1$ if a breach occurs during a period. In reliability, it may represent whether a component failed before a deadline. In experimentation, it is the canonical model for success/failure trials. Even when real systems are more complex, the Bernoulli variable remains a basic building block because many portfolio models are formed by summing Bernoulli indicators.
+The Bernoulli law is the simplest model for a single yes/no outcome. In credit risk, one may define $X_i=1$ if
+issuer $i$ defaults during a given horizon and $X_i=0$ otherwise. In operational-risk or control settings, one may
+set $X_i=1$ if a breach occurs during a period. In reliability, it may represent whether a component failed before a
+deadline. In experimentation, it is the canonical model for success/failure trials. Even when real systems are more
+complex, the Bernoulli variable remains a basic building block because many portfolio models are formed by summing
+Bernoulli indicators.
 
 ### Asymptotics
 
@@ -216,7 +234,8 @@ $$
 
 if it counts the number of successes in $m$ independent Bernoulli trials, each with success probability $p$.
 
-> We use $m$ here for the number of Bernoulli trials in the Binomial distribution, so that $n$ remains available for sample size in estimation problems. This avoids a common notational ambiguity.
+> We use $m$ here for the number of Bernoulli trials in the Binomial distribution, so that $n$ remains available for
+> sample size in estimation problems. This avoids a common notational ambiguity.
 
 ### pmf
 
@@ -252,7 +271,11 @@ This explains both its mean and its characteristic function.
 
 ### Use cases
 
-The Binomial model is natural when the total number of opportunities is fixed and each opportunity leads to success or failure. In finance, it can model the number of names defaulting in a homogeneous portfolio over a fixed horizon under an independence assumption. In quality control, it can represent the number of defective items in a batch. In compliance monitoring, it can count how many transactions among a fixed set violate a rule. In clinical or experimental settings, it is often used for the number of responders out of a fixed number of participants.
+The Binomial model is natural when the total number of opportunities is fixed and each opportunity leads to success or
+failure. In finance, it can model the number of names defaulting in a homogeneous portfolio over a fixed horizon under
+an independence assumption. In quality control, it can represent the number of defective items in a batch. In compliance
+monitoring, it can count how many transactions among a fixed set violate a rule. In clinical or experimental settings,
+it is often used for the number of responders out of a fixed number of participants.
 
 ### Asymptotics
 
@@ -340,7 +363,11 @@ $$
 
 ### Use cases
 
-The Poisson law is a basic model for event counts over a fixed interval when events occur independently and with a constant average rate. It is widely used for transaction arrivals, insurance claims in a simple setting, system incidents, jump counts in reduced-form or jump-diffusion approximations, and default counts when defaults are rare and weakly dependent. It is attractive because it is analytically convenient and serves as the canonical counting distribution associated with the Poisson process.
+The Poisson law is a basic model for event counts over a fixed interval when events occur independently and with a
+constant average rate. It is widely used for transaction arrivals, insurance claims in a simple setting, system
+incidents, jump counts in reduced-form or jump-diffusion approximations, and default counts when defaults are rare and
+weakly dependent. It is attractive because it is analytically convenient and serves as the canonical counting
+distribution associated with the Poisson process.
 
 ### Asymptotics and approximations
 
@@ -350,7 +377,8 @@ $$
 \frac{X-\lambda}{\sqrt{\lambda}}\xrightarrow{d}\mathcal{N}(0,1).
 $$
 
-The Poisson law also arises as a limit of Binomial laws in rare-event settings, which helps explain its ubiquity in applications involving many opportunities for a rare event.
+The Poisson law also arises as a limit of Binomial laws in rare-event settings, which helps explain its ubiquity in
+applications involving many opportunities for a rare event.
 
 ---
 
@@ -370,7 +398,8 @@ $$
 \qquad k=1,2,\dots
 $$
 
-> This is one of two common conventions. Under this convention, $X$ starts at $1$ and counts the trial on which the first success occurs.
+> This is one of two common conventions. Under this convention, $X$ starts at $1$ and counts the trial on which the
+> first success occurs.
 
 ### Mean and variance
 
@@ -399,11 +428,15 @@ This makes it the discrete-time analogue of the exponential distribution.
 
 ### Use cases
 
-The geometric law is useful for simple discrete-time waiting-time questions: the number of periods until the first default, the number of monitoring dates until the first breach, the number of customer contacts until the first response, or the number of iterations until an event is triggered. It is often a pedagogical stepping stone before moving to continuous-time intensity models, where the exponential distribution plays the analogous role.
+The geometric law is useful for simple discrete-time waiting-time questions: the number of periods until the first
+default, the number of monitoring dates until the first breach, the number of customer contacts until the first
+response, or the number of iterations until an event is triggered. It is often a pedagogical stepping stone before
+moving to continuous-time intensity models, where the exponential distribution plays the analogous role.
 
 ### Asymptotics
 
-Under suitable rescaling as the time grid becomes finer and $p$ becomes small, geometric waiting times converge to exponential waiting times.
+Under suitable rescaling as the time grid becomes finer and $p$ becomes small, geometric waiting times converge to
+exponential waiting times.
 
 ---
 
@@ -445,7 +478,10 @@ $$
 
 ### Use cases
 
-The uniform law is a simple model for bounded uncertainty when all values in a range are treated as equally plausible. It is often used in elementary simulation, in randomized algorithms, and as the base distribution for inverse-transform methods. In practice it is rarely the best model for real economic or financial variables, but it is an important reference case because it is simple, bounded, and easy to simulate.
+The uniform law is a simple model for bounded uncertainty when all values in a range are treated as equally plausible.
+It is often used in elementary simulation, in randomized algorithms, and as the base distribution for inverse-transform
+methods. In practice it is rarely the best model for real economic or financial variables, but it is an important
+reference case because it is simple, bounded, and easy to simulate.
 
 ---
 
@@ -514,7 +550,11 @@ This is why it is central in constant-intensity event modeling.
 
 ### Use cases
 
-The exponential law is the natural waiting-time distribution associated with a Poisson process. If events arrive at constant intensity $\lambda$, then the gap between successive arrivals is exponential. In finance and risk, it appears in simple reduced-form default-time models where the default intensity is constant. In reliability, it models lifetimes of components that do not age. In queueing and operational systems, it gives a baseline model for inter-arrival or service times when the hazard rate is constant.
+The exponential law is the natural waiting-time distribution associated with a Poisson process. If events arrive at
+constant intensity $\lambda$, then the gap between successive arrivals is exponential. In finance and risk, it appears
+in simple reduced-form default-time models where the default intensity is constant. In reliability, it models lifetimes
+of components that do not age. In queueing and operational systems, it gives a baseline model for inter-arrival or
+service times when the hazard rate is constant.
 
 ### Asymptotics
 
@@ -565,15 +605,22 @@ $$
 \hat\sigma^2_{\mathrm{MLE}}=\frac{1}{n}\sum_{i=1}^n (X_i-\bar X)^2.
 $$
 
-Note that the MLE of the variance uses the divisor $n$, not $n-1$. The estimator with divisor $n-1$ is unbiased, but it is not the MLE.
+Note that the MLE of the variance uses the divisor $n$, not $n-1$. The estimator with divisor $n-1$ is unbiased, but it
+is not the MLE.
 
 ### Use cases
 
-The normal law is fundamental because it is both mathematically tractable and asymptotically universal. It is the standard model for measurement errors, residuals in regression models, and aggregate shocks formed by summing many small effects. In quantitative finance, Gaussian factors often appear in linear risk models, term-structure models, and approximations to aggregated portfolio PnL. Even when underlying risks are not exactly Gaussian, normal approximations are often used because of the Central Limit Theorem.
+The normal law is fundamental because it is both mathematically tractable and asymptotically universal. It is the
+standard model for measurement errors, residuals in regression models, and aggregate shocks formed by summing many small
+effects. In quantitative finance, Gaussian factors often appear in linear risk models, term-structure models, and
+approximations to aggregated portfolio PnL. Even when underlying risks are not exactly Gaussian, normal approximations
+are often used because of the Central Limit Theorem.
 
 ### Asymptotics
 
-The normal family is stable under affine transformations and sums of independent normal variables. More broadly, the Central Limit Theorem explains why many normalized sample averages are approximately normal even when the underlying variables are not.
+The normal family is stable under affine transformations and sums of independent normal variables. More broadly, the
+Central Limit Theorem explains why many normalized sample averages are approximately normal even when the underlying
+variables are not.
 
 ---
 
@@ -606,21 +653,27 @@ $$
 
 ### Characteristic function
 
-There is no simple closed form in elementary functions. The moment-generating function does not exist for positive arguments.
+There is no simple closed form in elementary functions. The moment-generating function does not exist for positive
+arguments.
 
 ### Use cases
 
-The lognormal distribution is appropriate for strictly positive variables generated by multiplicative effects. In Black-Scholes-type models, stock prices are lognormal because log-prices are Gaussian. In economics and engineering, it also appears for quantities that evolve through repeated proportional changes, such as growth factors, multiplicative noise, or some forms of income and size distributions. A practical advantage is that positivity is automatic.
+The lognormal distribution is appropriate for strictly positive variables generated by multiplicative effects. In
+Black-Scholes-type models, stock prices are lognormal because log-prices are Gaussian. In economics and engineering, it
+also appears for quantities that evolve through repeated proportional changes, such as growth factors, multiplicative
+noise, or some forms of income and size distributions. A practical advantage is that positivity is automatic.
 
 ### Remarks on inference
 
-Inference is often easier on the log scale. If $Y_i=\log X_i$ are approximately Gaussian, then standard normal-theory methods can be applied to $Y_i$ and translated back to the original scale.
+Inference is often easier on the log scale. If $Y_i=\log X_i$ are approximately Gaussian, then standard normal-theory
+methods can be applied to $Y_i$ and translated back to the original scale.
 
 ---
 
 ## 4.5 Gamma distribution
 
-A random variable $X$ has a **Gamma distribution** with shape parameter $\alpha > 0$ and rate parameter $\beta > 0$, written
+A random variable $X$ has a **Gamma distribution** with shape parameter $\alpha > 0$ and rate parameter $\beta > 0$,
+written
 
 $$
 X\sim\mathrm{Gamma}(\alpha,\beta),
@@ -633,7 +686,8 @@ f_X(x)=\frac{\beta^\alpha}{\Gamma(\alpha)}x^{\alpha-1}e^{-\beta x},
 \qquad x > 0.
 $$
 
-> Some books use a scale parameter $\theta=1/\beta$ instead of the rate parameter $\beta$. It is important to state the chosen parameterization explicitly.
+> Some books use a scale parameter $\theta=1/\beta$ instead of the rate parameter $\beta$. It is important to state the
+> chosen parameterization explicitly.
 
 ### Mean and variance
 
@@ -651,11 +705,15 @@ $$
 
 ### Use cases
 
-The Gamma family is flexible for positive and skewed quantities. It is widely used for waiting-time aggregates, severities, stochastic intensities, and scale parameters in hierarchical models. Because a sum of independent exponential variables with the same rate is Gamma, it is also natural in queueing and reliability theory. Compared with the lognormal distribution, the Gamma law is often easier to manipulate analytically.
+The Gamma family is flexible for positive and skewed quantities. It is widely used for waiting-time aggregates,
+severities, stochastic intensities, and scale parameters in hierarchical models. Because a sum of independent
+exponential variables with the same rate is Gamma, it is also natural in queueing and reliability theory. Compared with
+the lognormal distribution, the Gamma law is often easier to manipulate analytically.
 
 ### Remarks
 
-When $\alpha$ is large, the Gamma distribution becomes more symmetric and can often be approximated by a normal law after suitable standardization.
+When $\alpha$ is large, the Gamma distribution becomes more symmetric and can often be approximated by a normal law
+after suitable standardization.
 
 ---
 
@@ -692,11 +750,16 @@ where ${}_1F_1$ denotes the confluent hypergeometric function.
 
 ### Use cases
 
-The Beta law is a natural model for random quantities constrained to lie between $0$ and $1$. In credit risk, recovery rates and loss-given-default fractions are often modeled using Beta-type distributions because the support is bounded. In utilization modeling, it can describe ratios such as capacity usage or bounded proportions. In Bayesian statistics, it is the conjugate prior for a Bernoulli or Binomial success probability, which makes posterior updating especially simple.
+The Beta law is a natural model for random quantities constrained to lie between $0$ and $1$. In credit risk, recovery
+rates and loss-given-default fractions are often modeled using Beta-type distributions because the support is bounded.
+In utilization modeling, it can describe ratios such as capacity usage or bounded proportions. In Bayesian statistics,
+it is the conjugate prior for a Bernoulli or Binomial success probability, which makes posterior updating especially
+simple.
 
 ### Shape flexibility
 
-Depending on $(\alpha,\beta)$, the Beta density can be symmetric, skewed left or right, bell-shaped, nearly uniform, or even U-shaped. This flexibility makes it a standard bounded distribution in applied work.
+Depending on $(\alpha,\beta)$, the Beta density can be symmetric, skewed left or right, bell-shaped, nearly uniform, or
+even U-shaped. This flexibility makes it a standard bounded distribution in applied work.
 
 ---
 
@@ -736,7 +799,9 @@ $$
 
 ### Use cases
 
-The chi-square distribution plays a central role in Gaussian inference. Sample variances, quadratic forms, and likelihood-ratio statistics often reduce to chi-square laws or asymptotically chi-square laws. It is fundamental in variance estimation, goodness-of-fit procedures, and many classical test statistics.
+The chi-square distribution plays a central role in Gaussian inference. Sample variances, quadratic forms, and
+likelihood-ratio statistics often reduce to chi-square laws or asymptotically chi-square laws. It is fundamental in
+variance estimation, goodness-of-fit procedures, and many classical test statistics.
 
 ### Asymptotics
 
@@ -779,7 +844,10 @@ There is no short elementary closed form. It can be expressed using modified Bes
 
 ### Use cases
 
-The Student's $t$ law is widely used when data exhibit heavier tails than the normal law can capture. In finance, it is common in return modeling and parametric VaR work because extreme movements occur more frequently than the Gaussian model predicts. In statistics, it arises naturally when a mean is standardized using an estimated variance rather than a known variance. This is why classical $t$-tests are based on it.
+The Student's $t$ law is widely used when data exhibit heavier tails than the normal law can capture. In finance, it is
+common in return modeling and parametric VaR work because extreme movements occur more frequently than the Gaussian
+model predicts. In statistics, it arises naturally when a mean is standardized using an estimated variance rather than a
+known variance. This is why classical $t$-tests are based on it.
 
 ### Asymptotics
 
@@ -812,7 +880,8 @@ $$
 
 in the one-parameter case, or the gradient $\nabla_\theta \ell(\theta)$ in the multiparameter case.
 
-The score measures how sensitive the log-likelihood is to small changes in the parameter. At an interior MLE, one typically has
+The score measures how sensitive the log-likelihood is to small changes in the parameter. At an interior MLE, one
+typically has
 
 $$
 U(\hat\theta)=0.
@@ -820,7 +889,10 @@ $$
 
 ## 5.2 What is Fisher information?
 
-The **Fisher information** measures how much information an observation carries about an unknown parameter. Roughly speaking, it quantifies how sharply the likelihood is peaked around the true parameter value. A model with large Fisher information allows more precise estimation; a model with small Fisher information makes the parameter harder to estimate accurately.
+The **Fisher information** measures how much information an observation carries about an unknown parameter. Roughly
+speaking, it quantifies how sharply the likelihood is peaked around the true parameter value. A model with large Fisher
+information allows more precise estimation; a model with small Fisher information makes the parameter harder to estimate
+accurately.
 
 For one observation, the Fisher information is defined by
 
@@ -846,7 +918,9 @@ This additivity is one reason why estimator precision typically improves at the 
 
 ## 5.3 Intuition
 
-If changing $\theta$ slightly causes a large change in the likelihood, then the data are informative about $\theta$, so Fisher information is large. If the likelihood hardly changes when $\theta$ changes, then many values of $\theta$ fit the data similarly well, and Fisher information is small.
+If changing $\theta$ slightly causes a large change in the likelihood, then the data are informative about $\theta$, so
+Fisher information is large. If the likelihood hardly changes when $\theta$ changes, then many values of $\theta$ fit
+the data similarly well, and Fisher information is small.
 
 A useful informal interpretation is:
 
@@ -855,13 +929,15 @@ A useful informal interpretation is:
 
 ## 5.4 Cramér-Rao lower bound
 
-Fisher information is closely connected to the fundamental lower bound on estimator variance. Under suitable conditions, any unbiased estimator $T$ of $\theta$ satisfies
+Fisher information is closely connected to the fundamental lower bound on estimator variance. Under suitable conditions,
+any unbiased estimator $T$ of $\theta$ satisfies
 
 $$
 \operatorname{Var}(T)\ge \frac{1}{nI(\theta)}.
 $$
 
-This is the **Cramér-Rao lower bound**. It says that no unbiased estimator can have variance below the inverse information. The larger the information, the lower the best achievable variance.
+This is the **Cramér-Rao lower bound**. It says that no unbiased estimator can have variance below the inverse
+information. The larger the information, the lower the best achievable variance.
 
 ## 5.5 Asymptotic normality of the MLE
 
@@ -883,11 +959,13 @@ $$
 
 for large $n$.
 
-This result explains why MLEs are often approximately normal in large samples and why Fisher information governs their asymptotic precision.
+This result explains why MLEs are often approximately normal in large samples and why Fisher information governs their
+asymptotic precision.
 
 ## 5.6 Observed information
 
-In applications, the true Fisher information is usually unknown because it depends on the unknown parameter. A common practical substitute is the **observed information**, defined by
+In applications, the true Fisher information is usually unknown because it depends on the unknown parameter. A common
+practical substitute is the **observed information**, defined by
 
 $$
 J_n(\theta)=-\frac{\partial^2\ell(\theta)}{\partial\theta^2}.
@@ -929,7 +1007,8 @@ $$
 I_n(p)=\frac{n}{p(1-p)}.
 $$
 
-This shows that estimation is hardest when $p$ is near $0$ or $1$ in the sense that very asymmetric samples can carry less local variability information than those around the middle, though boundary effects also complicate inference.
+This shows that estimation is hardest when $p$ is near $0$ or $1$ in the sense that very asymmetric samples can carry
+less local variability information than those around the middle, though boundary effects also complicate inference.
 
 ### Poisson$(\lambda)$
 
@@ -951,7 +1030,8 @@ $$
 I_n(\lambda)=\frac{n}{\lambda}.
 $$
 
-This implies the asymptotic variance of the MLE $\hat\lambda=\bar X$ is approximately $\lambda/n$, which matches the exact variance of the sample mean.
+This implies the asymptotic variance of the MLE $\hat\lambda=\bar X$ is approximately $\lambda/n$, which matches the
+exact variance of the sample mean.
 
 ### Exponential$(\lambda)$
 
@@ -1017,11 +1097,15 @@ So the characteristic function is the Fourier transform of the density under the
 
 ### 6.3 Why they matter in asymptotics
 
-Characteristic functions are especially useful for proving convergence in distribution. Many classical limit theorems, including versions of the Central Limit Theorem, are proved by showing that the characteristic functions converge pointwise to the characteristic function of the limiting law.
+Characteristic functions are especially useful for proving convergence in distribution. Many classical limit theorems,
+including versions of the Central Limit Theorem, are proved by showing that the characteristic functions converge
+pointwise to the characteristic function of the limiting law.
 
 ### 6.4 Why they matter in finance
 
-In option pricing and affine or Lévy models, one often works with transforms rather than densities directly. If the characteristic function of log-prices is known explicitly, one can recover prices or distributions numerically through Fourier inversion. This is one reason characteristic functions are much more than a purely theoretical tool.
+In option pricing and affine or Lévy models, one often works with transforms rather than densities directly. If the
+characteristic function of log-prices is known explicitly, one can recover prices or distributions numerically through
+Fourier inversion. This is one reason characteristic functions are much more than a purely theoretical tool.
 
 ---
 
@@ -1059,7 +1143,8 @@ N\sim\mathrm{Binomial}(m,p).
 $$
 
 This is the simplest portfolio default-count model. It is easy to analyze, but it ignores heterogeneity across obligors
-and dependence between defaults. More advanced portfolio credit models enrich this Bernoulli building block by allowing varying probabilities, factor dependence, or stochastic intensities.
+and dependence between defaults. More advanced portfolio credit models enrich this Bernoulli building block by allowing
+varying probabilities, factor dependence, or stochastic intensities.
 
 ## Example 2: Waiting time to a jump
 
@@ -1092,7 +1177,8 @@ $$
 =\log S_0+\left(r-\frac{1}{2}\sigma^2\right)T+\sigma W_T
 $$
 
-is Gaussian, which means that $S_T$ is lognormal. This explains why the lognormal distribution appears naturally in simple diffusion-based equity models.
+is Gaussian, which means that $S_T$ is lognormal. This explains why the lognormal distribution appears naturally in
+simple diffusion-based equity models.
 
 ## Example 4: Recovery-rate modeling
 
@@ -1102,26 +1188,28 @@ $$
 0 \le R \le 1.
 $$
 
-A Beta distribution is often a reasonable parametric choice because it respects the support automatically and can represent many shapes: concentrated around a central value, skewed, or even bimodal-like near the edges when parameters are below one. This makes it much better suited than an unbounded Gaussian model for bounded fractions.
+A Beta distribution is often a reasonable parametric choice because it respects the support automatically and can
+represent many shapes: concentrated around a central value, skewed, or even bimodal-like near the edges when parameters
+are below one. This makes it much better suited than an unbounded Gaussian model for bounded fractions.
 
 ---
 
 ## 8. Summary table
 
-| Distribution | Type | Parameters                                   | Support | Mean | Variance | Characteristic function | Typical use | Large-sample / limit behavior |
-|---|---|----------------------------------------------|---|---|---|---|---|---|
-| Bernoulli | Discrete | $0 \le p \le 1$                              | $\{0,1\}$ | $p$ | $p(1-p)$ | $(1-p)+pe^{it}$ | Single binary event or default indicator | Sample mean $\to p$; CLT for estimator |
-| Binomial | Discrete | $m\in\mathbb{N}$, $0 \le p \le 1$            | $\{0,\dots,m\}$ | $mp$ | $mp(1-p)$ | $((1-p)+pe^{it})^m$ | Number of successes in $m$ trials | Standardized form $\to$ Normal; rare-event limit $\to$ Poisson |
-| Poisson | Discrete | $\lambda > 0$                                  | $\mathbb{N}_0$ | $\lambda$ | $\lambda$ | $\exp(\lambda(e^{it}-1))$ | Counts of arrivals, incidents, jumps | For large $\lambda$, approximately Normal |
-| Geometric | Discrete | $0 < p \le 1$                                | $\{1,2,\dots\}$ | $1/p$ | $(1-p)/p^2$ | $pe^{it}/(1-(1-p)e^{it})$ | Discrete waiting time to first event | Suitable rescalings $\to$ Exponential |
-| Uniform | Continuous | $a < b$                                      | $[a,b]$ | $(a+b)/2$ | $(b-a)^2/12$ | $(e^{itb}-e^{ita})/(it(b-a))$ | Bounded uncertainty, simulation primitive | LLN and CLT for sample mean |
-| Exponential | Continuous | $\lambda > 0$                                  | $[0,\infty)$ | $1/\lambda$ | $1/\lambda^2$ | $\lambda/(\lambda-it)$ | Waiting times, constant-intensity models | MLE asymptotically Normal |
-| Normal | Continuous | $\mu\in\mathbb{R}$, $\sigma^2 > 0$             | $\mathbb{R}$ | $\mu$ | $\sigma^2$ | $\exp(it\mu-0.5\sigma^2 t^2)$ | Errors, shocks, asymptotic approximations | Stable under sums; CLT limit |
-| Lognormal | Continuous | $\mu\in\mathbb{R}$, $\sigma^2 > 0$ on $\log X$ | $(0,\infty)$ | $e^{\mu+\sigma^2/2}$ | $(e^{\sigma^2}-1)e^{2\mu+\sigma^2}$ | No simple elementary closed form | Positive prices and multiplicative effects | Inference often done on log scale |
-| Gamma | Continuous | $\alpha > 0$, $\beta > 0$                        | $(0,\infty)$ | $\alpha/\beta$ | $\alpha/\beta^2$ | $(1-it/\beta)^{-\alpha}$ | Positive skewed quantities, waiting-time sums | Approx. Normal for large shape |
-| Beta | Continuous | $\alpha > 0$, $\beta > 0$                        | $(0,1)$ | $\alpha/(\alpha+\beta)$ | $\alpha\beta/((\alpha+\beta)^2(\alpha+\beta+1))$ | ${}_1F_1(\alpha;\alpha+\beta;it)$ | Recovery rates, bounded proportions | Concentrates near mean as $\alpha+\beta$ grows |
-| Chi-square | Continuous | $k\in\mathbb{N}$                             | $[0,\infty)$ | $k$ | $2k$ | $(1-2it)^{-k/2}$ | Variance inference, quadratic diagnostics | Standardized form $\to$ Normal |
-| Student's $t$ | Continuous | $\nu > 0$                                      | $\mathbb{R}$ | $0$ if $\nu > 1$ | $\nu/(\nu-2)$ if $\nu > 2$ | Bessel-function form | Heavy-tailed returns, robust inference | $\to$ Normal as $\nu\to\infty$ |
+| Distribution  | Type       | Parameters                                     | Support         | Mean                    | Variance                                         | Characteristic function           | Typical use                                   | Large-sample / limit behavior                                  |
+|---------------|------------|------------------------------------------------|-----------------|-------------------------|--------------------------------------------------|-----------------------------------|-----------------------------------------------|----------------------------------------------------------------|
+| Bernoulli     | Discrete   | $0 \le p \le 1$                                | $\{0,1\}$       | $p$                     | $p(1-p)$                                         | $(1-p)+pe^{it}$                   | Single binary event or default indicator      | Sample mean $\to p$; CLT for estimator                         |
+| Binomial      | Discrete   | $m\in\mathbb{N}$, $0 \le p \le 1$              | $\{0,\dots,m\}$ | $mp$                    | $mp(1-p)$                                        | $((1-p)+pe^{it})^m$               | Number of successes in $m$ trials             | Standardized form $\to$ Normal; rare-event limit $\to$ Poisson |
+| Poisson       | Discrete   | $\lambda > 0$                                  | $\mathbb{N}_0$  | $\lambda$               | $\lambda$                                        | $\exp(\lambda(e^{it}-1))$         | Counts of arrivals, incidents, jumps          | For large $\lambda$, approximately Normal                      |
+| Geometric     | Discrete   | $0 < p \le 1$                                  | $\{1,2,\dots\}$ | $1/p$                   | $(1-p)/p^2$                                      | $pe^{it}/(1-(1-p)e^{it})$         | Discrete waiting time to first event          | Suitable rescalings $\to$ Exponential                          |
+| Uniform       | Continuous | $a < b$                                        | $[a,b]$         | $(a+b)/2$               | $(b-a)^2/12$                                     | $(e^{itb}-e^{ita})/(it(b-a))$     | Bounded uncertainty, simulation primitive     | LLN and CLT for sample mean                                    |
+| Exponential   | Continuous | $\lambda > 0$                                  | $[0,\infty)$    | $1/\lambda$             | $1/\lambda^2$                                    | $\lambda/(\lambda-it)$            | Waiting times, constant-intensity models      | MLE asymptotically Normal                                      |
+| Normal        | Continuous | $\mu\in\mathbb{R}$, $\sigma^2 > 0$             | $\mathbb{R}$    | $\mu$                   | $\sigma^2$                                       | $\exp(it\mu-0.5\sigma^2 t^2)$     | Errors, shocks, asymptotic approximations     | Stable under sums; CLT limit                                   |
+| Lognormal     | Continuous | $\mu\in\mathbb{R}$, $\sigma^2 > 0$ on $\log X$ | $(0,\infty)$    | $e^{\mu+\sigma^2/2}$    | $(e^{\sigma^2}-1)e^{2\mu+\sigma^2}$              | No simple elementary closed form  | Positive prices and multiplicative effects    | Inference often done on log scale                              |
+| Gamma         | Continuous | $\alpha > 0$, $\beta > 0$                      | $(0,\infty)$    | $\alpha/\beta$          | $\alpha/\beta^2$                                 | $(1-it/\beta)^{-\alpha}$          | Positive skewed quantities, waiting-time sums | Approx. Normal for large shape                                 |
+| Beta          | Continuous | $\alpha > 0$, $\beta > 0$                      | $(0,1)$         | $\alpha/(\alpha+\beta)$ | $\alpha\beta/((\alpha+\beta)^2(\alpha+\beta+1))$ | ${}_1F_1(\alpha;\alpha+\beta;it)$ | Recovery rates, bounded proportions           | Concentrates near mean as $\alpha+\beta$ grows                 |
+| Chi-square    | Continuous | $k\in\mathbb{N}$                               | $[0,\infty)$    | $k$                     | $2k$                                             | $(1-2it)^{-k/2}$                  | Variance inference, quadratic diagnostics     | Standardized form $\to$ Normal                                 |
+| Student's $t$ | Continuous | $\nu > 0$                                      | $\mathbb{R}$    | $0$ if $\nu > 1$        | $\nu/(\nu-2)$ if $\nu > 2$                       | Bessel-function form              | Heavy-tailed returns, robust inference        | $\to$ Normal as $\nu\to\infty$                                 |
 
 ---
 
@@ -1154,5 +1242,6 @@ The next natural topics after this chapter are:
 5. Brownian motion and Itô calculus,
 6. transform methods and Fourier pricing.
 
-If you want this chapter to read even more like a textbook, the next step would be to add short derivations of the means and variances, plus a small section on moment-generating functions and probability-generating functions.
+If you want this chapter to read even more like a textbook, the next step would be to add short derivations of the means
+and variances, plus a small section on moment-generating functions and probability-generating functions.
 

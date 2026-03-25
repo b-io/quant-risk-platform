@@ -107,7 +107,8 @@ This is **convergence in probability**.
 
 For large $n$, the sample average is very likely to be close to the true mean.
 
-It does **not** say that every realization is monotone or exact; it says the probability of a large deviation becomes small.
+It does **not** say that every realization is monotone or exact; it says the probability of a large deviation becomes
+small.
 
 ## 3.3 Proof under finite variance
 
@@ -173,9 +174,11 @@ This is **almost sure convergence**, which is stronger than convergence in proba
 ### Intuition
 
 The weak LLN says:
+
 - for each large $n$, a big error is unlikely.
 
 The strong LLN says:
+
 - with probability one, if you keep observing the same sequence forever, the averages really settle down to $\mu$.
 
 ---
@@ -190,7 +193,8 @@ $$
 
 This shows why averaging stabilizes noise.
 
-If each observation has variance $\sigma^2$, then averaging $n$ independent observations divides the variance by $n$. The standard deviation becomes
+If each observation has variance $\sigma^2$, then averaging $n$ independent observations divides the variance by $n$.
+The standard deviation becomes
 
 $$
 \sqrt{\operatorname{Var}(\overline{X}_n)}
@@ -247,7 +251,8 @@ $$
 \qquad Z\sim \mathcal N(0,1).
 $$
 
-So even if the original variables are not normal, the normalized average often becomes approximately normal for large $n$.
+So even if the original variables are not normal, the normalized average often becomes approximately normal for
+large $n$.
 
 ## 5.3 Why the normalization is $\sqrt{n}$
 
@@ -379,10 +384,10 @@ That slow square-root convergence is why variance reduction is so important in q
 
 A useful comparison:
 
-| Theorem | Object studied | Result |
-|---|---|---|
-| LLN | $\overline{X}_n$ | converges to $\mu$ |
-| CLT | $\sqrt{n}(\overline{X}_n-\mu)$ | converges in law to a normal distribution |
+| Theorem | Object studied                 | Result                                    |
+|---------|--------------------------------|-------------------------------------------|
+| LLN     | $\overline{X}_n$               | converges to $\mu$                        |
+| CLT     | $\sqrt{n}(\overline{X}_n-\mu)$ | converges in law to a normal distribution |
 
 So:
 
@@ -438,7 +443,8 @@ $$
 
 which is the characteristic function of $\mathcal N(0,1)$.
 
-That is the core mechanism: when many independent centered terms are added together and normalized appropriately, the Gaussian law emerges.
+That is the core mechanism: when many independent centered terms are added together and normalized appropriately, the
+Gaussian law emerges.
 
 ---
 
@@ -451,7 +457,8 @@ The basic CLT has many extensions:
 - martingale CLT,
 - functional CLT, where random walks converge to Brownian motion.
 
-The functional CLT is especially important in stochastic-process theory: it connects discrete sums to continuous-time Brownian motion.
+The functional CLT is especially important in stochastic-process theory: it connects discrete sums to continuous-time
+Brownian motion.
 
 ---
 
@@ -460,12 +467,14 @@ The functional CLT is especially important in stochastic-process theory: it conn
 A production quant and risk platform uses these ideas constantly.
 
 ### LLN-related uses
+
 - Monte Carlo estimators converging to prices and risk measures,
 - sample averages of returns or losses,
 - empirical default rates,
 - convergence checks in simulation.
 
 ### CLT-related uses
+
 - standard errors of estimators,
 - confidence intervals,
 - approximate distribution of P&L aggregates,
@@ -479,6 +488,7 @@ A production quant and risk platform uses these ideas constantly.
 The Law of Large Numbers and the Central Limit Theorem answer two different questions.
 
 ### Law of Large Numbers
+
 If we average many independent observations, where does the average go?
 
 Answer:
@@ -487,6 +497,7 @@ $$
 $$
 
 ### Central Limit Theorem
+
 How does the average fluctuate around that limit?
 
 Answer:
@@ -495,4 +506,5 @@ $$
 \text{ becomes approximately Gaussian.}
 $$
 
-Together they explain why averages stabilize, why Gaussian approximations appear so often, and why the fundamental statistical error scale is $1/\sqrt{n}$.
+Together they explain why averages stabilize, why Gaussian approximations appear so often, and why the fundamental
+statistical error scale is $1/\sqrt{n}$.

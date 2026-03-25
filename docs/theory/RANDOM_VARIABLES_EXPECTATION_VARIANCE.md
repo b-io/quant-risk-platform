@@ -15,7 +15,8 @@ X =
 \end{cases}
 $$
 
-- In finance, $X$ may represent a return, a default indicator, a recovery rate, a cash flow, or the future value of a portfolio.
+- In finance, $X$ may represent a return, a default indicator, a recovery rate, a cash flow, or the future value of a
+  portfolio.
 
 A random variable is called “random” because its value is unknown before the experiment is realized.
 
@@ -458,7 +459,8 @@ Interpretation:
 
 ## 12. Conditional expectation and variance decomposition
 
-If $Y$ contains information about $X$, the **conditional expectation** $\mathbb{E}[X \mid Y]$ is the best mean prediction of $X$ given $Y$.
+If $Y$ contains information about $X$, the **conditional expectation** $\mathbb{E}[X \mid Y]$ is the best mean
+prediction of $X$ given $Y$.
 
 ### Discrete definition
 

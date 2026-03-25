@@ -2,7 +2,8 @@
 
 ## 1. What historical stress is
 
-Historical stress testing evaluates today's portfolio under market moves that were actually observed during a past crisis or stress window.
+Historical stress testing evaluates today's portfolio under market moves that were actually observed during a past
+crisis or stress window.
 
 Instead of asking only local questions such as “what if the USD curve moves up by 10 bp?”, it asks a scenario question:
 
@@ -30,7 +31,8 @@ $$
 F_0^{\text{stress},h} = F_0 + \Delta F^{(h)}.
 $$
 
-If the current portfolio value is $V(F_0)$ and the stressed value is $V(F_0^{\text{stress},h})$, then the historical-stress P&L is
+If the current portfolio value is $V(F_0)$ and the stressed value is $V(F_0^{\text{stress},h})$, then the
+historical-stress P&L is
 
 $$
 \Pi^{(h)} = V(F_0^{\text{stress},h}) - V(F_0).
@@ -114,7 +116,8 @@ Historical stress is not simply “copy old prices into today's market”. Sever
 - instruments may use different underlying indices today,
 - the portfolio composition is today's portfolio, not the historical one.
 
-So a stress engine typically stores factor moves in normalized factor space, then maps them onto today's market representation.
+So a stress engine typically stores factor moves in normalized factor space, then maps them onto today's market
+representation.
 
 ---
 
@@ -160,7 +163,8 @@ $$
 \operatorname{VaR}_{\alpha}^{\text{hist}} = -Q_{1-\alpha}(\Pi^{(1)}, \dots, \Pi^{(N)}).
 $$
 
-So historical stress focuses on named episodes, while historical VaR focuses on a distributional quantile from many observations.
+So historical stress focuses on named episodes, while historical VaR focuses on a distributional quantile from many
+observations.
 
 ---
 
@@ -294,7 +298,8 @@ A strong first implementation should support:
 - replay of named scenarios on today's market state,
 - structured reports with total P&L and top contributors.
 
-The first version does not need a massive scenario database. A small curated library of named episodes is enough if the factor mapping is clean.
+The first version does not need a massive scenario database. A small curated library of named episodes is enough if the
+factor mapping is clean.
 
 ---
 
