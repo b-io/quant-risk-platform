@@ -11,10 +11,10 @@
 
 ### Pricing documentation
 
-- `docs/pricing/YIELD_CURVE_AND_OIS_CONSTRUCTION.md`
-- `docs/pricing/MULTI_ASSET_MARKET_DATA_AND_CURVES.md`
-- `docs/pricing/CREDIT_CURVE_CONSTRUCTION.md`
-- `docs/pricing/VOLATILITY_SURFACES.md`
+- `docs/pricing/market-data/MULTI_ASSET_MARKET_DATA_AND_CURVES.md`
+- `docs/pricing/rates/YIELD_CURVE_AND_OIS_CONSTRUCTION.md`
+- `docs/pricing/credit/CREDIT_CURVE_CONSTRUCTION.md`
+- `docs/pricing/volatility/VOLATILITY_SURFACES.md`
 
 ### Risk documentation
 

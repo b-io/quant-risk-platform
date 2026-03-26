@@ -1,5 +1,11 @@
 #include <qrp/analytics/stress_engine.hpp>
+#include <qrp/instruments/instrument_factory.hpp>
 #include <qrp/market/market_snapshot.hpp>
+#include <ql/instrument.hpp>
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace qrp::analytics {
 
@@ -11,11 +17,11 @@ std::vector<StressResult> StressEngine::run_historical_stress(
     std::vector<StressResult> results;
     
     // 1. Setup Base Market and Instrument Cache
-    market::MarketSnapshot base_market(base_market_dto);
+    qrp::market::MarketSnapshot base_market(base_market_dto);
     auto state = base_market.built_state();
     PricingContext context(state);
 
-    std::vector<std::pair<std::string, std::shared_ptr<QuantLib::Instrument>>> instruments;
+    std::vector<std::pair<std::string, QuantLib::ext::shared_ptr<QuantLib::Instrument>>> instruments;
     std::map<std::string, double> base_map;
     double base_total = 0.0;
     for (const auto& trade : portfolio.trades) {

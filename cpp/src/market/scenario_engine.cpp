@@ -32,8 +32,8 @@ domain::MarketSnapshot ScenarioEngine::apply_scenario(
             quote.value += twist.slope * (t - twist.pivot_tenor);
         }
 
-        // 4. Credit shock (applied if quote is a credit spread)
-        if (quote.type == domain::QuoteType::CreditSpread) {
+        // 4. Credit shock (applied if quote is a credit instrument)
+        if (quote.instrument_type == domain::QuoteInstrumentType::CDS) {
             // Simplified: issuer-based shock if we had issuer IDs in quotes
             // For now, check if the quote ID matches or a group matches
             if (scenario.credit_shocks.contains(quote.id)) {
@@ -74,7 +74,7 @@ void ScenarioEngine::apply_scenario_to_state(
         }
 
         // 4. Credit shock
-        if (quote_dto.type == domain::QuoteType::CreditSpread) {
+        if (quote_dto.instrument_type == domain::QuoteInstrumentType::CDS) {
             if (scenario.credit_shocks.contains(quote_dto.id)) {
                 shocked_value += scenario.credit_shocks.at(quote_dto.id);
             }

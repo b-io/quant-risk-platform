@@ -57,6 +57,29 @@ enum class BusinessCalendar {
     UNKNOWN
 };
 
+enum class CurvePurpose {
+    Discount,
+    Forward,
+    Forward3M,
+    Forward6M,
+    Credit,
+    Volatility,
+    UNKNOWN
+};
+
+enum class QuoteInstrumentType {
+    Deposit,
+    OIS,
+    IRS,
+    FRA,
+    Future,
+    Bond,
+    CDS,
+    CapFloorVol,
+    SwaptionVol,
+    UNKNOWN
+};
+
 enum class InterpolationType {
     CubicSpline,
     LogLinear,
@@ -119,10 +142,10 @@ enum class QuoteType {
 
 struct MarketQuote {
     std::string id;
-    QuoteType type;
-    Currency currency;
+    QuoteInstrumentType instrument_type = QuoteInstrumentType::UNKNOWN;
+    Currency currency = Currency::UNKNOWN;
     std::string tenor;
-    double value;
+    double value = 0.0;
     
     // Enriching schema
     std::string instrument_family; // ois, ibor_swap, etc.
@@ -145,10 +168,11 @@ struct CurveId {
 
 struct CurveSpec {
     CurveId id;
+    CurvePurpose purpose = CurvePurpose::UNKNOWN;
     std::vector<std::string> quote_ids;
-    DayCount day_count;
-    BusinessCalendar calendar;
-    InterpolationType interpolation;
+    DayCount day_count = DayCount::UNKNOWN;
+    BusinessCalendar calendar = BusinessCalendar::UNKNOWN;
+    InterpolationType interpolation = InterpolationType::UNKNOWN;
 };
 
 } // namespace qrp::domain

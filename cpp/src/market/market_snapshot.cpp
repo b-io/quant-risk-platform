@@ -1,32 +1,38 @@
 #include <qrp/market/market_snapshot.hpp>
-#include <ql/termstructures/yield/ratehelpers.hpp>
-#include <ql/termstructures/yield/piecewiseyieldcurve.hpp>
-#include <ql/indexes/ibor/sofr.hpp>
-#include <ql/indexes/ibor/estr.hpp>
-#include <ql/indexes/ibor/sonia.hpp>
-#include <ql/indexes/ibor/saron.hpp>
-#include <ql/indexes/ibor/tona.hpp>
-#include <ql/indexes/ibor/fedfunds.hpp>
-#include <ql/indexes/ibor/usdlibor.hpp>
-#include <ql/indexes/ibor/euribor.hpp>
-#include <ql/indexes/ibor/gbplibor.hpp>
-#include <ql/indexes/ibor/chflibor.hpp>
-#include <ql/indexes/ibor/jpylibor.hpp>
-#include <ql/time/calendars/target.hpp>
-#include <ql/time/calendars/unitedstates.hpp>
-#include <ql/time/calendars/unitedkingdom.hpp>
-#include <ql/time/calendars/switzerland.hpp>
-#include <ql/time/calendars/japan.hpp>
-#include <ql/time/daycounters/actual360.hpp>
-#include <ql/time/daycounters/actual365fixed.hpp>
-#include <ql/time/daycounters/thirty360.hpp>
-#include <ql/time/daycounters/actualactual.hpp>
-#include <ql/currencies/europe.hpp>
+#include <qrp/conventions/market_convention_registry.hpp>
 #include <ql/currencies/america.hpp>
 #include <ql/currencies/asia.hpp>
+#include <ql/currencies/europe.hpp>
+#include <ql/currencies/oceania.hpp>
+#include <ql/indexes/ibor/chflibor.hpp>
+#include <ql/indexes/ibor/estr.hpp>
+#include <ql/indexes/ibor/euribor.hpp>
+#include <ql/indexes/ibor/fedfunds.hpp>
+#include <ql/indexes/ibor/gbplibor.hpp>
+#include <ql/indexes/ibor/jpylibor.hpp>
+#include <ql/indexes/ibor/saron.hpp>
+#include <ql/indexes/ibor/sofr.hpp>
+#include <ql/indexes/ibor/sonia.hpp>
+#include <ql/indexes/ibor/tonar.hpp>
+#include <ql/indexes/ibor/usdlibor.hpp>
 #include <ql/settings.hpp>
+#include <ql/termstructures/yield/piecewiseyieldcurve.hpp>
+#include <ql/termstructures/yield/ratehelpers.hpp>
+#include <ql/termstructures/yield/oisratehelper.hpp>
+#include <ql/termstructures/iterativebootstrap.hpp>
+#include <ql/termstructures/yield/discountcurve.hpp>
+#include <ql/math/interpolations/loginterpolation.hpp>
+#include <ql/termstructures/yield/flatforward.hpp>
+#include <ql/time/calendars/japan.hpp>
+#include <ql/time/calendars/switzerland.hpp>
+#include <ql/time/calendars/target.hpp>
+#include <ql/time/calendars/unitedkingdom.hpp>
+#include <ql/time/calendars/unitedstates.hpp>
+#include <ql/time/daycounters/actual360.hpp>
+#include <ql/time/daycounters/actual365fixed.hpp>
+#include <ql/time/daycounters/actualactual.hpp>
+#include <ql/time/daycounters/thirty360.hpp>
 #include <fmt/format.h>
-#include <qrp/conventions/market_convention_registry.hpp>
 
 /*
 Design note (see docs/design/CURVE_BOOTSTRAP_DESIGN.md):
@@ -146,36 +152,36 @@ QuantLib::DateGeneration::Rule CurveBuilder::parse_date_generation(domain::DateG
     }
 }
 
-std::shared_ptr<QuantLib::OvernightIndex> CurveBuilder::create_overnight_index(
+QuantLib::ext::shared_ptr<QuantLib::OvernightIndex> CurveBuilder::create_overnight_index(
     domain::Currency currency, 
     const QuantLib::Handle<QuantLib::YieldTermStructure>& h) {
     
     switch (currency) {
-        case domain::Currency::USD: return std::make_shared<QuantLib::Sofr>(h);
-        case domain::Currency::EUR: return std::make_shared<QuantLib::Estr>(h);
-        case domain::Currency::GBP: return std::make_shared<QuantLib::Sonia>(h);
-        case domain::Currency::CHF: return std::make_shared<QuantLib::Saron>(h);
-        case domain::Currency::JPY: return std::make_shared<QuantLib::Tona>(h);
-        default: return std::make_shared<QuantLib::Sofr>(h);
+        case domain::Currency::USD: return QuantLib::ext::make_shared<QuantLib::Sofr>(h);
+        case domain::Currency::EUR: return QuantLib::ext::make_shared<QuantLib::Estr>(h);
+        case domain::Currency::GBP: return QuantLib::ext::make_shared<QuantLib::Sonia>(h);
+        case domain::Currency::CHF: return QuantLib::ext::make_shared<QuantLib::Saron>(h);
+        case domain::Currency::JPY: return QuantLib::ext::make_shared<QuantLib::Tonar>(h);
+        default: return QuantLib::ext::make_shared<QuantLib::Sofr>(h);
     }
 }
 
-std::shared_ptr<QuantLib::IborIndex> CurveBuilder::create_ibor_index(
+QuantLib::ext::shared_ptr<QuantLib::IborIndex> CurveBuilder::create_ibor_index(
     domain::Currency currency,
     const QuantLib::Period& tenor,
     const QuantLib::Handle<QuantLib::YieldTermStructure>& h) {
     
     switch (currency) {
-        case domain::Currency::USD: return std::make_shared<QuantLib::USDLibor>(tenor, h);
-        case domain::Currency::EUR: return std::make_shared<QuantLib::Euribor>(tenor, h);
-        case domain::Currency::GBP: return std::make_shared<QuantLib::GBPLibor>(tenor, h);
-        case domain::Currency::CHF: return std::make_shared<QuantLib::CHFLibor>(tenor, h);
-        case domain::Currency::JPY: return std::make_shared<QuantLib::JPYLibor>(tenor, h);
-        default: return std::make_shared<QuantLib::USDLibor>(tenor, h);
+        case domain::Currency::USD: return QuantLib::ext::make_shared<QuantLib::USDLibor>(tenor, h);
+        case domain::Currency::EUR: return QuantLib::ext::make_shared<QuantLib::Euribor>(tenor, h);
+        case domain::Currency::GBP: return QuantLib::ext::make_shared<QuantLib::GBPLibor>(tenor, h);
+        case domain::Currency::CHF: return QuantLib::ext::make_shared<QuantLib::CHFLibor>(tenor, h);
+        case domain::Currency::JPY: return QuantLib::ext::make_shared<QuantLib::JPYLibor>(tenor, h);
+        default: return QuantLib::ext::make_shared<QuantLib::USDLibor>(tenor, h);
     }
 }
 
-std::shared_ptr<QuantLib::YieldTermStructure> CurveBuilder::build_curve(
+QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> CurveBuilder::build_curve(
     const domain::CurveSpec& spec,
     const std::map<std::string, domain::MarketQuote>& quotes,
     const QuantLib::Date& valuation_date,
@@ -201,7 +207,7 @@ std::shared_ptr<QuantLib::YieldTermStructure> CurveBuilder::build_curve(
 
         // Resolve conventions (prefer per-quote index_family, fallback by type)
         std::string idx_family = q.index_family.empty()
-            ? (q.type == domain::QuoteType::OIS ? std::string("OIS") : std::string("IBOR_3M"))
+            ? (q.instrument_type == domain::QuoteInstrumentType::OIS ? std::string("OIS") : std::string("IBOR_3M"))
             : q.index_family;
         auto& reg = qrp::conventions::MarketConventionRegistry::instance();
         auto conv = reg.get_rates_convention(q.currency, idx_family);
@@ -211,16 +217,16 @@ std::shared_ptr<QuantLib::YieldTermStructure> CurveBuilder::build_curve(
         auto dc = parse_day_count(q.day_count != domain::DayCount::UNKNOWN ? q.day_count : spec.day_count);
         int settlement_days = q.settlement_days >= 0 ? q.settlement_days : conv.settlement_days;
         
-        if (q.type == domain::QuoteType::Deposit) {
+        if (q.instrument_type == domain::QuoteInstrumentType::Deposit) {
             helpers.push_back(QuantLib::ext::make_shared<QuantLib::DepositRateHelper>(
                 quote_handle, tenor, settlement_days, cal, bdc, false, dc));
-        } else if (q.type == domain::QuoteType::OIS) {
+        } else if (q.instrument_type == domain::QuoteInstrumentType::OIS) {
             auto index = create_overnight_index(q.currency, dummy);
             helpers.push_back(QuantLib::ext::make_shared<QuantLib::OISRateHelper>(settlement_days, tenor, quote_handle, index));
-        } else if (q.type == domain::QuoteType::FRA) {
+        } else if (q.instrument_type == domain::QuoteInstrumentType::FRA) {
             auto index = create_ibor_index(q.currency, QuantLib::Period(3, QuantLib::Months), dummy); // default 3M unless extended
             helpers.push_back(QuantLib::ext::make_shared<QuantLib::FraRateHelper>(quote_handle, tenor, index));
-        } else if (q.type == domain::QuoteType::IRS) {
+        } else if (q.instrument_type == domain::QuoteInstrumentType::IRS) {
             auto index = create_ibor_index(q.currency, QuantLib::Period(3, QuantLib::Months), dummy); // default 3M unless extended
             auto fixed_freq = parse_frequency(conv.fixed_leg_frequency);
             auto fixed_dc = parse_day_count(conv.fixed_leg_day_count);
@@ -232,8 +238,8 @@ std::shared_ptr<QuantLib::YieldTermStructure> CurveBuilder::build_curve(
     if (helpers.empty()) return nullptr;
 
     using CurveT = QuantLib::PiecewiseYieldCurve<QuantLib::Discount, QuantLib::LogLinear>;
-    std::shared_ptr<QuantLib::YieldTermStructure> curve = std::make_shared<CurveT>(
-        valuation_date, helpers, parse_day_count(spec.day_count), QuantLib::IterativeBootstrap<CurveT>());
+    QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> curve = QuantLib::ext::make_shared<CurveT>(
+        valuation_date, helpers, parse_day_count(spec.day_count));
     curve->enableExtrapolation();
     return curve;
 }
@@ -256,3 +262,5 @@ MarketSnapshot::MarketSnapshot(const domain::MarketSnapshot& dto) {
         }
     }
 }
+
+} // namespace qrp::market

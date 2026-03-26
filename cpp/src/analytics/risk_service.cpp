@@ -1,5 +1,11 @@
 #include <qrp/analytics/risk_service.hpp>
+#include <qrp/instruments/instrument_factory.hpp>
+#include <qrp/market/market_snapshot.hpp>
+#include <ql/instrument.hpp>
+#include <map>
+#include <memory>
 #include <set>
+#include <vector>
 
 /*
 Design note (see docs/design/ANALYTICS_SERVICES.md):
@@ -18,20 +24,20 @@ std::vector<RiskResult> RiskService::compute_risk(
     std::vector<RiskResult> results;
 
     // Base Market setup
-    market::MarketSnapshot base_market(base_market_dto);
+    qrp::market::MarketSnapshot base_market(base_market_dto);
     auto state = base_market.built_state();
     PricingContext context(state);
 
     // Instrument cache to avoid repeated translation
-    std::vector<std::pair<std::string, std::shared_ptr<QuantLib::Instrument>>> instruments;
+    std::vector<std::pair<std::string, QuantLib::ext::shared_ptr<QuantLib::Instrument>>> ql_instruments;
     for (const auto& trade : portfolio.trades) {
         auto inst = instruments::InstrumentFactory::create_instrument(trade, context);
-        if (inst) instruments.push_back({trade.id, inst});
+        if (inst) ql_instruments.push_back({trade.id, inst});
     }
 
     // Map base NPVs
     std::map<std::string, double> base_map;
-    for (auto& [id, inst] : instruments) {
+    for (auto& [id, inst] : ql_instruments) {
         base_map[id] = inst->NPV();
     }
 
@@ -56,7 +62,7 @@ std::vector<RiskResult> RiskService::compute_risk(
             parallel_up.parallel_shocks[cc] = bump_size;
             
             market::ScenarioEngine::apply_scenario_to_state(*state, base_market_dto, parallel_up);
-            for (auto& [inst_id, inst] : instruments) {
+            for (auto& [inst_id, inst] : ql_instruments) {
                 if (inst_id == id) {
                     res.pv01 += (inst->NPV() - base_npv);
                     break;
@@ -68,13 +74,13 @@ std::vector<RiskResult> RiskService::compute_risk(
             // 2. CS01
             market::ScenarioDefinition credit_up;
             for (const auto& q : base_market_dto.quotes) {
-                if (q.type == domain::QuoteType::CreditSpread) {
+                if (q.instrument_type == domain::QuoteInstrumentType::CDS) {
                     credit_up.credit_shocks[q.id] = bump_size;
                 }
             }
             if (!credit_up.credit_shocks.empty()) {
                 market::ScenarioEngine::apply_scenario_to_state(*state, base_market_dto, credit_up);
-                for (auto& [inst_id, inst] : instruments) {
+                for (auto& [inst_id, inst] : ql_instruments) {
                     if (inst_id == id) {
                         res.cs01 += (inst->NPV() - base_npv);
                         break;
@@ -90,7 +96,7 @@ std::vector<RiskResult> RiskService::compute_risk(
                     node_shock.node_shocks[cc][q.tenor] = bump_size;
 
                     market::ScenarioEngine::apply_scenario_to_state(*state, base_market_dto, node_shock);
-                    for (auto& [inst_id, inst] : instruments) {
+                    for (auto& [inst_id, inst] : ql_instruments) {
                         if (inst_id == id) {
                             res.bucketed_risk[q.tenor] += (inst->NPV() - base_npv);
                             break;

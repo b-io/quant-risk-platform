@@ -1,5 +1,8 @@
 #include <qrp/analytics/pnl_explain_service.hpp>
+#include <qrp/analytics/valuation_service.hpp>
+#include <qrp/market/market_snapshot.hpp>
 #include <map>
+#include <memory>
 
 namespace qrp::analytics {
 
@@ -8,8 +11,8 @@ std::vector<PnlExplainResult> PnlExplainService::explain_pnl(
     const domain::MarketSnapshot& prev_market_dto,
     const domain::MarketSnapshot& curr_market_dto) {
 
-    market::MarketSnapshot prev_market(prev_market_dto);
-    market::MarketSnapshot curr_market(curr_market_dto);
+    qrp::market::MarketSnapshot prev_market(prev_market_dto);
+    qrp::market::MarketSnapshot curr_market(curr_market_dto);
 
     auto prev_state = prev_market.built_state();
     auto curr_state = curr_market.built_state();
@@ -22,13 +25,13 @@ std::vector<PnlExplainResult> PnlExplainService::explain_pnl(
     QuantLib::Date t1 = curr_state->valuation_date();
     
     // Create a temporary state for carry calculation
-    auto rolled_state = std::make_shared<market::MarketState>(t1);
+    auto rolled_state = std::make_shared<qrp::market::MarketState>(t1);
     // Copy all curves and handles from prev_state to rolled_state
     // In a production system, we'd ensure handles point to correct data.
     // Here, we can rebuild the prev_market at t1
     domain::MarketSnapshot rolled_dto = prev_market_dto;
     rolled_dto.valuation_date = curr_market_dto.valuation_date;
-    market::MarketSnapshot rolled_market(rolled_dto);
+    qrp::market::MarketSnapshot rolled_market(rolled_dto);
     PricingContext rolled_context(rolled_market.built_state());
 
     auto prev_results = ValuationService::price_portfolio(portfolio, prev_context);

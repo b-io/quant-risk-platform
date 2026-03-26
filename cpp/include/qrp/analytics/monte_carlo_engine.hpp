@@ -1,9 +1,9 @@
 #pragma once
-#include <qrp/market/scenario_engine.hpp>
 #include <qrp/domain/market_data.hpp>
 #include <qrp/domain/portfolio.hpp>
-#include <vector>
+#include <qrp/market/scenario_engine.hpp>
 #include <string>
+#include <vector>
 
 namespace qrp::analytics {
 

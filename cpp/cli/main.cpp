@@ -1,12 +1,15 @@
+#include <fmt/format.h>
+#include <qrp/analytics/monte_carlo_engine.hpp>
+#include <qrp/analytics/pnl_explain_service.hpp>
+#include <qrp/analytics/pricing_context.hpp>
+#include <qrp/analytics/risk_service.hpp>
+#include <qrp/analytics/stress_engine.hpp>
+#include <qrp/analytics/valuation_service.hpp>
+#include <qrp/io/json_loader.hpp>
+#include <qrp/market/market_snapshot.hpp>
 #include <iostream>
 #include <string>
 #include <vector>
-#include <fmt/core.h>
-#include <qrp/io/json_loader.hpp>
-#include <qrp/analytics/pricing_context.hpp>
-#include <qrp/analytics/stress_engine.hpp>
-#include <qrp/analytics/monte_carlo_engine.hpp>
-#include <qrp/market/market_snapshot.hpp>
 
 void print_help() {
     fmt::print("Usage: qrp_cli <command> [options]\n");

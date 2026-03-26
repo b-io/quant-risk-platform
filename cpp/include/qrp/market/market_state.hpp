@@ -22,11 +22,11 @@ public:
 
     const QuantLib::Date& valuation_date() const { return valuation_date_; }
 
-    void add_curve(const domain::CurveId& id, std::shared_ptr<QuantLib::YieldTermStructure> curve) {
+    void add_curve(const domain::CurveId& id, QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> curve) {
         curves_[id] = std::move(curve);
     }
 
-    std::shared_ptr<QuantLib::YieldTermStructure> get_curve(const domain::CurveId& id) const {
+    QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> get_curve(const domain::CurveId& id) const {
         auto it = curves_.find(id);
         if (it != curves_.end()) return it->second;
         return nullptr;
@@ -57,7 +57,7 @@ public:
 
 private:
     QuantLib::Date valuation_date_;
-    std::map<domain::CurveId, std::shared_ptr<QuantLib::YieldTermStructure>> curves_;
+    std::map<domain::CurveId, QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure>> curves_;
     std::map<std::string, QuantLib::ext::shared_ptr<QuantLib::SimpleQuote>> quote_handles_;
 };
 

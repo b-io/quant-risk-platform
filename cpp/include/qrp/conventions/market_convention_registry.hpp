@@ -17,9 +17,14 @@ struct RatesConvention {
     // For Swaps
     domain::Frequency fixed_leg_frequency = domain::Frequency::Annual;
     domain::DayCount fixed_leg_day_count = domain::DayCount::Thirty360;
+    domain::BusinessDayConvention fixed_leg_bdc = domain::BusinessDayConvention::ModifiedFollowing;
     
     // For IBOR
     domain::Frequency floating_leg_frequency = domain::Frequency::Quarterly;
+    domain::DayCount floating_leg_day_count = domain::DayCount::ACT360;
+    domain::BusinessDayConvention floating_leg_bdc = domain::BusinessDayConvention::ModifiedFollowing;
+    
+    domain::DateGeneration date_generation = domain::DateGeneration::Forward;
 };
 
 class MarketConventionRegistry {

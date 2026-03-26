@@ -1,4 +1,6 @@
+#include <qrp/instruments/instrument_factory.hpp>
 #include <qrp/conventions/market_convention_registry.hpp>
+#include <qrp/market/market_snapshot.hpp>
 #include <ql/instruments/vanillaswap.hpp>
 #include <ql/instruments/bonds/fixedratebond.hpp>
 #include <ql/pricingengines/swap/discountingswapengine.hpp>
@@ -11,11 +13,9 @@
 #include <ql/indexes/ibor/gbplibor.hpp>
 #include <ql/indexes/ibor/chflibor.hpp>
 
-#include <qrp/market/market_snapshot.hpp>
-
 namespace qrp::instruments {
 
-std::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_instrument(
+QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_instrument(
     const domain::Trade& trade,
     const analytics::PricingContext& context) {
 
@@ -27,7 +27,7 @@ std::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_instrument(
     return nullptr;
 }
 
-std::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_swap(
+QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_swap(
     const domain::Trade& trade,
     const analytics::PricingContext& context) {
 
@@ -58,11 +58,10 @@ std::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_swap(
     QuantLib::Handle<QuantLib::YieldTermStructure> discounting_term_structure(discount_curve);
     QuantLib::Handle<QuantLib::YieldTermStructure> forecasting_term_structure(forecast_curve);
 
-    std::shared_ptr<QuantLib::IborIndex> index;
     QuantLib::Period index_tenor = market::CurveBuilder::parse_tenor(conv.index_family.substr(conv.index_family.find("_") + 1));
     if (index_tenor == QuantLib::Period(0, QuantLib::Days)) index_tenor = QuantLib::Period(3, QuantLib::Months);
 
-    index = market::CurveBuilder::create_ibor_index(cc, index_tenor, forecasting_term_structure);
+    auto index = market::CurveBuilder::create_ibor_index(cc, index_tenor, forecasting_term_structure);
 
     auto calendar = market::CurveBuilder::parse_calendar(conv.calendar);
     auto bdc = market::CurveBuilder::parse_business_day_convention(conv.business_day_convention);
@@ -71,20 +70,24 @@ std::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_swap(
     auto float_freq = market::CurveBuilder::parse_frequency(conv.floating_leg_frequency);
     auto float_dc = market::CurveBuilder::parse_day_count(conv.day_count);
 
-    auto swap = std::make_shared<QuantLib::VanillaSwap>(
-        type, trade.notional,
+    auto swap = QuantLib::ext::shared_ptr<QuantLib::VanillaSwap>(new QuantLib::VanillaSwap(
+        type, 
+        trade.notional,
         QuantLib::Schedule(start, maturity, QuantLib::Period(fixed_freq), calendar,
                            bdc, bdc, QuantLib::DateGeneration::Forward, false),
-        fixed_rate, fixed_dc,
+        fixed_rate, 
+        fixed_dc,
         QuantLib::Schedule(start, maturity, QuantLib::Period(float_freq), calendar,
                            bdc, bdc, QuantLib::DateGeneration::Forward, false),
-        index, float_dc);
+        index, 
+        0.0, // spread: usually zero for vanilla swaps
+        float_dc));
 
-    swap->setPricingEngine(std::make_shared<QuantLib::DiscountingSwapEngine>(discounting_term_structure));
+    swap->setPricingEngine(QuantLib::ext::make_shared<QuantLib::DiscountingSwapEngine>(discounting_term_structure));
     return swap;
 }
 
-std::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_bond(
+QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_bond(
     const domain::Trade& trade,
     const analytics::PricingContext& context) {
 
@@ -112,11 +115,11 @@ std::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_bond(
                                         bdc, bdc,
                                         QuantLib::DateGeneration::Backward, false);
 
-    auto bond = std::make_shared<QuantLib::FixedRateBond>(
+    auto bond = QuantLib::ext::shared_ptr<QuantLib::FixedRateBond>(new QuantLib::FixedRateBond(
         0, trade.notional, schedule, std::vector<QuantLib::Rate>{coupon_rate},
-        dc);
+        dc));
 
-    bond->setPricingEngine(std::make_shared<QuantLib::DiscountingBondEngine>(discounting_term_structure));
+    bond->setPricingEngine(QuantLib::ext::make_shared<QuantLib::DiscountingBondEngine>(discounting_term_structure));
     return bond;
 }
 

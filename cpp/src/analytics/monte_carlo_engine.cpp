@@ -1,11 +1,16 @@
 #include <qrp/analytics/monte_carlo_engine.hpp>
+#include <qrp/analytics/pricing_context.hpp>
+#include <qrp/instruments/instrument_factory.hpp>
 #include <qrp/market/market_snapshot.hpp>
-#include <ql/math/randomnumbers/boxmullergaussianrng.hpp>
-#include <ql/math/randomnumbers/mt19937uniformrng.hpp>
+#include <ql/instrument.hpp>
 #include <ql/math/matrix.hpp>
 #include <ql/math/matrixutilities/choleskydecomposition.hpp>
+#include <ql/math/randomnumbers/boxmullergaussianrng.hpp>
+#include <ql/math/randomnumbers/mt19937uniformrng.hpp>
 #include <algorithm>
+#include <memory>
 #include <numeric>
+#include <vector>
 
 /*
 Design note (see docs/design/ANALYTICS_SERVICES.md and docs/risk/MONTE_CARLO.md):
@@ -26,11 +31,11 @@ SimulationResult MonteCarloEngine::run_simulation(
     result.portfolio_values.reserve(num_paths);
 
     // 1. Setup Base Market and Instrument Cache
-    market::MarketSnapshot base_market(base_market_dto);
+    qrp::market::MarketSnapshot base_market(base_market_dto);
     auto state = base_market.built_state();
     PricingContext context(state);
 
-    std::vector<std::pair<std::string, std::shared_ptr<QuantLib::Instrument>>> instruments;
+    std::vector<std::pair<std::string, QuantLib::ext::shared_ptr<QuantLib::Instrument>>> instruments;
     double base_total_npv = 0.0;
     for (const auto& trade : portfolio.trades) {
         auto inst = instruments::InstrumentFactory::create_instrument(trade, context);
@@ -58,7 +63,7 @@ SimulationResult MonteCarloEngine::run_simulation(
             cov[i][j] = cov[j][i] = 0.00005; // 0.5 correlation
         }
     }
-    QuantLib::Matrix L = QuantLib::CholeskyDecomposition(cov).L();
+    QuantLib::Matrix L = QuantLib::CholeskyDecomposition(cov);
 
     // 4. Setup Random Number Generator
     QuantLib::MersenneTwisterUniformRng baseRng(42);

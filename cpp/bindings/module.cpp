@@ -1,16 +1,16 @@
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
+#include <qrp/analytics/monte_carlo_engine.hpp>
+#include <qrp/analytics/pnl_explain_service.hpp>
+#include <qrp/analytics/pricing_context.hpp>
+#include <qrp/analytics/risk_service.hpp>
+#include <qrp/analytics/stress_engine.hpp>
+#include <qrp/analytics/valuation_service.hpp>
 #include <qrp/domain/market_data.hpp>
 #include <qrp/domain/portfolio.hpp>
 #include <qrp/io/json_loader.hpp>
-#include <qrp/analytics/valuation_service.hpp>
-#include <qrp/analytics/risk_service.hpp>
-#include <qrp/analytics/monte_carlo_engine.hpp>
-#include <qrp/analytics/pricing_context.hpp>
-#include <qrp/analytics/stress_engine.hpp>
-#include <qrp/analytics/pnl_explain_service.hpp>
-#include <qrp/market/scenario_engine.hpp>
 #include <qrp/market/market_snapshot.hpp>
+#include <qrp/market/scenario_engine.hpp>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 namespace py = pybind11;
 using namespace qrp;
@@ -25,6 +25,27 @@ PYBIND11_MODULE(quant_risk_platform, m) {
         .value("GBP", domain::Currency::GBP)
         .value("CHF", domain::Currency::CHF)
         .value("JPY", domain::Currency::JPY)
+        .export_values();
+
+    py::enum_<domain::CurvePurpose>(m, "CurvePurpose")
+        .value("Discount", domain::CurvePurpose::Discount)
+        .value("Forward", domain::CurvePurpose::Forward)
+        .value("Forward3M", domain::CurvePurpose::Forward3M)
+        .value("Forward6M", domain::CurvePurpose::Forward6M)
+        .value("Credit", domain::CurvePurpose::Credit)
+        .value("Volatility", domain::CurvePurpose::Volatility)
+        .export_values();
+
+    py::enum_<domain::QuoteInstrumentType>(m, "QuoteInstrumentType")
+        .value("Deposit", domain::QuoteInstrumentType::Deposit)
+        .value("OIS", domain::QuoteInstrumentType::OIS)
+        .value("IRS", domain::QuoteInstrumentType::IRS)
+        .value("FRA", domain::QuoteInstrumentType::FRA)
+        .value("Future", domain::QuoteInstrumentType::Future)
+        .value("Bond", domain::QuoteInstrumentType::Bond)
+        .value("CDS", domain::QuoteInstrumentType::CDS)
+        .value("CapFloorVol", domain::QuoteInstrumentType::CapFloorVol)
+        .value("SwaptionVol", domain::QuoteInstrumentType::SwaptionVol)
         .export_values();
 
     py::enum_<domain::QuoteType>(m, "QuoteType")
@@ -43,10 +64,16 @@ PYBIND11_MODULE(quant_risk_platform, m) {
     py::class_<domain::MarketQuote>(m, "MarketQuote")
         .def(py::init<>())
         .def_readwrite("id", &domain::MarketQuote::id)
-        .def_readwrite("type", &domain::MarketQuote::type)
+        .def_readwrite("instrument_type", &domain::MarketQuote::instrument_type)
         .def_readwrite("currency", &domain::MarketQuote::currency)
         .def_readwrite("tenor", &domain::MarketQuote::tenor)
-        .def_readwrite("value", &domain::MarketQuote::value);
+        .def_readwrite("value", &domain::MarketQuote::value)
+        .def_readwrite("instrument_family", &domain::MarketQuote::instrument_family)
+        .def_readwrite("index_family", &domain::MarketQuote::index_family)
+        .def_readwrite("day_count", &domain::MarketQuote::day_count)
+        .def_readwrite("calendar", &domain::MarketQuote::calendar)
+        .def_readwrite("bdc", &domain::MarketQuote::bdc)
+        .def_readwrite("settlement_days", &domain::MarketQuote::settlement_days);
 
     py::class_<domain::CurveId>(m, "CurveId")
         .def(py::init<>())
@@ -78,7 +105,8 @@ PYBIND11_MODULE(quant_risk_platform, m) {
         .def_readwrite("maturity_date", &domain::Trade::maturity_date)
         .def_readwrite("direction", &domain::Trade::direction)
         .def_readwrite("book", &domain::Trade::book)
-        .def_readwrite("strategy", &domain::Trade::strategy);
+        .def_readwrite("strategy", &domain::Trade::strategy)
+        .def_readwrite("details", &domain::Trade::details);
 
     py::class_<domain::Portfolio>(m, "Portfolio")
         .def(py::init<>())
@@ -127,7 +155,8 @@ PYBIND11_MODULE(quant_risk_platform, m) {
 
     // Core Platform Wrapper
     py::class_<market::MarketSnapshot>(m, "MarketSnapshotObject")
-        .def(py::init<const domain::MarketSnapshot&>());
+        .def(py::init<const domain::MarketSnapshot&>())
+        .def("built_state", &market::MarketSnapshot::built_state);
 
     m.def("load_market", &io::load_market, "Load market from JSON file");
     m.def("load_portfolio", &io::load_portfolio, "Load portfolio from JSON file");

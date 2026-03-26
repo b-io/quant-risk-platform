@@ -11,17 +11,42 @@ inline void from_json(const nlohmann::json& j, Currency& c) {
     c = from_string(j.get<std::string>());
 }
 
+inline void from_json(const nlohmann::json& j, CurvePurpose& p) {
+    std::string s = j.get<std::string>();
+    if (s == "Discount") p = CurvePurpose::Discount;
+    else if (s == "Forward") p = CurvePurpose::Forward;
+    else if (s == "Forward3M") p = CurvePurpose::Forward3M;
+    else if (s == "Forward6M") p = CurvePurpose::Forward6M;
+    else if (s == "Credit") p = CurvePurpose::Credit;
+    else if (s == "Volatility") p = CurvePurpose::Volatility;
+    else p = CurvePurpose::UNKNOWN;
+}
+
+inline void from_json(const nlohmann::json& j, QuoteInstrumentType& q) {
+    std::string s = j.get<std::string>();
+    if (s == "Deposit") q = QuoteInstrumentType::Deposit;
+    else if (s == "OIS") q = QuoteInstrumentType::OIS;
+    else if (s == "IRS") q = QuoteInstrumentType::IRS;
+    else if (s == "FRA") q = QuoteInstrumentType::FRA;
+    else if (s == "Future") q = QuoteInstrumentType::Future;
+    else if (s == "Bond") q = QuoteInstrumentType::Bond;
+    else if (s == "CDS") q = QuoteInstrumentType::CDS;
+    else if (s == "CapFloorVol") q = QuoteInstrumentType::CapFloorVol;
+    else if (s == "SwaptionVol") q = QuoteInstrumentType::SwaptionVol;
+    else q = QuoteInstrumentType::UNKNOWN;
+}
+
 inline void from_json(const nlohmann::json& j, QuoteType& q) {
     std::string s = j.get<std::string>();
-    if (s == "Deposit") q = QuoteType::Deposit;
-    else if (s == "OIS") q = QuoteType::OIS;
-    else if (s == "IRS") q = QuoteType::IRS;
+    if (s == "OIS_DISCOUNT") q = QuoteType::OIS;
+    else if (s == "IBOR_3M") q = QuoteType::IRS;
+    else if (s == "IRS_6M") q = QuoteType::IRS;
+    else if (s == "BOND_SPREAD") q = QuoteType::BondYield;
+    else if (s == "CREDIT_HAZARD") q = QuoteType::CreditSpread;
     else if (s == "FRA") q = QuoteType::FRA;
-    else if (s == "Future") q = QuoteType::Future;
-    else if (s == "Swap") q = QuoteType::Swap;
-    else if (s == "BasisSwap") q = QuoteType::BasisSwap;
-    else if (s == "BondYield") q = QuoteType::BondYield;
-    else if (s == "CreditSpread") q = QuoteType::CreditSpread;
+    else if (s == "Deposit") q = QuoteType::Deposit;
+    else if (s == "IRS") q = QuoteType::IRS;
+    else if (s == "OIS") q = QuoteType::OIS;
     else q = QuoteType::UNKNOWN;
 }
 
@@ -98,7 +123,22 @@ inline void from_json(const nlohmann::json& j, InterpolationType& i) {
 
 inline void from_json(const nlohmann::json& j, MarketQuote& q) {
     j.at("id").get_to(q.id);
-    j.at("type").get_to(q.type);
+    if (j.contains("instrument_type")) j.at("instrument_type").get_to(q.instrument_type);
+    else if (j.contains("type")) {
+        // Fallback for old "type" field mapping to instrument_type
+        QuoteType old_type;
+        j.at("type").get_to(old_type);
+        switch (old_type) {
+            case QuoteType::Deposit: q.instrument_type = QuoteInstrumentType::Deposit; break;
+            case QuoteType::OIS: q.instrument_type = QuoteInstrumentType::OIS; break;
+            case QuoteType::IRS: q.instrument_type = QuoteInstrumentType::IRS; break;
+            case QuoteType::FRA: q.instrument_type = QuoteInstrumentType::FRA; break;
+            case QuoteType::Future: q.instrument_type = QuoteInstrumentType::Future; break;
+            case QuoteType::BondYield: q.instrument_type = QuoteInstrumentType::Bond; break;
+            case QuoteType::CreditSpread: q.instrument_type = QuoteInstrumentType::CDS; break;
+            default: q.instrument_type = QuoteInstrumentType::UNKNOWN; break;
+        }
+    }
     j.at("currency").get_to(q.currency);
     j.at("tenor").get_to(q.tenor);
     j.at("value").get_to(q.value);
@@ -118,10 +158,11 @@ inline void from_json(const nlohmann::json& j, CurveId& id) {
 
 inline void from_json(const nlohmann::json& j, CurveSpec& s) {
     j.at("id").get_to(s.id);
+    if (j.contains("purpose")) j.at("purpose").get_to(s.purpose);
     j.at("quote_ids").get_to(s.quote_ids);
-    j.at("day_count").get_to(s.day_count);
-    j.at("calendar").get_to(s.calendar);
-    j.at("interpolation").get_to(s.interpolation);
+    if (j.contains("day_count")) j.at("day_count").get_to(s.day_count);
+    if (j.contains("calendar")) j.at("calendar").get_to(s.calendar);
+    if (j.contains("interpolation")) j.at("interpolation").get_to(s.interpolation);
 }
 
 struct MarketSnapshot {

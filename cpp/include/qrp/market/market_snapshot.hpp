@@ -2,8 +2,8 @@
 #include <ql/time/date.hpp>
 #include <ql/time/period.hpp>
 #include <ql/termstructures/yieldtermstructure.hpp>
+#include <ql/time/dategenerationrule.hpp>
 #include <ql/indexes/iborindex.hpp>
-#include <ql/indexes/overnightindex.hpp>
 #include <ql/time/daycounter.hpp>
 #include <ql/time/calendar.hpp>
 #include <qrp/domain/market_data.hpp>
@@ -25,19 +25,20 @@ public:
 
     static QuantLib::BusinessDayConvention parse_business_day_convention(domain::BusinessDayConvention bdc);
     static QuantLib::Frequency parse_frequency(domain::Frequency freq);
+    // Added missing DateGeneration header dependency might be needed in some TUs
     static QuantLib::DateGeneration::Rule parse_date_generation(domain::DateGeneration rule);
 
-    static std::shared_ptr<QuantLib::OvernightIndex> create_overnight_index(
+    static QuantLib::ext::shared_ptr<QuantLib::OvernightIndex> create_overnight_index(
         domain::Currency currency, 
         const QuantLib::Handle<QuantLib::YieldTermStructure>& h);
 
-    static std::shared_ptr<QuantLib::YieldTermStructure> build_curve(
+    static QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> build_curve(
         const domain::CurveSpec& spec,
         const std::map<std::string, domain::MarketQuote>& quotes,
         const QuantLib::Date& valuation_date,
         std::shared_ptr<MarketState> state_ptr = nullptr);
 
-    static std::shared_ptr<QuantLib::IborIndex> create_ibor_index(
+    static QuantLib::ext::shared_ptr<QuantLib::IborIndex> create_ibor_index(
         domain::Currency currency,
         const QuantLib::Period& tenor,
         const QuantLib::Handle<QuantLib::YieldTermStructure>& h);

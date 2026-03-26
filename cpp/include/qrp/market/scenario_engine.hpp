@@ -1,9 +1,12 @@
 #pragma once
 #include <qrp/domain/market_data.hpp>
+#include <qrp/market/market_state.hpp>
 #include <map>
 #include <string>
 
 namespace qrp::market {
+
+class MarketState; // Forward declaration
 
 struct ScenarioDefinition {
     std::string name;
@@ -33,7 +36,7 @@ public:
      */
     static void apply_scenario_to_state(
         MarketState& state,
-        const domain::MarketSnapshot& base_dto, // needed to know which quotes to bump
+        const domain::MarketSnapshot& base_dto,
         const ScenarioDefinition& scenario);
 };
 

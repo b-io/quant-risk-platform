@@ -135,7 +135,7 @@ X \sim \mathrm{Bernoulli}(p),
 \qquad 0 \le p \le 1,
 $$
 
-if it takes values in $\{0,1\}$ with
+if it takes values in the set $\{0,1\}$ with
 
 $$
 \mathbb{P}(X=1)=p,
@@ -144,6 +144,9 @@ $$
 $$
 
 Here $p$ is the success probability.
+
+> While $p$ can be $0$ or $1$, likelihood derivatives and Fisher information formulas typically assume $p \in (0,1)$ to
+> avoid degenerate cases and boundary issues.
 
 ### pmf
 
@@ -229,7 +232,7 @@ A random variable $X$ has a **Binomial distribution** with parameters $m$ and $p
 
 $$
 X\sim\mathrm{Binomial}(m,p),
-\qquad m\in\mathbb{N},\quad 0 \le p \le 1,
+\qquad m\in\mathbb{N},\quad m \ge 1, \quad 0 \le p \le 1,
 $$
 
 if it counts the number of successes in $m$ independent Bernoulli trials, each with success probability $p$.
@@ -241,7 +244,7 @@ if it counts the number of successes in $m$ independent Bernoulli trials, each w
 
 $$
 \mathbb{P}(X=k)=\binom{m}{k}p^k(1-p)^{m-k},
-\qquad k=0,1,\dots,m.
+\qquad k \in \{0,1,\dots,m\}.
 $$
 
 ### Mean and variance
@@ -309,13 +312,14 @@ A random variable $X$ has a **Poisson distribution** with parameter $\lambda > 0
 
 $$
 X\sim\mathrm{Poisson}(\lambda),
+\qquad \lambda > 0,
 $$
 
 if
 
 $$
 \mathbb{P}(X=k)=e^{-\lambda}\frac{\lambda^k}{k!},
-\qquad k=0,1,2,\dots
+\qquad k \in \{0,1,2,\dots\}.
 $$
 
 The parameter $\lambda$ is both the mean and the variance.
@@ -395,11 +399,12 @@ if it counts the number of trials up to and including the first success:
 
 $$
 \mathbb{P}(X=k)=(1-p)^{k-1}p,
-\qquad k=1,2,\dots
+\qquad k \in \{1,2,\dots\}.
 $$
 
-> This is one of two common conventions. Under this convention, $X$ starts at $1$ and counts the trial on which the
-> first success occurs.
+> This is one of two common conventions. Under this convention, $X \in \{1,2,\dots\}$ and counts the trial on which the
+> first success occurs. Another convention counts the number of *failures* before the first success, in which case the
+> support is $\{0,1,2,\dots\}$.
 
 ### Mean and variance
 
@@ -448,14 +453,17 @@ A random variable $X$ has a **Uniform distribution** on the interval $[a,b]$, wr
 
 $$
 X\sim\mathrm{Uniform}(a,b),
-\qquad a < b,
+\qquad a < b, \quad a,b \in \mathbb{R},
 $$
 
-if its density is constant on that interval:
+if its density is constant on that interval and zero elsewhere:
 
 $$
-f_X(x)=\frac{1}{b-a},
-\qquad a \le x \le b.
+f_X(x)=
+\begin{cases}
+\dfrac{1}{b-a}, & x \in [a,b], \\[1ex]
+0, & x \notin [a,b].
+\end{cases}
 $$
 
 ### Mean and variance
@@ -491,13 +499,17 @@ A random variable $X$ has an **Exponential distribution** with rate parameter $\
 
 $$
 X\sim\mathrm{Exponential}(\lambda),
+\qquad \lambda > 0,
 $$
 
 if its density is
 
 $$
-f_X(x)=\lambda e^{-\lambda x},
-\qquad x \ge 0.
+f_X(x)=
+\begin{cases}
+\lambda e^{-\lambda x}, & x \in [0,\infty), \\[1ex]
+0, & x < 0.
+\end{cases}
 $$
 
 Here $\lambda$ is the rate, so the mean waiting time is $1/\lambda$.
@@ -572,6 +584,7 @@ A random variable $X$ has a **Normal distribution** with mean $\mu\in\mathbb{R}$
 
 $$
 X\sim\mathcal{N}(\mu,\sigma^2),
+\qquad \mu\in\mathbb{R}, \quad \sigma > 0,
 $$
 
 if its density is
@@ -626,11 +639,11 @@ variables are not.
 
 ## 4.4 Lognormal distribution
 
-A positive random variable $X$ has a **Lognormal distribution** if
+A positive random variable $X$ has a **Lognormal distribution** if its natural logarithm is normally distributed:
 
 $$
 \log X\sim\mathcal{N}(\mu,\sigma^2),
-\qquad \sigma^2 > 0.
+\qquad \mu \in \mathbb{R}, \quad \sigma > 0.
 $$
 
 Equivalently, $X=e^Y$ where $Y\sim\mathcal{N}(\mu,\sigma^2)$.
@@ -638,9 +651,11 @@ Equivalently, $X=e^Y$ where $Y\sim\mathcal{N}(\mu,\sigma^2)$.
 ### Density
 
 $$
-f_X(x)=\frac{1}{x\sigma\sqrt{2\pi}}
-\exp\left(-\frac{(\log x-\mu)^2}{2\sigma^2}\right),
-\qquad x > 0.
+f_X(x)=
+\begin{cases}
+\dfrac{1}{x\sigma\sqrt{2\pi}} \exp\left(-\dfrac{(\log x-\mu)^2}{2\sigma^2}\right), & x \in (0,\infty), \\[2ex]
+0, & x \le 0.
+\end{cases}
 $$
 
 ### Mean and variance
@@ -677,17 +692,21 @@ written
 
 $$
 X\sim\mathrm{Gamma}(\alpha,\beta),
+\qquad \alpha > 0, \quad \beta > 0,
 $$
 
 if its density is
 
 $$
-f_X(x)=\frac{\beta^\alpha}{\Gamma(\alpha)}x^{\alpha-1}e^{-\beta x},
-\qquad x > 0.
+f_X(x)=
+\begin{cases}
+\dfrac{\beta^\alpha}{\Gamma(\alpha)}x^{\alpha-1}e^{-\beta x}, & x \in (0,\infty), \\[2ex]
+0, & x \le 0.
+\end{cases}
 $$
 
-> Some books use a scale parameter $\theta=1/\beta$ instead of the rate parameter $\beta$. It is important to state the
-> chosen parameterization explicitly.
+> The parameterization above uses the **rate** $\beta$. Some authors use the **scale** $\theta = 1/\beta$, in which case
+> the density is $f_X(x) = \frac{1}{\Gamma(\alpha)\theta^\alpha} x^{\alpha-1} e^{-x/\theta}$.
 
 ### Mean and variance
 
@@ -723,13 +742,17 @@ A random variable $X$ has a **Beta distribution** with parameters $\alpha > 0$ a
 
 $$
 X\sim\operatorname{Beta}(\alpha,\beta),
+\qquad \alpha > 0, \quad \beta > 0,
 $$
 
 if its density is
 
 $$
-f_X(x)=\frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)}x^{\alpha-1}(1-x)^{\beta-1},
-\qquad 0 < x < 1.
+f_X(x)=
+\begin{cases}
+\dfrac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)}x^{\alpha-1}(1-x)^{\beta-1}, & x \in (0,1), \\[2ex]
+0, & x \notin (0,1).
+\end{cases}
 $$
 
 ### Mean and variance
@@ -780,8 +803,11 @@ $$
 then $X$ has a **Chi-square distribution** with $k$ degrees of freedom, written
 
 $$
-X\sim\chi_k^2.
+X\sim\chi_k^2,
+\qquad k \in \mathbb{N}, \quad k \ge 1,
 $$
+
+and its support is $x \in [0,\infty)$.
 
 ### Mean and variance
 
@@ -829,12 +855,14 @@ $$
 T=\frac{Z}{\sqrt{U/\nu}}
 $$
 
-has a **Student's $t$ distribution** with $\nu$ degrees of freedom.
+has a **Student's $t$ distribution** with $\nu$ degrees of freedom, written $T \sim t_\nu$.
 
 ### Mean and variance
 
-- $\mathbb{E}[T]=0$ for $\nu > 1$,
-- $\operatorname{Var}(T)=\dfrac{\nu}{\nu-2}$ for $\nu > 2$.
+Existence conditions for the moments are important:
+
+- **Mean**: $\mathbb{E}[T]=0$ if and only if **$\nu > 1$**.
+- **Variance**: $\operatorname{Var}(T)=\dfrac{\nu}{\nu-2}$ if and only if **$\nu > 2$**.
 
 For small $\nu$, the tails are much heavier than Gaussian tails.
 
@@ -864,7 +892,16 @@ Thus the $t$ family provides a bridge between heavy-tailed models and the Gaussi
 
 ## 5. Fisher information and asymptotic normality of the MLE
 
-## 5.1 The score function
+### 5.1 Regularity and boundary cases
+
+Before analyzing the score and information, it is important to note that standard asymptotic results for the MLE assume
+**regularity conditions**. Crucially:
+
+- The true parameter $\theta_0$ is assumed to lie in the **interior** of the parameter space $\Theta$.
+- Asymptotic formulas (like the inverse Fisher information) may fail or require separate treatment if the true parameter
+  is on the **boundary** (e.g., Bernoulli $p=0$ or $p=1$, or variance $\sigma^2=0$).
+
+## 5.2 The score function
 
 Let $X$ have density or pmf $f(x;\theta)$, and let
 
@@ -1196,20 +1233,20 @@ are below one. This makes it much better suited than an unbounded Gaussian model
 
 ## 8. Summary table
 
-| Distribution  | Type       | Parameters                                     | Support         | Mean                    | Variance                                         | Characteristic function           | Typical use                                   | Large-sample / limit behavior                                  |
-|---------------|------------|------------------------------------------------|-----------------|-------------------------|--------------------------------------------------|-----------------------------------|-----------------------------------------------|----------------------------------------------------------------|
-| Bernoulli     | Discrete   | $0 \le p \le 1$                                | $\{0,1\}$       | $p$                     | $p(1-p)$                                         | $(1-p)+pe^{it}$                   | Single binary event or default indicator      | Sample mean $\to p$; CLT for estimator                         |
-| Binomial      | Discrete   | $m\in\mathbb{N}$, $0 \le p \le 1$              | $\{0,\dots,m\}$ | $mp$                    | $mp(1-p)$                                        | $((1-p)+pe^{it})^m$               | Number of successes in $m$ trials             | Standardized form $\to$ Normal; rare-event limit $\to$ Poisson |
-| Poisson       | Discrete   | $\lambda > 0$                                  | $\mathbb{N}_0$  | $\lambda$               | $\lambda$                                        | $\exp(\lambda(e^{it}-1))$         | Counts of arrivals, incidents, jumps          | For large $\lambda$, approximately Normal                      |
-| Geometric     | Discrete   | $0 < p \le 1$                                  | $\{1,2,\dots\}$ | $1/p$                   | $(1-p)/p^2$                                      | $pe^{it}/(1-(1-p)e^{it})$         | Discrete waiting time to first event          | Suitable rescalings $\to$ Exponential                          |
-| Uniform       | Continuous | $a < b$                                        | $[a,b]$         | $(a+b)/2$               | $(b-a)^2/12$                                     | $(e^{itb}-e^{ita})/(it(b-a))$     | Bounded uncertainty, simulation primitive     | LLN and CLT for sample mean                                    |
-| Exponential   | Continuous | $\lambda > 0$                                  | $[0,\infty)$    | $1/\lambda$             | $1/\lambda^2$                                    | $\lambda/(\lambda-it)$            | Waiting times, constant-intensity models      | MLE asymptotically Normal                                      |
-| Normal        | Continuous | $\mu\in\mathbb{R}$, $\sigma^2 > 0$             | $\mathbb{R}$    | $\mu$                   | $\sigma^2$                                       | $\exp(it\mu-0.5\sigma^2 t^2)$     | Errors, shocks, asymptotic approximations     | Stable under sums; CLT limit                                   |
-| Lognormal     | Continuous | $\mu\in\mathbb{R}$, $\sigma^2 > 0$ on $\log X$ | $(0,\infty)$    | $e^{\mu+\sigma^2/2}$    | $(e^{\sigma^2}-1)e^{2\mu+\sigma^2}$              | No simple elementary closed form  | Positive prices and multiplicative effects    | Inference often done on log scale                              |
-| Gamma         | Continuous | $\alpha > 0$, $\beta > 0$                      | $(0,\infty)$    | $\alpha/\beta$          | $\alpha/\beta^2$                                 | $(1-it/\beta)^{-\alpha}$          | Positive skewed quantities, waiting-time sums | Approx. Normal for large shape                                 |
-| Beta          | Continuous | $\alpha > 0$, $\beta > 0$                      | $(0,1)$         | $\alpha/(\alpha+\beta)$ | $\alpha\beta/((\alpha+\beta)^2(\alpha+\beta+1))$ | ${}_1F_1(\alpha;\alpha+\beta;it)$ | Recovery rates, bounded proportions           | Concentrates near mean as $\alpha+\beta$ grows                 |
-| Chi-square    | Continuous | $k\in\mathbb{N}$                               | $[0,\infty)$    | $k$                     | $2k$                                             | $(1-2it)^{-k/2}$                  | Variance inference, quadratic diagnostics     | Standardized form $\to$ Normal                                 |
-| Student's $t$ | Continuous | $\nu > 0$                                      | $\mathbb{R}$    | $0$ if $\nu > 1$        | $\nu/(\nu-2)$ if $\nu > 2$                       | Bessel-function form              | Heavy-tailed returns, robust inference        | $\to$ Normal as $\nu\to\infty$                                 |
+| Distribution  | Type       | Parameters                                   | Support           | Mean                    | Variance                                         | Characteristic function           | Typical use                                   | Large-sample / limit behavior                                  |
+|---------------|------------|----------------------------------------------|-------------------|-------------------------|--------------------------------------------------|-----------------------------------|-----------------------------------------------|----------------------------------------------------------------|
+| Bernoulli     | Discrete   | $0 \le p \le 1$                              | $\{0,1\}$         | $p$                     | $p(1-p)$                                         | $(1-p)+pe^{it}$                   | Single binary event or default indicator      | Sample mean $\to p$; CLT for estimator                         |
+| Binomial      | Discrete   | $m\in\mathbb{N}, m \ge 1$, $0 \le p \le 1$   | $\{0,\dots,m\}$   | $mp$                    | $mp(1-p)$                                        | $((1-p)+pe^{it})^m$               | Number of successes in $m$ trials             | Standardized form $\to$ Normal; rare-event limit $\to$ Poisson |
+| Poisson       | Discrete   | $\lambda > 0$                                | $\{0,1,2,\dots\}$ | $\lambda$               | $\lambda$                                        | $\exp(\lambda(e^{it}-1))$         | Counts of arrivals, incidents, jumps          | For large $\lambda$, approximately Normal                      |
+| Geometric     | Discrete   | $0 < p \le 1$                                | $\{1,2,\dots\}$   | $1/p$                   | $(1-p)/p^2$                                      | $pe^{it}/(1-(1-p)e^{it})$         | Discrete waiting time to first event          | Suitable rescalings $\to$ Exponential                          |
+| Uniform       | Continuous | $a < b$                                      | $[a,b]$           | $(a+b)/2$               | $(b-a)^2/12$                                     | $(e^{itb}-e^{ita})/(it(b-a))$     | Bounded uncertainty, simulation primitive     | LLN and CLT for sample mean                                    |
+| Exponential   | Continuous | $\lambda > 0$                                | $[0,\infty)$      | $1/\lambda$             | $1/\lambda^2$                                    | $\lambda/(\lambda-it)$            | Waiting times, constant-intensity models      | MLE asymptotically Normal                                      |
+| Normal        | Continuous | $\mu\in\mathbb{R}$, $\sigma > 0$             | $\mathbb{R}$      | $\mu$                   | $\sigma^2$                                       | $\exp(it\mu-0.5\sigma^2 t^2)$     | Errors, shocks, asymptotic approximations     | Stable under sums; CLT limit                                   |
+| Lognormal     | Continuous | $\mu\in\mathbb{R}$, $\sigma > 0$ on $\log X$ | $(0,\infty)$      | $e^{\mu+\sigma^2/2}$    | $(e^{\sigma^2}-1)e^{2\mu+\sigma^2}$              | No simple elementary closed form  | Positive prices and multiplicative effects    | Inference often done on log scale                              |
+| Gamma         | Continuous | $\alpha > 0$, $\beta > 0$                    | $(0,\infty)$      | $\alpha/\beta$          | $\alpha/\beta^2$                                 | $(1-it/\beta)^{-\alpha}$          | Positive skewed quantities, waiting-time sums | Approx. Normal for large shape                                 |
+| Beta          | Continuous | $\alpha > 0$, $\beta > 0$                    | $(0,1)$           | $\alpha/(\alpha+\beta)$ | $\alpha\beta/((\alpha+\beta)^2(\alpha+\beta+1))$ | ${}_1F_1(\alpha;\alpha+\beta;it)$ | Recovery rates, bounded proportions           | Concentrates near mean as $\alpha+\beta$ grows                 |
+| Chi-square    | Continuous | $k\in\mathbb{N}, k \ge 1$                    | $[0,\infty)$      | $k$                     | $2k$                                             | $(1-2it)^{-k/2}$                  | Variance inference, quadratic diagnostics     | Standardized form $\to$ Normal                                 |
+| Student's $t$ | Continuous | $\nu > 0$                                    | $\mathbb{R}$      | $0$ if $\nu > 1$        | $\nu/(\nu-2)$ if $\nu > 2$                       | Bessel-function form              | Heavy-tailed returns, robust inference        | $\to$ Normal as $\nu\to\infty$                                 |
 
 ---
 

@@ -1,5 +1,6 @@
 #pragma once
 #include <qrp/analytics/valuation_service.hpp>
+#include <qrp/domain/market_data.hpp>
 #include <vector>
 
 namespace qrp::analytics {

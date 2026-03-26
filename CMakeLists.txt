@@ -4,6 +4,8 @@ project(quant-risk-platform VERSION 0.1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
 # Define directories
 set(QRP_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cpp/include)
 set(QRP_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cpp/src)
@@ -24,12 +26,14 @@ add_library(qrp_core
     cpp/src/market/scenario_engine.cpp
     cpp/src/conventions/market_convention_registry.cpp
 )
+target_compile_options(qrp_core PRIVATE /FS)
 target_include_directories(qrp_core PUBLIC ${QRP_INCLUDE_DIR})
 target_link_libraries(qrp_core PRIVATE QuantLib::QuantLib nlohmann_json::nlohmann_json fmt::fmt)
 
 # CLI
 add_executable(qrp_cli cpp/cli/main.cpp)
-target_link_libraries(qrp_cli PRIVATE qrp_core)
+# Link fmt to expose headers/include dirs to CLI compilation and link
+target_link_libraries(qrp_cli PRIVATE qrp_core fmt::fmt)
 
 # Python bindings
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
