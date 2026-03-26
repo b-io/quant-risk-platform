@@ -12,9 +12,19 @@
     { "id": "EUR_ON", "type": "Deposit", "currency": "EUR", "tenor": "1D", "value": 0.0390 },
     { "id": "EUR_OIS_1M", "type": "OIS", "currency": "EUR", "tenor": "1M", "value": 0.0391 },
     { "id": "EUR_OIS_1Y", "type": "OIS", "currency": "EUR", "tenor": "1Y", "value": 0.0395 },
-    { "id": "EUR_OIS_5Y", "type": "OIS", "currency": "EUR", "tenor": "5Y", "value": 0.0400 }
+    { "id": "EUR_OIS_5Y", "type": "OIS", "currency": "EUR", "tenor": "5Y", "value": 0.0400 },
+    { "id": "USD_LIBOR_3M_FRA_3M", "type": "FRA", "currency": "USD", "tenor": "3M", "value": 0.0540, "index_family": "IBOR_3M" },
+    { "id": "USD_LIBOR_3M_IRS_2Y", "type": "IRS", "currency": "USD", "tenor": "2Y", "value": 0.0550, "index_family": "IBOR_3M" },
+    { "id": "USD_LIBOR_3M_IRS_5Y", "type": "IRS", "currency": "USD", "tenor": "5Y", "value": 0.0560, "index_family": "IBOR_3M" }
   ],
   "curves": [
+    {
+      "id": { "currency": "USD", "family": "IBOR_3M" },
+      "quote_ids": ["USD_ON", "USD_LIBOR_3M_FRA_3M", "USD_LIBOR_3M_IRS_2Y", "USD_LIBOR_3M_IRS_5Y"],
+      "day_count": "ACT360",
+      "calendar": "US",
+      "interpolation": "LogLinear"
+    },
     {
       "id": { "currency": "USD", "family": "OIS" },
       "quote_ids": ["USD_ON", "USD_OIS_1M", "USD_OIS_3M", "USD_OIS_6M", "USD_OIS_1Y", "USD_OIS_2Y", "USD_OIS_5Y", "USD_OIS_10Y"],

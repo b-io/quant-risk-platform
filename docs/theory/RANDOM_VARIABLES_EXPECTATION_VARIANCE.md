@@ -199,19 +199,19 @@ Linearity does **not** require independence.
 The **variance** measures dispersion around the mean.
 
 $$
-\operatorname{Var}(X) = \mathbb{E}\left[(X - \mathbb{E}[X])^2\right].
+\mathrm{Var}(X) = \mathbb{E}\left[(X - \mathbb{E}[X])^2\right].
 $$
 
 If $\mu = \mathbb{E}[X]$, then
 
 $$
-\operatorname{Var}(X) = \mathbb{E}[(X-\mu)^2].
+\mathrm{Var}(X) = \mathbb{E}[(X-\mu)^2].
 $$
 
 The **standard deviation** is
 
 $$
-\sigma_X = \sqrt{\operatorname{Var}(X)}.
+\sigma_X = \sqrt{\mathrm{Var}(X)}.
 $$
 
 Interpretation:
@@ -226,7 +226,7 @@ Interpretation:
 Starting from
 
 $$
-\operatorname{Var}(X) = \mathbb{E}[(X-\mu)^2],
+\mathrm{Var}(X) = \mathbb{E}[(X-\mu)^2],
 \qquad \mu = \mathbb{E}[X],
 $$
 
@@ -258,13 +258,13 @@ $$
 Therefore,
 
 $$
-\operatorname{Var}(X) = \mathbb{E}[X^2] - 2\mu^2 + \mu^2 = \mathbb{E}[X^2] - \mu^2.
+\mathrm{Var}(X) = \mathbb{E}[X^2] - 2\mu^2 + \mu^2 = \mathbb{E}[X^2] - \mu^2.
 $$
 
 Hence,
 
 $$
-\boxed{\operatorname{Var}(X) = \mathbb{E}[X^2] - (\mathbb{E}[X])^2.}
+\boxed{\mathrm{Var}(X) = \mathbb{E}[X^2] - (\mathbb{E}[X])^2.}
 $$
 
 ---
@@ -274,7 +274,7 @@ $$
 Let $Y = aX + b$. Then
 
 $$
-\operatorname{Var}(aX+b) = a^2\operatorname{Var}(X).
+\mathrm{Var}(aX+b) = a^2\mathrm{Var}(X).
 $$
 
 ### Proof
@@ -294,10 +294,10 @@ $$
 So
 
 $$
-\operatorname{Var}(aX+b)
+\mathrm{Var}(aX+b)
 = \mathbb{E}\left[(a(X-\mathbb{E}[X]))^2\right]
 = a^2 \mathbb{E}[(X-\mathbb{E}[X])^2]
-= a^2\operatorname{Var}(X).
+= a^2\mathrm{Var}(X).
 $$
 
 Interpretation:
@@ -312,13 +312,13 @@ Interpretation:
 The **covariance** of $X$ and $Y$ is
 
 $$
-\operatorname{Cov}(X,Y) = \mathbb{E}[(X-\mathbb{E}[X])(Y-\mathbb{E}[Y])].
+\mathrm{Cov}(X,Y) = \mathbb{E}[(X-\mathbb{E}[X])(Y-\mathbb{E}[Y])].
 $$
 
 A useful formula is
 
 $$
-\operatorname{Cov}(X,Y) = \mathbb{E}[XY] - \mathbb{E}[X]\mathbb{E}[Y].
+\mathrm{Cov}(X,Y) = \mathbb{E}[XY] - \mathbb{E}[X]\mathbb{E}[Y].
 $$
 
 ### Proof
@@ -332,20 +332,20 @@ $$
 Take expectations:
 
 $$
-\operatorname{Cov}(X,Y)
+\mathrm{Cov}(X,Y)
 = \mathbb{E}[XY] - \mu_X\mathbb{E}[Y] - \mu_Y\mathbb{E}[X] + \mu_X\mu_Y.
 $$
 
 Since $\mathbb{E}[X]=\mu_X$ and $\mathbb{E}[Y]=\mu_Y$,
 
 $$
-\boxed{\operatorname{Cov}(X,Y) = \mathbb{E}[XY] - \mathbb{E}[X]\mathbb{E}[Y].}
+\boxed{\mathrm{Cov}(X,Y) = \mathbb{E}[XY] - \mathbb{E}[X]\mathbb{E}[Y].}
 $$
 
 If $X$ and $Y$ are independent, then $\mathbb{E}[XY] = \mathbb{E}[X]\mathbb{E}[Y]$, so
 
 $$
-\operatorname{Cov}(X,Y) = 0.
+\mathrm{Cov}(X,Y) = 0.
 $$
 
 The converse is not always true.
@@ -357,10 +357,10 @@ The converse is not always true.
 For random variables $X_1,\dots,X_n$,
 
 $$
-\operatorname{Var}\left(\sum_{i=1}^n X_i\right)
+\mathrm{Var}\left(\sum_{i=1}^n X_i\right)
 =
-\sum_{i=1}^n \operatorname{Var}(X_i)
-+ 2\sum_{1 \le i < j \le n} \operatorname{Cov}(X_i,X_j).
+\sum_{i=1}^n \mathrm{Var}(X_i)
++ 2\sum_{1 \le i < j \le n} \mathrm{Cov}(X_i,X_j).
 $$
 
 ### Proof
@@ -380,7 +380,7 @@ $$
 Therefore,
 
 $$
-\operatorname{Var}(S)
+\mathrm{Var}(S)
 = \mathbb{E}\left[\left(\sum_{i=1}^n (X_i-\mathbb{E}[X_i])\right)^2\right].
 $$
 
@@ -394,7 +394,7 @@ $$
 With $a_i = X_i - \mathbb{E}[X_i]$, we get
 
 $$
-\operatorname{Var}(S)
+\mathrm{Var}(S)
 =
 \sum_{i=1}^n \mathbb{E}[(X_i-\mathbb{E}[X_i])^2]
 + 2\sum_{1 \le i < j \le n}
@@ -405,10 +405,10 @@ Recognizing variance and covariance yields
 
 $$
 \boxed{
-\operatorname{Var}\left(\sum_{i=1}^n X_i\right)
+\mathrm{Var}\left(\sum_{i=1}^n X_i\right)
 =
-\sum_{i=1}^n \operatorname{Var}(X_i)
-+ 2\sum_{1 \le i < j \le n} \operatorname{Cov}(X_i,X_j).
+\sum_{i=1}^n \mathrm{Var}(X_i)
++ 2\sum_{1 \le i < j \le n} \mathrm{Cov}(X_i,X_j).
 }
 $$
 
@@ -417,7 +417,7 @@ $$
 If the $X_i$ are independent, then all covariance terms vanish, so
 
 $$
-\boxed{\operatorname{Var}\left(\sum_{i=1}^n X_i\right) = \sum_{i=1}^n \operatorname{Var}(X_i).}
+\boxed{\mathrm{Var}\left(\sum_{i=1}^n X_i\right) = \sum_{i=1}^n \mathrm{Var}(X_i).}
 $$
 
 This is why for a random walk
@@ -426,10 +426,10 @@ $$
 S_n = X_1 + \cdots + X_n
 $$
 
-with independent increments satisfying $\operatorname{Var}(X_i)=1$, we get
+with independent increments satisfying $\mathrm{Var}(X_i)=1$, we get
 
 $$
-\operatorname{Var}(S_n)=n.
+\mathrm{Var}(S_n)=n.
 $$
 
 ---
@@ -440,7 +440,7 @@ The **correlation coefficient** is the normalized covariance:
 
 $$
 \rho_{X,Y} =
-\frac{\operatorname{Cov}(X,Y)}{\sqrt{\operatorname{Var}(X)\operatorname{Var}(Y)}}.
+\frac{\mathrm{Cov}(X,Y)}{\sqrt{\mathrm{Var}(X)\mathrm{Var}(Y)}}.
 $$
 
 It satisfies
@@ -479,7 +479,7 @@ $$
 ### Law of total variance
 
 $$
-\boxed{\operatorname{Var}(X) = \mathbb{E}[\operatorname{Var}(X \mid Y)] + \operatorname{Var}(\mathbb{E}[X \mid Y]).}
+\boxed{\mathrm{Var}(X) = \mathbb{E}[\mathrm{Var}(X \mid Y)] + \mathrm{Var}(\mathbb{E}[X \mid Y]).}
 $$
 
 Interpretation:

@@ -88,6 +88,21 @@ The current codebase already includes:
 - separate historical, parametric, and Monte Carlo VaR,
 - evolve Monte Carlo from one-step factor simulation toward a fuller framework.
 
+## Documentation layout
+
+```text
+docs/
+├── design/      # architecture, layering, market and service design
+├── pricing/     # pricing and market-construction notes by subdomain
+│   ├── market-data/
+│   ├── rates/
+│   ├── credit/
+│   └── volatility/
+├── risk/        # risk measures, scenarios, stress, VaR, and Monte Carlo
+├── roadmap/     # status, review notes, and implementation handoff documents
+└── theory/      # mathematical and statistical foundations
+```
+
 ## Repository structure
 
 ```text
@@ -96,6 +111,10 @@ quant-risk-platform/
 ├── CMakePresets.json
 ├── QUICKSTART.md
 ├── README.md
+├── LICENSE
+├── requirements.txt
+├── vcpkg.json
+├── cmake/
 ├── cpp/
 │   ├── include/qrp/
 │   │   ├── analytics/
@@ -125,11 +144,11 @@ quant-risk-platform/
 ├── python/
 │   ├── examples/
 │   └── notebooks/
+├── scripts/
 ├── tests/
 │   ├── integration/
 │   ├── regression/
 │   └── unit/
-└── vcpkg.json
 ```
 
 ## Example workflows

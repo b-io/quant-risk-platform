@@ -252,7 +252,7 @@ Examples:
 A covariance matrix for factors $X$ can be written as
 
 $$
-\Sigma = \operatorname{Cov}(X).
+\Sigma = \mathrm{Cov}(X).
 $$
 
 This is needed for:

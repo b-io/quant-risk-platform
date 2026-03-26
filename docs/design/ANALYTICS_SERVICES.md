@@ -43,9 +43,9 @@ Current limitations:
 
 ### Risk
 
-- PV01 / DV01,
-- key-rate risk,
-- CS01,
+- **PV01 / DV01**: Delta risk by shifting all interest rate nodes (OIS or Forward) by 1bp.
+- **Bucketed Risk**: Key-rate sensitivities by shifting nodes individually.
+- **CS01**: Credit spread risk by shifting CDS quotes.
 - later vega and optional gamma,
 - aggregation by business tags.
 
@@ -76,19 +76,16 @@ Current limitations:
 - stochastic-process abstraction,
 - result aggregation.
 
-## 4. Architectural direction
+## 4. Architectural choice: Handle-based vs Brute-force
 
-The platform should move from free-function style analytics toward service objects with stable DTOs. A good target is:
+**Our approach:** Handle-based reactive risk.
 
-- `PricingService`
-- `RiskService`
-- `PnlExplainService`
-- `HistoricalStressEngine`
-- `HistoricalVarEngine`
-- `ParametricVarEngine`
-- `MonteCarloEngine`
+QuantLib objects (Curves, Instruments) are built using `Handle<Quote>` where the quote is a `SimpleQuote`. This design choice is fundamental to the project.
 
-all operating on shared built positions and shared market state.
+- **Choice:** Applying shocks by updating `SimpleQuote::setValue()`.
+- **Reason:** It triggers QuantLib's internal observer chain. Curves are NOT re-bootstrapped; rather, the discount/forward factors are re-evaluated from existing (invalidated) cached values in the term structure.
+- **Performance:** Handle updates are near-instantaneous. Valuation becomes the bottleneck (NPV calls), not market data updates.
+- **Comparison:** Brute-force (rebuilding curves per scenario) is 10x-100x slower depending on the number of instruments and curve complexity.
 
 ## 5. Immediate priorities
 

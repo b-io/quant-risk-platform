@@ -160,7 +160,7 @@ $$
 Use a long history of historical factor moves and take a quantile of the induced P&L distribution:
 
 $$
-\operatorname{VaR}_{\alpha}^{\text{hist}} = -Q_{1-\alpha}(\Pi^{(1)}, \dots, \Pi^{(N)}).
+\mathrm{VaR}_{\alpha}^{\text{hist}} = -Q_{1-\alpha}(\Pi^{(1)}, \dots, \Pi^{(N)}).
 $$
 
 So historical stress focuses on named episodes, while historical VaR focuses on a distributional quantile from many

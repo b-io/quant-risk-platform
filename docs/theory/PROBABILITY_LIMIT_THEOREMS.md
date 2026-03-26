@@ -21,6 +21,19 @@ A useful way to remember the distinction is:
 - **LLN** tells us where the sample average goes;
 - **CLT** tells us how it fluctuates around that limit.
 
+### How to read the normalizations in this chapter
+
+Several formulas below contain normalizing factors such as $1/n$, $1/\sqrt{n}$, or $\sigma$. These are not arbitrary
+decorations. In each case, it is helpful to separate:
+
+1. the **raw quantity** being studied, such as $S_n$ or $\overline{X}_n$;
+2. the **structural scaling** forced by variance aggregation, such as $n$ for sums or $1/n$ for averages;
+3. the **standard normalization** used to obtain a clean reference limit, such as division by $\sigma$ to get a
+   standard normal limit.
+
+This same pattern reappears later in Brownian motion: linear variance growth is structural, while choosing variance
+parameter $1$ is a normalization.
+
 ---
 
 ## 2. Setup: sums and sample averages
@@ -35,7 +48,7 @@ be independent and identically distributed random variables, with
 
 $$
 \mu = \mathbb{E}[X_1],
-\qquad \sigma^2 = \operatorname{Var}(X_1).
+\qquad \sigma^2 = \mathrm{Var}(X_1).
 $$
 
 Define the partial sum
@@ -112,7 +125,7 @@ small.
 
 ## 3.3 Proof under finite variance
 
-Assume $\operatorname{Var}(X_1)=\sigma^2 < \infty$.
+Assume $\mathrm{Var}(X_1)=\sigma^2 < \infty$.
 
 Then
 
@@ -123,11 +136,11 @@ $$
 and, since the variables are independent,
 
 $$
-\operatorname{Var}(\overline{X}_n)
+\mathrm{Var}(\overline{X}_n)
 =
-\operatorname{Var}\left(\frac{1}{n}\sum_{i=1}^n X_i\right)
+\mathrm{Var}\left(\frac{1}{n}\sum_{i=1}^n X_i\right)
 =
-\frac{1}{n^2}\sum_{i=1}^n \operatorname{Var}(X_i)
+\frac{1}{n^2}\sum_{i=1}^n \mathrm{Var}(X_i)
 =
 \frac{n\sigma^2}{n^2}
 =
@@ -139,7 +152,7 @@ Now apply **Chebyshev's inequality**:
 $$
 \mathbb{P}\left(|\overline{X}_n-\mu|>\varepsilon\right)
 \le
-\frac{\operatorname{Var}(\overline{X}_n)}{\varepsilon^2}
+\frac{\mathrm{Var}(\overline{X}_n)}{\varepsilon^2}
 =
 \frac{\sigma^2}{n\varepsilon^2}.
 $$
@@ -188,7 +201,7 @@ The strong LLN says:
 The LLN is often summarized by the simple identity:
 
 $$
-\operatorname{Var}(\overline{X}_n)=\frac{\sigma^2}{n}.
+\mathrm{Var}(\overline{X}_n)=\frac{\sigma^2}{n}.
 $$
 
 This shows why averaging stabilizes noise.
@@ -197,7 +210,7 @@ If each observation has variance $\sigma^2$, then averaging $n$ independent obse
 The standard deviation becomes
 
 $$
-\sqrt{\operatorname{Var}(\overline{X}_n)}
+\sqrt{\mathrm{Var}(\overline{X}_n)}
 =
 \frac{\sigma}{\sqrt{n}}.
 $$
@@ -217,7 +230,7 @@ A standard version of the CLT says:
 If $X_1, X_2, \dots$ are i.i.d. with
 $$
 \mathbb{E}[X_1]=\mu,
-\qquad \operatorname{Var}(X_1)=\sigma^2 < \infty,
+\qquad \mathrm{Var}(X_1)=\sigma^2 < \infty,
 $$
 then
 $$
@@ -256,23 +269,44 @@ large $n$.
 
 ## 5.3 Why the normalization is $\sqrt{n}$
 
+There are really two separate choices in the CLT formula:
+
+1. dividing by $\sqrt{n}$, which is the **structural scaling** needed to keep fluctuations of the sum finite;
+2. dividing by $\sigma$, which is a **standardization** that turns the limiting variance into $1$.
+
 We know
 
 $$
-\operatorname{Var}(S_n)=n\sigma^2.
+\mathrm{Var}(S_n)=n\sigma^2.
 $$
 
 Therefore
 
 $$
-\operatorname{Var}\left(\frac{S_n-n\mu}{\sqrt{n}}\right)
+\mathrm{Var}\left(\frac{S_n-n\mu}{\sqrt{n}}\right)
 =
-\frac{1}{n}\operatorname{Var}(S_n)
+\frac{1}{n}\mathrm{Var}(S_n)
 =
 \sigma^2.
 $$
 
-So $\sqrt{n}$ is exactly the scaling that keeps the variance finite and nontrivial.
+So $\sqrt{n}$ is exactly the scaling that keeps the variance finite and nontrivial. This is the analogue, in discrete
+time, of the statement that Brownian variance grows linearly in time.
+
+If we then divide once more by $\sigma$, we get
+
+$$
+\mathrm{Var}\left(\frac{S_n-n\mu}{\sigma\sqrt{n}}\right)=1,
+$$
+
+which is why the CLT is usually written with a standard normal limit:
+
+$$
+\frac{S_n-n\mu}{\sigma\sqrt{n}} \xrightarrow{d} \mathcal{N}(0,1).
+$$
+
+So the factor $\sqrt{n}$ is the essential probabilistic scaling, while the factor $\sigma$ is a normalization that
+makes the reference limit cleaner.
 
 This is the same square-root scaling that appears in:
 
@@ -298,7 +332,7 @@ so
 
 $$
 \mathbb{E}[X_i]=p,
-\qquad \operatorname{Var}(X_i)=p(1-p).
+\qquad \mathrm{Var}(X_i)=p(1-p).
 $$
 
 Then
@@ -367,7 +401,7 @@ Then:
   $$
   where
   $$
-  \tau^2 = \operatorname{Var}(g(X)).
+  \tau^2 = \mathrm{Var}(g(X)).
   $$
 
 This explains the classical Monte Carlo error rate:
@@ -411,7 +445,7 @@ so that
 $$
 \mathbb{E}[Y_i]=0,
 \qquad
-\operatorname{Var}(Y_i)=1.
+\mathrm{Var}(Y_i)=1.
 $$
 
 We want to understand

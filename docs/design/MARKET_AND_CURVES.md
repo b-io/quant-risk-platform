@@ -43,9 +43,11 @@ A robust schema should distinguish:
 
 ### 3.1 Quote records
 
-Each quote should carry enough metadata to build the correct helper or surface node without guessing from tenor alone.
+Each quote should carry enough metadata to build the correct helper or surface node without guessing from tenor alone. This reduces ambiguity and makes the engine more robust.
 
-Suggested fields:
+**Tradeoffs:**
+- **Pros:** Precise bootstrapping, fewer hardcoded assumptions, better audit trail.
+- **Cons:** More complex JSON schema, larger data payloads.
 
 - quote ID,
 - market date / valuation date,

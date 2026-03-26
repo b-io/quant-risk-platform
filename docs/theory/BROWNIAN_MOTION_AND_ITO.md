@@ -18,6 +18,25 @@ The physical intuition comes from the historical study of small particles suspen
 was later explained by incessant molecular collisions. The mathematical model abstracts that erratic behavior into an
 idealized stochastic process with precise probabilistic properties.
 
+### How to read this note
+
+In this chapter, it helps to distinguish three layers clearly:
+
+1. the **discrete approximation**: a rescaled random walk;
+2. the **general continuous-time object**: Brownian motion with variance parameter $c$, so that
+   $$
+   \mathrm{Var}(W_t-W_s)=c(t-s);
+   $$
+3. the **standard normalization**: the special case $c=1$.
+
+Many books define **standard Brownian motion** directly by writing
+$$
+W_t-W_s \sim \mathcal{N}(0,t-s),
+$$
+without first discussing the more general variance parameter $c$. That is a valid definition, but it can hide *why*
+the time scale is linear and *why* the coefficient is $1$. Below, we make both points explicit: linearity in time is
+forced by the increment structure, and the choice $c=1$ is a normalization.
+
 ---
 
 ## 2. From random walks to Brownian motion
@@ -42,7 +61,7 @@ The variables $X_1, X_2, \dots$ are independent and identically distributed, wit
 $$
 \mathbb{E}[X_k] = 0,
 \qquad
-\operatorname{Var}(X_k) = 1.
+\mathrm{Var}(X_k) = 1.
 $$
 
 After $n$ steps, the position is
@@ -56,7 +75,7 @@ This is the classical **simple symmetric random walk**. Since the increments are
 $$
 \mathbb{E}[S_n] = 0,
 \qquad
-\operatorname{Var}(S_n) = n.
+\mathrm{Var}(S_n) = n.
 $$
 
 So the typical size of $S_n$ is of order $\sqrt{n}$. This square-root growth is the first hint of Brownian scaling.
@@ -84,12 +103,35 @@ where $a_{\Delta t}$ is the jump size.
 Because the $X_k$ are independent with variance $1$,
 
 $$
-\operatorname{Var}\left(W_t^{(\Delta t)}\right)
+\mathrm{Var}\left(W_t^{(\Delta t)}\right)
 = \left\lfloor \frac{t}{\Delta t} \right\rfloor a_{\Delta t}^2
 \approx \frac{t}{\Delta t} a_{\Delta t}^2.
 $$
 
-For a non-degenerate limit, we want this variance to stay of order $t$ as $\Delta t \to 0$. Therefore we must choose
+For a non-degenerate limit, we want this variance to stay of order $t$ as $\Delta t \to 0$. The key idea is that we want
+a limit that is still genuinely random, but not explosive:
+
+- if the variance goes to $0$, then at horizon $t$ the process collapses to something almost deterministic, so the limit
+  is trivial;
+- if the variance goes to $\infty$, then the fluctuations blow up and the limit is not finite in any Brownian sense;
+- the interesting case is when the dispersion stays finite and non-zero.
+
+For Brownian motion, the target scaling is
+
+$$
+\mathrm{Var}(W_t) = t.
+$$
+
+This is also the right place to distinguish **variance** from **standard deviation**:
+
+$$
+\text{variance} \sim t,
+\qquad
+\text{standard deviation} \sim \sqrt{t}.
+$$
+
+So when we say Brownian motion has **square-root-of-time scaling**, we mean that the *typical size of fluctuations*
+grows like $\sqrt{t}$, because standard deviation is the square root of variance. Therefore we must choose
 
 $$
 a_{\Delta t}^2 \asymp \Delta t,
@@ -120,7 +162,7 @@ $$
 Then
 
 $$
-\operatorname{Var}\left(W_t^{(\Delta t)}\right)
+\mathrm{Var}\left(W_t^{(\Delta t)}\right)
 \approx \frac{t}{\Delta t} (\Delta t)^{2\alpha}
 = t (\Delta t)^{2\alpha - 1}.
 $$
@@ -132,6 +174,7 @@ Now let $\Delta t \to 0$:
 - only when $\alpha = \tfrac12$ do we get a finite, non-trivial limit.
 
 So the exponent $\tfrac12$ is forced by the requirement that the variance at time $t$ remain proportional to $t$.
+Equivalently, the standard deviation must remain proportional to $\sqrt{t}$, which is the hallmark of Brownian scaling.
 
 ### 2.4 Intuition from the central limit theorem
 
@@ -163,7 +206,100 @@ W_t^{(\Delta t)} \Rightarrow \mathcal{N}(0,t).
 $$
 
 That already matches one of the defining properties of Brownian motion: at time $t$, the distribution should be Gaussian
-with mean $0$ and variance $t$.
+with mean $0$ and variance $t$. For a fuller statement of the CLT, the role of the normalization $1/\sqrt{n}$, and the
+link between variance aggregation and Gaussian limits, see [Probability Limit Theorems](PROBABILITY_LIMIT_THEOREMS.md).
+
+### 2.4.1 Why the variance must be linear in time
+
+There are two complementary reasons that back up the target scaling
+
+$$
+\mathrm{Var}(W_t) = t.
+$$
+
+#### A. From the random-walk limit
+
+In the discrete approximation, over the horizon $[0,t]$ we have about
+
+$$
+N \approx \frac{t}{\Delta t}
+$$
+
+independent increments. If each increment has variance of order $\Delta t$, then additivity of variance for independent
+centered increments gives
+
+$$
+\mathrm{Var}\left(\sum_{k=1}^{N} Y_k\right)
+= \sum_{k=1}^{N} \mathrm{Var}(Y_k)
+\approx N \cdot \Delta t
+\approx \frac{t}{\Delta t} \cdot \Delta t
+= t.
+$$
+
+So the only way to keep the total variance finite and non-zero at time $t$ is to make the one-step variance scale like
+$\Delta t$, which means the one-step standard deviation must scale like $\sqrt{\Delta t}$. This is the same square-root
+normalization that appears in the CLT; see again [Probability Limit Theorems](PROBABILITY_LIMIT_THEOREMS.md).
+
+#### B. From the Brownian-motion axioms
+
+Suppose $W$ is already a Brownian motion in the axiomatic sense: it has independent increments, stationary increments,
+and continuous paths, with $W_0=0$. Define
+
+$$
+v(t) = \mathrm{Var}(W_t).
+$$
+
+Because
+
+$$
+W_{t+s} = W_t + (W_{t+s}-W_t),
+$$
+
+and the increment $W_{t+s}-W_t$ is independent of $W_t$, we get
+
+$$
+\mathrm{Var}(W_{t+s}) = \mathrm{Var}(W_t) + \mathrm{Var}(W_{t+s}-W_t).
+$$
+
+By stationarity of increments, the law of $W_{t+s}-W_t$ depends only on the length $s$, so
+
+$$
+\mathrm{Var}(W_{t+s}-W_t) = \mathrm{Var}(W_s).
+$$
+
+Hence
+
+$$
+v(t+s) = v(t) + v(s).
+$$
+
+This is the additive Cauchy functional equation on $\mathbb{R}_+$. Since Brownian motion has continuous paths, the map
+$t \mapsto W_t$ is continuous, and in particular $t \mapsto v(t)$ is continuous. The continuous solutions of
+
+$$
+v(t+s) = v(t) + v(s)
+$$
+
+are exactly the linear functions
+
+$$
+v(t) = c t
+$$
+
+for some constant $c \ge 0$. Therefore any Brownian motion must satisfy
+
+$$
+\mathrm{Var}(W_t) = c t.
+$$
+
+For **standard** Brownian motion, the normalization is chosen so that $c=1$, hence
+
+$$
+\mathrm{Var}(W_t) = t.
+$$
+
+So the linear-in-time variance is not an arbitrary convention: it is forced by independent increments, stationary
+increments, and continuity. The standard Brownian normalization simply chooses the constant to be $1$.
 
 ### 2.5 From finite-dimensional convergence to a process limit
 
@@ -188,8 +324,8 @@ It is useful to see the variance computation explicitly.
 For independent centered increments,
 
 $$
-\operatorname{Var}\left(\sum_{k=1}^N Y_k\right)
-= \sum_{k=1}^N \operatorname{Var}(Y_k).
+\mathrm{Var}\left(\sum_{k=1}^N Y_k\right)
+= \sum_{k=1}^N \mathrm{Var}(Y_k).
 $$
 
 Here each increment is
@@ -201,18 +337,19 @@ $$
 so
 
 $$
-\operatorname{Var}(Y_k) = \Delta t \operatorname{Var}(X_k) = \Delta t.
+\mathrm{Var}(Y_k) = \Delta t \mathrm{Var}(X_k) = \Delta t.
 $$
 
 If we take $N = t/\Delta t$ steps, then
 
 $$
-\operatorname{Var}\left(\sum_{k=1}^{t/\Delta t} \sqrt{\Delta t} X_k\right)
+\mathrm{Var}\left(\sum_{k=1}^{t/\Delta t} \sqrt{\Delta t} X_k\right)
 = \frac{t}{\Delta t} \cdot \Delta t
 = t.
 $$
 
-That is exactly the variance growth we want for Brownian motion.
+That is exactly the variance growth we want for Brownian motion. Taking square roots then gives a standard deviation of
+$\sqrt{t}$, which is why Brownian fluctuations are said to scale with the square root of elapsed time.
 
 ### 2.7 A concrete numerical example
 
@@ -260,12 +397,12 @@ The scaling logic can be summarized as follows.
 
 ```mermaid
 flowchart LR
-    A["Choose a horizon t"] --> B["Split time into N = t / dt steps"]
-    B --> C["Raw walk increments: X_k = +1 or -1"]
-    C --> D["Rescale each jump to sqrt(dt) * X_k"]
-    D --> E["Variance of one increment = dt"]
-    E --> F["Total variance after N steps = N * dt = t"]
-    F --> G["As dt goes to 0, the process converges in law to Brownian motion"]
+   A["Choose a horizon t"] --> B["Split time into N = t / dt steps"]
+   B --> C["Raw walk increments: X_k = +1 or -1"]
+   C --> D["Rescale each jump to sqrt(dt) * X_k"]
+   D --> E["Variance of one increment = dt"]
+   E --> F["Total variance after N steps = N * dt = t"]
+   F --> G["As dt goes to 0, the process converges in law to Brownian motion"]
 ```
 
 Another way to picture it is:
@@ -296,23 +433,81 @@ probability theory, stochastic calculus, and mathematical finance.
 
 ---
 
-## 3. What is a Wiener process?
+## 3. Brownian motion: general form and standard normalization
 
-A **standard Wiener process** $W_t$ is a stochastic process satisfying:
+It is helpful to separate the **general definition** from the **standard normalization**.
 
-1. $W_0 = 0$
-2. it has **independent increments**
-3. for $0 \le s < t$, the increment $W_t - W_s$ is Gaussian:
+### 3.1 General Brownian motion
+
+A Brownian motion with variance parameter $c>0$ is a stochastic process $W_t$ such that:
+
+1. $W_0 = 0$;
+2. it has **independent increments**;
+3. it has **stationary Gaussian increments**, meaning that for $0 \le s < t$,
    $$
-   W_t - W_s \sim \mathcal{N}(0, t-s)
+   W_t - W_s \sim \mathcal{N}(0, c(t-s));
    $$
-4. sample paths are continuous almost surely
+4. sample paths are continuous almost surely.
 
-In mathematical finance, the terms **Wiener process** and **Brownian motion** are often used interchangeably.
+Here the constant $c$ controls the time scale of the variance. Equivalently,
+
+$$
+\mathrm{Var}(W_t-W_s)=c(t-s).
+$$
+
+From the argument in Section 2.4.1, the linear dependence on $t-s$ is not arbitrary: it is forced by independent
+increments, stationary increments, and continuity. What remains free is only the constant $c$.
+
+### 3.2 Standard Brownian motion
+
+A **standard Brownian motion** is the normalized case $c=1$. In that case,
+
+$$
+W_t-W_s \sim \mathcal{N}(0,t-s),
+$$
+
+so in particular
+
+$$
+W_t \sim \mathcal{N}(0,t)
+\qquad\text{and}\qquad
+\mathrm{Var}(W_t)=t.
+$$
+
+This is why many books write the variance parameter as $t$ directly in the definition: they are defining the
+**standardized** process from the outset.
+
+### 3.3 Why choosing $c=1$ loses no generality
+
+If $B_t$ is a standard Brownian motion and $c>0$, then
+
+$$
+X_t = \sqrt{c}\,B_t
+$$
+
+is a Brownian motion with variance parameter $c$, because
+
+$$
+X_t-X_s \sim \mathcal{N}(0,c(t-s)).
+$$
+
+So the general case is just a rescaling of the standard one. Working with $c=1$ keeps formulas simpler, while a
+volatility parameter can later be reintroduced explicitly in models such as
+
+$$
+dX_t = \mu\,dt + \sigma\,dB_t.
+$$
+
+In mathematical finance, the terms **Wiener process** and **Brownian motion** are often used interchangeably. When a
+text writes
+$$
+W_t-W_s \sim \mathcal{N}(0,t-s),
+$$
+it is usually choosing the standard normalization directly.
 
 ### Intuition
 
-For a small interval $\Delta t$,
+The definition above already tells us the law of one increment. For a small interval $\Delta t$,
 
 $$
 W_{t+\Delta t} - W_t \sim \mathcal{N}(0, \Delta t).
@@ -495,7 +690,7 @@ df(t,X_t)
 + a \frac{\partial f}{\partial x}
 + \frac12 b^2 \frac{\partial^2 f}{\partial x^2} \right) dt
 + b \frac{\partial f}{\partial x} \, dW_t.
-$$
+  $$
 
 This is the stochastic analog of the ordinary chain rule, but with an extra second-derivative term.
 
@@ -550,7 +745,7 @@ $$
 d\ln S_t
 = \frac{1}{S_t}(\mu S_t \, dt + \sigma S_t \, dW_t)
 + \frac12 \left(-\frac{1}{S_t^2}\right)(\sigma^2 S_t^2 \, dt).
-$$
+  $$
 
 So
 

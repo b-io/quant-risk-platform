@@ -16,3 +16,12 @@ The rates section is the current implementation focus of QRP. It should remain t
 - conventions used by deposits, FRAs, futures, and swaps,
 - rates-specific bootstrap choices,
 - rates risk diagnostics and scenario foundations.
+
+## What to understand from this section
+
+After reading this section, the reader should be able to explain:
+
+- why discount and projection curves should be separated,
+- how rates conventions affect helper construction and pricing,
+- why curve objects must be reusable across valuation, risk, and stress,
+- how rates curve design drives PV01, bucketed risk, and scenario semantics.

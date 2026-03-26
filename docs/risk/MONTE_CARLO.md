@@ -46,7 +46,7 @@ $$
 \mathcal{N}(0,\tau^2),
 $$
 
-where $\tau^2 = \operatorname{Var}(g(\Pi_T))$. Thus the Monte Carlo error decreases at rate $N^{-1/2}$.
+where $\tau^2 = \mathrm{Var}(g(\Pi_T))$. Thus the Monte Carlo error decreases at rate $N^{-1/2}$.
 
 ---
 
@@ -141,7 +141,7 @@ $$
 This ensures
 
 $$
-\operatorname{Cov}(\varepsilon) = \Sigma.
+\mathrm{Cov}(\varepsilon) = \Sigma.
 $$
 
 This is the standard way to generate coherent multi-factor shocks in a first Monte Carlo implementation.
@@ -165,7 +165,7 @@ $$
 For confidence level $\alpha$ (for example $0.95$), a Monte Carlo estimate of VaR is
 
 $$
-\operatorname{VaR}_{\alpha} \approx -\Pi_{(k)},
+\mathrm{VaR}_{\alpha} \approx -\Pi_{(k)},
 \qquad
 k = \lfloor (1-\alpha)N \rfloor.
 $$
@@ -173,7 +173,7 @@ $$
 Expected Shortfall is estimated by averaging the tail losses:
 
 $$
-\operatorname{ES}_{\alpha} \approx -\frac{1}{k}\sum_{i=1}^{k} \Pi_{(i)}.
+\mathrm{ES}_{\alpha} \approx -\frac{1}{k}\sum_{i=1}^{k} \Pi_{(i)}.
 $$
 
 If P&L is defined as profit minus loss, then a negative value corresponds to a loss, which explains the minus signs
@@ -273,7 +273,7 @@ Monte Carlo output should report not only point estimates but also estimation un
 quantity with sample standard deviation $s$, then an approximate standard error is
 
 $$
-\operatorname{SE}(\hat m_N) \approx \frac{s}{\sqrt{N}}.
+\mathrm{SE}(\hat m_N) \approx \frac{s}{\sqrt{N}}.
 $$
 
 This matters when interpreting VaR, ES, or pricing estimates from a finite number of paths.
@@ -330,7 +330,7 @@ is an estimator of $m = \mathbb{E}[Y]$.
 $$
 \sqrt{N}(\hat m_N - m)
 \xrightarrow{d}
-\mathcal{N}(0, \operatorname{Var}(Y)).
+\mathcal{N}(0, \mathrm{Var}(Y)).
 $$
 
 So Monte Carlo becomes more accurate as the number of paths grows, but only at the relatively slow rate $N^{-1/2}$. That

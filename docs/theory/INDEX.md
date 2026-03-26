@@ -2,6 +2,15 @@
 
 This folder contains mathematical and statistical foundations.
 
+A recurring convention in these notes is to distinguish clearly between:
+
+- a **general definition**,
+- a **standardized or normalized special case**,
+- and the **reason** that the normalization is useful.
+
+For example, a general Gaussian law is $\mathcal{N}(\mu,\sigma^2)$ while the standard normal is $\mathcal{N}(0,1)$;
+a general Brownian motion may have variance parameter $c$, while standard Brownian motion uses $c=1$.
+
 ## Foundation chapters
 
 1. `docs/theory/RANDOM_VARIABLES_EXPECTATION_VARIANCE.md`

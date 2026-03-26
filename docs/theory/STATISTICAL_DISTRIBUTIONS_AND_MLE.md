@@ -32,6 +32,19 @@ This chapter summarizes several important discrete and continuous families, thei
 characteristic functions, standard maximum-likelihood estimators when available in closed form, and their main
 asymptotic properties.
 
+### How to read the families in this chapter
+
+For several distributions, it is useful to distinguish three things:
+
+1. the **general family**, with its full parameter set;
+2. a **special or standardized case**, obtained by fixing some parameters to convenient reference values;
+3. the **reason for that standardization**, usually to simplify formulas or to create a canonical benchmark.
+
+For example, the normal family is $\mathcal{N}(\mu,\sigma^2)$, while the **standard normal** is the normalized case
+$\mathcal{N}(0,1)$. Similarly, in stochastic-process notes one often works with **standard Brownian motion**, which is
+the normalized case of a more general Brownian scaling. Throughout these notes, we try to say explicitly when a formula
+is a general definition and when it is a convenient normalization.
+
 ---
 
 ## 2. Likelihood and maximum likelihood estimation
@@ -160,7 +173,7 @@ $$
 $$
 \mathbb{E}[X]=p,
 \qquad
-\operatorname{Var}(X)=p(1-p).
+\mathrm{Var}(X)=p(1-p).
 $$
 
 ### Characteristic function
@@ -252,7 +265,7 @@ $$
 $$
 \mathbb{E}[X]=mp,
 \qquad
-\operatorname{Var}(X)=mp(1-p).
+\mathrm{Var}(X)=mp(1-p).
 $$
 
 ### Characteristic function
@@ -329,7 +342,7 @@ The parameter $\lambda$ is both the mean and the variance.
 $$
 \mathbb{E}[X]=\lambda,
 \qquad
-\operatorname{Var}(X)=\lambda.
+\mathrm{Var}(X)=\lambda.
 $$
 
 ### Characteristic function
@@ -411,7 +424,7 @@ $$
 $$
 \mathbb{E}[X]=\frac{1}{p},
 \qquad
-\operatorname{Var}(X)=\frac{1-p}{p^2}.
+\mathrm{Var}(X)=\frac{1-p}{p^2}.
 $$
 
 ### Characteristic function
@@ -471,7 +484,7 @@ $$
 $$
 \mathbb{E}[X]=\frac{a+b}{2},
 \qquad
-\operatorname{Var}(X)=\frac{(b-a)^2}{12}.
+\mathrm{Var}(X)=\frac{(b-a)^2}{12}.
 $$
 
 ### Characteristic function
@@ -519,7 +532,7 @@ Here $\lambda$ is the rate, so the mean waiting time is $1/\lambda$.
 $$
 \mathbb{E}[X]=\frac{1}{\lambda},
 \qquad
-\operatorname{Var}(X)=\frac{1}{\lambda^2}.
+\mathrm{Var}(X)=\frac{1}{\lambda^2}.
 $$
 
 ### Characteristic function
@@ -594,12 +607,30 @@ f_X(x)=\frac{1}{\sqrt{2\pi\sigma^2}}\exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right
 \qquad x\in\mathbb{R}.
 $$
 
+The **standard normal** distribution is the normalized special case
+
+$$
+Z\sim\mathcal{N}(0,1).
+$$
+
+This distinction matters: $\mathcal{N}(\mu,\sigma^2)$ is the general family, while $\mathcal{N}(0,1)$ is the
+reference case used to simplify formulas, tables, and limit theorems.
+
+Indeed, if $X\sim\mathcal{N}(\mu,\sigma^2)$ and $\sigma>0$, then
+
+$$
+Z=\frac{X-\mu}{\sigma} \sim \mathcal{N}(0,1).
+$$
+
+So centering by the mean and scaling by the standard deviation removes the location and scale parameters. This is why
+the CLT is usually stated with a standard normal limit rather than a general Gaussian one.
+
 ### Mean and variance
 
 $$
 \mathbb{E}[X]=\mu,
 \qquad
-\operatorname{Var}(X)=\sigma^2.
+\mathrm{Var}(X)=\sigma^2.
 $$
 
 ### Characteristic function
@@ -663,7 +694,7 @@ $$
 $$
 \mathbb{E}[X]=e^{\mu+\sigma^2/2},
 \qquad
-\operatorname{Var}(X)=\left(e^{\sigma^2}-1\right)e^{2\mu+\sigma^2}.
+\mathrm{Var}(X)=\left(e^{\sigma^2}-1\right)e^{2\mu+\sigma^2}.
 $$
 
 ### Characteristic function
@@ -713,7 +744,7 @@ $$
 $$
 \mathbb{E}[X]=\frac{\alpha}{\beta},
 \qquad
-\operatorname{Var}(X)=\frac{\alpha}{\beta^2}.
+\mathrm{Var}(X)=\frac{\alpha}{\beta^2}.
 $$
 
 ### Characteristic function
@@ -741,7 +772,7 @@ after suitable standardization.
 A random variable $X$ has a **Beta distribution** with parameters $\alpha > 0$ and $\beta > 0$, written
 
 $$
-X\sim\operatorname{Beta}(\alpha,\beta),
+X\sim\mathrm{Beta}(\alpha,\beta),
 \qquad \alpha > 0, \quad \beta > 0,
 $$
 
@@ -760,7 +791,7 @@ $$
 $$
 \mathbb{E}[X]=\frac{\alpha}{\alpha+\beta},
 \qquad
-\operatorname{Var}(X)=\frac{\alpha\beta}{(\alpha+\beta)^2(\alpha+\beta+1)}.
+\mathrm{Var}(X)=\frac{\alpha\beta}{(\alpha+\beta)^2(\alpha+\beta+1)}.
 $$
 
 ### Characteristic function
@@ -814,7 +845,7 @@ and its support is $x \in [0,\infty)$.
 $$
 \mathbb{E}[X]=k,
 \qquad
-\operatorname{Var}(X)=2k.
+\mathrm{Var}(X)=2k.
 $$
 
 ### Characteristic function
@@ -862,7 +893,7 @@ has a **Student's $t$ distribution** with $\nu$ degrees of freedom, written $T \
 Existence conditions for the moments are important:
 
 - **Mean**: $\mathbb{E}[T]=0$ if and only if **$\nu > 1$**.
-- **Variance**: $\operatorname{Var}(T)=\dfrac{\nu}{\nu-2}$ if and only if **$\nu > 2$**.
+- **Variance**: $\mathrm{Var}(T)=\dfrac{\nu}{\nu-2}$ if and only if **$\nu > 2$**.
 
 For small $\nu$, the tails are much heavier than Gaussian tails.
 
@@ -970,7 +1001,7 @@ Fisher information is closely connected to the fundamental lower bound on estima
 any unbiased estimator $T$ of $\theta$ satisfies
 
 $$
-\operatorname{Var}(T)\ge \frac{1}{nI(\theta)}.
+\mathrm{Var}(T)\ge \frac{1}{nI(\theta)}.
 $$
 
 This is the **Cramér-Rao lower bound**. It says that no unbiased estimator can have variance below the inverse
@@ -1011,7 +1042,7 @@ $$
 Evaluated at the MLE, it is often used to estimate the asymptotic variance:
 
 $$
-\widehat{\operatorname{Var}}(\hat\theta)\approx J_n(\hat\theta)^{-1}
+\widehat{\mathrm{Var}}(\hat\theta)\approx J_n(\hat\theta)^{-1}
 $$
 
 in the one-parameter case, or the inverse Hessian in the multiparameter case.

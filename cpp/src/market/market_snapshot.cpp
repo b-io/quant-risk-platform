@@ -48,24 +48,33 @@ Design note (see docs/design/CURVE_BOOTSTRAP_DESIGN.md):
 namespace qrp::market {
 
 QuantLib::Date CurveBuilder::parse_date(const std::string& date_str) {
-    int y = std::stoi(date_str.substr(0, 4));
-    int m = std::stoi(date_str.substr(5, 2));
-    int d = std::stoi(date_str.substr(8, 2));
-    return QuantLib::Date(d, static_cast<QuantLib::Month>(m), y);
+    if (date_str.size() < 10) return QuantLib::Date();
+    try {
+        int y = std::stoi(date_str.substr(0, 4));
+        int m = std::stoi(date_str.substr(5, 2));
+        int d = std::stoi(date_str.substr(8, 2));
+        return QuantLib::Date(d, static_cast<QuantLib::Month>(m), y);
+    } catch (...) {
+        return QuantLib::Date();
+    }
 }
 
 QuantLib::Period CurveBuilder::parse_tenor(const std::string& tenor) {
     if (tenor.empty()) return QuantLib::Period(0, QuantLib::Days);
     
-    char unit = tenor.back();
-    int value = std::stoi(tenor.substr(0, tenor.size() - 1));
-    
-    switch (unit) {
-        case 'D': return QuantLib::Period(value, QuantLib::Days);
-        case 'W': return QuantLib::Period(value, QuantLib::Weeks);
-        case 'M': return QuantLib::Period(value, QuantLib::Months);
-        case 'Y': return QuantLib::Period(value, QuantLib::Years);
-        default: return QuantLib::Period(0, QuantLib::Days);
+    try {
+        char unit = tenor.back();
+        int value = std::stoi(tenor.substr(0, tenor.size() - 1));
+        
+        switch (unit) {
+            case 'D': return QuantLib::Period(value, QuantLib::Days);
+            case 'W': return QuantLib::Period(value, QuantLib::Weeks);
+            case 'M': return QuantLib::Period(value, QuantLib::Months);
+            case 'Y': return QuantLib::Period(value, QuantLib::Years);
+            default: return QuantLib::Period(0, QuantLib::Days);
+        }
+    } catch (...) {
+        return QuantLib::Period(0, QuantLib::Days);
     }
 }
 

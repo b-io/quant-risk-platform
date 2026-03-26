@@ -13,8 +13,23 @@
 #include <ql/indexes/ibor/gbplibor.hpp>
 #include <ql/indexes/ibor/chflibor.hpp>
 
+/**
+ * @brief InstrumentFactory is the central factory for translating domain-level Trades into QuantLib Instruments.
+ *
+ * Design choices (see docs/design/ARCHITECTURE.md):
+ * 1. Abstraction: It decouples the engine's internal representation (domain::Trade) from QuantLib's pricing classes.
+ * 2. Context-Aware: Uses PricingContext to resolve the correct curves (discounting/forecasting) based on conventions.
+ * 3. QuantLib usage:
+ *    - VanillaSwap: Standard floating vs fixed interest rate swap.
+ *    - FixedRateBond: Standard bond with fixed coupons.
+ *    - DiscountingSwapEngine / DiscountingBondEngine: Preferred for deterministic valuation over Monte Carlo or Tree engines.
+ * 4. Multi-curve: Supports OIS discounting and IBOR forecasting by linking different YieldTermStructure handles to different legs.
+ */
 namespace qrp::instruments {
 
+/**
+ * @brief Dispatches trade creation to specialized creators based on trade type.
+ */
 QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_instrument(
     const domain::Trade& trade,
     const analytics::PricingContext& context) {
@@ -27,6 +42,13 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_instru
     return nullptr;
 }
 
+/**
+ * @brief Creates a QuantLib::VanillaSwap.
+ * 
+ * Tradeoffs: 
+ * - Using VanillaSwap is simpler but less flexible than the generic Swap class. 
+ * - It covers 90% of vanilla rates trading needs while providing a clean interface for NPV and fair rate.
+ */
 QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_swap(
     const domain::Trade& trade,
     const analytics::PricingContext& context) {
@@ -45,6 +67,7 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_swap(
     auto& registry = conventions::MarketConventionRegistry::instance();
     auto conv = registry.get_rates_convention(cc, float_index_name);
 
+    // Resolve curve handles from the pricing context.
     auto discount_curve_id = context.get_discount_curve_id(cc);
     auto forecast_curve_id = context.get_forecast_curve_id(cc, float_index_name);
 
@@ -52,15 +75,20 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_swap(
     auto forecast_curve = context.market_state().get_curve(forecast_curve_id);
 
     if (!discount_curve) return nullptr;
-    // Fallback if specific forecast curve doesn't exist
+    // Fallback: If no specific forecast curve exists, we use the discount curve (single-curve pricing).
     if (!forecast_curve) forecast_curve = discount_curve;
     
     QuantLib::Handle<QuantLib::YieldTermStructure> discounting_term_structure(discount_curve);
     QuantLib::Handle<QuantLib::YieldTermStructure> forecasting_term_structure(forecast_curve);
 
-    QuantLib::Period index_tenor = market::CurveBuilder::parse_tenor(conv.index_family.substr(conv.index_family.find("_") + 1));
+    // Determine the index tenor from the convention (e.g., "IBOR_3M" -> 3 months).
+    size_t underscore_pos = conv.index_family.find("_");
+    QuantLib::Period index_tenor = (underscore_pos != std::string::npos) ?
+        market::CurveBuilder::parse_tenor(conv.index_family.substr(underscore_pos + 1)) :
+        QuantLib::Period(3, QuantLib::Months);
     if (index_tenor == QuantLib::Period(0, QuantLib::Days)) index_tenor = QuantLib::Period(3, QuantLib::Months);
 
+    // Create the floating rate index linked to the forecast curve.
     auto index = market::CurveBuilder::create_ibor_index(cc, index_tenor, forecasting_term_structure);
 
     auto calendar = market::CurveBuilder::parse_calendar(conv.calendar);
@@ -70,6 +98,7 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_swap(
     auto float_freq = market::CurveBuilder::parse_frequency(conv.floating_leg_frequency);
     auto float_dc = market::CurveBuilder::parse_day_count(conv.day_count);
 
+    // Build schedules for fixed and floating legs.
     auto swap = QuantLib::ext::shared_ptr<QuantLib::VanillaSwap>(new QuantLib::VanillaSwap(
         type, 
         trade.notional,
@@ -83,10 +112,14 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_swap(
         0.0, // spread: usually zero for vanilla swaps
         float_dc));
 
+    // Link the swap to the discounting engine.
     swap->setPricingEngine(QuantLib::ext::make_shared<QuantLib::DiscountingSwapEngine>(discounting_term_structure));
     return swap;
 }
 
+/**
+ * @brief Creates a QuantLib::FixedRateBond.
+ */
 QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_bond(
     const domain::Trade& trade,
     const analytics::PricingContext& context) {
