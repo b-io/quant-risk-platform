@@ -6,10 +6,10 @@ This `docs/` tree is the canonical documentation root for the repository.
 
 - `docs/design/` — architecture, module boundaries, market-and-curve design, and service-level design rationale.
 - `docs/pricing/` — pricing and market-construction documentation, organized by subdomain:
-  - `docs/pricing/market-data/`
-  - `docs/pricing/rates/`
-  - `docs/pricing/credit/`
-  - `docs/pricing/volatility/`
+    - `docs/pricing/market-data/`
+    - `docs/pricing/rates/`
+    - `docs/pricing/credit/`
+    - `docs/pricing/volatility/`
 - `docs/risk/` — deterministic and non-linear risk, P&L explain, scenarios, historical stress, VaR, and Monte Carlo.
 - `docs/theory/` — mathematical and statistical foundations.
 - `docs/roadmap/` — implementation roadmap, review notes, and progress tracking.

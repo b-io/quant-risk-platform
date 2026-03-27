@@ -49,6 +49,7 @@ factor taxonomy to ensure that deterministic risk, stress, and simulation share 
 **Format:** `RF:<family>:<currency_or_market>:<object>:<bucket>`
 
 **Supported Families:**
+
 - `RF:RATES:<CCY>:<CURVE>:<TENOR>` (e.g., `RF:RATES:USD:SOFR:2Y`)
 - `RF:CREDIT:<ENTITY>:<SPREAD/HAZARD>:<TENOR>`
 - `RF:FX:<CCYPAIR>:SPOT:ALL`
@@ -56,6 +57,7 @@ factor taxonomy to ensure that deterministic risk, stress, and simulation share 
 - `RF:EQUITY:<TICKER>:SPOT:ALL`
 
 **Tradeoffs:**
+
 - **Pros:** Precise bootstrapping, fewer hardcoded assumptions, seamless attribution.
 - **Cons:** More complex JSON schema, larger data payloads.
 

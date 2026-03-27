@@ -46,7 +46,8 @@ flowchart TD
 - **BuiltPortfolio / BuiltTrade**: Cached representation of trades as QuantLib instruments, ready for pricing and risk.
 - **InstrumentFactory**: Translates trades into QuantLib instruments.
 - **Analytics services**: Operate on built market state and built instruments rather than re-parsing JSON.
-- **Local Database (SQLite)**: Stores portfolios, trades, market data, and historical results (valuations, sensitivities, P&L, VaR).
+- **Local Database (SQLite)**: Stores portfolios, trades, market data, and historical results (valuations,
+  sensitivities, P&L, VaR).
 - **CLI / Python**: Expose stable application services rather than raw QuantLib internals.
 
 ## 4. Portfolios and Identifiers
@@ -55,24 +56,31 @@ The platform uses stable, structured internal identifiers to ensure consistency 
 the database.
 
 ### 4.1 Portfolio Identifiers
+
 Format: `PORT:<portfolio_group>:<book>:<portfolio_name>`
 Examples:
+
 - `PORT:DEMO:MACRO:GLOBAL_RATES`
 - `PORT:DEMO:XASSET:MULTI_ASSET_01`
 
 ### 4.2 Trade Identifiers
+
 Format: `TRD:<asset_class>:<book>:<sequence>`
 Examples:
+
 - `TRD:RATES:MACRO:000001`
 - `TRD:CDS:CREDIT:000014`
 
 ### 4.3 Risk Factor Identifiers
+
 Format: `RF:<family>:<currency_or_market>:<object>:<bucket>`
 Examples:
+
 - `RF:RATES:USD:OIS:2Y`
 - `RF:FX:EURUSD:SPOT:ALL`
 
-These identifiers are shared across market state, shock definitions, and risk reports to enable seamless reconciliation and attribution.
+These identifiers are shared across market state, shock definitions, and risk reports to enable seamless reconciliation
+and attribution.
 
 ## 5. Core QuantLib design choices
 
@@ -120,12 +128,12 @@ This is a good first production choice because:
 
 ## 6. Platform vs QuantLib Architecture
 
-| Aspect      | QuantLib Approach                | Our Project Approach                | Why?                                         |
-|-------------|----------------------------------|-------------------------------------|----------------------------------------------|
-| **Data**    | Object-oriented, heavy objects   | DTO-based (JSON) + SQLite           | Persistence, interop, and auditability.      |
-| **State**   | Distributed in objects           | Centralized in `MarketState`        | Easier to manage scenarios and snapshots.    |
-| **Pricing** | `setPricingEngine` on instrument | `ValuationService` wrapper          | Separation of concerns; easier to audit.     |
-| **Risk**    | Ad-hoc or via `RelinkableHandle` | Standardized `RiskService` + `RF:`  | Consistent reporting and performance tuning. |
+| Aspect      | QuantLib Approach                | Our Project Approach               | Why?                                         |
+|-------------|----------------------------------|------------------------------------|----------------------------------------------|
+| **Data**    | Object-oriented, heavy objects   | DTO-based (JSON) + SQLite          | Persistence, interop, and auditability.      |
+| **State**   | Distributed in objects           | Centralized in `MarketState`       | Easier to manage scenarios and snapshots.    |
+| **Pricing** | `setPricingEngine` on instrument | `ValuationService` wrapper         | Separation of concerns; easier to audit.     |
+| **Risk**    | Ad-hoc or via `RelinkableHandle` | Standardized `RiskService` + `RF:` | Consistent reporting and performance tuning. |
 
 ## 7. Current runtime flow
 
@@ -138,7 +146,6 @@ sequenceDiagram
     participant P as PricingContext
     participant F as InstrumentFactory
     participant A as Analytics service
-
     U ->> L: load market and portfolio files
     L ->> M: validated DTOs
     M ->> S: build curves and quote handles

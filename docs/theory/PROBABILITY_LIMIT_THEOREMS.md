@@ -67,7 +67,7 @@ Then:
 
 - the LLN studies the limit of $\overline{X}_n$;
 - the CLT studies the limit of
-  $$
+$$
 \frac{S_n - n\mu}{\sigma \sqrt{n}}
 =
 \frac{\sqrt{n}(\overline{X}_n-\mu)}{\sigma}.
@@ -390,17 +390,17 @@ $$
 Then:
 
 - by the LLN,
-  $$
+$$
 \hat{\theta}_n \to \theta;
 $$
 - by the CLT,
-  $$
+$$
 \sqrt{n}(\hat{\theta}_n-\theta)
 \xrightarrow{d}
 \mathcal{N}(0,\tau^2),
 $$
   where
-  $$
+$$
 \tau^2 = \mathrm{Var}(g(X)).
 $$
 

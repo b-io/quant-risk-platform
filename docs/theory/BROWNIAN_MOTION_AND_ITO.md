@@ -24,7 +24,7 @@ In this chapter, it helps to distinguish three layers clearly:
 
 1. the **discrete approximation**: a rescaled random walk;
 2. the **general continuous-time object**: Brownian motion with variance parameter $c$, so that
-   $$
+$$
 \mathrm{Var}(W_t-W_s)=c(t-s);
 $$
 3. the **standard normalization**: the special case $c=1$.
@@ -244,9 +244,12 @@ $$
 W_t^{(\Delta t)} \Rightarrow \mathcal{N}(0,t).
 $$
 
-That is the missing intermediate step: the CLT gives a **standard normal** for the normalized sum, and the extra factor $\sqrt{n_{\Delta t} \Delta t}$ tends to $\sqrt{t}$, which converts variance $1$ into variance $t$.
+That is the missing intermediate step: the CLT gives a **standard normal** for the normalized sum, and the extra factor
+$\sqrt{n_{\Delta t} \Delta t}$ tends to $\sqrt{t}$, which converts variance $1$ into variance $t$.
 
-That already matches one of the defining properties of Brownian motion: at time $t$, the distribution should be Gaussian with mean $0$ and variance $t$. For a fuller statement of the CLT, the role of the normalization $1/\sqrt{n}$, and the link between variance aggregation and Gaussian limits, see [Probability Limit Theorems](PROBABILITY_LIMIT_THEOREMS.md).
+That already matches one of the defining properties of Brownian motion: at time $t$, the distribution should be Gaussian
+with mean $0$ and variance $t$. For a fuller statement of the CLT, the role of the normalization $1/\sqrt{n}$, and the
+link between variance aggregation and Gaussian limits, see [Probability Limit Theorems](PROBABILITY_LIMIT_THEOREMS.md).
 
 ### 2.4.1 Why the variance must be linear in time
 
@@ -435,12 +438,12 @@ The scaling logic can be summarized as follows.
 
 ```mermaid
 flowchart LR
-   A["Choose a horizon t"] --> B["Split time into N = t / dt steps"]
-   B --> C["Raw walk increments: X_k = +1 or -1"]
-   C --> D["Rescale each jump to sqrt(dt) * X_k"]
-   D --> E["Variance of one increment = dt"]
-   E --> F["Total variance after N steps = N * dt = t"]
-   F --> G["As dt goes to 0, the process converges in law to Brownian motion"]
+    A["Choose a horizon t"] --> B["Split time into N = t / dt steps"]
+    B --> C["Raw walk increments: X_k = +1 or -1"]
+    C --> D["Rescale each jump to sqrt(dt) * X_k"]
+    D --> E["Variance of one increment = dt"]
+    E --> F["Total variance after N steps = N * dt = t"]
+    F --> G["As dt goes to 0, the process converges in law to Brownian motion"]
 ```
 
 Another way to picture it is:
@@ -482,7 +485,7 @@ A Brownian motion with variance parameter $c>0$ is a stochastic process $W_t$ su
 1. $W_0 = 0$;
 2. it has **independent increments**;
 3. it has **stationary Gaussian increments**, meaning that for $0 \le s < t$,
-   $$
+$$
 W_t - W_s \sim \mathcal{N}(0, c(t-s));
 $$
 4. sample paths are continuous almost surely.
@@ -822,7 +825,7 @@ If the Brownian motions are correlated, one common implementation is:
 1. simulate independent standard normals $Z \sim \mathcal{N}(0, I)$
 2. compute a Cholesky factor $L$ of the covariance or correlation matrix
 3. set
-   $$
+$$
 Y = LZ
 $$
    so that $Y$ has the desired covariance structure
