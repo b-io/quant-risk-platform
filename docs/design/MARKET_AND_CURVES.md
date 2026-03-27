@@ -41,28 +41,23 @@ Still missing or thin:
 
 A robust schema should distinguish:
 
-### 3.1 Quote records
+### 3.1 Quote and Risk Factor Taxonomy
 
-Each quote should carry enough metadata to build the correct helper or surface node without guessing from tenor alone. This reduces ambiguity and makes the engine more robust.
+Each quote should carry enough metadata to build the correct helper or surface node. The platform uses a unified risk
+factor taxonomy to ensure that deterministic risk, stress, and simulation share the same factor map.
+
+**Format:** `RF:<family>:<currency_or_market>:<object>:<bucket>`
+
+**Supported Families:**
+- `RF:RATES:<CCY>:<CURVE>:<TENOR>` (e.g., `RF:RATES:USD:SOFR:2Y`)
+- `RF:CREDIT:<ENTITY>:<SPREAD/HAZARD>:<TENOR>`
+- `RF:FX:<CCYPAIR>:SPOT:ALL`
+- `RF:FXVOL:<CCYPAIR>:VOL:<EXPIRY_STRIKE>`
+- `RF:EQUITY:<TICKER>:SPOT:ALL`
 
 **Tradeoffs:**
-- **Pros:** Precise bootstrapping, fewer hardcoded assumptions, better audit trail.
+- **Pros:** Precise bootstrapping, fewer hardcoded assumptions, seamless attribution.
 - **Cons:** More complex JSON schema, larger data payloads.
-
-- quote ID,
-- market date / valuation date,
-- currency,
-- curve family,
-- curve purpose,
-- quote instrument type,
-- tenor / pillar,
-- index family,
-- settlement lag,
-- calendar,
-- day count,
-- business-day convention,
-- interpolation / bootstrap hints,
-- optional source or contributor metadata.
 
 ### 3.2 Curve specifications
 

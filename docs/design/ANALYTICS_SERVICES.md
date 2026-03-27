@@ -41,51 +41,54 @@ Current limitations:
 - structured valuation diagnostics,
 - curve and engine provenance.
 
-### Risk
+### Risk and Sensitivities
 
-- **PV01 / DV01**: Delta risk by shifting all interest rate nodes (OIS or Forward) by 1bp.
-- **Bucketed Risk**: Key-rate sensitivities by shifting nodes individually.
+- **Normalized Result Model**: All risks follow a common sensitivity result schema
+  (risk_measure, risk_factor_id, trade_id, etc.).
+- **PV01 / DV01**: Delta risk by shifting interest rate nodes by 1bp.
+- **Bucketed Risk**: Key-rate sensitivities by shifting nodes individually (using `RF:` identifiers).
 - **CS01**: Credit spread risk by shifting CDS quotes.
-- later vega and optional gamma,
-- aggregation by business tags.
+- **Greeks**: Delta, gamma, vega, theta for supported options.
+- **Aggregation**: Grouping by portfolio, book, desk, currency, asset class, and factor family.
 
-### Explain
+### P&L Explain
 
-- market-move explain,
-- carry / roll-down,
-- cash and fixing effects,
-- new-trade and removed-trade effects,
-- residual.
+P&L explain reconciles the change in portfolio value between two dates into interpretable drivers:
 
-### Stress
+- **Carry / Roll-down**: Natural aging of the portfolio.
+- **Market Move**: Effect of shifts in curves, spreads, and spots.
+- **New Trades / Unwinds**: Impact of portfolio changes.
+- **Cash / Fixing**: Effect of realized cashflows.
+- **Residual**: Unexplained discrepancy.
 
-- generic scenarios,
-- historical stress replay,
-- scenario-set governance.
+### VaR and Stress
 
-### VaR
+- **Historical VaR**: Replaying historical factor returns over current positions.
+- **Monte Carlo VaR**: Full path-based simulation.
+- **Historical Stress**: Replaying specific historical crisis periods.
+- **Hypothetical Stress**: Manual shift-based scenarios.
 
-- historical simulation,
-- parametric delta-normal,
-- Monte Carlo VaR via the simulation framework.
+### Monte Carlo Engine
 
-### Monte Carlo
+The engine supports both:
 
-- one-step factor simulation,
-- path simulation,
-- stochastic-process abstraction,
-- result aggregation.
+- **One-step factor simulation**: For Greeks and simple VaR.
+- **Full Path simulation**: For American options, path-dependent derivatives, and exposure extensions.
 
 ## 4. Architectural choice: Handle-based vs Brute-force
 
 **Our approach:** Handle-based reactive risk.
 
-QuantLib objects (Curves, Instruments) are built using `Handle<Quote>` where the quote is a `SimpleQuote`. This design choice is fundamental to the project.
+QuantLib objects (Curves, Instruments) are built using `Handle<Quote>` where the quote is a `SimpleQuote`.
+This design choice is fundamental to the project.
 
 - **Choice:** Applying shocks by updating `SimpleQuote::setValue()`.
-- **Reason:** It triggers QuantLib's internal observer chain. Curves are NOT re-bootstrapped; rather, the discount/forward factors are re-evaluated from existing (invalidated) cached values in the term structure.
-- **Performance:** Handle updates are near-instantaneous. Valuation becomes the bottleneck (NPV calls), not market data updates.
-- **Comparison:** Brute-force (rebuilding curves per scenario) is 10x-100x slower depending on the number of instruments and curve complexity.
+- **Reason:** It triggers QuantLib's internal observer chain. Curves are NOT re-bootstrapped; rather,
+  the discount/forward factors are re-evaluated from existing (invalidated) cached values in the term structure.
+- **Performance:** Handle updates are near-instantaneous. Valuation becomes the bottleneck (NPV calls),
+  not market data updates.
+- **Comparison:** Brute-force (rebuilding curves per scenario) is 10x-100x slower depending on the number of instruments
+  and curve complexity.
 
 ## 5. Immediate priorities
 

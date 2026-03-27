@@ -24,8 +24,8 @@ In this chapter, it helps to distinguish three layers clearly:
 
 1. the **discrete approximation**: a rescaled random walk;
 2. the **general continuous-time object**: Brownian motion with variance parameter $c$, so that
-$$
-   \mathrm{Var}(W_t-W_s)=c(t-s);
+   $$
+\mathrm{Var}(W_t-W_s)=c(t-s);
 $$
 3. the **standard normalization**: the special case $c=1$.
 
@@ -60,7 +60,6 @@ The variables $X_1, X_2, \dots$ are independent and identically distributed, wit
 
 $$
 \mathbb{E}[X_k] = 0,
-\qquad
 \mathrm{Var}(X_k) = 1.
 $$
 
@@ -74,7 +73,6 @@ This is the classical **simple symmetric random walk**. Since the increments are
 
 $$
 \mathbb{E}[S_n] = 0,
-\qquad
 \mathrm{Var}(S_n) = n.
 $$
 
@@ -126,7 +124,6 @@ This is also the right place to distinguish **variance** from **standard deviati
 
 $$
 \text{variance} \sim t,
-\qquad
 \text{standard deviation} \sim \sqrt{t}.
 $$
 
@@ -146,7 +143,7 @@ $$
 So the natural candidate is
 
 $$
-W_t^{(\Delta t)} = \sum_{k=1}^{\lfloor t / \Delta t \rfloor} \sqrt{\Delta t}\, X_k.
+W_t^{(\Delta t)} = \sum_{k=1}^{\lfloor t / \Delta t \rfloor} \sqrt{\Delta t} X_k.
 $$
 
 This explains **why the factor is $\sqrt{\Delta t}$ rather than $\Delta t$ or $1$**.
@@ -178,7 +175,7 @@ Equivalently, the standard deviation must remain proportional to $\sqrt{t}$, whi
 
 ### 2.4 Intuition from the central limit theorem
 
-At fixed time $t$, write
+At fixed time $t$, define
 
 $$
 n_{\Delta t} = \left\lfloor \frac{t}{\Delta t} \right\rfloor.
@@ -187,27 +184,21 @@ $$
 Then
 
 $$
-W_t^{(\Delta t)} = \sqrt{\Delta t} \sum_{k=1}^{n_{\Delta t}} X_k
-= \sqrt{n_{\Delta t}\,\Delta t}
+W_t^{(\Delta t)} = \sqrt{\Delta t} \sum_{k=1}^{n_{\Delta t}} X_k.
+$$
+
+Now factor out the CLT-normalized sum:
+
+$$
+W_t^{(\Delta t)}
+= \sqrt{n_{\Delta t} \Delta t}
 \left(\frac{1}{\sqrt{n_{\Delta t}}} \sum_{k=1}^{n_{\Delta t}} X_k\right).
 $$
 
-This form separates the expression into two pieces:
+This decomposition is the key point:
 
-- a deterministic prefactor $\sqrt{n_{\Delta t}\,\Delta t}$;
-- a normalized sum to which the CLT applies.
-
-As $\Delta t \to 0$, we have $n_{\Delta t} \to \infty$ and also
-
-$$
-0 \le t - n_{\Delta t}\,\Delta t < \Delta t,
-$$
-
-so in particular
-
-$$
-n_{\Delta t}\,\Delta t \to t.
-$$
+- the second factor is exactly the quantity that appears in the central limit theorem,
+- the first factor is deterministic and controls the variance scale.
 
 By the **central limit theorem**,
 
@@ -216,37 +207,46 @@ $$
 \Rightarrow \mathcal{N}(0,1).
 $$
 
-Applying this with $n=n_{\Delta t}$ gives
+So, because $n_{\Delta t} \to \infty$ as $\Delta t \to 0$,
 
 $$
 \frac{1}{\sqrt{n_{\Delta t}}} \sum_{k=1}^{n_{\Delta t}} X_k
 \Rightarrow \mathcal{N}(0,1).
 $$
 
-Since the deterministic factor satisfies
+Next, since $n_{\Delta t} = \lfloor t / \Delta t \rfloor$,
 
 $$
-\sqrt{n_{\Delta t}\,\Delta t} \to \sqrt{t},
+\Delta t \left\lfloor \frac{t}{\Delta t} \right\rfloor \to t,
 $$
 
-Slutsky's theorem yields
+hence
 
 $$
-W_t^{(\Delta t)}
-\Rightarrow \sqrt{t}\,Z,
-\qquad Z \sim \mathcal{N}(0,1).
+\sqrt{n_{\Delta t} \Delta t} \to \sqrt{t}.
 $$
 
-Therefore
+Therefore, by multiplying the CLT limit by this deterministic factor, we obtain
 
 $$
-W_t^{(\Delta t)} \Rightarrow \mathcal{N}(0,t),
+W_t^{(\Delta t)} \Rightarrow \sqrt{t} Z,
 $$
 
-because multiplying a standard normal by $\sqrt{t}$ multiplies its variance by $t$.
-That already matches one of the defining properties of Brownian motion: at time $t$, the distribution should be Gaussian
-with mean $0$ and variance $t$. For a fuller statement of the CLT, the role of the normalization $1/\sqrt{n}$, and the
-link between variance aggregation and Gaussian limits, see [Probability Limit Theorems](PROBABILITY_LIMIT_THEOREMS.md).
+with
+
+$$
+Z \sim \mathcal{N}(0,1).
+$$
+
+But if $Z \sim \mathcal{N}(0,1)$, then $\sqrt{t} Z \sim \mathcal{N}(0,t)$. So
+
+$$
+W_t^{(\Delta t)} \Rightarrow \mathcal{N}(0,t).
+$$
+
+That is the missing intermediate step: the CLT gives a **standard normal** for the normalized sum, and the extra factor $\sqrt{n_{\Delta t} \Delta t}$ tends to $\sqrt{t}$, which converts variance $1$ into variance $t$.
+
+That already matches one of the defining properties of Brownian motion: at time $t$, the distribution should be Gaussian with mean $0$ and variance $t$. For a fuller statement of the CLT, the role of the normalization $1/\sqrt{n}$, and the link between variance aggregation and Gaussian limits, see [Probability Limit Theorems](PROBABILITY_LIMIT_THEOREMS.md).
 
 ### 2.4.1 Why the variance must be linear in time
 
@@ -347,7 +347,7 @@ The precise theorem is the functional central limit theorem, also called **Donsk
 
 $$
 W_t^{(\Delta t)}
-= \sum_{k=1}^{\lfloor t/\Delta t \rfloor} \sqrt{\Delta t} \, X_k
+= \sum_{k=1}^{\lfloor t/\Delta t \rfloor} \sqrt{\Delta t} X_k
 \Longrightarrow W_t,
 $$
 
@@ -379,17 +379,16 @@ $$
 \mathrm{Var}(Y_k) = \Delta t \mathrm{Var}(X_k) = \Delta t.
 $$
 
-If we take $N=\lfloor t/\Delta t\rfloor$ steps, then
+If we take $N = t/\Delta t$ steps, then
 
 $$
-\mathrm{Var}\left(\sum_{k=1}^{N} \sqrt{\Delta t} X_k\right)
-= N \cdot \Delta t.
+\mathrm{Var}\left(\sum_{k=1}^{t/\Delta t} \sqrt{\Delta t} X_k\right)
+= \frac{t}{\Delta t} \cdot \Delta t
+= t.
 $$
 
-Since $N\Delta t \to t$ as $\Delta t \to 0$, the variance tends to $t$. If for simplicity $t/\Delta t$ happens to be an
-integer, then $N=t/\Delta t$ exactly and the variance is exactly $t$ even before taking the limit. Taking square roots
-then gives a standard deviation of order $\sqrt{t}$, which is why Brownian fluctuations are said to scale with the
-square root of elapsed time.
+That is exactly the variance growth we want for Brownian motion. Taking square roots then gives a standard deviation of
+$\sqrt{t}$, which is why Brownian fluctuations are said to scale with the square root of elapsed time.
 
 ### 2.7 A concrete numerical example
 
@@ -397,7 +396,6 @@ Take $t=1$ year and suppose we discretize into $4$ equal steps, so
 
 $$
 \Delta t = 0.25,
-\qquad
 \sqrt{\Delta t} = 0.5.
 $$
 
@@ -405,9 +403,9 @@ Assume one realization of the random walk increments is
 
 $$
 X_1 = +1,
-\quad X_2 = -1,
-\quad X_3 = +1,
-\quad X_4 = +1.
+X_2 = -1,
+X_3 = +1,
+X_4 = +1.
 $$
 
 Then the rescaled path values are
@@ -484,8 +482,8 @@ A Brownian motion with variance parameter $c>0$ is a stochastic process $W_t$ su
 1. $W_0 = 0$;
 2. it has **independent increments**;
 3. it has **stationary Gaussian increments**, meaning that for $0 \le s < t$,
-$$
-   W_t - W_s \sim \mathcal{N}(0, c(t-s));
+   $$
+W_t - W_s \sim \mathcal{N}(0, c(t-s));
 $$
 4. sample paths are continuous almost surely.
 
@@ -510,7 +508,7 @@ so in particular
 
 $$
 W_t \sim \mathcal{N}(0,t)
-\qquad\text{and}\qquad
+\text{and}
 \mathrm{Var}(W_t)=t.
 $$
 
@@ -522,7 +520,7 @@ This is why many books write the variance parameter as $t$ directly in the defin
 If $B_t$ is a standard Brownian motion and $c>0$, then
 
 $$
-X_t = \sqrt{c}\,B_t
+X_t = \sqrt{c} B_t
 $$
 
 is a Brownian motion with variance parameter $c$, because
@@ -535,7 +533,7 @@ So the general case is just a rescaling of the standard one. Working with $c=1$ 
 volatility parameter can later be reintroduced explicitly in models such as
 
 $$
-dX_t = \mu\,dt + \sigma\,dB_t.
+dX_t = \mu dt + \sigma dB_t.
 $$
 
 In mathematical finance, the terms **Wiener process** and **Brownian motion** are often used interchangeably. When a
@@ -562,8 +560,7 @@ So the increment has:
 This is why in simulation we often write
 
 $$
-\Delta W \approx \sqrt{\Delta t} \, Z,
-\qquad
+\Delta W \approx \sqrt{\Delta t} Z,
 Z \sim \mathcal{N}(0,1).
 $$
 
@@ -578,7 +575,7 @@ $$
 and a simulated increment is
 
 $$
-\Delta W = \sqrt{\tfrac{1}{252}}\, Z.
+\Delta W = \sqrt{\tfrac{1}{252}} Z.
 $$
 
 If $Z = 0.5$, then
@@ -626,7 +623,7 @@ produce unrealistic negative or explosive behavior depending on parameters.
 A standard equity-style model is the **geometric Brownian motion**:
 
 $$
-dS_t = \mu S_t \, dt + \sigma S_t \, dW_t.
+dS_t = \mu S_t dt + \sigma S_t dW_t.
 $$
 
 The solution is
@@ -649,11 +646,8 @@ Let
 
 $$
 S_0 = 100,
-\qquad
 \mu = 5\%,
-\qquad
 \sigma = 20\%,
-\qquad
 t = 1.
 $$
 
@@ -672,7 +666,7 @@ $$
 An **Itô process** is a process of the form
 
 $$
-dX_t = a(t, X_t)\, dt + b(t, X_t)\, dW_t.
+dX_t = a(t, X_t) dt + b(t, X_t) dW_t.
 $$
 
 Here:
@@ -683,8 +677,8 @@ Here:
 
 This compact notation says:
 
-- the process has a deterministic local tendency through $a \, dt$
-- it also has random local shocks through $b \, dW_t$
+- the process has a deterministic local tendency through $a dt$
+- it also has random local shocks through $b dW_t$
 
 Many financial models can be written this way.
 
@@ -693,19 +687,19 @@ Many financial models can be written this way.
 #### Arithmetic Brownian motion
 
 $$
-dX_t = \mu \, dt + \sigma \, dW_t.
+dX_t = \mu dt + \sigma dW_t.
 $$
 
 #### Geometric Brownian motion
 
 $$
-dS_t = \mu S_t \, dt + \sigma S_t \, dW_t.
+dS_t = \mu S_t dt + \sigma S_t dW_t.
 $$
 
 #### Ornstein–Uhlenbeck / mean reversion
 
 $$
-dX_t = \kappa(\theta - X_t)\, dt + \sigma \, dW_t.
+dX_t = \kappa(\theta - X_t) dt + \sigma dW_t.
 $$
 
 This is useful for rates or spread-factor intuition because the process tends to revert toward $\theta$.
@@ -717,7 +711,7 @@ This is useful for rates or spread-factor intuition because the process tends to
 If $X_t$ follows
 
 $$
-dX_t = a(t,X_t)\, dt + b(t,X_t)\, dW_t,
+dX_t = a(t,X_t) dt + b(t,X_t) dW_t,
 $$
 
 and $f(t,x)$ is smooth enough, then
@@ -729,7 +723,7 @@ df(t,X_t)
 \frac{\partial f}{\partial t}
 + a \frac{\partial f}{\partial x}
 + \frac12 b^2 \frac{\partial^2 f}{\partial x^2} \right) dt
-+ b \frac{\partial f}{\partial x} \, dW_t.
++ b \frac{\partial f}{\partial x} dW_t.
 $$
 
 This is the stochastic analog of the ordinary chain rule, but with an extra second-derivative term.
@@ -740,9 +734,7 @@ Because in stochastic calculus,
 
 $$
 (dW_t)^2 = dt,
-\qquad
-dW_t\,dt = 0,
-\qquad
+dW_t dt = 0,
 (dt)^2 = 0.
 $$
 
@@ -755,7 +747,7 @@ The quadratic variation of Brownian motion is nontrivial, and that changes the c
 Take geometric Brownian motion:
 
 $$
-dS_t = \mu S_t \, dt + \sigma S_t \, dW_t.
+dS_t = \mu S_t dt + \sigma S_t dW_t.
 $$
 
 Let us apply Itô's formula to
@@ -768,7 +760,6 @@ We have
 
 $$
 f'(x) = \frac{1}{x},
-\qquad
 f''(x) = -\frac{1}{x^2}.
 $$
 
@@ -776,15 +767,15 @@ Itô's formula gives
 
 $$
 d\ln S_t
-= f'(S_t) \, dS_t + \frac12 f''(S_t) (dS_t)^2.
+= f'(S_t) dS_t + \frac12 f''(S_t) (dS_t)^2.
 $$
 
 Substitute:
 
 $$
 d\ln S_t
-= \frac{1}{S_t}(\mu S_t \, dt + \sigma S_t \, dW_t)
-+ \frac12 \left(-\frac{1}{S_t^2}\right)(\sigma^2 S_t^2 \, dt).
+= \frac{1}{S_t}(\mu S_t dt + \sigma S_t dW_t)
++ \frac12 \left(-\frac{1}{S_t^2}\right)(\sigma^2 S_t^2 dt).
 $$
 
 So
@@ -821,7 +812,7 @@ $$
 The dynamics become
 
 $$
-d\mathbf{X}_t = \mathbf{a}(t,\mathbf{X}_t)\, dt + B(t,\mathbf{X}_t)\, d\mathbf{W}_t,
+d\mathbf{X}_t = \mathbf{a}(t,\mathbf{X}_t) dt + B(t,\mathbf{X}_t) d\mathbf{W}_t,
 $$
 
 where $B$ is a loading matrix.
@@ -831,8 +822,8 @@ If the Brownian motions are correlated, one common implementation is:
 1. simulate independent standard normals $Z \sim \mathcal{N}(0, I)$
 2. compute a Cholesky factor $L$ of the covariance or correlation matrix
 3. set
-$$
-   Y = LZ
+   $$
+Y = LZ
 $$
    so that $Y$ has the desired covariance structure
 
@@ -867,7 +858,7 @@ Black–Scholes uses geometric Brownian motion.
 Reduced-form intensity models often use a stochastic intensity $\lambda_t$, for example
 
 $$
-d\lambda_t = \kappa(\theta - \lambda_t)dt + \sigma \sqrt{\lambda_t} \, dW_t,
+d\lambda_t = \kappa(\theta - \lambda_t)dt + \sigma \sqrt{\lambda_t} dW_t,
 $$
 
 or spread-factor models driven by Gaussian or mean-reverting processes.
@@ -893,7 +884,7 @@ For simulation, the generic Euler step is
 
 $$
 X_{t+\Delta t} \approx X_t + a(t,X_t)\Delta t + b(t,X_t)\sqrt{\Delta t} Z,
-\qquad Z \sim \mathcal{N}(0,1).
+Z \sim \mathcal{N}(0,1).
 $$
 
 In C++, this should live in a dedicated Monte Carlo or stochastic-model module, not in the deterministic valuation

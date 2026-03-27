@@ -93,7 +93,7 @@ Credit pricing often depends on both rates and credit-specific objects.
 In reduced-form models, survival probability is
 
 $$
-Q(0,T) = \exp\left(-\int_0^T \lambda(u)\,du\right),
+Q(0,T) = \exp\left(-\int_0^T \lambda(u) du\right),
 $$
 
 where $\lambda(t)$ is the default intensity.
@@ -103,7 +103,7 @@ where $\lambda(t)$ is the default intensity.
 Very roughly, if a payoff is contingent on survival, pricing depends on both discounting and survival:
 
 $$
-V_0 \approx \mathbb{E}\left[e^{-\int_0^T r_u\,du} \mathbf{1}_{\{\tau > T\}} X_T\right].
+V_0 \approx \mathbb{E}\left[e^{-\int_0^T r_u du} \mathbf{1}_{\{\tau > T\}} X_T\right].
 $$
 
 In practice, the implementation details depend on the instrument.

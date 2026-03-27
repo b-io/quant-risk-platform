@@ -48,11 +48,8 @@ be independent and identically distributed random variables, with
 
 $$
 \mu = \mathbb{E}[X_1],
-\qquad \sigma^2 = \mathrm{Var}(X_1).
+\sigma^2 = \mathrm{Var}(X_1).
 $$
-
-When we write CLT formulas normalized by $\sigma$, we implicitly assume $0 < \sigma^2 < \infty$. If $\sigma=0$, then
-$X_1$ is almost surely constant and there are no random fluctuations left to normalize.
 
 Define the partial sum
 
@@ -70,11 +67,10 @@ Then:
 
 - the LLN studies the limit of $\overline{X}_n$;
 - the CLT studies the limit of
-
-$$
-  \frac{S_n - n\mu}{\sigma \sqrt{n}}
-  =
-  \frac{\sqrt{n}(\overline{X}_n-\mu)}{\sigma}.
+  $$
+\frac{S_n - n\mu}{\sigma \sqrt{n}}
+=
+\frac{\sqrt{n}(\overline{X}_n-\mu)}{\sigma}.
 $$
 
 ---
@@ -232,12 +228,10 @@ This is one of the most important scaling laws in probability and statistics.
 A standard version of the CLT says:
 
 If $X_1, X_2, \dots$ are i.i.d. with
-
 $$
 \mathbb{E}[X_1]=\mu,
-\qquad 0 < \mathrm{Var}(X_1)=\sigma^2 < \infty,
+\mathrm{Var}(X_1)=\sigma^2 < \infty,
 $$
-
 then
 $$
 \frac{S_n - n\mu}{\sigma\sqrt{n}}
@@ -267,7 +261,7 @@ The CLT refines that by telling us the scale and shape of the remaining fluctuat
 
 $$
 \overline{X}_n - \mu \approx \frac{\sigma}{\sqrt{n}} Z,
-\qquad Z\sim \mathcal N(0,1).
+Z\sim \mathcal N(0,1).
 $$
 
 So even if the original variables are not normal, the normalized average often becomes approximately normal for
@@ -338,7 +332,7 @@ so
 
 $$
 \mathbb{E}[X_i]=p,
-\qquad \mathrm{Var}(X_i)=p(1-p).
+\mathrm{Var}(X_i)=p(1-p).
 $$
 
 Then
@@ -396,21 +390,18 @@ $$
 Then:
 
 - by the LLN,
-
-$$
-  \hat{\theta}_n \to \theta;
+  $$
+\hat{\theta}_n \to \theta;
 $$
 - by the CLT,
-
-$$
-  \sqrt{n}(\hat{\theta}_n-\theta)
-  \xrightarrow{d}
-  \mathcal{N}(0,\tau^2),
+  $$
+\sqrt{n}(\hat{\theta}_n-\theta)
+\xrightarrow{d}
+\mathcal{N}(0,\tau^2),
 $$
   where
-
-$$
-  \tau^2 = \mathrm{Var}(g(X)).
+  $$
+\tau^2 = \mathrm{Var}(g(X)).
 $$
 
 This explains the classical Monte Carlo error rate:
@@ -453,7 +444,6 @@ so that
 
 $$
 \mathbb{E}[Y_i]=0,
-\qquad
 \mathrm{Var}(Y_i)=1.
 $$
 

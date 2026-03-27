@@ -42,22 +42,51 @@ flowchart TD
 - **Loaders and validation** keep malformed payloads out of the engine.
 - **Market builders** convert raw quotes and conventions into QuantLib term structures.
 - **MarketState** owns reusable handles and curves.
-- **PricingContext** resolves which curves and conventions an instrument should use.
-- **InstrumentFactory** translates trades into QuantLib instruments.
-- **Analytics services** operate on built market state and built instruments rather than re-parsing JSON.
-- **CLI / Python** expose stable application services rather than raw QuantLib internals.
+- **PricingContext**: Resolves which curves and conventions an instrument should use.
+- **BuiltPortfolio / BuiltTrade**: Cached representation of trades as QuantLib instruments, ready for pricing and risk.
+- **InstrumentFactory**: Translates trades into QuantLib instruments.
+- **Analytics services**: Operate on built market state and built instruments rather than re-parsing JSON.
+- **Local Database (SQLite)**: Stores portfolios, trades, market data, and historical results (valuations, sensitivities, P&L, VaR).
+- **CLI / Python**: Expose stable application services rather than raw QuantLib internals.
 
-## 3. Core QuantLib design choices
+## 4. Portfolios and Identifiers
+
+The platform uses stable, structured internal identifiers to ensure consistency across market state, risk reports, and
+the database.
+
+### 4.1 Portfolio Identifiers
+Format: `PORT:<portfolio_group>:<book>:<portfolio_name>`
+Examples:
+- `PORT:DEMO:MACRO:GLOBAL_RATES`
+- `PORT:DEMO:XASSET:MULTI_ASSET_01`
+
+### 4.2 Trade Identifiers
+Format: `TRD:<asset_class>:<book>:<sequence>`
+Examples:
+- `TRD:RATES:MACRO:000001`
+- `TRD:CDS:CREDIT:000014`
+
+### 4.3 Risk Factor Identifiers
+Format: `RF:<family>:<currency_or_market>:<object>:<bucket>`
+Examples:
+- `RF:RATES:USD:OIS:2Y`
+- `RF:FX:EURUSD:SPOT:ALL`
+
+These identifiers are shared across market state, shock definitions, and risk reports to enable seamless reconciliation and attribution.
+
+## 5. Core QuantLib design choices
 
 ### 3.1 Why use `SimpleQuote` handles
 
-`SimpleQuote` is the right primitive for a revaluation engine because it supports in-place updates of market inputs. 
+`SimpleQuote` is the right primitive for a revaluation engine because it supports in-place updates of market inputs.
 
 **Tradeoffs:**
+
 - **Pros:** Extremely fast for scenarios and risk (no curve rebuilds), reactive (uses Observer pattern).
 - **Cons:** Shared state must be managed carefully in multi-threaded environments.
 
 Why this matters in our project:
+
 - a bump to a quote should not require rebuilding the entire engine,
 - QuantLib's observer pattern automatically invalidates dependent objects,
 - risk, stress, and Monte Carlo can reuse instruments and curves.
@@ -69,12 +98,14 @@ This is the correct foundation for PV01, key-rate risk, historical stress, and s
 A curve should be calibrated to market instruments, not merely interpolated through arbitrary rates.
 
 **QuantLib Functions Used:**
+
 - `DepositRateHelper`: For short-term cash rates.
 - `OISRateHelper`: For Overnight Index Swaps (collateral discounting).
 - `FraRateHelper`: For Forward Rate Agreements.
 - `SwapRateHelper`: For vanilla interest rate swaps.
 
 **Tradeoffs:**
+
 - **Pros:** instrument-consistent bootstrapping, transparent calibration logic, industry alignment.
 - **Cons:** requires solving a non-linear system (bootstrapping), more complex than simple spline interpolation.
 
@@ -84,18 +115,19 @@ This is a good first production choice because:
 
 - **QuantLib choice:** `LogLinear` interpolation on `Discount` factors.
 - **Why:** This ensures discount factors stay positive and monotonically decreasing, which is a physical requirement.
-- **Tradeoff:** `LogLinear` on discounts implies piecewise constant forward rates. This is very stable but results in "staircase" forward curves. Cubic splines provide smoother forwards but can introduce oscillations (overshoot).
+- **Tradeoff:** `LogLinear` on discounts implies piecewise constant forward rates. This is very stable but results in
+  "staircase" forward curves. Cubic splines provide smoother forwards but can introduce oscillations (overshoot).
 
-## 4. Platform vs QuantLib Architecture
+## 6. Platform vs QuantLib Architecture
 
-| Aspect | QuantLib Approach | Our Project Approach | Why? |
-|--------|-------------------|----------------------|------|
-| **Data** | Object-oriented, heavy objects | DTO-based (JSON) | Persistence and interop with Python/Web. |
-| **State** | Distributed in objects | Centralized in `MarketState` | Easier to manage scenarios and snapshots. |
-| **Pricing** | `setPricingEngine` on instrument | `ValuationService` wrapper | Separation of concerns; easier to audit. |
-| **Risk** | Ad-hoc or via `RelinkableHandle` | Standardized `RiskService` | Consistent reporting and performance tuning. |
+| Aspect      | QuantLib Approach                | Our Project Approach                | Why?                                         |
+|-------------|----------------------------------|-------------------------------------|----------------------------------------------|
+| **Data**    | Object-oriented, heavy objects   | DTO-based (JSON) + SQLite           | Persistence, interop, and auditability.      |
+| **State**   | Distributed in objects           | Centralized in `MarketState`        | Easier to manage scenarios and snapshots.    |
+| **Pricing** | `setPricingEngine` on instrument | `ValuationService` wrapper          | Separation of concerns; easier to audit.     |
+| **Risk**    | Ad-hoc or via `RelinkableHandle` | Standardized `RiskService` + `RF:`  | Consistent reporting and performance tuning. |
 
-## 5. Current runtime flow
+## 7. Current runtime flow
 
 ```mermaid
 sequenceDiagram
@@ -254,4 +286,7 @@ To keep the design coherent:
 - every design note must explain both:
     - the chosen design,
     - why that design is preferred over simpler alternatives,
-- every important QuantLib choice should be justified in terms of correctness, performance, and extensibility.
+- every important QuantLib choice should be justified in terms of correctness, performance, and extensibility,
+- whenever a milestone changes the implementation shape, refresh the corresponding files under `docs/design/` and
+  `docs/roadmap/` in the same pass,
+- do not allow code, docs, and sample JSON schemas to drift apart.

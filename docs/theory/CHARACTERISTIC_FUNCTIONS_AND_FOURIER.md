@@ -8,7 +8,7 @@ For a random variable $X$, the characteristic function is defined by
 
 $$
 \varphi_X(t) = \mathbb{E}\left[e^{itX}\right],
-\qquad t \in \mathbb{R}.
+t \in \mathbb{R}.
 $$
 
 Characteristic functions are central because they:
@@ -26,7 +26,7 @@ Characteristic functions are central because they:
 If $X$ has a density $f_X(x)$, then
 
 $$
-\varphi_X(t) = \int_{-\infty}^{\infty} e^{itx} f_X(x)\,dx.
+\varphi_X(t) = \int_{-\infty}^{\infty} e^{itx} f_X(x) dx.
 $$
 
 This is essentially the **Fourier transform** of the density, up to sign conventions.
@@ -34,7 +34,7 @@ This is essentially the **Fourier transform** of the density, up to sign convent
 Many texts define the Fourier transform of $f$ as
 
 $$
-\widehat{f}(t) = \int_{-\infty}^{\infty} e^{-itx} f(x)\,dx.
+\widehat{f}(t) = \int_{-\infty}^{\infty} e^{-itx} f(x) dx.
 $$
 
 So the characteristic function can be viewed as the Fourier transform evaluated with the opposite sign in the
@@ -149,13 +149,13 @@ $$
 So at $t=0$,
 
 $$
-\varphi_X'(0) = i\,\mathbb{E}[X].
+\varphi_X'(0) = i \mathbb{E}[X].
 $$
 
 Hence
 
 $$
-\mathbb{E}[X] = \frac{\varphi_X'(0)}{i} = -i\,\varphi_X'(0).
+\mathbb{E}[X] = \frac{\varphi_X'(0)}{i} = -i \varphi_X'(0).
 $$
 
 Similarly,
@@ -191,7 +191,7 @@ If $X \in \{0,1\}$ with
 
 $$
 \mathbb{P}(X=1)=p,
-\qquad \mathbb{P}(X=0)=1-p,
+\mathbb{P}(X=0)=1-p,
 $$
 
 then
@@ -232,7 +232,7 @@ If $X \sim \mathrm{Uniform}(a,b)$, then
 
 $$
 \varphi_X(t) = \frac{e^{itb} - e^{ita}}{it(b-a)},
-\qquad t \ne 0,
+t \ne 0,
 $$
 
 and $\varphi_X(0)=1$.

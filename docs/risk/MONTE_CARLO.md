@@ -55,7 +55,7 @@ where $\tau^2 = \mathrm{Var}(g(\Pi_T))$. Thus the Monte Carlo error decreases at
 A generic continuous-time factor model can be written as
 
 $$
-dX_t = a(t, X_t)\,dt + b(t, X_t)\,dW_t,
+dX_t = a(t, X_t) dt + b(t, X_t) dW_t,
 $$
 
 where:
@@ -79,7 +79,7 @@ Examples:
 A common numerical scheme is the Euler discretization. Over a small time step $\Delta t$, one writes
 
 $$
-X_{t+\Delta t} \approx X_t + a(t, X_t)\,\Delta t + b(t, X_t)\,\sqrt{\Delta t}\,Z,
+X_{t+\Delta t} \approx X_t + a(t, X_t) \Delta t + b(t, X_t) \sqrt{\Delta t} Z,
 $$
 
 where
@@ -97,7 +97,7 @@ $$
 So one may write
 
 $$
-W_{t+\Delta t} - W_t = \sqrt{\Delta t}\,Z.
+W_{t+\Delta t} - W_t = \sqrt{\Delta t} Z.
 $$
 
 ### Example
@@ -105,13 +105,13 @@ $$
 If the short rate follows
 
 $$
-dr_t = \kappa(\theta-r_t)\,dt + \sigma\,dW_t,
+dr_t = \kappa(\theta-r_t) dt + \sigma dW_t,
 $$
 
 then Euler gives
 
 $$
-r_{t+\Delta t} \approx r_t + \kappa(\theta-r_t)\,\Delta t + \sigma\sqrt{\Delta t}\,Z.
+r_{t+\Delta t} \approx r_t + \kappa(\theta-r_t) \Delta t + \sigma\sqrt{\Delta t} Z.
 $$
 
 ---
@@ -166,7 +166,6 @@ For confidence level $\alpha$ (for example $0.95$), a Monte Carlo estimate of Va
 
 $$
 \mathrm{VaR}_{\alpha} \approx -\Pi_{(k)},
-\qquad
 k = \lfloor (1-\alpha)N \rfloor.
 $$
 
@@ -285,7 +284,7 @@ This matters when interpreting VaR, ES, or pricing estimates from a finite numbe
 Suppose the portfolio depends on a vector of rate and spread factors $F$. A one-step Gaussian model writes
 
 $$
-\Delta F = \mu\,\Delta t + LZ,
+\Delta F = \mu \Delta t + LZ,
 $$
 
 where:

@@ -49,11 +49,18 @@ A historical scenario is a snapshot of factor moves taken from a real date or wi
 
 Examples:
 
-- parallel 25 bp rise in the front end during a central-bank shock
-- spread widening observed during a credit event
-- curve steepener from a historical macro date
+- parallel 25 bp rise in the front end during a central-bank shock,
+- spread widening observed during a credit event,
+- curve steepener from a historical macro date.
 
 Historical scenarios are attractive because they are intuitive and tied to real market conditions.
+
+For implementation, the scenario library should contain both:
+
+- broad cross-asset crises such as 2008 and March 2020,
+- famous rates-specific episodes such as 1994, the 2013 taper tantrum, the 2022 inflation repricing, and the 2022 UK gilt / LDI stress.
+
+That distinction matters because a rates desk can suffer large losses even when the main stress is not an equity-style crisis but a violent curve repricing or a long-end dislocation.
 
 ## Scenario construction choices
 
@@ -110,3 +117,5 @@ The engine should support both:
 
 - user-defined deterministic scenarios
 - historical scenarios derived from stored factor time series
+
+The initial historical-stress package should explicitly ship a curated scenario library rather than only an empty framework.

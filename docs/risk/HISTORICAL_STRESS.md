@@ -172,6 +172,14 @@ observations.
 
 A useful first implementation should include a library of named scenarios.
 
+It is helpful to separate two kinds of historical stress scenarios:
+
+- **cross-asset crisis scenarios**, where equities, credit, FX, volatility, and rates move jointly;
+- **rates-focused historical shocks**, where the main signal is a large move, twist, or regime shift in government and
+  swap curves.
+
+The scenario library should therefore contain both broad crisis episodes and famous large rates moves.
+
 ### 9.1 Global Financial Crisis (2008)
 
 Typical factor behavior:
@@ -204,7 +212,38 @@ Main assumptions:
 - non-parallel spread-curve moves,
 - safe-haven curve compression in core currencies.
 
-### 9.3 Oil collapse (2014--2015)
+### 9.3 Rates sell-off / bond-massacre style shock (1994)
+
+Typical factor behavior:
+
+- large and rapid upward moves in front-end and intermediate rates,
+- sharp repricing of central-bank expectations,
+- losses in duration-heavy rates books,
+- widening in some spread products as financing conditions tighten.
+
+Main assumptions:
+
+- additive upward shocks to OIS and swap curves by tenor,
+- stronger shocks in short and intermediate maturities than in the long end when the chosen window implies bear
+  flattening,
+- optional widening in swap spreads, mortgage-related spreads, and credit-sensitive basis factors where available.
+
+### 9.4 Taper tantrum (2013)
+
+Typical factor behavior:
+
+- abrupt upward repricing in long-end rates,
+- bear steepening in USD curves,
+- pressure on rate-sensitive equity sectors,
+- spread pressure in EM and duration-sensitive credit.
+
+Main assumptions:
+
+- upward additive shocks to the USD OIS and swap curves,
+- tenor-dependent steepener shocks rather than only parallel shifts,
+- optional FX and spread follow-through for duration-sensitive assets.
+
+### 9.5 Oil collapse (2014--2015)
 
 Typical factor behavior:
 
@@ -218,7 +257,23 @@ Main assumptions:
 - selective credit-spread widening in energy sectors,
 - linked moves in inflation curves where relevant.
 
-### 9.4 COVID shock (February--March 2020)
+### 9.6 Brexit referendum shock (2016)
+
+Typical factor behavior:
+
+- sharp moves in GBP FX,
+- strong safe-haven demand in core rates,
+- equity sector dispersion,
+- volatility repricing across rates, FX, and equities.
+
+Main assumptions:
+
+- large relative shock to GBP spot and GBP crosses,
+- safe-haven bull moves in core curves,
+- volatility-surface repricing in GBP and EUR markets,
+- cross-asset reporting by currency and region.
+
+### 9.7 COVID shock (February--March 2020)
 
 Typical factor behavior:
 
@@ -235,7 +290,7 @@ Main assumptions:
 - large spread and basis shocks,
 - nontrivial curve twists rather than only parallel shifts.
 
-### 9.5 Inflation and rates repricing (2022)
+### 9.8 Inflation and rates repricing (2022)
 
 Typical factor behavior:
 
@@ -251,7 +306,22 @@ Main assumptions:
 - moderate-to-large spread widening,
 - cross-asset pressure from discount-rate repricing.
 
-### 9.6 Regional banking stress (2023)
+### 9.9 UK gilt / LDI stress (2022)
+
+Typical factor behavior:
+
+- extremely large upward moves in long-end GBP rates,
+- violent curve dislocations,
+- severe stress in liability-driven investment structures,
+- liquidity pressure in sterling rates markets.
+
+Main assumptions:
+
+- very large additive shocks to long-end GBP OIS and swap nodes,
+- explicit steepener and dislocation scenarios in the 10Y to 30Y sector,
+- optional widening in GBP swap spreads and basis factors.
+
+### 9.10 Regional banking stress (2023)
 
 Typical factor behavior:
 
@@ -266,7 +336,21 @@ Main assumptions:
 - localized but sharp rate-curve distortions,
 - volatility spike at the short end.
 
----
+### 9.11 Minimum recommended first scenario set
+
+A practical first release does not need hundreds of scenarios. It should at least include:
+
+- `GFC_2008`,
+- `EURO_SOVEREIGN_2011`,
+- `RATES_BOND_MASSACRE_1994`,
+- `TAPER_TANTRUM_2013`,
+- `COVID_Q1_2020`,
+- `INFLATION_REPRICING_2022`,
+- `UK_GILT_LDI_2022`,
+- `REGIONAL_BANKING_2023`.
+
+For rates implementation, the most important early scenarios are the 1994 sell-off, 2013 taper tantrum, 2022 global
+inflation repricing, and 2022 UK gilt stress, because they represent very different shapes of large curve moves.
 
 ## 10. Aggregation and explain
 

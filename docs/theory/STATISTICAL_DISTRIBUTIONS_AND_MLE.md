@@ -93,7 +93,7 @@ because logarithms transform products into sums:
 
 $$
 \ell(\theta)=\sum_{i=1}^n \log f(x_i;\theta)
-\qquad\text{or}\qquad
+\text{or}
 \ell(\theta)=\sum_{i=1}^n \log p(x_i;\theta).
 $$
 
@@ -145,14 +145,13 @@ A random variable $X$ has a **Bernoulli distribution** with parameter $p$, writt
 
 $$
 X \sim \mathrm{Bernoulli}(p),
-\qquad 0 \le p \le 1,
+0 \le p \le 1,
 $$
 
 if it takes values in the set $\{0,1\}$ with
 
 $$
 \mathbb{P}(X=1)=p,
-\qquad
 \mathbb{P}(X=0)=1-p.
 $$
 
@@ -165,14 +164,13 @@ Here $p$ is the success probability.
 
 $$
 \mathbb{P}(X=x)=p^x(1-p)^{1-x},
-\qquad x\in\{0,1\}.
+x\in\{0,1\}.
 $$
 
 ### Mean and variance
 
 $$
 \mathbb{E}[X]=p,
-\qquad
 \mathrm{Var}(X)=p(1-p).
 $$
 
@@ -180,7 +178,7 @@ $$
 
 $$
 \varphi_X(t)=\mathbb{E}[e^{itX}]=(1-p)+pe^{it},
-\qquad t\in\mathbb{R}.
+t\in\mathbb{R}.
 $$
 
 ### MLE
@@ -245,7 +243,7 @@ A random variable $X$ has a **Binomial distribution** with parameters $m$ and $p
 
 $$
 X\sim\mathrm{Binomial}(m,p),
-\qquad m\in\mathbb{N},\quad m \ge 1, \quad 0 \le p \le 1,
+m\in\mathbb{N}, m \ge 1, 0 \le p \le 1,
 $$
 
 if it counts the number of successes in $m$ independent Bernoulli trials, each with success probability $p$.
@@ -257,14 +255,13 @@ if it counts the number of successes in $m$ independent Bernoulli trials, each w
 
 $$
 \mathbb{P}(X=k)=\binom{m}{k}p^k(1-p)^{m-k},
-\qquad k \in \{0,1,\dots,m\}.
+k \in \{0,1,\dots,m\}.
 $$
 
 ### Mean and variance
 
 $$
 \mathbb{E}[X]=mp,
-\qquad
 \mathrm{Var}(X)=mp(1-p).
 $$
 
@@ -280,7 +277,7 @@ A Binomial random variable is the sum of $m$ independent Bernoulli variables:
 
 $$
 X=\sum_{j=1}^m B_j,
-\qquad B_j\overset{\text{i.i.d.}}{\sim}\mathrm{Bernoulli}(p).
+B_j\overset{\text{i.i.d.}}{\sim}\mathrm{Bernoulli}(p).
 $$
 
 This explains both its mean and its characteristic function.
@@ -305,8 +302,8 @@ In the rare-event regime,
 
 $$
 m\to\infty,
-\qquad p\to 0,
-\qquad mp\to\lambda,
+p\to 0,
+mp\to\lambda,
 $$
 
 we have the Poisson limit
@@ -325,14 +322,14 @@ A random variable $X$ has a **Poisson distribution** with parameter $\lambda > 0
 
 $$
 X\sim\mathrm{Poisson}(\lambda),
-\qquad \lambda > 0,
+\lambda > 0,
 $$
 
 if
 
 $$
 \mathbb{P}(X=k)=e^{-\lambda}\frac{\lambda^k}{k!},
-\qquad k \in \{0,1,2,\dots\}.
+k \in \{0,1,2,\dots\}.
 $$
 
 The parameter $\lambda$ is both the mean and the variance.
@@ -341,7 +338,6 @@ The parameter $\lambda$ is both the mean and the variance.
 
 $$
 \mathbb{E}[X]=\lambda,
-\qquad
 \mathrm{Var}(X)=\lambda.
 $$
 
@@ -405,14 +401,14 @@ A random variable $X$ has a **Geometric distribution** with parameter $p$, writt
 
 $$
 X\sim\mathrm{Geometric}(p),
-\qquad 0 < p \le 1,
+0 < p \le 1,
 $$
 
 if it counts the number of trials up to and including the first success:
 
 $$
 \mathbb{P}(X=k)=(1-p)^{k-1}p,
-\qquad k \in \{1,2,\dots\}.
+k \in \{1,2,\dots\}.
 $$
 
 > This is one of two common conventions. Under this convention, $X \in \{1,2,\dots\}$ and counts the trial on which the
@@ -423,7 +419,6 @@ $$
 
 $$
 \mathbb{E}[X]=\frac{1}{p},
-\qquad
 \mathrm{Var}(X)=\frac{1-p}{p^2}.
 $$
 
@@ -431,7 +426,7 @@ $$
 
 $$
 \varphi_X(t)=\frac{pe^{it}}{1-(1-p)e^{it}},
-\qquad t\in\mathbb{R}.
+t\in\mathbb{R}.
 $$
 
 ### A key property: memorylessness
@@ -466,7 +461,7 @@ A random variable $X$ has a **Uniform distribution** on the interval $[a,b]$, wr
 
 $$
 X\sim\mathrm{Uniform}(a,b),
-\qquad a < b, \quad a,b \in \mathbb{R},
+a < b, a,b \in \mathbb{R},
 $$
 
 if its density is constant on that interval and zero elsewhere:
@@ -483,7 +478,6 @@ $$
 
 $$
 \mathbb{E}[X]=\frac{a+b}{2},
-\qquad
 \mathrm{Var}(X)=\frac{(b-a)^2}{12}.
 $$
 
@@ -512,7 +506,7 @@ A random variable $X$ has an **Exponential distribution** with rate parameter $\
 
 $$
 X\sim\mathrm{Exponential}(\lambda),
-\qquad \lambda > 0,
+\lambda > 0,
 $$
 
 if its density is
@@ -531,7 +525,6 @@ Here $\lambda$ is the rate, so the mean waiting time is $1/\lambda$.
 
 $$
 \mathbb{E}[X]=\frac{1}{\lambda},
-\qquad
 \mathrm{Var}(X)=\frac{1}{\lambda^2}.
 $$
 
@@ -539,7 +532,7 @@ $$
 
 $$
 \varphi_X(t)=\frac{\lambda}{\lambda-it},
-\qquad t\in\mathbb{R}.
+t\in\mathbb{R}.
 $$
 
 ### MLE
@@ -568,7 +561,7 @@ The exponential distribution is the only continuous distribution with the memory
 
 $$
 \mathbb{P}(X>s+t\mid X>s)=\mathbb{P}(X>t),
-\qquad s,t \ge 0.
+s,t \ge 0.
 $$
 
 This is why it is central in constant-intensity event modeling.
@@ -597,14 +590,14 @@ A random variable $X$ has a **Normal distribution** with mean $\mu\in\mathbb{R}$
 
 $$
 X\sim\mathcal{N}(\mu,\sigma^2),
-\qquad \mu\in\mathbb{R}, \quad \sigma > 0,
+\mu\in\mathbb{R}, \sigma > 0,
 $$
 
 if its density is
 
 $$
 f_X(x)=\frac{1}{\sqrt{2\pi\sigma^2}}\exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right),
-\qquad x\in\mathbb{R}.
+x\in\mathbb{R}.
 $$
 
 The **standard normal** distribution is the normalized special case
@@ -629,7 +622,6 @@ the CLT is usually stated with a standard normal limit rather than a general Gau
 
 $$
 \mathbb{E}[X]=\mu,
-\qquad
 \mathrm{Var}(X)=\sigma^2.
 $$
 
@@ -645,7 +637,6 @@ Suppose $X_1,\dots,X_n$ are i.i.d. $\mathcal{N}(\mu,\sigma^2)$. Then the MLEs ar
 
 $$
 \hat\mu=\bar X,
-\qquad
 \hat\sigma^2_{\mathrm{MLE}}=\frac{1}{n}\sum_{i=1}^n (X_i-\bar X)^2.
 $$
 
@@ -674,7 +665,7 @@ A positive random variable $X$ has a **Lognormal distribution** if its natural l
 
 $$
 \log X\sim\mathcal{N}(\mu,\sigma^2),
-\qquad \mu \in \mathbb{R}, \quad \sigma > 0.
+\mu \in \mathbb{R}, \sigma > 0.
 $$
 
 Equivalently, $X=e^Y$ where $Y\sim\mathcal{N}(\mu,\sigma^2)$.
@@ -693,7 +684,6 @@ $$
 
 $$
 \mathbb{E}[X]=e^{\mu+\sigma^2/2},
-\qquad
 \mathrm{Var}(X)=\left(e^{\sigma^2}-1\right)e^{2\mu+\sigma^2}.
 $$
 
@@ -723,7 +713,7 @@ written
 
 $$
 X\sim\mathrm{Gamma}(\alpha,\beta),
-\qquad \alpha > 0, \quad \beta > 0,
+\alpha > 0, \beta > 0,
 $$
 
 if its density is
@@ -743,7 +733,6 @@ $$
 
 $$
 \mathbb{E}[X]=\frac{\alpha}{\beta},
-\qquad
 \mathrm{Var}(X)=\frac{\alpha}{\beta^2}.
 $$
 
@@ -773,7 +762,7 @@ A random variable $X$ has a **Beta distribution** with parameters $\alpha > 0$ a
 
 $$
 X\sim\mathrm{Beta}(\alpha,\beta),
-\qquad \alpha > 0, \quad \beta > 0,
+\alpha > 0, \beta > 0,
 $$
 
 if its density is
@@ -790,7 +779,6 @@ $$
 
 $$
 \mathbb{E}[X]=\frac{\alpha}{\alpha+\beta},
-\qquad
 \mathrm{Var}(X)=\frac{\alpha\beta}{(\alpha+\beta)^2(\alpha+\beta+1)}.
 $$
 
@@ -800,10 +788,7 @@ $$
 \varphi_X(t)={}_1F_1(\alpha;\alpha+\beta;it),
 $$
 
-where ${}_1F_1$ denotes the confluent hypergeometric function. This formula is correct, but unlike the Bernoulli,
-Poisson, Gaussian, or Gamma cases, the Beta characteristic function does **not** simplify to an elementary closed form.
-For that reason, in summary tables it is often clearer simply to describe it as having a *confluent hypergeometric
-form*.
+where ${}_1F_1$ denotes the confluent hypergeometric function.
 
 ### Use cases
 
@@ -838,7 +823,7 @@ then $X$ has a **Chi-square distribution** with $k$ degrees of freedom, written
 
 $$
 X\sim\chi_k^2,
-\qquad k \in \mathbb{N}, \quad k \ge 1,
+k \in \mathbb{N}, k \ge 1,
 $$
 
 and its support is $x \in [0,\infty)$.
@@ -847,7 +832,6 @@ and its support is $x \in [0,\infty)$.
 
 $$
 \mathbb{E}[X]=k,
-\qquad
 \mathrm{Var}(X)=2k.
 $$
 
@@ -879,7 +863,6 @@ Let
 
 $$
 Z\sim\mathcal{N}(0,1),
-\qquad
 U\sim\chi_\nu^2,
 $$
 
@@ -917,7 +900,7 @@ As the degrees of freedom increase,
 
 $$
 T\xrightarrow{d}\mathcal{N}(0,1)
-\qquad\text{as }\nu\to\infty.
+\text{as }\nu\to\infty.
 $$
 
 Thus the $t$ family provides a bridge between heavy-tailed models and the Gaussian benchmark.
@@ -1134,7 +1117,7 @@ The **characteristic function** of a real-valued random variable $X$ is defined 
 
 $$
 \varphi_X(t)=\mathbb{E}[e^{itX}],
-\qquad t\in\mathbb{R}.
+t\in\mathbb{R}.
 $$
 
 It always exists because $|e^{itX}|=1$.
@@ -1161,7 +1144,7 @@ This multiplicative property is one of the main reasons characteristic functions
 If $X$ has density $f_X$, then
 
 $$
-\varphi_X(t)=\int_{-\infty}^{\infty} e^{itx}f_X(x)\,dx.
+\varphi_X(t)=\int_{-\infty}^{\infty} e^{itx}f_X(x) dx.
 $$
 
 So the characteristic function is the Fourier transform of the density under the standard probability convention.
@@ -1198,7 +1181,7 @@ If all issuers are assumed independent with the same default probability $p$, th
 
 $$
 X_i\sim\mathrm{Bernoulli}(p),
-\qquad i=1,\dots,m,
+i=1,\dots,m,
 $$
 
 and the total number of defaults is
@@ -1278,9 +1261,9 @@ are below one. This makes it much better suited than an unbounded Gaussian model
 | Normal        | Continuous | $\mu\in\mathbb{R}$, $\sigma > 0$             | $\mathbb{R}$      | $\mu$                   | $\sigma^2$                                       | $\exp(it\mu-0.5\sigma^2 t^2)$     | Errors, shocks, asymptotic approximations     | Stable under sums; CLT limit                                   |
 | Lognormal     | Continuous | $\mu\in\mathbb{R}$, $\sigma > 0$ on $\log X$ | $(0,\infty)$      | $e^{\mu+\sigma^2/2}$    | $(e^{\sigma^2}-1)e^{2\mu+\sigma^2}$              | No simple elementary closed form  | Positive prices and multiplicative effects    | Inference often done on log scale                              |
 | Gamma         | Continuous | $\alpha > 0$, $\beta > 0$                    | $(0,\infty)$      | $\alpha/\beta$          | $\alpha/\beta^2$                                 | $(1-it/\beta)^{-\alpha}$          | Positive skewed quantities, waiting-time sums | Approx. Normal for large shape                                 |
-| Beta          | Continuous | $\alpha > 0$, $\beta > 0$                    | $(0,1)$           | $\alpha/(\alpha+\beta)$ | $\alpha\beta/((\alpha+\beta)^2(\alpha+\beta+1))$ | Confluent hypergeometric form      | Recovery rates, bounded proportions           | Concentrates near mean as $\alpha+\beta$ grows                 |
+| Beta          | Continuous | $\alpha > 0$, $\beta > 0$                    | $(0,1)$           | $\alpha/(\alpha+\beta)$ | $\alpha\beta/((\alpha+\beta)^2(\alpha+\beta+1))$ | ${}_1F_1(\alpha;\alpha+\beta;it)$ | Recovery rates, bounded proportions           | Concentrates near mean as $\alpha+\beta$ grows                 |
 | Chi-square    | Continuous | $k\in\mathbb{N}, k \ge 1$                    | $[0,\infty)$      | $k$                     | $2k$                                             | $(1-2it)^{-k/2}$                  | Variance inference, quadratic diagnostics     | Standardized form $\to$ Normal                                 |
-| Student's $t$ | Continuous | $\nu > 0$                                    | $\mathbb{R}$      | $0$ if $\nu > 1$        | $\nu/(\nu-2)$ if $\nu > 2$; infinite for $0<\nu\le 2$ | Bessel-function form              | Heavy-tailed returns, robust inference        | $\to$ Normal as $\nu\to\infty$                                 |
+| Student's $t$ | Continuous | $\nu > 0$                                    | $\mathbb{R}$      | $0$ if $\nu > 1$        | $\nu/(\nu-2)$ if $\nu > 2$                       | Bessel-function form              | Heavy-tailed returns, robust inference        | $\to$ Normal as $\nu\to\infty$                                 |
 
 ---
 

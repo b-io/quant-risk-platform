@@ -42,14 +42,14 @@ These probabilities satisfy:
 
 $$
 p_X(x) \ge 0,
-\qquad \sum_x p_X(x) = 1.
+\sum_x p_X(x) = 1.
 $$
 
 **Example.** For a fair die,
 
 $$
 \mathbb{P}(X = k) = \frac{1}{6},
-\qquad k = 1, \dots, 6.
+k = 1, \dots, 6.
 $$
 
 ### 2.2 Continuous random variables
@@ -58,13 +58,13 @@ A continuous random variable is described by a **probability density function** 
 
 $$
 f_X(x) \ge 0,
-\qquad \int_{-\infty}^{\infty} f_X(x)\,dx = 1.
+\int_{-\infty}^{\infty} f_X(x) dx = 1.
 $$
 
 Probabilities are obtained by integration:
 
 $$
-\mathbb{P}(a \le X \le b) = \int_a^b f_X(x)\,dx.
+\mathbb{P}(a \le X \le b) = \int_a^b f_X(x) dx.
 $$
 
 For a continuous variable,
@@ -111,7 +111,7 @@ The **expectation** or **mean** of a random variable is its average value under 
 If $X$ is discrete,
 
 $$
-\mathbb{E}[X] = \sum_x x\,\mathbb{P}(X = x).
+\mathbb{E}[X] = \sum_x x \mathbb{P}(X = x).
 $$
 
 ### 4.2 Continuous case
@@ -119,7 +119,7 @@ $$
 If $X$ is continuous with density $f_X$,
 
 $$
-\mathbb{E}[X] = \int_{-\infty}^{\infty} x f_X(x)\,dx.
+\mathbb{E}[X] = \int_{-\infty}^{\infty} x f_X(x) dx.
 $$
 
 ### 4.3 Expectation of a function of a random variable
@@ -129,8 +129,8 @@ More generally, for any integrable function $g$,
 $$
 \mathbb{E}[g(X)] =
 \begin{cases}
-\sum_x g(x)\,\mathbb{P}(X = x), & \text{if } X \text{ is discrete},\\
-\int_{-\infty}^{\infty} g(x) f_X(x)\,dx, & \text{if } X \text{ is continuous}.
+\sum_x g(x) \mathbb{P}(X = x), & \text{if } X \text{ is discrete},\\
+\int_{-\infty}^{\infty} g(x) f_X(x) dx, & \text{if } X \text{ is continuous}.
 \end{cases}
 $$
 
@@ -163,15 +163,15 @@ $$
 Suppose $X$ and $Y$ are discrete. Then
 
 $$
-\mathbb{E}[aX+bY] = \sum_{x,y}(ax+by)\,\mathbb{P}(X=x,Y=y).
+\mathbb{E}[aX+bY] = \sum_{x,y}(ax+by) \mathbb{P}(X=x,Y=y).
 $$
 
 Split the sum:
 
 $$
 \mathbb{E}[aX+bY]
-= a\sum_{x,y} x\,\mathbb{P}(X=x,Y=y)
-+ b\sum_{x,y} y\,\mathbb{P}(X=x,Y=y).
+= a\sum_{x,y} x \mathbb{P}(X=x,Y=y)
++ b\sum_{x,y} y \mathbb{P}(X=x,Y=y).
 $$
 
 Now sum over the second variable:
@@ -227,7 +227,7 @@ Starting from
 
 $$
 \mathrm{Var}(X) = \mathbb{E}[(X-\mu)^2],
-\qquad \mu = \mathbb{E}[X],
+\mu = \mathbb{E}[X],
 $$
 
 expand the square:
@@ -467,7 +467,7 @@ prediction of $X$ given $Y$.
 If $\mathbb{P}(Y=y) > 0$, then
 
 $$
-\mathbb{E}[X \mid Y=y] = \sum_x x\,\mathbb{P}(X=x \mid Y=y).
+\mathbb{E}[X \mid Y=y] = \sum_x x \mathbb{P}(X=x \mid Y=y).
 $$
 
 ### Law of total expectation
