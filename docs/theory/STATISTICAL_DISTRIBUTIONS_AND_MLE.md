@@ -800,7 +800,10 @@ $$
 \varphi_X(t)={}_1F_1(\alpha;\alpha+\beta;it),
 $$
 
-where ${}_1F_1$ denotes the confluent hypergeometric function.
+where ${}_1F_1$ denotes the confluent hypergeometric function. This formula is correct, but unlike the Bernoulli,
+Poisson, Gaussian, or Gamma cases, the Beta characteristic function does **not** simplify to an elementary closed form.
+For that reason, in summary tables it is often clearer simply to describe it as having a *confluent hypergeometric
+form*.
 
 ### Use cases
 
@@ -1275,9 +1278,9 @@ are below one. This makes it much better suited than an unbounded Gaussian model
 | Normal        | Continuous | $\mu\in\mathbb{R}$, $\sigma > 0$             | $\mathbb{R}$      | $\mu$                   | $\sigma^2$                                       | $\exp(it\mu-0.5\sigma^2 t^2)$     | Errors, shocks, asymptotic approximations     | Stable under sums; CLT limit                                   |
 | Lognormal     | Continuous | $\mu\in\mathbb{R}$, $\sigma > 0$ on $\log X$ | $(0,\infty)$      | $e^{\mu+\sigma^2/2}$    | $(e^{\sigma^2}-1)e^{2\mu+\sigma^2}$              | No simple elementary closed form  | Positive prices and multiplicative effects    | Inference often done on log scale                              |
 | Gamma         | Continuous | $\alpha > 0$, $\beta > 0$                    | $(0,\infty)$      | $\alpha/\beta$          | $\alpha/\beta^2$                                 | $(1-it/\beta)^{-\alpha}$          | Positive skewed quantities, waiting-time sums | Approx. Normal for large shape                                 |
-| Beta          | Continuous | $\alpha > 0$, $\beta > 0$                    | $(0,1)$           | $\alpha/(\alpha+\beta)$ | $\alpha\beta/((\alpha+\beta)^2(\alpha+\beta+1))$ | ${}_1F_1(\alpha;\alpha+\beta;it)$ | Recovery rates, bounded proportions           | Concentrates near mean as $\alpha+\beta$ grows                 |
+| Beta          | Continuous | $\alpha > 0$, $\beta > 0$                    | $(0,1)$           | $\alpha/(\alpha+\beta)$ | $\alpha\beta/((\alpha+\beta)^2(\alpha+\beta+1))$ | Confluent hypergeometric form      | Recovery rates, bounded proportions           | Concentrates near mean as $\alpha+\beta$ grows                 |
 | Chi-square    | Continuous | $k\in\mathbb{N}, k \ge 1$                    | $[0,\infty)$      | $k$                     | $2k$                                             | $(1-2it)^{-k/2}$                  | Variance inference, quadratic diagnostics     | Standardized form $\to$ Normal                                 |
-| Student's $t$ | Continuous | $\nu > 0$                                    | $\mathbb{R}$      | $0$ if $\nu > 1$        | $\nu/(\nu-2)$ if $\nu > 2$                       | Bessel-function form              | Heavy-tailed returns, robust inference        | $\to$ Normal as $\nu\to\infty$                                 |
+| Student's $t$ | Continuous | $\nu > 0$                                    | $\mathbb{R}$      | $0$ if $\nu > 1$        | $\nu/(\nu-2)$ if $\nu > 2$; infinite for $0<\nu\le 2$ | Bessel-function form              | Heavy-tailed returns, robust inference        | $\to$ Normal as $\nu\to\infty$                                 |
 
 ---
 

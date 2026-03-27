@@ -51,6 +51,9 @@ $$
 \qquad \sigma^2 = \mathrm{Var}(X_1).
 $$
 
+When we write CLT formulas normalized by $\sigma$, we implicitly assume $0 < \sigma^2 < \infty$. If $\sigma=0$, then
+$X_1$ is almost surely constant and there are no random fluctuations left to normalize.
+
 Define the partial sum
 
 $$
@@ -67,11 +70,12 @@ Then:
 
 - the LLN studies the limit of $\overline{X}_n$;
 - the CLT studies the limit of
-  $$
+
+$$
   \frac{S_n - n\mu}{\sigma \sqrt{n}}
   =
   \frac{\sqrt{n}(\overline{X}_n-\mu)}{\sigma}.
-  $$
+$$
 
 ---
 
@@ -228,10 +232,12 @@ This is one of the most important scaling laws in probability and statistics.
 A standard version of the CLT says:
 
 If $X_1, X_2, \dots$ are i.i.d. with
+
 $$
 \mathbb{E}[X_1]=\mu,
-\qquad \mathrm{Var}(X_1)=\sigma^2 < \infty,
+\qquad 0 < \mathrm{Var}(X_1)=\sigma^2 < \infty,
 $$
+
 then
 $$
 \frac{S_n - n\mu}{\sigma\sqrt{n}}
@@ -390,19 +396,22 @@ $$
 Then:
 
 - by the LLN,
-  $$
+
+$$
   \hat{\theta}_n \to \theta;
-  $$
+$$
 - by the CLT,
-  $$
+
+$$
   \sqrt{n}(\hat{\theta}_n-\theta)
   \xrightarrow{d}
   \mathcal{N}(0,\tau^2),
-  $$
+$$
   where
-  $$
+
+$$
   \tau^2 = \mathrm{Var}(g(X)).
-  $$
+$$
 
 This explains the classical Monte Carlo error rate:
 

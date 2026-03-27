@@ -24,9 +24,9 @@ In this chapter, it helps to distinguish three layers clearly:
 
 1. the **discrete approximation**: a rescaled random walk;
 2. the **general continuous-time object**: Brownian motion with variance parameter $c$, so that
-   $$
+$$
    \mathrm{Var}(W_t-W_s)=c(t-s);
-   $$
+$$
 3. the **standard normalization**: the special case $c=1$.
 
 Many books define **standard Brownian motion** directly by writing
@@ -178,33 +178,72 @@ Equivalently, the standard deviation must remain proportional to $\sqrt{t}$, whi
 
 ### 2.4 Intuition from the central limit theorem
 
-At fixed time $t$, the quantity
+At fixed time $t$, write
 
 $$
-W_t^{(\Delta t)} = \sqrt{\Delta t} \sum_{k=1}^{\lfloor t/\Delta t \rfloor} X_k
+n_{\Delta t} = \left\lfloor \frac{t}{\Delta t} \right\rfloor.
 $$
 
-can be rewritten as
+Then
 
 $$
-W_t^{(\Delta t)}
-= \sqrt{\frac{\lfloor t/\Delta t \rfloor}{1/\Delta t}} \,
-\frac{1}{\sqrt{\lfloor t/\Delta t \rfloor}} \sum_{k=1}^{\lfloor t/\Delta t \rfloor} X_k.
+W_t^{(\Delta t)} = \sqrt{\Delta t} \sum_{k=1}^{n_{\Delta t}} X_k
+= \sqrt{n_{\Delta t}\,\Delta t}
+\left(\frac{1}{\sqrt{n_{\Delta t}}} \sum_{k=1}^{n_{\Delta t}} X_k\right).
 $$
 
-As $\Delta t \to 0$, the number of steps goes to infinity. By the **central limit theorem**,
+This form separates the expression into two pieces:
+
+- a deterministic prefactor $\sqrt{n_{\Delta t}\,\Delta t}$;
+- a normalized sum to which the CLT applies.
+
+As $\Delta t \to 0$, we have $n_{\Delta t} \to \infty$ and also
+
+$$
+0 \le t - n_{\Delta t}\,\Delta t < \Delta t,
+$$
+
+so in particular
+
+$$
+n_{\Delta t}\,\Delta t \to t.
+$$
+
+By the **central limit theorem**,
 
 $$
 \frac{1}{\sqrt{n}} \sum_{k=1}^n X_k
 \Rightarrow \mathcal{N}(0,1).
 $$
 
-Since $n \approx t/\Delta t$, this suggests
+Applying this with $n=n_{\Delta t}$ gives
 
 $$
-W_t^{(\Delta t)} \Rightarrow \mathcal{N}(0,t).
+\frac{1}{\sqrt{n_{\Delta t}}} \sum_{k=1}^{n_{\Delta t}} X_k
+\Rightarrow \mathcal{N}(0,1).
 $$
 
+Since the deterministic factor satisfies
+
+$$
+\sqrt{n_{\Delta t}\,\Delta t} \to \sqrt{t},
+$$
+
+Slutsky's theorem yields
+
+$$
+W_t^{(\Delta t)}
+\Rightarrow \sqrt{t}\,Z,
+\qquad Z \sim \mathcal{N}(0,1).
+$$
+
+Therefore
+
+$$
+W_t^{(\Delta t)} \Rightarrow \mathcal{N}(0,t),
+$$
+
+because multiplying a standard normal by $\sqrt{t}$ multiplies its variance by $t$.
 That already matches one of the defining properties of Brownian motion: at time $t$, the distribution should be Gaussian
 with mean $0$ and variance $t$. For a fuller statement of the CLT, the role of the normalization $1/\sqrt{n}$, and the
 link between variance aggregation and Gaussian limits, see [Probability Limit Theorems](PROBABILITY_LIMIT_THEOREMS.md).
@@ -340,16 +379,17 @@ $$
 \mathrm{Var}(Y_k) = \Delta t \mathrm{Var}(X_k) = \Delta t.
 $$
 
-If we take $N = t/\Delta t$ steps, then
+If we take $N=\lfloor t/\Delta t\rfloor$ steps, then
 
 $$
-\mathrm{Var}\left(\sum_{k=1}^{t/\Delta t} \sqrt{\Delta t} X_k\right)
-= \frac{t}{\Delta t} \cdot \Delta t
-= t.
+\mathrm{Var}\left(\sum_{k=1}^{N} \sqrt{\Delta t} X_k\right)
+= N \cdot \Delta t.
 $$
 
-That is exactly the variance growth we want for Brownian motion. Taking square roots then gives a standard deviation of
-$\sqrt{t}$, which is why Brownian fluctuations are said to scale with the square root of elapsed time.
+Since $N\Delta t \to t$ as $\Delta t \to 0$, the variance tends to $t$. If for simplicity $t/\Delta t$ happens to be an
+integer, then $N=t/\Delta t$ exactly and the variance is exactly $t$ even before taking the limit. Taking square roots
+then gives a standard deviation of order $\sqrt{t}$, which is why Brownian fluctuations are said to scale with the
+square root of elapsed time.
 
 ### 2.7 A concrete numerical example
 
@@ -444,9 +484,9 @@ A Brownian motion with variance parameter $c>0$ is a stochastic process $W_t$ su
 1. $W_0 = 0$;
 2. it has **independent increments**;
 3. it has **stationary Gaussian increments**, meaning that for $0 \le s < t$,
-   $$
+$$
    W_t - W_s \sim \mathcal{N}(0, c(t-s));
-   $$
+$$
 4. sample paths are continuous almost surely.
 
 Here the constant $c$ controls the time scale of the variance. Equivalently,
@@ -690,7 +730,7 @@ df(t,X_t)
 + a \frac{\partial f}{\partial x}
 + \frac12 b^2 \frac{\partial^2 f}{\partial x^2} \right) dt
 + b \frac{\partial f}{\partial x} \, dW_t.
-  $$
+$$
 
 This is the stochastic analog of the ordinary chain rule, but with an extra second-derivative term.
 
@@ -745,7 +785,7 @@ $$
 d\ln S_t
 = \frac{1}{S_t}(\mu S_t \, dt + \sigma S_t \, dW_t)
 + \frac12 \left(-\frac{1}{S_t^2}\right)(\sigma^2 S_t^2 \, dt).
-  $$
+$$
 
 So
 
@@ -791,9 +831,9 @@ If the Brownian motions are correlated, one common implementation is:
 1. simulate independent standard normals $Z \sim \mathcal{N}(0, I)$
 2. compute a Cholesky factor $L$ of the covariance or correlation matrix
 3. set
-   $$
+$$
    Y = LZ
-   $$
+$$
    so that $Y$ has the desired covariance structure
 
 This is directly relevant for multi-factor Monte Carlo in rates, FX, equities, and credit.
