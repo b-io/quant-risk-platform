@@ -6,6 +6,8 @@
     "gtest",
     "nlohmann-json",
     "pybind11",
-    "quantlib"
+    "quantlib",
+    "spdlog",
+    "sqlite3"
   ]
 }

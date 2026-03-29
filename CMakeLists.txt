@@ -25,10 +25,14 @@ add_library(qrp_core
     cpp/src/market/market_snapshot.cpp
     cpp/src/market/scenario_engine.cpp
     cpp/src/conventions/market_convention_registry.cpp
+    cpp/src/persistence/sqlite_storage_backend.cpp
+    cpp/src/persistence/repositories.cpp
+    cpp/src/app/quant_risk_platform.cpp
+    cpp/src/util/logger.cpp
 )
 target_compile_options(qrp_core PRIVATE /FS)
 target_include_directories(qrp_core PUBLIC ${QRP_INCLUDE_DIR})
-target_link_libraries(qrp_core PRIVATE QuantLib::QuantLib nlohmann_json::nlohmann_json fmt::fmt)
+target_link_libraries(qrp_core PRIVATE QuantLib::QuantLib nlohmann_json::nlohmann_json fmt::fmt SQLite::SQLite3 spdlog::spdlog)
 
 # CLI
 add_executable(qrp_cli cpp/cli/main.cpp)

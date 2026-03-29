@@ -62,19 +62,26 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_swap(
     double fixed_rate = trade.details.at("fixed_rate").get<double>();
     std::string float_index_name = trade.details.contains("floating_index") ? 
         trade.details.at("floating_index").get<std::string>() : "IBOR_3M";
+    
+    // Normalize index name for convention lookup
+    std::string lookup_index = float_index_name;
+    if (lookup_index == "USD_LIBOR_3M" || lookup_index == "EURIBOR_3M") lookup_index = "IBOR_3M";
+    if (lookup_index == "USD_OIS" || lookup_index == "SOFR") lookup_index = "OIS";
 
     domain::Currency cc = domain::from_string(trade.currency);
     auto& registry = conventions::MarketConventionRegistry::instance();
-    auto conv = registry.get_rates_convention(cc, float_index_name);
+    auto conv = registry.get_rates_convention(cc, lookup_index);
 
     // Resolve curve handles from the pricing context.
     auto discount_curve_id = context.get_discount_curve_id(cc);
-    auto forecast_curve_id = context.get_forecast_curve_id(cc, float_index_name);
+    auto forecast_curve_id = context.get_forecast_curve_id(cc, lookup_index);
 
     auto discount_curve = context.market_state().get_curve(discount_curve_id);
     auto forecast_curve = context.market_state().get_curve(forecast_curve_id);
 
-    if (!discount_curve) return nullptr;
+    if (!discount_curve) {
+        return nullptr;
+    }
     // Fallback: If no specific forecast curve exists, we use the discount curve (single-curve pricing).
     if (!forecast_curve) forecast_curve = discount_curve;
     

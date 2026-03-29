@@ -1,4 +1,4 @@
-add_executable(unit_tests unit/test_dummy.cpp)
+add_executable(unit_tests unit/test_dummy.cpp unit/test_persistence.cpp unit/test_market.cpp)
 target_link_libraries(unit_tests PRIVATE qrp_core GTest::gtest_main)
 add_test(NAME unit_tests COMMAND unit_tests)
 

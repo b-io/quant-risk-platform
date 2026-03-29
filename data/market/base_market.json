@@ -1,20 +1,23 @@
 {
-  "valuation_date": "2026-03-24",
-  "markets": {
-    "rates": {
-      "USD_OIS": {
-        "type": "discount_curve",
-        "currency": "USD",
-        "nodes": [
-          {"tenor": "1M", "value": 0.0450},
-          {"tenor": "3M", "value": 0.0455},
-          {"tenor": "6M", "value": 0.0460},
-          {"tenor": "1Y", "value": 0.0465},
-          {"tenor": "2Y", "value": 0.0470},
-          {"tenor": "5Y", "value": 0.0480},
-          {"tenor": "10Y", "value": 0.0490}
-        ]
-      }
+  "valuation_date": "2024-03-24",
+  "base_currency": "USD",
+  "quotes": [
+    {"id": "USD_OIS_1M", "instrument_type": "OIS", "currency": "USD", "tenor": "1M", "value": 0.0530},
+    {"id": "USD_OIS_3M", "instrument_type": "OIS", "currency": "USD", "tenor": "3M", "value": 0.0535},
+    {"id": "USD_OIS_6M", "instrument_type": "OIS", "currency": "USD", "tenor": "6M", "value": 0.0540},
+    {"id": "USD_OIS_1Y", "instrument_type": "OIS", "currency": "USD", "tenor": "1Y", "value": 0.0545},
+    {"id": "USD_OIS_2Y", "instrument_type": "OIS", "currency": "USD", "tenor": "2Y", "value": 0.0550},
+    {"id": "USD_OIS_5Y", "instrument_type": "OIS", "currency": "USD", "tenor": "5Y", "value": 0.0560},
+    {"id": "USD_OIS_10Y", "instrument_type": "OIS", "currency": "USD", "tenor": "10Y", "value": 0.0570}
+  ],
+  "curves": [
+    {
+      "id": {"currency": "USD", "family": "OIS"},
+      "purpose": "Discount",
+      "quote_ids": ["USD_OIS_1M", "USD_OIS_3M", "USD_OIS_6M", "USD_OIS_1Y", "USD_OIS_2Y", "USD_OIS_5Y", "USD_OIS_10Y"],
+      "day_count": "ACT360",
+      "calendar": "Target",
+      "interpolation": "LogLinear"
     }
-  }
+  ]
 }

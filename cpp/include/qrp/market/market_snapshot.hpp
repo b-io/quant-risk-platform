@@ -32,6 +32,12 @@ public:
         domain::Currency currency, 
         const QuantLib::Handle<QuantLib::YieldTermStructure>& h);
 
+    /**
+     * @brief Build a full yield curve from a spec and quotes.
+     * Rationale: We use PiecewiseYieldCurve with LogLinear on discounts to ensure
+     * positive forward rates and industry-standard interpolation.
+     * The state_ptr allows us to reuse SimpleQuote handles for reactive risk.
+     */
     static QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> build_curve(
         const domain::CurveSpec& spec,
         const std::map<std::string, domain::MarketQuote>& quotes,

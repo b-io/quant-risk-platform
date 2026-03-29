@@ -1,141 +1,95 @@
 #include <fmt/format.h>
-#include <qrp/analytics/monte_carlo_engine.hpp>
-#include <qrp/analytics/pnl_explain_service.hpp>
-#include <qrp/analytics/pricing_context.hpp>
-#include <qrp/analytics/risk_service.hpp>
-#include <qrp/analytics/stress_engine.hpp>
-#include <qrp/analytics/valuation_service.hpp>
-#include <qrp/io/json_loader.hpp>
-#include <qrp/market/market_snapshot.hpp>
-#include <iostream>
+#include <qrp/app/quant_risk_platform.hpp>
+#include <qrp/persistence/sqlite_storage_backend.hpp>
+#include <qrp/util/logger.hpp>
 #include <string>
 #include <vector>
+#include <memory>
 
 void print_help() {
     fmt::print("Usage: qrp_cli <command> [options]\n");
     fmt::print("Commands:\n");
-    fmt::print("  price --market <path> --portfolio <path>\n");
-    fmt::print("  risk  --market <path> --portfolio <path>\n");
-    fmt::print("  pnl-explain --prev-market <path> --curr-market <path> --portfolio <path>\n");
-    fmt::print("  stress --market <path> --portfolio <path> --scenarios <path>\n");
-    fmt::print("  mc --market <path> --portfolio <path> --paths <number>\n");
-}
-
-int handle_price(const std::string& market_path, const std::string& portfolio_path) {
-    auto market_dto = qrp::io::load_market(market_path);
-    auto portfolio = qrp::io::load_portfolio(portfolio_path);
-    qrp::market::MarketSnapshot market(market_dto);
-    qrp::analytics::PricingContext context(market.built_state());
-
-    auto results = qrp::analytics::ValuationService::price_portfolio(portfolio, context);
-
-    fmt::print("{:<20} | {:<10} | {:<10}\n", "Trade ID", "NPV", "Currency");
-    fmt::print("----------------------------------------------------\n");
-    for (const auto& res : results) {
-        fmt::print("{:<20} | {:<10.2f} | {:<10}\n", res.trade_id, res.npv, res.currency);
-    }
-    return 0;
-}
-
-int handle_risk(const std::string& market_path, const std::string& portfolio_path) {
-    auto market_dto = qrp::io::load_market(market_path);
-    auto portfolio = qrp::io::load_portfolio(portfolio_path);
-
-    auto results = qrp::analytics::RiskService::compute_risk(portfolio, market_dto);
-
-    fmt::print("{:<20} | {:<10} | {:<10}\n", "Trade ID", "PV01", "Key Tenors");
-    fmt::print("----------------------------------------------------\n");
-    for (const auto& res : results) {
-        fmt::print("{:<20} | {:<10.4f} | ", res.trade_id, res.pv01);
-        for (const auto& [tenor, risk] : res.bucketed_risk) {
-            fmt::print("{}: {:.4f} ", tenor, risk);
-        }
-        fmt::print("\n");
-    }
-    return 0;
-}
-
-int handle_pnl_explain(const std::string& prev_market_path, const std::string& curr_market_path, const std::string& portfolio_path) {
-    auto prev_market_dto = qrp::io::load_market(prev_market_path);
-    auto curr_market_dto = qrp::io::load_market(curr_market_path);
-    auto portfolio = qrp::io::load_portfolio(portfolio_path);
-
-    auto results = qrp::analytics::PnlExplainService::explain_pnl(portfolio, prev_market_dto, curr_market_dto);
-
-    fmt::print("{:<20} | {:<10} | {:<10} | {:<10} | {:<10}\n", "Trade ID", "Total P&L", "Carry", "Market", "Cash");
-    fmt::print("--------------------------------------------------------------------------------\n");
-    for (const auto& res : results) {
-        fmt::print("{:<20} | {:<10.2f} | {:<10.2f} | {:<10.2f} | {:<10.2f}\n", 
-                   res.trade_id, res.total_pnl, res.carry_pnl, res.market_move_pnl, res.cash_pnl);
-    }
-    return 0;
-}
-
-int handle_stress(const std::string& market_path, const std::string& portfolio_path, const std::string& scenarios_path) {
-    auto market_dto = qrp::io::load_market(market_path);
-    auto portfolio = qrp::io::load_portfolio(portfolio_path);
-    // Placeholder for scenario loader
-    std::vector<qrp::market::ScenarioDefinition> scenarios;
-    // ... logic to load scenarios from JSON ...
-
-    auto results = qrp::analytics::StressEngine::run_historical_stress(portfolio, market_dto, scenarios);
-    fmt::print("Stress run completed. (Historical scenarios loading placeholder)\n");
-    return 0;
-}
-
-int handle_mc(const std::string& market_path, const std::string& portfolio_path, int paths) {
-    auto market_dto = qrp::io::load_market(market_path);
-    auto portfolio = qrp::io::load_portfolio(portfolio_path);
-
-    auto res = qrp::analytics::MonteCarloEngine::run_simulation(portfolio, market_dto, paths);
-    fmt::print("Monte Carlo Simulation Results ({} paths):\n", paths);
-    fmt::print("95% VaR: {:.2f}\n", res.var_95);
-    fmt::print("95% ES : {:.2f}\n", res.expected_shortfall_95);
-    return 0;
+    fmt::print("  init-db\n");
+    fmt::print("  import-market <json_path>\n");
+    fmt::print("  import-portfolio <json_path>\n");
+    fmt::print("  import-scenarios <json_path>\n");
+    fmt::print("  run-valuation --portfolio <id> --snapshot <id>\n");
+    fmt::print("  run-risk --portfolio <id> --snapshot <id>\n");
+    fmt::print("  run-hvar --portfolio <id> --snapshot <id> --scenarios <id>\n");
+    fmt::print("  report <run_id>\n");
+    fmt::print("  compare <run_id_1> <run_id_2>\n");
+    fmt::print("  list\n");
 }
 
 int main(int argc, char** argv) {
+    qrp::util::Logger::initialize();
+
     if (argc < 2) {
         print_help();
         return 1;
     }
 
     std::string cmd = argv[1];
-    std::vector<std::string> args;
-    for (int i = 2; i < argc; ++i) args.push_back(argv[i]);
+    
+    // Initialize storage and platform
+    auto storage = std::make_shared<qrp::persistence::SQLiteStorageBackend>("var/quant_risk_platform.sqlite");
+    qrp::app::QuantRiskPlatform platform(storage);
 
     try {
-        if (cmd == "price") {
-            std::string market, portfolio;
-            for (size_t i = 0; i < args.size(); ++i) {
-                if (args[i] == "--market" && i + 1 < args.size()) market = args[++i];
-                if (args[i] == "--portfolio" && i + 1 < args.size()) portfolio = args[++i];
+        if (cmd == "init-db") {
+            platform.initialize();
+            return 0;
+        } else if (cmd == "import-market") {
+            if (argc < 3) throw std::runtime_error("Missing JSON path");
+            platform.import_market_snapshot(argv[2]);
+            return 0;
+        } else if (cmd == "import-portfolio") {
+            if (argc < 3) throw std::runtime_error("Missing JSON path");
+            platform.import_portfolio(argv[2]);
+            return 0;
+        } else if (cmd == "import-scenarios") {
+            if (argc < 3) throw std::runtime_error("Missing JSON path");
+            platform.import_scenario_set(argv[2]);
+            return 0;
+        } else if (cmd == "run-valuation") {
+            std::string portfolio, snapshot;
+            for (int i = 2; i < argc; ++i) {
+                if (std::string(argv[i]) == "--portfolio" && i + 1 < argc) portfolio = argv[++i];
+                if (std::string(argv[i]) == "--snapshot" && i + 1 < argc) snapshot = argv[++i];
             }
-            return handle_price(market, portfolio);
-        } else if (cmd == "risk") {
-            std::string market, portfolio;
-            for (size_t i = 0; i < args.size(); ++i) {
-                if (args[i] == "--market" && i + 1 < args.size()) market = args[++i];
-                if (args[i] == "--portfolio" && i + 1 < args.size()) portfolio = args[++i];
+            std::string run_id = platform.run_valuation(portfolio, snapshot);
+            fmt::print("Run ID: {}\n", run_id);
+            return 0;
+        } else if (cmd == "run-risk") {
+            std::string portfolio, snapshot;
+            for (int i = 2; i < argc; ++i) {
+                if (std::string(argv[i]) == "--portfolio" && i + 1 < argc) portfolio = argv[++i];
+                if (std::string(argv[i]) == "--snapshot" && i + 1 < argc) snapshot = argv[++i];
             }
-            return handle_risk(market, portfolio);
-        } else if (cmd == "pnl-explain") {
-            std::string prev, curr, portfolio;
-            for (size_t i = 0; i < args.size(); ++i) {
-                if (args[i] == "--prev-market" && i + 1 < args.size()) prev = args[++i];
-                if (args[i] == "--curr-market" && i + 1 < args.size()) curr = args[++i];
-                if (args[i] == "--portfolio" && i + 1 < args.size()) portfolio = args[++i];
+            std::string run_id = platform.run_risk(portfolio, snapshot);
+            fmt::print("Run ID: {}\n", run_id);
+            return 0;
+        } else if (cmd == "run-hvar") {
+            std::string portfolio, snapshot, scenarios;
+            for (int i = 2; i < argc; ++i) {
+                if (std::string(argv[i]) == "--portfolio" && i + 1 < argc) portfolio = argv[++i];
+                if (std::string(argv[i]) == "--snapshot" && i + 1 < argc) snapshot = argv[++i];
+                if (std::string(argv[i]) == "--scenarios" && i + 1 < argc) scenarios = argv[++i];
             }
-            return handle_pnl_explain(prev, curr, portfolio);
-        } else if (cmd == "mc") {
-            std::string market, portfolio;
-            int paths = 100;
-            for (size_t i = 0; i < args.size(); ++i) {
-                if (args[i] == "--market" && i + 1 < args.size()) market = args[++i];
-                if (args[i] == "--portfolio" && i + 1 < args.size()) portfolio = args[++i];
-                if (args[i] == "--paths" && i + 1 < args.size()) paths = std::stoi(args[++i]);
-            }
-            return handle_mc(market, portfolio, paths);
+            std::string run_id = platform.run_historical_var(portfolio, snapshot, scenarios);
+            fmt::print("Run ID: {}\n", run_id);
+            return 0;
+        } else if (cmd == "report") {
+            if (argc < 3) throw std::runtime_error("Missing run_id");
+            platform.get_run_report(argv[2]);
+            return 0;
+        } else if (cmd == "compare") {
+            if (argc < 4) throw std::runtime_error("Missing run_id_1 and run_id_2");
+            platform.compare_runs(argv[2], argv[3]);
+            return 0;
+        } else if (cmd == "list") {
+            platform.list_data();
+            return 0;
         } else {
             fmt::print("Unknown command: {}\n", cmd);
             print_help();

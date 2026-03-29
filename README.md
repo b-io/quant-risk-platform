@@ -62,9 +62,8 @@ The repository is beyond scaffold stage and already contains:
 - tests under `tests/`,
 - canonical documentation under `docs/`.
 
-Current implementation maturity is best described as a **rates-focused prototype with real QuantLib foundations**. The
-next architecture milestones are richer market conventions and schema, typed market builders, and reusable built
-positions.
+Current implementation maturity is best described as a **rates-focused platform with persistent storage and reactive risk foundation**. The
+next architecture milestones are broader asset-class coverage (FX, Equity), refined risk factor taxonomy, and advanced Monte Carlo simulation.
 
 ## Implemented today
 
@@ -74,19 +73,18 @@ The current codebase already includes:
 - convention-aware rates market construction,
 - QuantLib helper-based rates curve bootstrapping,
 - pricing for selected vanilla rates instruments,
-- early bump-and-revalue risk,
-- early stress, P&L explain, and Monte Carlo services,
+- high-performance reactive risk (Observer pattern),
+- SQLite-backed persistence for portfolios, market snapshots, and results,
+- end-to-end persisted valuation and risk workflows,
 - Python bindings and a C++ CLI.
 
 ## Planned next steps
 
-- harden market conventions and market schema,
-- split market construction into typed builders,
-- add reusable built instruments and built portfolios,
-- strengthen pricing outputs and diagnostics,
-- refactor risk around explicit factor definitions,
+- expand pricing coverage to FX, Equities, and Credit,
+- refine the risk factor taxonomy for consistent aggregation,
 - separate historical, parametric, and Monte Carlo VaR,
-- evolve Monte Carlo from one-step factor simulation toward a fuller framework.
+- evolve Monte Carlo from one-step factor simulation toward a fuller path-based framework,
+- add BI-style ad hoc analysis over stored results.
 
 ## Documentation layout
 

@@ -23,6 +23,10 @@ vcpkg_installed/
 *.lai
 *.lib
 
+# Databases
+*.db
+*.sqlite
+
 # Debug information files
 *.dwo
 *.pdb
@@ -68,3 +72,5 @@ venv/
 
 # User-specific
 roadmap/
+temp/
+tmp/
