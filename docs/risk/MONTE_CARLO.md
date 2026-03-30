@@ -332,5 +332,5 @@ $$
 \mathcal{N}(0, \mathrm{Var}(Y)).
 $$
 
-So Monte Carlo becomes more accurate as the number of paths grows, but only at the relatively slow rate $N^{-1/2}$. That
-is why variance reduction and efficient pricing infrastructure matter in practice.
+So Monte Carlo becomes more accurate as the number of paths grows, but only at the relatively slow rate $N^{-1/2}$.
+That is why variance reduction and efficient pricing infrastructure matter in practice.

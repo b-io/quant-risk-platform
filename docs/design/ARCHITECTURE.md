@@ -126,7 +126,7 @@ This is a good first production choice because:
 - **Tradeoff:** `LogLinear` on discounts implies piecewise constant forward rates. This is very stable but results in
   "staircase" forward curves. Cubic splines provide smoother forwards but can introduce oscillations (overshoot).
 
-## 6. Platform vs QuantLib Architecture
+## 6. Platform vs. QuantLib Architecture
 
 | Aspect      | QuantLib Approach                | Our Project Approach               | Why?                                         |
 |-------------|----------------------------------|------------------------------------|----------------------------------------------|

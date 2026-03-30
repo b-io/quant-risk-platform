@@ -4,8 +4,10 @@ This section covers credit-specific market objects and pricing inputs.
 
 ## Contents
 
-- `docs/pricing/credit/CREDIT_CURVE_CONSTRUCTION.md` — spread curves, hazard-rate curves, survival probabilities,
-  recovery assumptions, and the intended `CreditCurveBuilder` path.
+- `docs/pricing/credit/CDS_CURVES_AND_CREDIT_RISK_IN_PRACTICE.md` — CDS intuition, premium and protection legs,
+  calibration logic, CS01, and practical credit-risk usage.
+- `docs/pricing/credit/CREDIT_CURVE_CONSTRUCTION.md` — credit spread curves, hazard-rate calibration, survival
+  probabilities, recovery assumptions, and builder design.
 
 ## Scope
 
@@ -23,4 +25,4 @@ After reading this section, the reader should have a clear picture of:
 - the difference between discounting and survival modeling,
 - the market inputs needed for credit-curve construction,
 - the outputs a reusable credit curve should expose,
-- how credit factors connect to CS01, stress, and P&L explain.
+- how credit factors connect to CS01, stress, P&L explain, and scenario design.

@@ -40,11 +40,31 @@ add_executable(qrp_cli cpp/cli/main.cpp)
 target_link_libraries(qrp_cli PRIVATE qrp_core fmt::fmt)
 
 # Python bindings
-find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+# Use modern pybind11 FindPython mode
 set(PYBIND11_FINDPYTHON ON)
-find_package(pybind11 REQUIRED)
+
+# Find Python3 with both Interpreter and Development.Module components.
+# Standard CMake cache variables to override:
+# - Python3_EXECUTABLE (path to the python interpreter)
+# - Python3_ROOT_DIR (base path for python search)
+# - Python3_FIND_VIRTUALENV (how to search for virtual envs)
+#
+# Note: Python selection is controlled by standard CMake variables, not env vars.
+# Practical discovery order:
+# 1. Explicit CMake cache variables:
+#    - Python3_EXECUTABLE (path to the python interpreter)
+#    - Python3_ROOT_DIR (base path for python search)
+# 2. Normal discovery:
+#    - CMake find_package(Python3) discovers Python from the active environment / PATH.
+#
+find_package(Python3 3.10 COMPONENTS Interpreter Development.Module REQUIRED)
+
+# If we are using vcpkg, it might have its own pybind11 and python.
+find_package(pybind11 CONFIG REQUIRED)
 pybind11_add_module(quant_risk_platform cpp/bindings/module.cpp)
-target_link_libraries(quant_risk_platform PRIVATE qrp_core)
+
+# Link to Python3::Module (standard for pybind11 with FindPython) and qrp_core.
+target_link_libraries(quant_risk_platform PRIVATE qrp_core Python3::Module)
 
 # Tests
 enable_testing()

@@ -4,8 +4,8 @@ This section groups documentation about normalized market inputs and the market 
 
 ## Contents
 
-- `docs/pricing/market-data/MULTI_ASSET_MARKET_DATA_AND_CURVES.md` — unified representation of rates, credit, FX,
-  equity, commodity, and volatility inputs.
+- `docs/pricing/market-data/MULTI_ASSET_MARKET_DATA_AND_CURVES.md` — normalized cross-asset market-data schema covering
+  rates, credit, FX, equity, commodity, and volatility inputs.
 
 ## Why this section exists
 

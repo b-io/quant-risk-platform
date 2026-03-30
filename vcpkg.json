@@ -4,6 +4,7 @@
   "dependencies": [
     "fmt",
     "gtest",
+    "icu",
     "nlohmann-json",
     "pybind11",
     "quantlib",

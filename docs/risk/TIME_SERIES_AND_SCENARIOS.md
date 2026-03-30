@@ -18,7 +18,7 @@ Risk systems rely on time series for:
 A stationary process has stable statistical properties over time. Many raw financial series such as yields or prices are
 not stationary, but returns, changes, or spread changes may be closer to stationary.
 
-### Returns vs levels
+### Returns vs. levels
 
 For risk modeling, choosing whether to model:
 

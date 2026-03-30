@@ -30,7 +30,7 @@ Current limitations:
 - risk is still mostly bump-and-revalue,
 - explain is still approximate,
 - Monte Carlo is a one-step factor simulation rather than a general path framework,
-- there is no explicit historical VaR vs parametric VaR split,
+- there is no explicit historical VaR vs. parametric VaR split,
 - there is no built portfolio cache.
 
 ## 3. Target service split
@@ -75,7 +75,7 @@ The engine supports both:
 - **One-step factor simulation**: For Greeks and simple VaR.
 - **Full Path simulation**: For American options, path-dependent derivatives, and exposure extensions.
 
-## 4. Architectural choice: Handle-based vs Brute-force
+## 4. Architectural choice: Handle-based vs. Brute-force
 
 **Our approach:** Handle-based reactive risk.
 

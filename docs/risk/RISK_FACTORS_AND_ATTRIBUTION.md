@@ -66,8 +66,8 @@ That separation is essential for explain, VaR, and stress semantics.
 
 ## Attribution views that should be supported
 
-Risk results become much more useful when the same raw shocks can be re-aggregated by several business axes. Typical
-views include:
+Risk results become much more useful when the same raw shocks can be re-aggregated by several business axes.
+Typical views include:
 
 - by trade,
 - by portfolio or book,

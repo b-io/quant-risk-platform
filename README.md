@@ -62,8 +62,9 @@ The repository is beyond scaffold stage and already contains:
 - tests under `tests/`,
 - canonical documentation under `docs/`.
 
-Current implementation maturity is best described as a **rates-focused platform with persistent storage and reactive risk foundation**. The
-next architecture milestones are broader asset-class coverage (FX, Equity), refined risk factor taxonomy, and advanced Monte Carlo simulation.
+Current implementation maturity is best described as a
+**rates-focused platform with persistent storage and reactive risk foundation**. The next architecture milestones are
+broader asset-class coverage (FX, Equity), refined risk factor taxonomy, and advanced Monte Carlo simulation.
 
 ## Implemented today
 

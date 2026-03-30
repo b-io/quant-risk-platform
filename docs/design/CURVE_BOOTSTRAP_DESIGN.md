@@ -39,7 +39,7 @@ Tradeoffs:
 Rationale:
 
 - Post-2008 market practice splits discounting (OIS) from forecasting (IBOR/term indices).
-- Aligns DV01 attribution with factor families (discount vs forward curves).
+- Aligns DV01 attribution with factor families (discount vs. forward curves).
 
 Implementation:
 

@@ -2,25 +2,25 @@
   "version": 3,
   "configurePresets": [
     {
-      "name": "default",
+      "name": "base",
       "binaryDir": "${sourceDir}/build/${presetName}",
-      "generator": "Ninja",
       "cacheVariables": {
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "CMAKE_TOOLCHAIN_FILE": "C:/DEV/vcpkg/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-static"
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static",
+        "CMAKE_PREFIX_PATH": "${sourceDir}/build/Debug/vcpkg_installed/x64-windows-static"
       }
     },
     {
       "name": "Debug",
-      "inherits": "default",
+      "inherits": "base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
       "name": "Release",
-      "inherits": "default",
+      "inherits": "base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
