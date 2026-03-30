@@ -13,9 +13,9 @@ For scenario generation, Monte Carlo, option pricing, and risk-factor evolution,
 A useful summary is:
 
 > It helps to separate today's market-state construction from dynamic factor modeling. For current PV and sensitivities,
-> the right object is a market-consistent bootstrapped curve. For scenario evolution, Monte Carlo, and derivatives beyond
-> simple bump-and-revalue, a dynamic model such as GBM, Ho-Lee, Hull-White, LMM, or a parametric curve model is needed
-> depending on the use case.
+> the right object is a market-consistent bootstrapped curve. For scenario evolution, Monte Carlo, and derivatives
+> beyond simple bump-and-revalue, a dynamic model such as GBM, Ho-Lee, Hull-White, LMM, or a parametric curve model is
+> needed depending on the use case.
 
 ---
 

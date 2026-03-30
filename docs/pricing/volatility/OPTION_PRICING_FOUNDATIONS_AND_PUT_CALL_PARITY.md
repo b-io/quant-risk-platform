@@ -425,8 +425,8 @@ European parity is replaced by inequalities or model-based comparisons.
 
 Put-call parity does **not** depend on the full Black-Scholes-Merton model.
 
-It comes from **static no-arbitrage replication** and therefore survives much more generally than the specific lognormal,
-constant-volatility assumptions of BSM.
+It comes from **static no-arbitrage replication** and therefore survives much more generally than the specific
+lognormal, constant-volatility assumptions of BSM.
 
 However, parity is perfectly consistent with BSM. In fact:
 
