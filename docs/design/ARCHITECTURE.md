@@ -50,12 +50,12 @@ flowchart TD
   sensitivities, P&L, VaR).
 - **CLI / Python**: Expose stable application services rather than raw QuantLib internals.
 
-## 3. Portfolios and identifiers
+## 3. Portfolios and Identifiers
 
 The platform uses stable, structured internal identifiers to ensure consistency across market state, risk reports, and
 the database.
 
-### 4.1 Portfolio Identifiers
+### 3.1. Portfolio Identifiers
 
 Format: `PORT:<portfolio_group>:<book>:<portfolio_name>`
 Examples:
@@ -63,7 +63,7 @@ Examples:
 - `PORT:DEMO:MACRO:GLOBAL_RATES`
 - `PORT:DEMO:XASSET:MULTI_ASSET_01`
 
-### 4.2 Trade Identifiers
+### 3.2. Trade Identifiers
 
 Format: `TRD:<asset_class>:<book>:<sequence>`
 Examples:
@@ -71,7 +71,7 @@ Examples:
 - `TRD:RATES:MACRO:000001`
 - `TRD:CDS:CREDIT:000014`
 
-### 4.3 Risk Factor Identifiers
+### 3.3. Risk Factor Identifiers
 
 Format: `RF:<family>:<currency_or_market>:<object>:<bucket>`
 Examples:
@@ -84,7 +84,7 @@ and attribution.
 
 ## 4. Core QuantLib design choices
 
-### 4.1 Why use `SimpleQuote` handles
+### 4.1. Why use `SimpleQuote` handles
 
 `SimpleQuote` is the right primitive for a revaluation engine because it supports in-place updates of market inputs.
 
@@ -101,7 +101,7 @@ Why this matters in our project:
 
 This is the correct foundation for PV01, key-rate risk, historical stress, and scenario engines.
 
-### 4.2 Why use `RateHelper` objects for yield curves
+### 4.2. Why use `RateHelper` objects for yield curves
 
 A curve should be calibrated to market instruments, not merely interpolated through arbitrary rates.
 
@@ -117,7 +117,7 @@ A curve should be calibrated to market instruments, not merely interpolated thro
 - **Pros:** instrument-consistent bootstrapping, transparent calibration logic, industry alignment.
 - **Cons:** requires solving a non-linear system (bootstrapping), more complex than simple spline interpolation.
 
-### 4.3 Why use `PiecewiseYieldCurve<Discount, LogLinear>` initially
+### 4.3. Why use `PiecewiseYieldCurve<Discount, LogLinear>` initially
 
 This is a good first production choice because:
 
@@ -126,16 +126,14 @@ This is a good first production choice because:
 - **Tradeoff:** `LogLinear` on discounts implies piecewise constant forward rates. This is very stable but results in
   "staircase" forward curves. Cubic splines provide smoother forwards but can introduce oscillations (overshoot).
 
-## 5. Platform vs. QuantLib architecture
+## 5. Platform vs QuantLib Architecture
 
-- **Data**: QuantLib favors object-oriented, relatively heavy in-memory objects. The platform uses DTO-based
-  JSON schemas and SQLite persistence to improve interoperability, auditability, and storage discipline.
-- **State**: QuantLib state is distributed across linked objects. The platform centralizes reusable state in
-  `MarketState` so that scenarios and snapshots are easier to manage.
-- **Pricing**: QuantLib typically attaches a pricing engine directly to the instrument. The platform wraps this pattern
-  in `ValuationService` so pricing can be orchestrated, audited, and exposed consistently.
-- **Risk**: QuantLib risk can be implemented ad hoc or via relinkable handles. The platform standardizes risk reporting
-  through `RiskService` and stable `RF:` identifiers so factor reporting and performance tuning remain coherent.
+| Aspect      | QuantLib Approach                | Our Project Approach               | Why?                                         |
+|-------------|----------------------------------|------------------------------------|----------------------------------------------|
+| **Data**    | Object-oriented, heavy objects   | DTO-based (JSON) + SQLite          | Persistence, interop, and auditability.      |
+| **State**   | Distributed in objects           | Centralized in `MarketState`       | Easier to manage scenarios and snapshots.    |
+| **Pricing** | `setPricingEngine` on instrument | `ValuationService` wrapper         | Separation of concerns; easier to audit.     |
+| **Risk**    | Ad-hoc or via `RelinkableHandle` | Standardized `RiskService` + `RF:` | Consistent reporting and performance tuning. |
 
 ## 6. Current runtime flow
 

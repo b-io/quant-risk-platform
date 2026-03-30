@@ -24,7 +24,7 @@ A random variable is called “random” because its value is unknown before the
 
 ## 2. Discrete and continuous random variables
 
-### 2.1 Discrete random variables
+### 2.1. Discrete random variables
 
 A discrete random variable takes values in a finite or countable set:
 
@@ -52,7 +52,7 @@ $$
 k = 1, \dots, 6.
 $$
 
-### 2.2 Continuous random variables
+### 2.2. Continuous random variables
 
 A continuous random variable is described by a **probability density function** (pdf) $f_X(x)$ such that:
 
@@ -106,7 +106,7 @@ The cdf is the most general way to describe the law of a random variable.
 
 The **expectation** or **mean** of a random variable is its average value under repeated sampling.
 
-### 4.1 Discrete case
+### 4.1. Discrete case
 
 If $X$ is discrete,
 
@@ -114,7 +114,7 @@ $$
 \mathbb{E}[X] = \sum_x x \mathbb{P}(X = x).
 $$
 
-### 4.2 Continuous case
+### 4.2. Continuous case
 
 If $X$ is continuous with density $f_X$,
 
@@ -122,7 +122,7 @@ $$
 \mathbb{E}[X] = \int_{-\infty}^{\infty} x f_X(x) dx.
 $$
 
-### 4.3 Expectation of a function of a random variable
+### 4.3. Expectation of a function of a random variable
 
 More generally, for any integrable function $g$,
 

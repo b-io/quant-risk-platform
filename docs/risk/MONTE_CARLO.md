@@ -184,7 +184,7 @@ above.
 
 It is useful to distinguish three related approaches:
 
-### 7.1 Historical simulation
+### 7.1. Historical simulation
 
 Use historical factor moves directly:
 
@@ -194,11 +194,11 @@ $$
 
 No parametric model is imposed.
 
-### 7.2 Parametric Gaussian VaR
+### 7.2. Parametric Gaussian VaR
 
 Approximate the P&L distribution analytically, often with a delta or delta-gamma approximation.
 
-### 7.3 Model-based Monte Carlo
+### 7.3. Model-based Monte Carlo
 
 Specify a stochastic model for factor evolution, simulate future paths, then revalue under each path. This is the most
 flexible approach, but it is also the most computationally expensive.
@@ -332,5 +332,5 @@ $$
 \mathcal{N}(0, \mathrm{Var}(Y)).
 $$
 
-So Monte Carlo becomes more accurate as the number of paths grows, but only at the relatively slow rate $N^{-1/2}$.
-That is why variance reduction and efficient pricing infrastructure matter in practice.
+So Monte Carlo becomes more accurate as the number of paths grows, but only at the relatively slow rate $N^{-1/2}$. That
+is why variance reduction and efficient pricing infrastructure matter in practice.

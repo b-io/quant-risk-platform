@@ -24,12 +24,12 @@ closer to collateral remuneration conventions.
 
 There are two broad approaches:
 
-### 1. Direct curve from zero-rate nodes
+### Direct curve from zero-rate nodes
 
 This is simple and sometimes acceptable for demos or if the market input is already zero rates. It is **not** the full
 market-consistent construction process.
 
-### 2. Bootstrapping from tradable market instruments
+### Bootstrapping from tradable market instruments
 
 This is the preferred production approach.
 

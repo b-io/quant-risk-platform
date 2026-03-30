@@ -55,8 +55,8 @@ $$
 X_1, \dots, X_n,
 $$
 
-where each observation is assumed to come from a distribution belonging to a parametric family indexed by a parameter
-$\theta \in \Theta$. We write the realized sample as
+where each observation is assumed to come from a distribution belonging to a parametric family indexed by a
+parameter $\theta \in \Theta$. We write the realized sample as
 
 $$
 X_1=x_1,\dots,X_n=x_n.
@@ -139,7 +139,7 @@ One must still verify that the solution corresponds to a maximum and lies in the
 
 ## 3. Discrete distributions
 
-## 3.1 Bernoulli distribution
+### 3.1. Bernoulli distribution
 
 A random variable $X$ has a **Bernoulli distribution** with parameter $p$, written
 
@@ -212,9 +212,9 @@ So the MLE is simply the sample proportion of successes.
 
 ### Use cases
 
-The Bernoulli law is the simplest model for a single yes/no outcome. In credit risk, one may define $X_i=1$ if issuer
-$i$ defaults during a given horizon and $X_i=0$ otherwise. In operational-risk or control settings, one may set
-$X_i=1$ if a breach occurs during a period. In reliability, it may represent whether a component failed before a
+The Bernoulli law is the simplest model for a single yes/no outcome. In credit risk, one may define $X_i=1$ if
+issuer $i$ defaults during a given horizon and $X_i=0$ otherwise. In operational-risk or control settings, one may
+set $X_i=1$ if a breach occurs during a period. In reliability, it may represent whether a component failed before a
 deadline. In experimentation, it is the canonical model for success/failure trials. Even when real systems are more
 complex, the Bernoulli variable remains a basic building block because many portfolio models are formed by summing
 Bernoulli indicators.
@@ -237,7 +237,7 @@ This large-sample approximation is the basis for approximate confidence interval
 
 ---
 
-## 3.2 Binomial distribution
+### 3.2. Binomial distribution
 
 A random variable $X$ has a **Binomial distribution** with parameters $m$ and $p$, written
 
@@ -316,7 +316,7 @@ This approximation is especially useful when the number of trials is very large 
 
 ---
 
-## 3.3 Poisson distribution
+### 3.3. Poisson distribution
 
 A random variable $X$ has a **Poisson distribution** with parameter $\lambda > 0$, written
 
@@ -395,7 +395,7 @@ applications involving many opportunities for a rare event.
 
 ---
 
-## 3.4 Geometric distribution
+### 3.4. Geometric distribution
 
 A random variable $X$ has a **Geometric distribution** with parameter $p$, written
 
@@ -455,7 +455,7 @@ exponential waiting times.
 
 ## 4. Continuous distributions
 
-## 4.1 Uniform distribution
+### 4.1. Uniform distribution
 
 A random variable $X$ has a **Uniform distribution** on the interval $[a,b]$, written
 
@@ -500,7 +500,7 @@ reference case because it is simple, bounded, and easy to simulate.
 
 ---
 
-## 4.2 Exponential distribution
+### 4.2. Exponential distribution
 
 A random variable $X$ has an **Exponential distribution** with rate parameter $\lambda > 0$, written
 
@@ -584,7 +584,7 @@ $$
 
 ---
 
-## 4.3 Normal distribution
+### 4.3. Normal distribution
 
 A random variable $X$ has a **Normal distribution** with mean $\mu\in\mathbb{R}$ and variance $\sigma^2 > 0$, written
 
@@ -659,7 +659,7 @@ variables are not.
 
 ---
 
-## 4.4 Lognormal distribution
+### 4.4. Lognormal distribution
 
 A positive random variable $X$ has a **Lognormal distribution** if its natural logarithm is normally distributed:
 
@@ -706,7 +706,7 @@ methods can be applied to $Y_i$ and translated back to the original scale.
 
 ---
 
-## 4.5 Gamma distribution
+### 4.5. Gamma distribution
 
 A random variable $X$ has a **Gamma distribution** with shape parameter $\alpha > 0$ and rate parameter $\beta > 0$,
 written
@@ -756,7 +756,7 @@ after suitable standardization.
 
 ---
 
-## 4.6 Beta distribution
+### 4.6. Beta distribution
 
 A random variable $X$ has a **Beta distribution** with parameters $\alpha > 0$ and $\beta > 0$, written
 
@@ -805,7 +805,7 @@ even U-shaped. This flexibility makes it a standard bounded distribution in appl
 
 ---
 
-## 4.7 Chi-square distribution
+### 4.7. Chi-square distribution
 
 If
 
@@ -857,7 +857,7 @@ $$
 
 ---
 
-## 4.8 Student's $t$ distribution
+### 4.8. Student's $t$ distribution
 
 Let
 
@@ -918,7 +918,7 @@ Before analyzing the score and information, it is important to note that standar
 - Asymptotic formulas (like the inverse Fisher information) may fail or require separate treatment if the true parameter
   is on the **boundary** (e.g., Bernoulli $p=0$ or $p=1$, or variance $\sigma^2=0$).
 
-## 5.2 The score function
+### 5.2. The score function
 
 Let $X$ have density or pmf $f(x;\theta)$, and let
 
@@ -941,7 +941,7 @@ $$
 U(\hat\theta)=0.
 $$
 
-## 5.2 What is Fisher information?
+### 5.3. What is Fisher information?
 
 The **Fisher information** measures how much information an observation carries about an unknown parameter.
 Roughly speaking, it quantifies how sharply the likelihood is peaked around the true parameter value.
@@ -970,7 +970,7 @@ $$
 
 This additivity is one reason why estimator precision typically improves at the rate $1/\sqrt{n}$.
 
-## 5.3 Intuition
+### 5.4. Intuition
 
 If changing $\theta$ slightly causes a large change in the likelihood, then the data are informative about $\theta$, so
 Fisher information is large. If the likelihood hardly changes when $\theta$ changes, then many values of $\theta$ fit
@@ -981,7 +981,7 @@ A useful informal interpretation is:
 - **high Fisher information** $\Rightarrow$ parameter is easier to estimate precisely,
 - **low Fisher information** $\Rightarrow$ parameter is harder to estimate precisely.
 
-## 5.4 Cramér-Rao lower bound
+### 5.5. Cramér-Rao lower bound
 
 Fisher information is closely connected to the fundamental lower bound on estimator variance. Under suitable conditions,
 any unbiased estimator $T$ of $\theta$ satisfies
@@ -993,7 +993,7 @@ $$
 This is the **Cramér-Rao lower bound**. It says that no unbiased estimator can have variance below the inverse
 information. The larger the information, the lower the best achievable variance.
 
-## 5.5 Asymptotic normality of the MLE
+### 5.6. Asymptotic normality of the MLE
 
 Under standard regularity conditions and if the true parameter is $\theta_0$,
 
@@ -1016,7 +1016,7 @@ for large $n$.
 This result explains why MLEs are often approximately normal in large samples and why Fisher information governs their
 asymptotic precision.
 
-## 5.6 Observed information
+### 5.7. Observed information
 
 In applications, the true Fisher information is usually unknown because it depends on the unknown parameter. A common
 practical substitute is the **observed information**, defined by
@@ -1033,7 +1033,7 @@ $$
 
 in the one-parameter case, or the inverse Hessian in the multiparameter case.
 
-## 5.7 Simple examples of Fisher information
+### 5.8. Simple examples of Fisher information
 
 ### Bernoulli$(p)$
 
@@ -1296,6 +1296,6 @@ The next natural topics after this chapter are:
 5. Brownian motion and Itô calculus,
 6. transform methods and Fourier pricing.
 
-A natural next extension would be to add short derivations of the means and variances, plus a small section on
-moment-generating functions and probability-generating functions.
+If you want this chapter to read even more like a textbook, the next step would be to add short derivations of the means
+and variances, plus a small section on moment-generating functions and probability-generating functions.
 

@@ -87,8 +87,8 @@ $$
 N = \frac{t}{\Delta t}.
 $$
 
-We now ask: **how large should each spatial jump be** if we want the process to have a sensible limit as
-$\Delta t \to 0$?
+We now ask: **how large should each spatial jump be** if we want the process to have a sensible limit
+as $\Delta t \to 0$?
 
 Write the rescaled process as
 
@@ -251,7 +251,7 @@ That already matches one of the defining properties of Brownian motion: at time 
 with mean $0$ and variance $t$. For a fuller statement of the CLT, the role of the normalization $1/\sqrt{n}$, and the
 link between variance aggregation and Gaussian limits, see [Probability Limit Theorems](PROBABILITY_LIMIT_THEOREMS.md).
 
-### 2.4.1 Why the variance must be linear in time
+#### 2.4.1. Why the variance must be linear in time
 
 There are two complementary reasons that back up the target scaling
 

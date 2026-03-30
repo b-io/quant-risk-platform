@@ -41,7 +41,7 @@ Still missing or thin:
 
 A robust schema should distinguish:
 
-### 3.1 Quote and Risk Factor Taxonomy
+### 3.1. Quote and Risk Factor Taxonomy
 
 Each quote should carry enough metadata to build the correct helper or surface node. The platform uses a unified risk
 factor taxonomy to ensure that deterministic risk, stress, and simulation share the same factor map.
@@ -61,7 +61,7 @@ factor taxonomy to ensure that deterministic risk, stress, and simulation share 
 - **Pros:** Precise bootstrapping, fewer hardcoded assumptions, seamless attribution.
 - **Cons:** More complex JSON schema, larger data payloads.
 
-### 3.2 Curve specifications
+### 3.2. Curve specifications
 
 A curve specification should identify:
 

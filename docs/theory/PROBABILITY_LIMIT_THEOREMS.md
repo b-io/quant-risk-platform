@@ -77,7 +77,7 @@ $$
 
 ## 3. The Law of Large Numbers
 
-## 3.1 Intuition
+### 3.1. Intuition
 
 Suppose we flip a fair coin repeatedly and code:
 
@@ -101,7 +101,7 @@ we expect this proportion to get closer and closer to $\tfrac12$ as $n$ grows.
 
 This is exactly the content of the LLN.
 
-## 3.2 Weak Law of Large Numbers
+### 3.2. Weak Law of Large Numbers
 
 A standard version says:
 
@@ -123,7 +123,7 @@ For large $n$, the sample average is very likely to be close to the true mean.
 It does **not** say that every realization is monotone or exact; it says the probability of a large deviation becomes
 small.
 
-## 3.3 Proof under finite variance
+### 3.3. Proof under finite variance
 
 Assume $\mathrm{Var}(X_1)=\sigma^2 < \infty$.
 
@@ -171,7 +171,7 @@ $$
 
 which proves the weak LLN in this case.
 
-## 3.4 Strong Law of Large Numbers
+### 3.4. Strong Law of Large Numbers
 
 A stronger result states:
 
@@ -223,7 +223,7 @@ This is one of the most important scaling laws in probability and statistics.
 
 ## 5. The Central Limit Theorem
 
-## 5.1 Statement
+### 5.1. Statement
 
 A standard version of the CLT says:
 
@@ -249,7 +249,7 @@ $$
 
 This is **convergence in distribution**.
 
-## 5.2 Interpretation
+### 5.2. Interpretation
 
 The LLN tells us:
 
@@ -264,10 +264,10 @@ $$
 Z\sim \mathcal N(0,1).
 $$
 
-So even if the original variables are not normal, the normalized average often becomes approximately normal for large
-$n$.
+So even if the original variables are not normal, the normalized average often becomes approximately normal for
+large $n$.
 
-## 5.3 Why the normalization is $\sqrt{n}$
+### 5.3. Why the normalization is $\sqrt{n}$
 
 There are really two separate choices in the CLT formula:
 

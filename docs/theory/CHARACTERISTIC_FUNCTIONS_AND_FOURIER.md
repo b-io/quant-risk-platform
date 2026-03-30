@@ -185,7 +185,7 @@ This is why characteristic functions provide an alternative route to working dir
 
 ## 7. Examples of characteristic functions
 
-### 7.1 Bernoulli$(p)$
+### 7.1. Bernoulli$(p)$
 
 If $X \in \{0,1\}$ with
 
@@ -200,7 +200,7 @@ $$
 \varphi_X(t) = (1-p) + p e^{it}.
 $$
 
-### 7.2 Poisson$(\lambda)$
+### 7.2. Poisson$(\lambda)$
 
 If $X \sim \mathrm{Poisson}(\lambda)$, then
 
@@ -208,7 +208,7 @@ $$
 \varphi_X(t) = \exp\bigl(\lambda(e^{it}-1)\bigr).
 $$
 
-### 7.3 Normal$(\mu, \sigma^2)$
+### 7.3. Normal$(\mu, \sigma^2)$
 
 If $X \sim \mathcal{N}(\mu, \sigma^2)$, then
 
@@ -218,7 +218,7 @@ $$
 
 This form is especially important because products of Gaussian characteristic functions remain Gaussian.
 
-### 7.4 Exponential$(\lambda)$
+### 7.4. Exponential$(\lambda)$
 
 For $X \sim \mathrm{Exponential}(\lambda)$,
 
@@ -226,7 +226,7 @@ $$
 \varphi_X(t) = \frac{\lambda}{\lambda - it}.
 $$
 
-### 7.5 Uniform$([a,b])$
+### 7.5. Uniform$([a,b])$
 
 If $X \sim \mathrm{Uniform}(a,b)$, then
 
@@ -277,7 +277,7 @@ which is the characteristic function of $\mathcal{N}(0,1)$.
 
 Characteristic functions are useful in simulation and quantitative finance for several reasons.
 
-### 9.1 Understanding sums and aggregation
+### 9.1. Understanding sums and aggregation
 
 If a portfolio loss is modeled as a sum of independent or conditionally independent components,
 
@@ -293,12 +293,12 @@ $$
 
 This is often much easier to manipulate analytically than the density of $L$.
 
-### 9.2 Benchmarking Monte Carlo outputs
+### 9.2. Benchmarking Monte Carlo outputs
 
 For models with known characteristic functions, one can compare Monte Carlo estimates against analytical transforms or
 semi-analytical pricing formulas.
 
-### 9.3 Fourier-based pricing methods
+### 9.3. Fourier-based pricing methods
 
 In some asset-pricing models, the characteristic function is known even when the density is not simple. One can then
 price options or other claims via Fourier inversion rather than direct simulation.
