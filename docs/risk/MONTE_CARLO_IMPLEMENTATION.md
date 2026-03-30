@@ -22,6 +22,7 @@ Unless stated otherwise:
 A **position** is one trade or one holding.
 
 Examples:
+
 - long 10,000 shares of an equity index ETF
 - short 50 EUR/USD forwards
 - receive-fixed 5Y EUR swap
@@ -29,7 +30,9 @@ Examples:
 
 A **portfolio** is a collection of positions valued together.
 
-A **book** is usually an operational or organizational subdivision of positions inside a larger portfolio. In practice, a book is often tied to one of these dimensions:
+A **book** is usually an operational or organizational subdivision of positions inside a larger portfolio. In practice,
+a book is often tied to one of these dimensions:
+
 - trader or portfolio manager
 - strategy
 - desk
@@ -44,9 +47,11 @@ $$
 \text{firm} \rightarrow \text{desk} \rightarrow \text{book} \rightarrow \text{portfolio} \rightarrow \text{positions}
 $$
 
-or, in some firms, portfolio sits above book. The naming varies, but the core idea is the same: a book is a manageable subset of exposures used for pricing, P\&L, limits, and risk reporting.
+or, in some firms, portfolio sits above book. The naming varies, but the core idea is the same: a book is a manageable
+subset of exposures used for pricing, P\&L, limits, and risk reporting.
 
-> A book is the set of trades a desk wants to risk-manage and report together. A portfolio is the economic collection of positions whose value and risk we aggregate under a common market state.
+> A book is the set of trades a desk wants to risk-manage and report together. A portfolio is the economic collection of
+> positions whose value and risk we aggregate under a common market state.
 
 ## 2. How risk is calculated in practice
 
@@ -69,6 +74,7 @@ Typical steps:
 7. Store results for P\&L explain, risk limits, stress, and audit.
 
 Common risk outputs:
+
 - PV / NPV
 - delta, gamma, vega, rho
 - DV01 / PV01 / key-rate DV01
@@ -78,7 +84,8 @@ Common risk outputs:
 - concentration metrics
 - P\&L explain
 
-For liquid books, a lot of daily risk is sensitivity-based. For nonlinear books, scenario revaluation and Monte Carlo become much more important.
+For liquid books, a lot of daily risk is sensitivity-based. For nonlinear books, scenario revaluation and Monte Carlo
+become much more important.
 
 ## 2A. Practical fast-risk approximation: modified duration
 
@@ -93,6 +100,7 @@ $$
 #### Example for 2 — GBM path generation for one risk factor
 
 Suppose:
+
 - bond price $P = 97.28$
 - modified duration $D_{\text{mod}} = 4.35$
 - parallel yield shock $\Delta y = +25\text{bp} = 0.0025$
@@ -104,24 +112,29 @@ $$
 $$
 
 Where:
+
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
 
 Interpretation:
+
 - the bond would lose about 1.06 price points for a +25bp parallel shock.
 
 What front office realistically looks at:
+
 - quick duration-based estimate immediately after a data release,
 - then full curve revaluation,
 - then bucketed DV01 / key-rate DV01,
 - then P\&L explain versus actual move.
 
 What independent risk realistically looks at:
+
 - whether the fast approximation and full revaluation are directionally consistent,
 - concentration by key tenor,
 - nonlinear residual from convexity,
 - whether stress losses are still acceptable after the move.
 
 Good practice:
+
 - use modified duration only as a fast linear approximation,
 - use full revaluation for large curve moves or nonlinear trades,
 - keep approximation methods explicitly labeled in outputs.
@@ -135,6 +148,7 @@ V_0 = e^{-rT} \mathbb{E}[\text{payoff}(X_T)]
 $$
 
 Where:
+
 - $\mathbb{E}[\cdot]$ denotes expectation.
 
 or more generally under the risk-neutral measure:
@@ -144,6 +158,7 @@ V_0 = \mathbb{E}^{\mathbb{Q}}\left[D(0,T)\,\Pi_T\right]
 $$
 
 where:
+
 - $D(0,T)$ is the discount factor
 - $\Pi_T$ is the future payoff depending on simulated state variables
 
@@ -154,6 +169,7 @@ $$
 $$
 
 Where:
+
 - $N$ is the number of simulated paths or observations.
 - $T$ is a maturity or future time, typically measured in years from today.
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
@@ -203,7 +219,8 @@ estimate mean, variance, stderr, confidence interval
 
 ### Online statistics
 
-Do not store all path values if you do not need them. Use online accumulation, for example Welford's algorithm, to update mean and variance in one pass. This saves memory and improves cache behavior.
+Do not store all path values if you do not need them. Use online accumulation, for example Welford's algorithm, to
+update mean and variance in one pass. This saves memory and improves cache behavior.
 
 ## 5. Geometric Brownian Motion (GBM)
 
@@ -216,6 +233,7 @@ dS_t = \mu S_t dt + \sigma S_t dW_t
 $$
 
 where:
+
 - $S_t$ is the asset price
 - $\mu$ is the drift under the chosen measure
 - $\sigma$ is volatility
@@ -236,6 +254,7 @@ S_T = S_0 \exp\left(\left(\mu - \frac{1}{2}\sigma^2\right)T + \sigma \sqrt{T} Z\
 $$
 
 Where:
+
 - $S_T$ is the asset price at maturity $T$.
 - $S_0$ is the asset price at the valuation date.
 - $\sigma^2$ is the variance of the underlying random variable or process.
@@ -249,7 +268,7 @@ $$
 S_T = S_0 \exp\left(\left(r-q- \frac{1}{2}\sigma^2\right)T + \sigma \sqrt{T} Z\right)
 $$
 
-This is important: for GBM you should usually simulate using the **exact lognormal step**, not Euler, because it is more accurate and cheaper.
+For GBM, the **exact lognormal step** is usually preferred over Euler because it is more accurate and cheaper.
 
 ### Time-stepped version
 
@@ -260,6 +279,7 @@ S_{t_{k+1}} = S_{t_k} \exp\left(\left(\mu - \frac{1}{2}\sigma^2\right)\Delta t +
 $$
 
 Where:
+
 - $\Delta t$ is the time step used in a discretization or simulation scheme.
 - $\sigma^2$ is the variance of the underlying random variable or process.
 - $t$ is a time variable, or the real argument of a moment generating function depending on context.
@@ -268,9 +288,11 @@ with independent $Z_k \sim \mathcal N(0,1)$.
 
 ## 6. Worked GBM example with a realistic book
 
-Take a simple equity-options book on one stock index. This is a realistic teaching example for Monte Carlo, even though rates/credit books would use richer factor models.
+Take a simple equity-options book on one stock index. This is a realistic teaching example for Monte Carlo, even though
+rates/credit books would use richer factor models.
 
 Assume:
+
 - spot $S_0 = 100$
 - risk-free rate $r = 3\%$
 - dividend yield $q = 1\%$
@@ -278,6 +300,7 @@ Assume:
 - horizon $T = 1$ year
 
 Book:
+
 - long 1,000 shares
 - long 100 ATM European calls with strike $K=100$
 - short 50 OTM puts with strike $K=90$
@@ -293,6 +316,7 @@ S_T = 100\exp\left((0.03-0.01-0.5\cdot0.2^2)\cdot1 + 0.2\cdot 0.50\right)
 $$
 
 Where:
+
 - $S_T$ is the asset price at maturity $T$.
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
 
@@ -348,13 +372,15 @@ You repeat this for many paths and average.
 
 ### Book performance over a horizon
 
-If you want horizon P\&L instead of fair value, you simulate the market state at horizon $h$, revalue the full book under that horizon state, and compare to today's value adjusted for carry/cash flows:
+If you want horizon P\&L instead of fair value, you simulate the market state at horizon $h$, revalue the full book
+under that horizon state, and compare to today's value adjusted for carry/cash flows:
 
 $$
 \Delta V^{(i)} = V_h^{(i)} - V_0 + \text{cash flows / carry adjustments}
 $$
 
 Where:
+
 - $\Delta V$ is the change in portfolio or instrument value.
 
 Then you build the distribution of $\Delta V$ across scenarios.
@@ -372,6 +398,7 @@ V_0 = \mathbb{E}^{\mathbb{Q}}[D(0,T)\Pi_T]
 $$
 
 Where:
+
 - $\mathbb{E}[\cdot]$ denotes expectation.
 - $T$ is a maturity or future time, typically measured in years from today.
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
@@ -385,9 +412,11 @@ $$
 $$
 
 Where:
+
 - $\Delta V$ is the change in portfolio or instrument value.
 
 Pricing MC and risk MC often share infrastructure but differ in:
+
 - measure
 - drift assumptions
 - scenario generation
@@ -416,6 +445,7 @@ $$
 $$
 
 Where:
+
 - $\Delta V$ is the change in portfolio or instrument value.
 - $VaR$ denotes Value at Risk.
 
@@ -426,6 +456,7 @@ $$
 $$
 
 Where:
+
 - $\mathbb{E}[\cdot]$ denotes expectation.
 
 #### Sensitivity risk
@@ -451,10 +482,12 @@ $$
 $$
 
 Where:
+
 - $M$ is imports in the GDP identity.
 - $N$ is the number of simulated paths or observations.
 
 Each worker computes:
+
 - local sum
 - local sum of squares
 - possibly local Greeks or scenario stats
@@ -465,9 +498,11 @@ This is the default and most scalable parallelization mode.
 
 ### Level 2: trade parallelism
 
-If the book is large and path generation is shared, you can also parallelize over trades or trade groups, especially when trade valuation is expensive.
+If the book is large and path generation is shared, you can also parallelize over trades or trade groups, especially
+when trade valuation is expensive.
 
 This is useful when:
+
 - the book is huge
 - each trade has large pathwise work
 - you need trade-level explain and allocation
@@ -481,6 +516,7 @@ For horizon risk or XVA-like workloads, you may parallelize over scenarios, date
 ### Level 4: GPU parallelism
 
 GPUs are attractive when:
+
 - payoffs are homogeneous
 - path logic is regular
 - memory transfers are controlled
@@ -488,7 +524,8 @@ GPUs are attractive when:
 
 GBM terminal-state pricing for vanilla options is a classic GPU-friendly workload.
 
-More irregular books with exercise logic, path-dependent features, and large object graphs are harder to accelerate efficiently.
+More irregular books with exercise logic, path-dependent features, and large object graphs are harder to accelerate
+efficiently.
 
 ## 10. How to optimize Monte Carlo
 
@@ -505,6 +542,7 @@ S_T = S_0 \exp\left((r-q-\frac{1}{2}\sigma^2)T+\sigma\sqrt{T}Z\right)
 $$
 
 Where:
+
 - $S_T$ is the asset price at maturity $T$.
 - $S_0$ is the asset price at the valuation date.
 - $\sigma^2$ is the variance of the underlying random variable or process.
@@ -534,6 +572,7 @@ For large factor sets, `SoA` often vectorizes better than `AoS`.
 Each worker must have independent, reproducible streams.
 
 Typical approaches:
+
 - skip-ahead / leapfrog
 - block-splitting
 - counter-based RNGs
@@ -547,17 +586,21 @@ Variance reduction often gives more benefit than raw hardware scaling.
 Common methods:
 
 #### Antithetic variates
+
 Use $Z$ and $-Z$ together.
 
 #### Control variates
+
 If you know a correlated quantity with known expectation, adjust the estimator.
 
 For example, under GBM you can use an analytically priced vanilla as a control.
 
 #### Stratification / Latin hypercube
+
 Improve coverage of the sample space.
 
 #### Quasi-Monte Carlo
+
 Use low-discrepancy sequences such as Sobol to reduce effective error for smooth problems.
 
 ### I. Reduce pricing overhead per trade
@@ -565,6 +608,7 @@ Use low-discrepancy sequences such as Sobol to reduce effective error for smooth
 For a book with many trades, the real bottleneck is often trade revaluation, not random numbers.
 
 So optimize:
+
 - precomputed invariant quantities
 - curve lookups
 - discount factors
@@ -583,6 +627,7 @@ Pathwise and LR estimators can be much cheaper if the payoff and model allow the
 ### Reproducibility vs. speed
 
 A front-office or risk engine usually needs deterministic reproducibility. That means:
+
 - explicit seed control
 - explicit stream partitioning
 - stable reduction logic
@@ -590,24 +635,35 @@ A front-office or risk engine usually needs deterministic reproducibility. That 
 
 ### Throughput vs. latency
 
-Intraday desk analytics may prefer lower-latency approximations or proxy models. End-of-day risk may run heavier Monte Carlo with more paths and richer scenarios.
+Intraday desk analytics may prefer lower-latency approximations or proxy models. End-of-day risk may run heavier Monte
+Carlo with more paths and richer scenarios.
 
 ### Full revaluation vs. proxy risk
 
 For large books, a common production compromise is:
+
 - full Monte Carlo on the most nonlinear / material trades
 - sensitivity-based approximations on simpler positions
 - aggregation in one reporting layer
 
 A strong concise answer is:
 
-> A robust Monte Carlo implementation uses embarrassingly parallel path blocks with thread-local random streams and thread-local statistics, then reduces partial sums at the end. It avoids storing full paths unless the payoff is path dependent, uses exact simulation when available, and focuses as much on variance reduction and pricing-cost optimization as on raw parallelism. In practice, the real bottleneck in large books is often pathwise revaluation of trades, so caching, vectorization, memory layout, and scenario reuse matter a lot.
+> A robust Monte Carlo implementation uses embarrassingly parallel path blocks with thread-local random streams and
+> thread-local statistics, then reduces partial sums at the end. It avoids storing full paths unless the payoff is path
+> dependent, uses exact simulation when available, and focuses as much on variance reduction and pricing-cost
+> optimization as on raw parallelism. In practice, the real bottleneck in large books is often pathwise revaluation of
+> trades, so caching, vectorization, memory layout, and scenario reuse matter a lot.
 
-> In production, risk for a book means building a consistent market state, revaluing all positions under shocks or simulated scenarios, and aggregating the resulting P\&L distribution and sensitivities. A book is the operational set of positions managed and reported together, while a portfolio is the economic collection of positions whose value and risk we aggregate. For nonlinear books, Monte Carlo is used to generate horizon states and full-revaluation P\&L; for linear books, sensitivities and stress often dominate.
+> In production, risk for a book means building a consistent market state, revaluing all positions under shocks or
+> simulated scenarios, and aggregating the resulting P\&L distribution and sensitivities. A book is the operational set
+> of positions managed and reported together, while a portfolio is the economic collection of positions whose value and
+> risk we aggregate. For nonlinear books, Monte Carlo is used to generate horizon states and full-revaluation P\&L; for
+> linear books, sensitivities and stress often dominate.
 
 ## 14. Important caveat for rates and credit platforms
 
 GBM is a good teaching model, but for a rates / credit front-office platform you would usually need richer models:
+
 - multiple curves
 - spread dynamics
 - stochastic vol or local vol where relevant
@@ -616,6 +672,7 @@ GBM is a good teaching model, but for a rates / credit front-office platform you
 - scenario-based risk models rather than pure GBM
 
 That said, the engineering principles are the same:
+
 - clean factor representation
 - fast scenario generation
 - deterministic reproducibility

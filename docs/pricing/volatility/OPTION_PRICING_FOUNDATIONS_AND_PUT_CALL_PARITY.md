@@ -2,18 +2,20 @@
 
 ## 1. Why this chapter matters
 
-Put-call parity is one of the cleanest no-arbitrage identities in quantitative finance. It is not just a textbook formula:
+Put-call parity is one of the cleanest no-arbitrage identities in quantitative finance. It is not just a textbook
+formula:
 
 - it links calls, puts, forwards, discounting, and carry,
 - it helps detect inconsistent market quotes,
 - it explains synthetic positions used by traders and structurers,
 - it clarifies why option pricing must be consistent with the forward curve and the funding/dividend setup,
-- it gives a practical bridge between introductory Black-Scholes reasoning and production pricing systems.
+- it provides a practical bridge between introductory Black-Scholes reasoning and production pricing systems.
 
-A good implementation team should treat put-call parity as both:
+A robust implementation treats put-call parity as both:
 
 - a **theoretical identity** coming from static replication,
-- a **production control** used to validate option surfaces, dividend assumptions, borrow assumptions, and discount curves.
+- a **production control** used to validate option surfaces, dividend assumptions, borrow assumptions, and discount
+  curves.
 
 ---
 
@@ -41,7 +43,8 @@ $$
 (S_T-K)^+ - (K-S_T)^+ = S_T - K
 $$
 
-This is the backbone of put-call parity. The difference between a call and a put with the same strike and maturity is just a forward-style linear payoff.
+This is the backbone of put-call parity. The difference between a call and a put with the same strike and maturity is
+just a forward-style linear payoff.
 
 ---
 
@@ -53,9 +56,11 @@ Before writing parity formulas, distinguish exercise rights:
 - **American**: exercise at any time up to maturity,
 - **Bermudan**: exercise only on a discrete set of dates.
 
-The clean, exact put-call parity identity applies most directly to **European** options. For American options, early-exercise rights disturb the exact equality and replace it with bounds or inequalities.
+The clean, exact put-call parity identity applies most directly to **European** options. For American options,
+early-exercise rights disturb the exact equality and replace it with bounds or inequalities.
 
-That is why parity is a foundational identity for option pricing, while American-option pricing usually requires trees, PDEs, or regression-based Monte Carlo.
+That is why parity is a foundational identity for option pricing, while American-option pricing usually requires trees,
+PDEs, or regression-based Monte Carlo.
 
 ---
 
@@ -81,7 +86,8 @@ $$
 - long one share of stock,
 - borrow the present value of $K$.
 
-If the continuously compounded risk-free rate is $r$, the amount borrowed today is $K e^{-rT}$. At maturity the loan repayment is $K$, so terminal payoff is:
+If the continuously compounded risk-free rate is $r$, the amount borrowed today is $K e^{-rT}$. At maturity the loan
+repayment is $K$, so terminal payoff is:
 
 $$
 S_T - K
@@ -122,7 +128,7 @@ Suppose:
 Then the discounted strike is:
 
 $$
-K e^{-rT} = 100 e^{-0.05} pprox 95.12
+K e^{-rT} = 100 e^{-0.05} \approx 95.12
 $$
 
 So parity gives:
@@ -137,7 +143,8 @@ $$
 P_0 = 10.40 - 4.88 = 5.52
 $$
 
-If instead the market quoted the put at $7.00$, the pair would violate parity under the stated assumptions. That would immediately tell the desk to re-check one or more of:
+If instead the market quoted the put at $7.00$, the pair would violate parity under the stated assumptions. That would
+immediately signal that one or more of the following inputs or conventions should be re-checked:
 
 - dividend assumptions,
 - borrow/funding assumptions,
@@ -163,7 +170,7 @@ we get:
 ### Synthetic forward
 
 $$
-	ext{long call} - 	ext{long put} = 	ext{long forward} - 	ext{financing adjustment}
+\text{long call} - \text{long put} = \text{long forward} - \text{financing adjustment}
 $$
 
 More precisely, the option pair reproduces the payoff of a forward struck at $K$.
@@ -206,324 +213,289 @@ This identity is widely used in trading explanations and hedge decomposition.
 
 ## 7. Parity with continuous dividends or general carry
 
-If the stock pays a known continuous dividend yield $q$, then the present value of holding the stock to maturity is reduced by carry. The parity becomes:
+If the stock pays a known continuous dividend yield $q$, then the present value of holding the stock to maturity is
+reduced by carry. The parity becomes:
 
 $$
 C_0 - P_0 = S_0 e^{-qT} - K e^{-rT}
 $$
 
-This is often the better production formula because many equity-index and FX settings naturally involve carry-like terms.
-
-A more general carry notation is:
+A more general cost-of-carry representation is:
 
 $$
-C_0 - P_0 = S_0 e^{-cT} - K e^{-rT}
+C_0 - P_0 = P(0,T)\bigl(F_0(T)-K\bigr)
 $$
 
-where $c$ is a net carry term. Depending on asset class, that carry may reflect:
+where:
 
-- dividend yield,
-- foreign interest rate in FX,
-- storage/convenience yield in commodities,
-- securities lending or borrow effects in equities.
+- $P(0,T)$ is the discount factor,
+- $F_0(T)$ is the forward price for delivery at $T$.
 
-### Numerical example with dividends
+This form is especially useful because it extends naturally beyond equities to FX, commodities, and rates-style carry
+setups.
+
+---
+
+## 8. Numerical example: parity with dividend yield
 
 Suppose:
 
 - $S_0 = 100$,
 - $K = 100$,
-- $r = 4\%$,
-- $q = 1.5\%$,
-- $T = 2$ years.
+- $r = 8\%$,
+- $q = 3\%$,
+- $T = 1$.
 
 Then:
 
 $$
-S_0 e^{-qT} = 100 e^{-0.03} pprox 97.04
+S_0 e^{-qT} = 100 e^{-0.03} \approx 97.04
 $$
 
-$$
-K e^{-rT} = 100 e^{-0.08} pprox 92.31
-$$
-
-Hence:
+and
 
 $$
-C_0 - P_0 pprox 97.04 - 92.31 = 4.73
+K e^{-rT} = 100 e^{-0.08} \approx 92.31
 $$
 
-So if the call is priced at $11.20$, the parity-consistent put is:
+So:
 
 $$
-P_0 pprox 11.20 - 4.73 = 6.47
+C_0 - P_0 \approx 97.04 - 92.31 = 4.73
+$$
+
+If the call price is $11.20$, then the corresponding parity-consistent put is:
+
+$$
+P_0 \approx 11.20 - 4.73 = 6.47
 $$
 
 ---
 
-## 8. Forward-based form of parity
+## 9. Forward form and practical importance
 
-In practice, many desks reason through the forward rather than spot directly.
-
-For a forward price $F_0(T)$ and discount factor $P(0,T)$:
+The forward-form identity
 
 $$
-C_0 - P_0 = P(0,T)igl(F_0(T)-Kigr)
+C_0 - P_0 = P(0,T)\bigl(F_0(T)-K\bigr)
 $$
 
-This is the most portable version across asset classes.
+is one of the most practical versions of parity.
 
-Why it matters:
+It says the call-minus-put spread is simply the discounted value of the forward moneyness $F_0(T)-K$.
 
-- in rates, FX, equities, and commodities, forwards often carry the market conventions more naturally than spot,
-- it separates **forward construction** from **discounting**,
-- it makes clear that option consistency depends on both the forward input and the discount curve.
+This is useful because modern pricing systems often store or derive:
 
-### Numerical example with a forward
+- discount curves,
+- dividend or carry curves,
+- forward curves,
+- option surfaces keyed by forward moneyness.
 
-Suppose:
-
-- forward price $F_0(T)=103$,
-- strike $K=100$,
-- discount factor $P(0,T)=0.95$.
-
-Then:
-
-$$
-C_0 - P_0 = 0.95(103-100)=2.85
-$$
-
-So if a quoted call is $8.10$, the parity-consistent put is:
-
-$$
-P_0 = 8.10 - 2.85 = 5.25
-$$
-
-This is often how parity checks are implemented in production validators.
+In that environment, parity is not a separate academic check. It is a direct consistency relation among core market
+objects.
 
 ---
 
-## 9. Arbitrage argument behind parity
+## 10. Arbitrage interpretation
 
-Parity is a no-arbitrage statement. If it does not hold, a trader can construct a static arbitrage.
+If parity is violated, an arbitrage portfolio exists under the model assumptions.
 
-Suppose the market has:
+For example, if
 
 $$
 C_0 - P_0 > S_0 - K e^{-rT}
 $$
 
-Then the call-minus-put portfolio is too expensive relative to stock-minus-bond. A trader could:
+then the call-minus-put side is too expensive relative to the stock-minus-bond side.
 
-- sell the overpriced side: short call, long put,
-- buy the underpriced side: long stock, borrow the discounted strike.
+A zero-net-investment arbitrage is then constructed by:
 
-The initial trade generates positive cash inflow, and the terminal payoffs offset each other exactly. That is arbitrage.
+- shorting the expensive side,
+- buying the cheap side.
 
-If the inequality goes the other way, reverse the trade.
+That means:
 
-In practice, bid-offer spreads, funding charges, stock borrow costs, dividends, and execution frictions mean the control is not a pure equality at executable prices. But the logic remains exactly the same.
+- short call,
+- long put,
+- long stock,
+- borrow by shorting the bond position appropriately.
+
+At maturity, the payoffs cancel, but the initial setup produces a positive inflow.
+
+In practice, exact arbitrage is softened by:
+
+- bid-ask spreads,
+- stock borrow costs,
+- discrete dividends,
+- early-exercise rights,
+- settlement lags,
+- margin and funding frictions.
+
+Still, large parity breaks are a strong signal that the market data or assumptions are inconsistent.
 
 ---
 
-## 10. Practical arbitrage bounds for European options
+## 11. Numerical example: parity residual as a control
 
-Parity sits inside a broader family of no-arbitrage bounds.
+Suppose a system stores:
 
-For a non-dividend-paying stock:
+- call price $C_0 = 9.80$,
+- put price $P_0 = 6.10$,
+- discount factor $P(0,T)=0.95$,
+- forward $F_0(T)=104$,
+- strike $K=100$.
 
-### Call bounds
+The parity-implied difference is:
 
 $$
-\max(0, S_0 - K e^{-rT}) \le C_0 \le S_0
+P(0,T)\bigl(F_0(T)-K\bigr)=0.95\times 4=3.80
 $$
 
-### Put bounds
+The observed difference is:
 
 $$
-\max(0, K e^{-rT} - S_0) \le P_0 \le K e^{-rT}
+C_0 - P_0 = 9.80 - 6.10 = 3.70
 $$
 
-These bounds matter operationally because they catch obvious data errors before any model calibration starts.
+So the residual is:
 
-Example: if a call on a stock trading at $100$ is quoted at $104$, that quote is immediately invalid because a call cannot exceed the stock price under standard settlement assumptions.
+$$
+\varepsilon_{\text{parity}} = \bigl(C_0 - P_0\bigr) - P(0,T)\bigl(F_0(T)-K\bigr)
+= 3.70 - 3.80 = -0.10
+$$
 
----
+A production system would compare $|\varepsilon_{\text{parity}}|$ with a tolerance reflecting:
 
-## 11. What changes for American options
+- bid-ask widths,
+- stale quote risk,
+- interpolation artifacts,
+- carry/dividend uncertainty,
+- rounding conventions.
 
-For **American** options, exact European parity becomes more subtle because of early exercise.
-
-### American calls on non-dividend-paying stocks
-
-Early exercise is not optimal, so the American call equals the European call. In that special case, the European call side still behaves cleanly.
-
-### American puts
-
-Early exercise can be optimal, especially when:
-
-- the put is deep in the money,
-- interest rates are high,
-- volatility is relatively low,
-- time to maturity is short.
-
-So American puts usually do **not** satisfy the exact European parity identity.
-
-Instead one works with inequalities rather than a single equality.
-
-### Practical message
-
-Use exact parity checks only when you are certain that:
-
-- both options are European,
-- dividend/carry assumptions are correct,
-- discounting and settlement conventions are aligned.
-
-For American or Bermudan products, parity intuition still helps, but pricing requires explicit early-exercise modeling.
+This is a standard surface-quality control.
 
 ---
 
-## 12. Relation to Black-Scholes-Merton and Black-style pricing
+## 12. Parity and implied vol surfaces
 
-Put-call parity does **not** depend on Black-Scholes-Merton. It is more primitive than the model.
+Parity matters directly when building implied volatility surfaces.
 
-- parity comes from **static replication** and no-arbitrage,
-- Black-Scholes-Merton adds a specific diffusion model and dynamic hedging argument,
-- if Black-Scholes prices are internally consistent, they will automatically satisfy parity.
+Suppose call and put quotes arrive independently from the market. If parity is ignored, the resulting cleaned call and
+put grids can imply inconsistent forwards or inconsistent discount/dividend assumptions.
 
-This distinction matters in implementation:
+That causes downstream problems:
 
-- parity is a quote-consistency and market-data control,
-- Black-Scholes, local vol, stochastic vol, and tree/PDE models are pricing engines.
+- unstable implied dividends,
+- noisy forwards,
+- calendar-spread violations,
+- poor local-vol or stochastic-vol calibration,
+- unstable hedge ratios,
+- false arbitrage signals.
 
-A system should enforce parity-style checks **before** trusting model calibration.
+A robust workflow typically does the following:
 
----
+1. build or ingest discount and carry/dividend assumptions,
+2. convert option prices to a forward-consistent representation,
+3. check parity residuals across strikes and maturities,
+4. clean or reconcile inconsistent quotes,
+5. build the surface only after those controls pass.
 
-## 13. What parity tells you about implied volatility surfaces
-
-Parity places strong constraints on volatility-surface construction even though it is not itself a volatility model.
-
-For a fixed maturity and strike pair, if call and put prices are quoted separately, then:
-
-- they must imply the same forward,
-- they must imply the same discounting/carry assumptions,
-- they must not create synthetic-arbitrage violations.
-
-In practice this means:
-
-- cleaning call and put quotes together, not independently,
-- fitting a surface in a way consistent with forwards and discount curves,
-- checking calendar, strike, and parity constraints jointly.
-
-A desk that calibrates a smile to calls only and then infers puts without matching carry inputs can create hidden arbitrage inconsistencies.
+This is why parity is a foundational market-data and calibration control, not just a first-course formula.
 
 ---
 
-## 14. Production design implications
+## 13. American and Bermudan caveats
 
-A practitioner-oriented pricing platform should expose parity explicitly.
+For **American options**, exact European parity no longer holds because early exercise has value.
 
-### 14.1 Market data layer
+Typical facts:
 
-Store enough information to evaluate parity correctly:
+- for a non-dividend-paying stock, an American call has the same value as the European call,
+- an American put can be worth more than the European put,
+- for dividend-paying stocks, early exercise can matter for calls as well.
 
-- spot,
-- forward or dividend/borrow inputs,
+So American options satisfy **bounds** rather than the clean European equality.
+
+For **Bermudan options**, the same idea applies: restricted early exercise introduces an exercise premium, so exact
+European parity is replaced by inequalities or model-based comparisons.
+
+---
+
+## 14. Relation to Black-Scholes-Merton
+
+Put-call parity does **not** depend on the full Black-Scholes-Merton model.
+
+It comes from **static no-arbitrage replication** and therefore survives much more generally than the specific lognormal,
+constant-volatility assumptions of BSM.
+
+However, parity is perfectly consistent with BSM. In fact:
+
+- BSM call and put formulas satisfy parity exactly,
+- parity is often used as a sanity check when implementing closed-form formulas,
+- parity is one of the easiest ways to catch sign mistakes in discounting, dividends, or forwards.
+
+So parity is more primitive than BSM: it is a no-arbitrage identity that any sound option-pricing system must respect.
+
+---
+
+## 15. Practical design implications for pricing systems
+
+A production pricing and market-data stack usually benefits from explicit parity controls.
+
+### 15.1 Canonical stored objects
+
+The most stable internal representation is usually built around:
+
 - discount curve,
-- exercise style,
-- settlement convention,
-- quote source and timestamp.
+- carry/dividend curve,
+- forward curve,
+- option quotes or vol surface.
 
-### 14.2 Validation layer
+Parity then becomes a derived consistency rule.
 
-Implement controls such as:
+### 15.2 Validation checks
 
-- European parity residual,
-- lower/upper option-price bounds,
-- monotonicity in strike,
-- convexity in strike,
-- calendar consistency.
+Useful automated checks include:
 
-A simple parity residual is:
+- parity residual by strike and expiry,
+- forward consistency inferred from call/put pairs,
+- monotonicity and convexity checks across strikes,
+- calendar consistency across expiries,
+- residual heatmaps after quote cleaning.
 
-$$
-arepsilon_{	ext{parity}} = igl(C_0 - P_0igr) - P(0,T)igl(F_0(T)-Kigr)
-$$
+### 15.3 Calibration pipeline role
 
-This should be near zero after allowing for spreads and small numerical tolerances.
-
-### 14.3 Analytics layer
-
-Use parity to:
-
-- infer missing put quotes from calls or vice versa,
-- decompose positions into synthetic forwards and optionality,
-- explain hedge slippage when carry or borrow assumptions change,
-- detect inconsistencies between options and underlying forwards.
-
----
-
-## 15. Common practitioner pitfalls
-
-### Pitfall 1: wrong dividend assumptions
-
-A parity break in equity options often comes from using the wrong dividend term structure rather than from “mispriced vol.”
-
-### Pitfall 2: mixing European and American contracts
-
-Some listed equity options are American, while many index options are European. Treating them as interchangeable can create apparent parity violations that are not true arbitrage.
-
-### Pitfall 3: ignoring borrow and short-sale frictions
-
-In single-name equities, hard-to-borrow effects can materially change practical executable relationships.
-
-### Pitfall 4: ignoring settlement conventions
-
-Cash-settled vs. physically settled products, premium timing, and futures-style margining can alter the operational form of the parity check.
-
-### Pitfall 5: calibrating vol first, consistency later
-
-The correct workflow is usually:
-
-1. clean quotes,
-2. align spot/forward/discount/dividend inputs,
-3. check parity and bounds,
-4. only then fit the volatility surface.
+Before calibrating local volatility, SABR, stochastic-volatility, or jump models, it is good practice to ensure the
+option surface is parity-consistent. Otherwise the calibration absorbs data defects instead of model structure.
 
 ---
 
 ## 16. Summary
 
-Put-call parity is one of the most useful identities in pricing because it links:
+Put-call parity is one of the most useful identities in practical derivatives work.
 
-- vanilla option payoffs,
-- forwards,
-- discounting,
-- carry,
-- static replication,
-- market-data validation.
+It provides:
 
-The core formulas to remember are:
+- an exact no-arbitrage relation for European calls and puts,
+- a synthetic-position toolkit,
+- a forward-consistency identity,
+- a market-data cleaning rule,
+- a surface-validation control,
+- a bridge between introductory pricing theory and production implementation.
 
-### No dividends
+In compact form:
+
+### Non-dividend-paying stock
 
 $$
 C_0 - P_0 = S_0 - K e^{-rT}
 $$
 
-### Continuous dividend yield or general carry
+### With carry or dividends
 
 $$
-C_0 - P_0 = S_0 e^{-qT} - K e^{-rT}
+C_0 - P_0 = P(0,T)\bigl(F_0(T)-K\bigr)
 $$
 
-### Forward form
-
-$$
-C_0 - P_0 = P(0,T)igl(F_0(T)-Kigr)
-$$
-
-For European options, these are exact no-arbitrage equalities. For American options, the clean equality becomes less direct because of early exercise.
-
-From a practical point of view, parity is not just a formula to memorize. It is a daily implementation and quality-control tool in any serious option-pricing platform.
+These formulas belong at the core of any option-pricing documentation set because they explain not only how prices
+relate mathematically, but also how market objects must stay consistent inside a real pricing platform.

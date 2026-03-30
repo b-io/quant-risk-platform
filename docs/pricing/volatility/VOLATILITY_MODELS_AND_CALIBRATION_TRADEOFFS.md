@@ -379,14 +379,14 @@ Typical modern stack:
 
 ## 11. A practical model-selection table
 
-| Product / use case | Common practical choice | Why it is common | Main limitation |
-|---|---|---|---|
-| European equity vanilla | Black-Scholes implied vol | Simple, standard, liquid-market language | No smile dynamics |
-| Equity exotics | Local vol or stochastic vol | Better exotic pricing and hedge behavior | More calibration/model risk |
-| FX vanilla | Black-style surface with delta conventions | Matches market quoting | Convention complexity |
-| Swaption smile | SABR with Black/normal conventions | Compact, trader-friendly smile fit | Approximation and parameter instability |
-| Callable/Bermudan rates | Hull-White, LGM, Black-Karasinski, trees | Handles exercise logic well | Smile fit often weaker |
-| High-dimensional callable exotics | Monte Carlo plus regression | Flexible path framework | Expensive and harder to validate |
+| Product / use case                | Common practical choice                    | Why it is common                         | Main limitation                         |
+|-----------------------------------|--------------------------------------------|------------------------------------------|-----------------------------------------|
+| European equity vanilla           | Black-Scholes implied vol                  | Simple, standard, liquid-market language | No smile dynamics                       |
+| Equity exotics                    | Local vol or stochastic vol                | Better exotic pricing and hedge behavior | More calibration/model risk             |
+| FX vanilla                        | Black-style surface with delta conventions | Matches market quoting                   | Convention complexity                   |
+| Swaption smile                    | SABR with Black/normal conventions         | Compact, trader-friendly smile fit       | Approximation and parameter instability |
+| Callable/Bermudan rates           | Hull-White, LGM, Black-Karasinski, trees   | Handles exercise logic well              | Smile fit often weaker                  |
+| High-dimensional callable exotics | Monte Carlo plus regression                | Flexible path framework                  | Expensive and harder to validate        |
 
 ---
 

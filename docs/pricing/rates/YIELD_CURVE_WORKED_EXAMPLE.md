@@ -20,6 +20,7 @@ Unless stated otherwise:
 A yield curve is the term structure of interest rates.
 
 It tells you what the market-implied annualized rate is for different maturities $T$:
+
 - 1M
 - 3M
 - 6M
@@ -36,6 +37,7 @@ P(0,T)
 $$
 
 Where:
+
 - $P(0,T)$ is the discount factor from today to maturity $T$.
 - $T$ is a maturity or future time, typically measured in years from today.
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
@@ -49,6 +51,7 @@ r(0,T) = -\frac{\ln P(0,T)}{T}
 $$
 
 Where:
+
 - $r(0,T)$ is the continuously compounded zero rate from today to maturity $T$.
 
 and a forward rate between $T_1$ and $T_2$:
@@ -62,11 +65,13 @@ F(0;T_1,T_2)
 \right)
 $$
 
-where $T_1$ and $T_2$ are the start and end of the forward accrual period and $\tau(T_1,T_2)$ is the corresponding year fraction.
+where $T_1$ and $T_2$ are the start and end of the forward accrual period and $\tau(T_1,T_2)$ is the corresponding year
+fraction.
 
 The key practical point is:
 
-> The curve is not just a picture. It is a reusable pricing object from which discount factors, forwards, sensitivities, carry, and scenario shocks are derived.
+> The curve is not just a picture. It is a reusable pricing object from which discount factors, forwards, sensitivities,
+> carry, and scenario shocks are derived.
 
 #### Example for 1 — discount factor, discrete compounding, and continuous compounding
 
@@ -79,6 +84,7 @@ PV = \frac{100}{1.04} = 96.1538
 $$
 
 Where:
+
 - $PV$ is the present value of the cash flow or instrument.
 
 So the discount factor is
@@ -117,6 +123,7 @@ P_m(0,T)=\frac{1}{\left(1+\frac{r}{m}\right)^{mT}}
 $$
 
 Where:
+
 - $P_m(0,T)$ is the discount factor to maturity $T$ under compounding frequency $m$.
 - $m$ is the compounding frequency per year.
 
@@ -132,7 +139,8 @@ $$
 P_m(0,T)\to e^{-rT}
 $$
 
-This convergence comes from Euler's exponential limit, that is from the definition of the exponential function and Euler's number $e$.
+This convergence comes from Euler's exponential limit, that is from the definition of the exponential function and
+Euler's number $e$.
 
 Numerical example with $r=5\%$ and $T=1$:
 
@@ -143,7 +151,8 @@ Numerical example with $r=5\%$ and $T=1$:
 
 ### 1.3 When curve construction becomes a root-finding problem
 
-Some curve steps are direct algebra. Others require solving a non-linear pricing equation for an unknown parameter or node.
+Some curve steps are direct algebra. Others require solving a non-linear pricing equation for an unknown parameter or
+node.
 
 A standard residual form is
 
@@ -152,6 +161,7 @@ f(x)=PV_{\text{model}}(x)-PV_{\text{market}}=0
 $$
 
 Where:
+
 - $x$ is the unknown parameter or node being solved for.
 - $PV_{\text{model}}(x)$ is the model price as a function of that unknown.
 - $PV_{\text{market}}$ is the observed market price or quote converted into price terms.
@@ -163,12 +173,14 @@ x_{n+1}=x_n-\frac{f(x_n)}{f'(x_n)}
 $$
 
 Where:
+
 - $n$ is the iteration index.
 - $x_n$ is the current guess.
 - $x_{n+1}$ is the next guess.
 - $f'(x_n)$ is the derivative of the residual with respect to the unknown.
 
 Typical production uses:
+
 - implied bond yield from price,
 - implied volatility from option price,
 - CDS hazard-rate calibration,
@@ -176,7 +188,8 @@ Typical production uses:
 
 #### Example for 1.3 — implied bond yield from a market price
 
-Suppose a 2Y annual-coupon bond has face value 100, annual coupon 4, and market price 100.50. The implied annually compounded yield $y$ solves
+Suppose a 2Y annual-coupon bond has face value 100, annual coupon 4, and market price 100.50. The implied annually
+compounded yield $y$ solves
 
 $$
 \frac{4}{1+y}+\frac{104}{(1+y)^2}=100.50
@@ -226,7 +239,8 @@ $$
 y\approx 3.7359\%
 $$
 
-This is the practical pattern: define a residual, differentiate it, and iterate until model and market match closely enough.
+This is the practical pattern: define a residual, differentiate it, and iterate until model and market match closely
+enough.
 
 ---
 
@@ -237,12 +251,12 @@ Use the following simplified yearly-discounting example to keep the formulas con
 Suppose the USD collateralized discount factors are:
 
 | Maturity | Discount factor $P(0,T)$ |
-|---|---:|
-| 1Y | 0.9600 |
-| 2Y | 0.9180 |
-| 3Y | 0.8750 |
-| 4Y | 0.8330 |
-| 5Y | 0.7920 |
+|----------|-------------------------:|
+| 1Y       |                   0.9600 |
+| 2Y       |                   0.9180 |
+| 3Y       |                   0.8750 |
+| 4Y       |                   0.8330 |
+| 5Y       |                   0.7920 |
 
 #### Example for 1A — 5Y zero rate
 
@@ -251,9 +265,11 @@ z(0,5) = -\frac{\ln(0.7920)}{5} \approx 4.66\%
 $$
 
 Where:
+
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
 
 Interpretation:
+
 - receiving USD 1 in 5 years is worth about USD 0.792 today,
 - so the implied continuously compounded 5Y zero rate is about 4.66%.
 
@@ -264,6 +280,7 @@ F(0;1,2)=\frac{P(0,1)}{P(0,2)}-1 = \frac{0.9600}{0.9180}-1 \approx 4.58\%
 $$
 
 Interpretation:
+
 - the market-implied simple annual rate for borrowing from year 1 to year 2 is about 4.58%.
 
 #### Example for 1A — quick bond PV
@@ -275,6 +292,7 @@ PV = 4P(0,1)+4P(0,2)+4P(0,3)+4P(0,4)+104P(0,5)
 $$
 
 Where:
+
 - $PV$ is the present value of the cash flow or instrument.
 
 $$
@@ -282,9 +300,11 @@ PV = 4(0.9600+0.9180+0.8750+0.8330)+104(0.7920)=97.28
 $$
 
 Meaning:
+
 - with this curve, a 4% 5Y annual bond is below par because the market zero rates are above 4%.
 
 Good practice:
+
 - always state compounding and accrual convention,
 - always state whether the curve is OIS discounting or a sovereign bond yield curve,
 - never mix bond yields, swap par rates, and discount factors without documenting the conversion.
@@ -298,6 +318,7 @@ P(T_1,T_2)=\frac{P(0,T_2)}{P(0,T_1)}
 $$
 
 Where:
+
 - $P(0,T_1)$ is the discount factor from today to time $T_1$.
 - $P(0,T_2)$ is the discount factor from today to time $T_2$.
 - $T_1$ is the start date of a forward or accrual period, measured from today.
@@ -348,7 +369,7 @@ Rate fwd = curve->forwardRate(date2Y, date5Y,
                               Actual365Fixed(), Continuous).rate();
 ```
 
-If you want a shifted curve object whose reference date is 2Y, QuantLib-style systems use an implied structure:
+For a shifted curve object whose reference date is 2Y, QuantLib-style systems use an implied structure:
 
 ```cpp
 Handle<YieldTermStructure> base(curve);
@@ -362,6 +383,7 @@ This is the production-friendly way to explain forward discounting.
 ## 2. Why the yield curve matters
 
 The yield curve matters because it drives:
+
 - discounting of future cash flows,
 - projection of floating-rate coupons,
 - valuation of swaps, bonds, FRAs, futures, swaptions, CDS discount legs,
@@ -371,7 +393,8 @@ The yield curve matters because it drives:
 
 In implementation terms:
 
-> A rates platform is fundamentally a market-state construction problem. If the curve is wrong, valuation, P&L, hedging, and stress testing will all be wrong downstream.
+> A rates platform is fundamentally a market-state construction problem. If the curve is wrong, valuation, P&L, hedging,
+> and stress testing will all be wrong downstream.
 
 ---
 
@@ -382,6 +405,7 @@ Many people say “yield” loosely, but these are not the same thing.
 ### 3.1 OIS curve
 
 The **OIS curve** is built from overnight-indexed swap instruments linked to the overnight reference rate:
+
 - SOFR in USD,
 - €STR in EUR,
 - SONIA in GBP,
@@ -392,6 +416,7 @@ It is the standard collateralized discounting curve for modern derivatives.
 It is often treated as the closest traded proxy to the collateralized risk-free term structure.
 
 Why it matters:
+
 - used for discounting collateralized derivatives,
 - moves closely with expected policy rates,
 - central for front-office rates and cross-asset pricing.
@@ -399,6 +424,7 @@ Why it matters:
 ### 3.2 Sovereign yield curve
 
 The **sovereign curve** is built from government bond yields:
+
 - US Treasuries,
 - German Bunds,
 - Swiss Confederation bonds, etc.
@@ -406,6 +432,7 @@ The **sovereign curve** is built from government bond yields:
 This is not identical to OIS.
 
 A sovereign yield reflects:
+
 - expected policy path,
 - term premium,
 - bond supply / demand,
@@ -414,6 +441,7 @@ A sovereign yield reflects:
 - sovereign-specific effects.
 
 Why it matters:
+
 - it is the macro benchmark most people quote in the press,
 - it is used to talk about recession signals such as curve inversion,
 - it can diverge from OIS and swap curves.
@@ -423,12 +451,14 @@ Why it matters:
 The **swap curve** is built from IRS / OIS par swap rates.
 
 It reflects:
+
 - expected floating rates,
 - discounting convention,
 - balance-sheet and liquidity effects,
 - swap spread effects relative to sovereigns.
 
 Why it matters:
+
 - swaps are core hedging and trading instruments,
 - many rates books are managed in swap risk, not bond risk.
 
@@ -445,6 +475,7 @@ $$
 where the base curve may be sovereign or OIS depending on desk and use case.
 
 Why it matters:
+
 - it embeds default risk and liquidity premium,
 - it behaves very differently in recession than OIS or sovereign yields.
 
@@ -464,6 +495,7 @@ Q(0,T)
 $$
 
 Where:
+
 - $Q(0,T)$ is the survival probability from today to time $T$.
 - $u$ is the real argument of a characteristic function.
 - $T$ is a maturity or future time, typically measured in years from today.
@@ -480,15 +512,18 @@ This is one of the most important implementation points.
 ### 4.1 OIS and sovereign yields
 
 In a recession or recession scare, the market often expects:
+
 - weaker growth,
 - lower inflation over time,
 - future policy cuts.
 
-That usually pushes **OIS** and **high-quality sovereign yields** lower, especially at the front and belly once cuts are expected.
+That usually pushes **OIS** and **high-quality sovereign yields** lower, especially at the front and belly once cuts are
+expected.
 
 ### 4.2 Credit yields
 
 At the same time, recession raises:
+
 - default risk,
 - downgrade risk,
 - liquidity stress,
@@ -503,6 +538,7 @@ That means:
 - so **credit yields can rise, or fall much less than sovereign yields**.
 
 That is why global macro and credit teams differentiate carefully between:
+
 - risk-free-ish curve moves,
 - sovereign term-premium effects,
 - credit spread effects.
@@ -520,6 +556,7 @@ $$
 $$
 
 In recession:
+
 - $\Delta \text{base rate}$ is often negative,
 - $\Delta \text{credit spread}$ is often positive,
 - net effect depends on which one dominates.
@@ -529,6 +566,7 @@ In recession:
 A classic recession signal is an **inverted sovereign curve**.
 
 Mechanically:
+
 - front-end yields stay high because current policy is tight,
 - long-end yields fall because the market expects slower growth and future cuts.
 
@@ -542,7 +580,8 @@ or similar inversion measures.
 
 Summary:
 
-> An inverted sovereign curve usually means policy is tight today, but the market expects weaker growth and lower policy rates in the future.
+> An inverted sovereign curve usually means policy is tight today, but the market expects weaker growth and lower policy
+> rates in the future.
 
 ---
 
@@ -552,9 +591,9 @@ Below is a deliberately simple but realistic worked example for a USD SOFR OIS d
 
 ### 5.1 What the raw market data looks like in practice
 
-In a real desk environment, you usually do **not** hard-code Bloomberg mnemonics in analytics code.
+In a real desk environment, Bloomberg mnemonics are normally **not** hard-coded in analytics code.
 
-Instead, you maintain an instrument master like:
+Instead, the platform maintains an instrument master containing:
 
 - internal instrument ID,
 - vendor source,
@@ -569,11 +608,13 @@ Instead, you maintain an instrument master like:
 - fixed-leg convention,
 - floating-leg convention.
 
-This is because Bloomberg, Reuters, brokers, or direct venue identifiers are vendor-specific and can vary by page, feed, and setup.
+This is because Bloomberg, Reuters, brokers, or direct venue identifiers are vendor-specific and can vary by page, feed,
+and setup.
 
 A concise production summary is:
 
-> The curve builder should consume normalized quote records such as `USD-SOFR-OIS-3M` or `USD-SOFR-OIS-5Y`, and the mapping to Bloomberg or other vendor tickers should live in a market-data reference layer, not inside pricing logic.
+> The curve builder should consume normalized quote records such as `USD-SOFR-OIS-3M` or `USD-SOFR-OIS-5Y`, and the
+> mapping to Bloomberg or other vendor tickers should live in a market-data reference layer, not inside pricing logic.
 
 A realistic normalized quote set could be:
 
@@ -603,7 +644,8 @@ Here is a worked example:
 - 4Y par OIS swap: 2.420%
 - 5Y par OIS swap: 2.500%
 
-This set is intentionally shaped like a market that expects lower rates in the medium term, then a slight re-steepening later.
+This set is intentionally shaped like a market that expects lower rates in the medium term, then a slight re-steepening
+later.
 
 ### 5.3 Short end: convert quote into discount factors
 
@@ -614,6 +656,7 @@ P(0,T) = \frac{1}{1 + rT}
 $$
 
 Where:
+
 - $P(0,T)$ is the discount factor from today to maturity $T$.
 - $T$ is a maturity or future time, typically measured in years from today.
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
@@ -650,13 +693,16 @@ $$
 
 ### 5.4 Long end: bootstrap from par OIS swaps
 
-For a **simple annual-pay par OIS swap**, the fixed leg pays once per year and the quoted fixed rate is the market-clearing rate that makes the swap worth zero at inception. With payment dates $t_1,\dots,t_n$, the fixed rate $K_n$ satisfies:
+For a **simple annual-pay par OIS swap**, the fixed leg pays once per year and the quoted fixed rate is the
+market-clearing rate that makes the swap worth zero at inception. With payment dates $t_1,\dots,t_n$, the fixed rate
+$K_n$ satisfies:
 
 $$
 K_n \sum_{i=1}^{n} \alpha_i P(0,t_i) = 1 - P(0,t_n)
 $$
 
 Where:
+
 - $n$ is the number of fixed-leg payment dates in the swap.
 - $\alpha_i$ is the accrual year fraction for coupon period $i$.
 - $t_i$ is the payment date of coupon period $i$.
@@ -728,25 +774,26 @@ So
 
 $$
 P(0,4Y)=
-rac{1-0.0242(0.973710+0.952800+0.931968)}{1+0.0242}=0.908831
+\frac{1-0.0242(0.973710+0.952800+0.931968)}{1+0.0242}=0.908831
 $$
 
 This is the essence of sequential bootstrapping: all earlier solved discount factors enter the next maturity equation.
 
 ### 5.5 Resulting bootstrapped curve
 
-| pillar   |         T | quote_type                     | market_quote_pct   |   discount_factor | zero_rate_pct_cc   |
-|:---------|----------:|:-------------------------------|:-------------------|------------------:|:-------------------|
-| 1M       | 0.0833333 | short OIS / money-market style | 2.950%             |          0.997548 | 2.946%             |
-| 3M       | 0.25      | short OIS / money-market style | 2.920%             |          0.992753 | 2.909%             |
-| 6M       | 0.5       | short OIS / money-market style | 2.850%             |          0.985950 | 2.830%             |
-| 1Y       | 1         | par OIS swap                   | 2.700%             |          0.973710 | 2.664%             |
-| 2Y       | 2         | par OIS swap                   | 2.450%             |          0.952800 | 2.417%             |
-| 3Y       | 3         | par OIS swap                   | 2.380%             |          0.931968 | 2.349%             |
-| 4Y       | 4         | par OIS swap                   | 2.420%             |          0.908831 | 2.390%             |
-| 5Y       | 5         | par OIS swap                   | 2.500%             |          0.883724 | 2.472%             |
+| pillar |         T | quote_type                     | market_quote_pct | discount_factor | zero_rate_pct_cc |
+|:-------|----------:|:-------------------------------|:-----------------|----------------:|:-----------------|
+| 1M     | 0.0833333 | short OIS / money-market style | 2.950%           |        0.997548 | 2.946%           |
+| 3M     |      0.25 | short OIS / money-market style | 2.920%           |        0.992753 | 2.909%           |
+| 6M     |       0.5 | short OIS / money-market style | 2.850%           |        0.985950 | 2.830%           |
+| 1Y     |         1 | par OIS swap                   | 2.700%           |        0.973710 | 2.664%           |
+| 2Y     |         2 | par OIS swap                   | 2.450%           |        0.952800 | 2.417%           |
+| 3Y     |         3 | par OIS swap                   | 2.380%           |        0.931968 | 2.349%           |
+| 4Y     |         4 | par OIS swap                   | 2.420%           |        0.908831 | 2.390%           |
+| 5Y     |         5 | par OIS swap                   | 2.500%           |        0.883724 | 2.472%           |
 
 The precise numbers will differ in production because:
+
 - the true schedule is not this simplified,
 - compounding conventions matter,
 - calendars and settlement lags matter,
@@ -763,12 +810,14 @@ But the **bootstrapping logic** is the same.
 ### 6.1 Sequential piecewise bootstrap
 
 The standard production approach is a **piecewise bootstrap**:
+
 1. sort instruments by maturity,
 2. convert each quote into a helper / instrument representation,
 3. solve the unknown node that makes that instrument price correctly,
 4. move to the next maturity.
 
 This is preferred because it is:
+
 - market-consistent,
 - interpretable,
 - auditable,
@@ -776,11 +825,13 @@ This is preferred because it is:
 
 #### Example for 6.1 — why sequential matters operationally
 
-If the 3Y quote changes but the 1Y and 2Y quotes do not, then a piecewise bootstrap lets you rebuild the 3Y node and all later nodes while leaving the front end unchanged. That is useful operationally because the desk can immediately see which curve region moved and why.
+If the 3Y quote changes while the 1Y and 2Y quotes do not, a piecewise bootstrap rebuilds the 3Y node and later nodes
+while leaving the front end unchanged. Operationally, this makes it easier to identify which curve region moved and why.
 
-### 6.2 What do you interpolate?
+### 6.2 Interpolation choice
 
 Common choices include:
+
 - linear in zero rates,
 - log-linear in discount factors,
 - monotone cubic interpolation on zero or forward rates.
@@ -790,12 +841,14 @@ A very defendable default for production is:
 > Bootstrap piecewise and interpolate log-linearly on discount factors.
 
 Why?
+
 - discount factors remain positive,
 - implementation is simple and robust,
 - diagnostics are easier,
 - fewer surprises in risk and explain.
 
-If the desk cares strongly about smooth instantaneous forwards, a monotone spline can be justified, but you must monitor for interpolation artefacts.
+If smooth instantaneous forwards are a primary requirement, a monotone spline can be justified, but the implementation
+should monitor interpolation artefacts explicitly.
 
 #### Example for 6.2 — interpolation between 2Y and 3Y pillars
 
@@ -825,19 +878,21 @@ Because for collateralized derivatives, the OIS curve is the appropriate modern 
 
 Summary:
 
-> For a collateralized rates platform, the OIS curve is the natural discount curve because it is closest to the collateral remuneration / overnight funding structure, while tenor-specific forward curves should be used to project floating coupons.
+> For a collateralized rates platform, the OIS curve is the natural discount curve because it is closest to the
+> collateral remuneration / overnight funding structure, while tenor-specific forward curves should be used to project
+> floating coupons.
 
 #### Example for 6.3 — discounting the same coupon with the wrong curve
 
-Suppose a 3M floating coupon of 100,000 is projected from a Euribor forward curve, but its payment is discounted with an OIS discount factor of 0.992. Then its present value is 99,200.
+Suppose a 3M floating coupon of 100,000 is projected from a Euribor forward curve, but its payment is discounted with an
+OIS discount factor of 0.992. Then its present value is 99,200.
 
-If you discounted the same coupon with a riskier or higher-yielding curve by mistake, the present value would be too low and both pricing and P&L explain would be distorted.
+Discounting the same coupon with a riskier or higher-yielding curve would push the present value too low and distort
+both pricing and P&L explain.
 
 ---
 
 ## 7. How to implement this concretely in a front-office system
-
-This is where your existing platform story is strong.
 
 A clean implementation flow is:
 
@@ -893,7 +948,7 @@ The point is to keep conventions and identifiers **explicit**.
 
 ### 7.3 Why quote handles are useful
 
-If you use mutable quotes / handles, then scenario analysis becomes efficient:
+When mutable quotes / handles are used, scenario analysis becomes efficient:
 
 - shock the underlying quote,
 - let the dependent curve rebuild or re-evaluate,
@@ -901,6 +956,7 @@ If you use mutable quotes / handles, then scenario analysis becomes efficient:
 - restore original quote.
 
 That is a strong design for:
+
 - DV01,
 - key-rate DV01,
 - scenario stress,
@@ -909,6 +965,7 @@ That is a strong design for:
 ### 7.4 How this maps to the platform architecture
 
 A platform with the current architecture already has the right shape for this design:
+
 - `market_snapshot` for normalized market inputs,
 - `market_convention_registry` for conventions,
 - `market_state` for reusable built objects,
@@ -917,7 +974,9 @@ A platform with the current architecture already has the right shape for this de
 - `scenario_engine`,
 - persistence via SQLite.
 
-> The market layer should be extended so the OIS builder is a first-class market-state component with explicit quote IDs, conventions, diagnostics, and scenario hooks. Valuation, DV01, key-rate risk, and P&L explain should all reuse that same market state to avoid drift between services.
+> The market layer should be extended so the OIS builder is a first-class market-state component with explicit quote
+> IDs, conventions, diagnostics, and scenario hooks. Valuation, DV01, key-rate risk, and P&L explain should all reuse
+> that same market state to avoid drift between services.
 
 ---
 
@@ -960,6 +1019,7 @@ $$
 Different instruments load on these components differently.
 
 That is why:
+
 - OIS,
 - sovereign,
 - swap,
@@ -972,4 +1032,12 @@ must be separated in a real front-office analytics platform.
 
 ## 10. Implementation summary
 
-> A yield curve is the term structure of rates across maturities, but in implementation terms it is a reusable market object that gives discount factors, zero rates, forward rates, and risk sensitivities. In a modern derivatives stack the OIS curve should be used for discounting and separate forward curves for projection. The OIS curve should be built from normalized overnight-indexed swap quotes using a piecewise bootstrap, usually with robust interpolation such as log-linear discount factors. Vendor tickers belong in the market-data layer rather than pricing code, which should consume normalized instrument IDs plus conventions. OIS should also be distinguished from sovereign and credit yields because they behave differently in recession: OIS and government yields often fall as cuts are priced, while credit spreads widen, so corporate yields can stay high or even rise. That distinction matters directly for pricing, risk, P&L explain, and scenario analysis.
+> A yield curve is the term structure of rates across maturities, but in implementation terms it is a reusable market
+> object that gives discount factors, zero rates, forward rates, and risk sensitivities. In a modern derivatives stack
+> the OIS curve should be used for discounting and separate forward curves for projection. The OIS curve should be built
+> from normalized overnight-indexed swap quotes using a piecewise bootstrap, usually with robust interpolation such as
+> log-linear discount factors. Vendor tickers belong in the market-data layer rather than pricing code, which should
+> consume normalized instrument IDs plus conventions. OIS should also be distinguished from sovereign and credit yields
+> because they behave differently in recession: OIS and government yields often fall as cuts are priced, while credit
+> spreads widen, so corporate yields can stay high or even rise. That distinction matters directly for pricing, risk,
+> P&L explain, and scenario analysis.

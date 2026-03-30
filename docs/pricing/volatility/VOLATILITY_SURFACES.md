@@ -25,8 +25,8 @@ A robust platform must preserve those distinctions from the first market-data ob
 
 ## 1. What a volatility surface is
 
-A volatility surface is a function that maps quote coordinates to an implied volatility. The coordinate system depends on
-asset class and market convention.
+A volatility surface is a function that maps quote coordinates to an implied volatility. The coordinate system depends
+on asset class and market convention.
 
 Typical examples:
 
@@ -449,7 +449,8 @@ A builder may reconstruct:
 - ATM anchor,
 - then convert the delta coordinates to strike coordinates using the current spot, forward, and discount curves.
 
-The main lesson is that the surface object may be strike-based internally even when the market is delta-based externally.
+The main lesson is that the surface object may be strike-based internally even when the market is delta-based
+externally.
 
 ---
 

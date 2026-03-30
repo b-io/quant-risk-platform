@@ -57,8 +57,10 @@ This `docs/` tree is the canonical documentation root for the repository.
   conventions, helpers, and rates risk implications.
 - `docs/pricing/rates/YIELD_CURVE_WORKED_EXAMPLE.md` — worked rates examples for discount factors, forwards, yield
   types, and recession-driven curve behavior.
-- `docs/pricing/volatility/INDEX.md` — alphabetical index for option-pricing foundations and volatility-surface documentation.
-- `docs/pricing/volatility/OPTION_PRICING_FOUNDATIONS_AND_PUT_CALL_PARITY.md` — European, American, and Bermudan option basics; put-call parity; arbitrage bounds; synthetic positions; and quote-validation logic.
+- `docs/pricing/volatility/INDEX.md` — alphabetical index for option-pricing foundations and volatility-surface
+  documentation.
+- `docs/pricing/volatility/OPTION_PRICING_FOUNDATIONS_AND_PUT_CALL_PARITY.md` — European, American, and Bermudan option
+  basics; put-call parity; arbitrage bounds; synthetic positions; and quote-validation logic.
 - `docs/pricing/volatility/VOLATILITY_SURFACES.md` — volatility quote schemas, surface construction, interpolation
   conventions, and risk integration.
 

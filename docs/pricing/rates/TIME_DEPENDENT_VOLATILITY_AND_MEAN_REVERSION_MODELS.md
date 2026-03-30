@@ -122,7 +122,8 @@ Then the instantaneous volatility is approximately:
 - $0.370\%$ at $t=2$,
 - $0.045\%$ at $t=5$.
 
-This is exactly the type of term structure used when the desk wants short-end uncertainty to dominate long-horizon uncertainty.
+This is exactly the type of term structure used when the desk wants short-end uncertainty to dominate long-horizon
+uncertainty.
 
 ---
 
@@ -210,7 +211,8 @@ Suppose:
 
 Then the implied standard deviation of the stochastic component of $r_2$ is about **0.791%**.
 
-For comparison, with the same initial volatility but constant $\sigma(t)=1.5\%$, the corresponding standard deviation would be about **1.306%**.
+For comparison, with the same initial volatility but constant $\sigma(t)=1.5\%$, the corresponding standard deviation
+would be about **1.306%**.
 
 So exponential volatility decay produces materially tighter long-horizon rate distributions.
 
@@ -308,7 +310,8 @@ From a practical point of view, its behavior is very close to CIR:
 - square-root level-dependent volatility,
 - positive-rate orientation.
 
-In a modern documentation set it is best described as part of the **square-root mean-reverting family**, with historical importance in the bond-option literature.
+In a modern documentation set it is best described as part of the **square-root mean-reverting family**, with historical
+importance in the bond-option literature.
 
 ### Example for Section 7 — Courtadon-style scenario step
 
@@ -327,7 +330,8 @@ $$
 r_{t+\Delta t} \approx 4.615\%
 $$
 
-The model behaves like a square-root version of mean-reverting short-rate dynamics rather than like a normal Gaussian model.
+The model behaves like a square-root version of mean-reverting short-rate dynamics rather than like a normal Gaussian
+model.
 
 ---
 
@@ -422,8 +426,8 @@ So the model pulls the rate downward toward the long-run target while keeping th
 
 The Black-Derman-Toy family is a lognormal short-rate tree model with time-dependent volatility.
 
-A continuous-time representation of the time-dependent-volatility lognormal idea can be written in terms of the log short rate.
-When the local volatility decays through time, for example with
+A continuous-time representation of the time-dependent-volatility lognormal idea can be written in terms of the log
+short rate. When the local volatility decays through time, for example with
 
 $$
 \sigma(t) = \sigma_0 e^{-\lambda t}
@@ -500,10 +504,12 @@ The important practical question is not only whether a model is mathematically e
 
 - the square-root diffusion is quite restrictive,
 - basic versions do not fit today's curve exactly,
-- even shifted variants are still relatively inflexible compared with piecewise-volatility Hull-White, LGM, or LMM-style frameworks,
+- even shifted variants are still relatively inflexible compared with piecewise-volatility Hull-White, LGM, or LMM-style
+  frameworks,
 - calibration to a full swaption surface or cube is often too rigid for active trading books.
 
-This is the core reason why practitioners often say that **CIR is elegant but too restrictive for full market calibration**.
+This is the core reason why practitioners often say that
+**CIR is elegant but too restrictive for full market calibration**.
 
 ### Simple lognormal short-rate model
 
@@ -569,7 +575,8 @@ That is elegant, but it is not much flexibility when the desk wants to fit:
 - multi-curve basis effects.
 
 A one-factor Gaussian model with piecewise volatility already has more calibration freedom.
-A forward-rate market model such as LMM has much more freedom again because it models a vector of forward rates and their correlations directly.
+A forward-rate market model such as LMM has much more freedom again because it models a vector of forward rates and
+their correlations directly.
 
 ### Example for Section 12 — exact curve fit versus equilibrium fit
 
@@ -579,8 +586,8 @@ Suppose today's zero curve is:
 - 5Y zero = **2.80%**,
 - 10Y zero = **3.15%**.
 
-A Hull-White model with curve-implied drift can be built so that those three discount points are matched exactly at time 0.
-So its curve-fit error at those nodes is **0 bp** by construction.
+A Hull-White model with curve-implied drift can be built so that those three discount points are matched exactly at
+time 0. So its curve-fit error at those nodes is **0 bp** by construction.
 
 Now suppose an equilibrium-style square-root fit gives:
 
@@ -594,7 +601,8 @@ Then the node errors are:
 - **-13 bp** at 5Y,
 - **-19 bp** at 10Y.
 
-That may still be acceptable for stylized scenario generation, but it is too loose for a desk that marks linear books off a market bootstrap and expects the dynamic model to sit consistently on top of it.
+That may still be acceptable for stylized scenario generation, but it is too loose for a desk that marks linear books
+off a market bootstrap and expects the dynamic model to sit consistently on top of it.
 
 ### Example for Section 12 — swaption calibration flexibility
 
@@ -609,11 +617,14 @@ And on top of that the desk also observes smile effects such as:
 - payer wing = ATM + **6 bp**,
 - receiver wing = ATM + **5 bp**.
 
-A one-factor CIR or Courtadon model may reproduce the broad level of the term structure, but it generally cannot fit all three ATM points plus both wings with one coherent low-parameter specification.
+A one-factor CIR or Courtadon model may reproduce the broad level of the term structure, but it generally cannot fit all
+three ATM points plus both wings with one coherent low-parameter specification.
 
-A piecewise-volatility one-factor Hull-White model can usually fit the **ATM term structure** much better, but still not the full smile.
+A piecewise-volatility one-factor Hull-White model can usually fit the **ATM term structure** much better, but still not
+the full smile.
 
-An LMM or a market-volatility framework such as **Black/Bachelier + SABR** is much better suited when the desk wants the calibration object to be the traded swaption surface itself.
+An LMM or a market-volatility framework such as **Black/Bachelier + SABR** is much better suited when the desk wants the
+calibration object to be the traded swaption surface itself.
 
 ---
 
@@ -650,7 +661,8 @@ Common practical choices are:
 - one-factor or two-factor Hull-White,
 - LGM-style Gaussian models,
 - Markov-functional models,
-- sometimes LMM when forward-rate consistency and richer correlation structure matter enough to justify the extra complexity.
+- sometimes LMM when forward-rate consistency and richer correlation structure matter enough to justify the extra
+  complexity.
 
 The reason is that these models usually give a better compromise between:
 
@@ -680,7 +692,8 @@ They still matter in several roles:
 - historical and theoretical foundations,
 - related credit-intensity or affine-model applications.
 
-But for a modern liquid trading environment, they are usually **supporting models** rather than the single canonical desk-wide model.
+But for a modern liquid trading environment, they are usually **supporting models** rather than the single canonical
+desk-wide model.
 
 ---
 
@@ -739,15 +752,16 @@ Within this repository, the clean implementation order is:
 1. **Bootstrap today's curve** from market quotes.
 2. **Store model parameters separately** from the market curve object.
 3. **Represent model family explicitly** in configuration, for example:
-   - `HO_LEE`,
-   - `HULL_WHITE_1F`,
-   - `CIR`,
-   - `COURTADON`,
-   - `BLACK_KARASINSKI`,
-   - `BDT`,
-   - `LMM`.
+    - `HO_LEE`,
+    - `HULL_WHITE_1F`,
+    - `CIR`,
+    - `COURTADON`,
+    - `BLACK_KARASINSKI`,
+    - `BDT`,
+    - `LMM`.
 4. **Keep volatility-term-structure functions first-class**, for example constant, piecewise, or exponentially decaying.
-5. **Separate vanilla-surface calibration from exotic-model calibration** so the same market snapshot can support Black/Bachelier/SABR and short-rate models side by side.
+5. **Separate vanilla-surface calibration from exotic-model calibration** so the same market snapshot can support
+   Black/Bachelier/SABR and short-rate models side by side.
 6. **Separate pricing calibration from scenario simulation** so the same model family can serve both.
 
 A useful parameter payload for a short-rate model object is:
@@ -778,4 +792,5 @@ That is why the practical progression is usually:
 - Hull-White for mean reversion plus curve fit,
 - CIR or Courtadon for square-root positive-rate behavior,
 - Black-Karasinski or BDT when positive lognormal dynamics with time-dependent volatility are preferred,
-- LMM or surface-based market models when the trading problem is really about fitting and hedging the liquid swaption market.
+- LMM or surface-based market models when the trading problem is really about fitting and hedging the liquid swaption
+  market.

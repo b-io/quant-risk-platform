@@ -18,22 +18,26 @@ Unless stated otherwise:
 
 A good practical position is:
 
-> The classical Markowitz framework is useful because it provides the mean-variance language and optimization template, but in production the harder problem is estimation error, constraints, turnover, and robustness rather than the textbook optimization itself.
+> The classical Markowitz framework is useful because it provides the mean-variance language and optimization template,
+> but in production the harder problem is estimation error, constraints, turnover, and robustness rather than the
+> textbook optimization itself.
 
 ---
-A companion chapter, `docs/theory/ASSET_PRICING_FOUNDATIONS.md`, connects Markowitz to CAPM, APT, Black-Scholes-Merton, term-structure models, and credit models.
-
+A companion chapter, `docs/theory/ASSET_PRICING_FOUNDATIONS.md`, connects Markowitz to CAPM, APT, Black-Scholes-Merton,
+term-structure models, and credit models.
 
 ## 1A. Running 2-asset example used in this chapter
 
 Use this example throughout the formulas.
 
 Suppose we have:
+
 - Asset 1 = rates carry strategy, expected annual return $6\%$, volatility $8\%$
 - Asset 2 = credit carry strategy, expected annual return $9\%$, volatility $14\%$
 - correlation $\rho_{12}=0.25$
 
 Let portfolio weights be:
+
 - $w_1 = 60\%$
 - $w_2 = 40\%$
 
@@ -44,6 +48,7 @@ $$
 $$
 
 Where:
+
 - $\mu$ is the true mean, drift, or expected value depending on context.
 - $\mathbb{E}[\cdot]$ denotes expectation.
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
@@ -55,6 +60,7 @@ $$
 $$
 
 Where:
+
 - $\sigma$ is the volatility or standard deviation parameter.
 - $\rho$ is a correlation parameter.
 
@@ -73,11 +79,15 @@ $$
 $$
 
 Interpretation:
-- portfolio risk is lower than a naive weighted average of volatilities because imperfect correlation gives diversification.
+
+- portfolio risk is lower than a naive weighted average of volatilities because imperfect correlation gives
+  diversification.
 
 Good practice in modern portfolio construction:
+
 - treat Markowitz as the clean theoretical base,
-- but in production use robust covariance estimation, constraints, turnover controls, concentration limits, and scenario overlays.
+- but in production use robust covariance estimation, constraints, turnover controls, concentration limits, and scenario
+  overlays.
 
 ## 2. Core objects
 
@@ -90,6 +100,7 @@ w \in \mathbb{R}^n
 $$
 
 Where:
+
 - $\mathbb{R}^n$ is the $n$-dimensional real vector space.
 - $n$ is the number of assets in the portfolio.
 
@@ -100,6 +111,7 @@ $$
 $$
 
 Where:
+
 - $\mu$ is the true mean, drift, or expected value depending on context.
 
 Covariance matrix:
@@ -109,6 +121,7 @@ $$
 $$
 
 Where:
+
 - $\Sigma$ is a covariance matrix.
 
 Unit vector:
@@ -134,6 +147,7 @@ $$
 $$
 
 Where:
+
 - $\mu$ is the true mean, drift, or expected value depending on context.
 
 This is the easy part. The difficult part in practice is estimating $\mu$.
@@ -149,6 +163,7 @@ $$
 $$
 
 Where:
+
 - $\sigma$ is the volatility or standard deviation parameter.
 - $\Sigma$ is a covariance matrix.
 
@@ -167,11 +182,13 @@ $$
 $$
 
 Where:
+
 - $\rho$ is a correlation parameter.
 
 This formula is the diversification principle in one line.
 
-If correlation is low or negative, total portfolio variance can be much lower than the weighted average of individual variances.
+If correlation is low or negative, total portfolio variance can be much lower than the weighted average of individual
+variances.
 
 ---
 
@@ -184,6 +201,7 @@ $$
 $$
 
 Where:
+
 - $\Sigma$ is a covariance matrix.
 
 subject to:
@@ -199,11 +217,13 @@ w_i \ge 0
 $$
 
 Where:
+
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
 
 for long-only portfolios.
 
 Interpretation:
+
 - ignore expected returns for the moment
 - find the least volatile combination of assets
 
@@ -211,7 +231,8 @@ Interpretation:
 
 ## 6. Efficient frontier
 
-The efficient frontier is the set of portfolios with the **lowest variance for a given expected return**, or equivalently the **highest expected return for a given variance**.
+The efficient frontier is the set of portfolios with the **lowest variance for a given expected return**, or
+equivalently the **highest expected return for a given variance**.
 
 One standard formulation is:
 
@@ -220,6 +241,7 @@ $$
 $$
 
 Where:
+
 - $\Sigma$ is a covariance matrix.
 
 subject to:
@@ -247,6 +269,7 @@ $$
 $$
 
 Where:
+
 - $\mu$ is the true mean, drift, or expected value depending on context.
 - $\Sigma$ is a covariance matrix.
 
@@ -271,6 +294,7 @@ $$
 $$
 
 Where:
+
 - $\mu$ is the true mean, drift, or expected value depending on context.
 
 $$
@@ -278,6 +302,7 @@ $$
 $$
 
 Where:
+
 - $\sigma$ is the volatility or standard deviation parameter.
 
 $$
@@ -285,6 +310,7 @@ $$
 $$
 
 Where:
+
 - $\rho$ is a correlation parameter.
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
 
@@ -316,7 +342,8 @@ $$
 \sigma_p = \sqrt{0.01792} \approx 13.39\%
 $$
 
-The key insight is that the portfolio volatility is lower than a naive weighted average of 20% and 10% because correlation is less than 1.
+The key insight is that the portfolio volatility is lower than a naive weighted average of 20% and 10% because
+correlation is less than 1.
 
 ---
 
@@ -325,6 +352,7 @@ The key insight is that the portfolio volatility is lower than a naive weighted 
 ### 9.1 Inputs
 
 A practical optimizer needs:
+
 - asset universe
 - expected returns $\mu$
 - covariance matrix $\Sigma$
@@ -337,6 +365,7 @@ A practical optimizer needs:
 This is usually more stable than return forecasting.
 
 Common methods:
+
 - sample covariance
 - exponentially weighted covariance
 - shrinkage estimators
@@ -349,6 +378,7 @@ A practical formula for exponentially weighted covariance uses decaying weights 
 This is usually the hardest and noisiest input.
 
 Common choices:
+
 - historical means
 - carry / value / momentum signals
 - macro model outputs
@@ -358,6 +388,7 @@ Common choices:
 ### 9.4 Constraints
 
 Real optimizers almost always include constraints such as:
+
 - long-only or limited shorting
 - weight bounds
 - sector / issuer limits
@@ -376,12 +407,14 @@ $$
 $$
 
 Where:
+
 - $\mu$ is the true mean, drift, or expected value depending on context.
 - $\Sigma$ is a covariance matrix.
 
 subject to constraints.
 
 Interpretation:
+
 - first term rewards return
 - second penalizes variance
 - third penalizes turnover / trading cost
@@ -420,6 +453,7 @@ The practical answer is not to throw away mean-variance theory.
 It is to **regularize** it.
 
 Typical robustness fixes:
+
 - shrink covariance estimates
 - cap weights
 - penalize turnover
@@ -443,6 +477,7 @@ $$
 $$
 
 Where:
+
 - $\sigma$ is the volatility or standard deviation parameter.
 - $\Sigma$ is a covariance matrix.
 
@@ -458,6 +493,9 @@ This is useful because it connects optimization to live portfolio risk.
 
 ## 13. Compact summary
 
-A strong answer is:
-
-> Markowitz provides the basic mean-variance language: expected return is $w^\top \mu$, variance is $w^\top \Sigma w$, and the efficient frontier is obtained by minimizing variance for a target return under constraints. In practice the difficulty is not solving the quadratic program but estimating expected returns and covariances robustly, adding realistic constraints, and controlling turnover. Production implementations therefore benefit from regularized optimization, stable covariance estimation, and explicit trading-cost and concentration constraints rather than a naive unconstrained textbook solution.
+> Markowitz provides the basic mean-variance language: expected return is $w^\top \mu$, variance is $w^\top \Sigma w$,
+> and the efficient frontier is obtained by minimizing variance for a target return under constraints. In practice the
+> difficulty is not solving the quadratic program but estimating expected returns and covariances robustly, adding
+> realistic constraints, and controlling turnover. Production implementations therefore benefit from regularized
+> optimization, stable covariance estimation, and explicit trading-cost and concentration constraints rather than a
+> naive unconstrained textbook solution.

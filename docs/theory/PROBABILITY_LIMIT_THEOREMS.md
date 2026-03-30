@@ -264,8 +264,8 @@ $$
 Z\sim \mathcal N(0,1).
 $$
 
-So even if the original variables are not normal, the normalized average often becomes approximately normal for
-large $n$.
+So even if the original variables are not normal, the normalized average often becomes approximately normal for large
+$n$.
 
 ## 5.3 Why the normalization is $\sqrt{n}$
 

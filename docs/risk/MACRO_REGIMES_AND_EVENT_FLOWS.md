@@ -14,23 +14,31 @@ Unless stated otherwise:
 
 ## 1. What the regime diagram is trying to show
 
-Your diagram is basically describing an **inflationary expansion / overheating loop**:
+The regime diagram basically describes an **inflationary expansion / overheating loop**:
 
 $$
-\text{strong demand} \rightarrow \text{higher output and hiring} \rightarrow \text{capacity pressure} \rightarrow \text{wages / input costs up} \rightarrow \text{inflation up} \rightarrow \text{central bank tightens} \rightarrow \text{growth slows}
+\text{strong demand}
+\rightarrow \text{higher output and hiring}
+\rightarrow \text{capacity pressure}
+\rightarrow \text{wages / input costs up}
+\rightarrow \text{inflation up}
+\rightarrow \text{central bank tightens}
+\rightarrow \text{growth slows}
 $$
 
 That is a good intuition, but it is clearer if we make two corrections.
 
 First, GDP and PMI do **not** sit at the same level of abstraction.
+
 - **GDP** is a broad output measure.
 - **PMI** is a survey-based directional indicator.
 
 Second, inflation is usually better split into:
+
 - **PPI / input-cost pressure first**
 - then **CPI / core / services inflation later**
 
-Here is a corrected and enhanced version of your causal loop:
+A corrected and enhanced version of the causal loop is:
 
 ---
 
@@ -39,7 +47,9 @@ Here is a corrected and enhanced version of your causal loop:
 A macro trader usually thinks in terms of a few trigger categories.
 
 ### 2.1 Demand shock
+
 Examples:
+
 - easier monetary policy
 - fiscal stimulus
 - credit expansion
@@ -49,11 +59,18 @@ Examples:
 Typical flow:
 
 $$
-\text{demand shock} \rightarrow \text{orders} \rightarrow \text{output} \rightarrow \text{employment} \rightarrow \text{wages / prices} \rightarrow \text{CB reaction}
+\text{demand shock}
+\rightarrow \text{orders}
+\rightarrow \text{output}
+\rightarrow \text{employment}
+\rightarrow \text{wages / prices}
+\rightarrow \text{CB reaction}
 $$
 
 ### 2.2 Supply shock
+
 Examples:
+
 - oil / gas shock
 - geopolitical disruption
 - tariffs
@@ -64,13 +81,18 @@ Examples:
 Typical flow:
 
 $$
-\text{supply shock} \rightarrow \text{PPI / import costs up} \rightarrow \text{CPI up and real income squeezed} \rightarrow \text{growth slows}
+\text{supply shock}
+\rightarrow \text{PPI / import costs up}
+\rightarrow \text{CPI up and real income squeezed}
+\rightarrow \text{growth slows}
 $$
 
 This is the classic **stagflation** mechanism.
 
 ### 2.3 Policy shock
+
 Examples:
+
 - central-bank hike or cut cycle
 - quantitative tightening / easing
 - fiscal tightening / austerity
@@ -79,11 +101,16 @@ Examples:
 Typical flow:
 
 $$
-\text{policy shock} \rightarrow \text{rates / funding / credit conditions} \rightarrow \text{investment / housing / demand} \rightarrow \text{growth and inflation}
+\text{policy shock}
+\rightarrow \text{rates / funding / credit conditions}
+\rightarrow \text{investment / housing / demand}
+\rightarrow \text{growth and inflation}
 $$
 
 ### 2.4 Credit / funding shock
+
 Examples:
+
 - bank stress
 - repo dysfunction
 - credit spreads widening sharply
@@ -92,11 +119,16 @@ Examples:
 Typical flow:
 
 $$
-\text{credit shock} \rightarrow \text{financing harder} \rightarrow \text{capex, housing, consumption down} \rightarrow \text{growth slows}
+\text{credit shock}
+\rightarrow \text{financing harder}
+\rightarrow \text{capex, housing, consumption down}
+\rightarrow \text{growth slows}
 $$
 
 ### 2.5 External shock
+
 Examples:
+
 - China slowdown
 - export demand collapse
 - war
@@ -105,7 +137,9 @@ Examples:
 Typical flow:
 
 $$
-\text{external shock} \rightarrow \text{trade / commodity / FX effects} \rightarrow \text{growth and inflation repricing}
+\text{external shock}
+\rightarrow \text{trade / commodity / FX effects}
+\rightarrow \text{growth and inflation repricing}
 $$
 
 ---
@@ -122,6 +156,7 @@ GDP = C + I + G + (X - M)
 $$
 
 where:
+
 - $C$ = private consumption
 - $I$ = private investment
 - $G$ = government spending
@@ -139,23 +174,28 @@ $$
 $$
 
 Where:
+
 - $GDP$ is gross domestic product.
 
 ### 3.3 What GDP tells you
 
 GDP is useful because it is:
+
 - broad
 - comprehensive
 - conceptually close to total output / income
 
 But GDP is not enough on its own because it is:
+
 - lagged
 - revised
 - quarterly in many economies
 
-That is why traders rely heavily on faster indicators such as PMI, payrolls, retail sales, industrial production, and housing.
+That is why traders rely heavily on faster indicators such as PMI, payrolls, retail sales, industrial production, and
+housing.
 
-> GDP is the broad, backward-looking measure of output. It tells me where the economy has been. Markets care just as much about higher-frequency leading indicators that tell me where GDP is likely to go next.
+> GDP is the broad, backward-looking measure of output. It tells me where the economy has been. Markets care just as
+> much about higher-frequency leading indicators that tell me where GDP is likely to go next.
 
 ---
 
@@ -167,6 +207,7 @@ PMI = Purchasing Managers' Index.
 It is a **diffusion index**, not a price index and not a direct quantity measure.
 
 It is based on survey answers such as:
+
 - better / higher
 - unchanged
 - worse / lower
@@ -178,6 +219,7 @@ PMI = (\%\text{higher}) + 0.5 \times (\%\text{unchanged})
 $$
 
 This means:
+
 - $PMI > 50$ usually signals expansion
 - $PMI < 50$ usually signals contraction
 - the further from 50, the broader the expansion or contraction
@@ -185,6 +227,7 @@ This means:
 ### 4.2 Manufacturing PMI components
 
 The exact methodology varies by provider, but in practice macro people think of PMI as summarizing components such as:
+
 - new orders
 - output / production
 - employment
@@ -196,6 +239,7 @@ The exact methodology varies by provider, but in practice macro people think of 
 ### 4.3 Why PMI matters so much
 
 PMI is:
+
 - timely
 - directional
 - sensitive to turning points
@@ -212,6 +256,7 @@ $$
 $$
 
 Where:
+
 - $GDP$ is gross domestic product.
 
 $$
@@ -222,7 +267,8 @@ So PMI can turn down **before** GDP growth turns down, because firms see orders 
 
 Here is a stylized picture of the relationship:
 
-> PMI is a survey-based diffusion index around a 50 threshold, so it is best for direction and turning points. GDP is broader and more important structurally, but it comes later.
+> PMI is a survey-based diffusion index around a 50 threshold, so it is best for direction and turning points. GDP is
+> broader and more important structurally, but it comes later.
 
 ---
 
@@ -231,7 +277,12 @@ Here is a stylized picture of the relationship:
 The cleanest causal chain is:
 
 $$
-\text{policy / credit / external shock} \rightarrow \text{orders and sentiment} \rightarrow \text{output and hiring} \rightarrow \text{wages and prices} \rightarrow \text{CB reaction} \rightarrow \text{markets}
+\text{policy / credit / external shock}
+\rightarrow \text{orders and sentiment}
+\rightarrow \text{output and hiring}
+\rightarrow \text{wages and prices}
+\rightarrow \text{CB reaction}
+\rightarrow \text{markets}
 $$
 
 A very practical market map is:
@@ -251,6 +302,7 @@ This is the practical answer:
 ## 6.1 Inflationary growth / overheating
 
 Typical pattern:
+
 - PMI above 50 and rising
 - GDP solid or accelerating
 - labor market tight
@@ -261,13 +313,15 @@ Typical pattern:
 
 A good sentence:
 
-> In overheating, the economy is still strong enough to generate inflation pressure faster than supply can absorb it, so the central bank tightens into strength.
+> In overheating, the economy is still strong enough to generate inflation pressure faster than supply can absorb it, so
+> the central bank tightens into strength.
 
 ---
 
 ## 6.2 Soft landing / disinflation
 
 Typical pattern:
+
 - inflation improving
 - growth slowing but still positive
 - PMI near 50 rather than collapsing
@@ -276,13 +330,15 @@ Typical pattern:
 
 A good sentence:
 
-> In a soft landing, demand cools enough to reduce inflation without a full recession. The most important signal is that labor and services inflation ease gradually rather than breaking violently.
+> In a soft landing, demand cools enough to reduce inflation without a full recession. The most important signal is that
+> labor and services inflation ease gradually rather than breaking violently.
 
 ---
 
 ## 6.3 Recession / hard landing
 
 Typical pattern:
+
 - PMI well below 50
 - GDP weak or negative
 - payrolls slow, unemployment rises
@@ -292,13 +348,15 @@ Typical pattern:
 
 A good sentence:
 
-> In recession, rates often rally because growth and policy-rate expectations move down, but risky credit usually suffers because default and funding risks increase.
+> In recession, rates often rally because growth and policy-rate expectations move down, but risky credit usually
+> suffers because default and funding risks increase.
 
 ---
 
 ## 6.4 Stagflation
 
 Typical pattern:
+
 - CPI high or re-accelerating
 - growth weak
 - real incomes squeezed
@@ -307,13 +365,15 @@ Typical pattern:
 
 A good sentence:
 
-> Stagflation is the hardest regime because the market cannot price a simple 'weak growth means easy policy' story when inflation is still too high.
+> Stagflation is the hardest regime because the market cannot price a simple 'weak growth means easy policy' story when
+> inflation is still too high.
 
 ---
 
 ## 6.5 Recovery / re-acceleration
 
 Typical pattern:
+
 - inflation under better control
 - PMIs and orders recover first
 - GDP improves later
@@ -323,12 +383,15 @@ Typical pattern:
 
 A good sentence:
 
-> Recovery usually starts in surveys and orders before it shows up fully in GDP. That is why PMIs matter so much for macro traders.
+> Recovery usually starts in surveys and orders before it shows up fully in GDP. That is why PMIs matter so much for
+> macro traders.
 
 ---
 
-## 7. How a quant developer should speak about this
+## 7. Platform interpretation of regime flows
 
-A strong answer is:
-
-> The macro process is best viewed as a causal chain. Shocks first show up in orders, surveys, funding, or commodity prices; then they move output, hiring, and wages; then they feed into CPI and core inflation; and then the central bank and the rates market react. GDP is the broad output measure, but PMI is often the earlier turning-point indicator. A platform should convert that macro chain into curves, scenarios, risk factors, P&L explain, and trader-facing diagnostics.
+> The macro process is best understood as a causal chain. Shocks first appear in orders, surveys, funding conditions,
+> or commodity prices; they then propagate into output, hiring, wages, CPI, and core inflation; finally the central
+> bank and the rates market react. GDP remains the broad output measure, while PMI is often the earlier turning-point
+> indicator. In platform terms, this chain maps naturally into curves, scenarios, risk factors, P&L explain, and
+> user-facing diagnostics.

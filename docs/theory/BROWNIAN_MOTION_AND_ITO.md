@@ -87,8 +87,8 @@ $$
 N = \frac{t}{\Delta t}.
 $$
 
-We now ask: **how large should each spatial jump be** if we want the process to have a sensible limit
-as $\Delta t \to 0$?
+We now ask: **how large should each spatial jump be** if we want the process to have a sensible limit as
+$\Delta t \to 0$?
 
 Write the rescaled process as
 

@@ -30,11 +30,12 @@ The goal is to make the implementation choices and operational trade-offs explic
 - how `discount`, `zeroRate`, and `forwardRate` are related,
 - what `discountImpl` means in a term-structure implementation,
 - how interpolation and extrapolation choices affect pricing and risk,
-- what trade-offs you would defend in a front-office platform.
+- which trade-offs are typically preferred in a front-office platform.
 
 The most important implementation principle is:
 
-> The canonical state variable of a rates curve should usually be the **discount factor term structure**; zero rates and forwards should be derived consistently from it.
+> The canonical state variable of a rates curve should usually be the **discount factor term structure**; zero rates and
+> forwards should be derived consistently from it.
 
 ---
 
@@ -42,9 +43,9 @@ The most important implementation principle is:
 
 For a modern front-office rates platform, do not think of "the yield curve" as a single thing.
 
-You usually need a **curve set**.
+A modern setup usually needs a **curve set**.
 
-For one currency you may have:
+For one currency the stack may include:
 
 - an overnight / OIS discount curve,
 - one or more projection curves for term indices,
@@ -68,7 +69,8 @@ $$
 \}
 $$
 
-For this platform, the most important object is the **OIS discount curve**, together with its relationship to forward curves and sovereign curves.
+For this platform, the most important object is the **OIS discount curve**, together with its relationship to forward
+curves and sovereign curves.
 
 ---
 
@@ -83,6 +85,7 @@ P(0,T)
 $$
 
 Where:
+
 - $P(0,T)$ is the discount factor from today to maturity $T$.
 - $T$ is a maturity or future time, typically measured in years from today.
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
@@ -98,6 +101,7 @@ z(0,T) = -\frac{\ln P(0,T)}{T}
 $$
 
 Where:
+
 - $P(0,T)$ is the discount factor from today to maturity $T$.
 - $T$ is a maturity or future time, typically measured in years from today.
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
@@ -109,6 +113,7 @@ P(0,T) = \left(1+\frac{z_m(0,T)}{m}\right)^{-mT}
 $$
 
 Where:
+
 - $m$ is the compounding frequency per year.
 
 ### 3.3 Forward rate
@@ -133,6 +138,7 @@ f(0,T) = -\frac{\partial \ln P(0,T)}{\partial T}
 $$
 
 Where:
+
 - $P(0,T)$ is the discount factor from today to maturity $T$.
 - $f(0,T)$ is the instantaneous forward rate at maturity $T$.
 - $T$ is a maturity or future time, typically measured in years from today.
@@ -140,11 +146,13 @@ Where:
 
 - **discount factors** are used for PV,
 - **zero rates** are useful for reporting and macro interpretation,
-- **forward rates** are useful for floating-cash-flow projection and for understanding what the curve implies about future short rates.
+- **forward rates** are useful for floating-cash-flow projection and for understanding what the curve implies about
+  future short rates.
 
 A good line to say out loud is:
 
-> In code, the discount function should be stored or interpolated directly and zero-rate or forward-rate views should be derived consistently, because that keeps pricing and risk internally coherent.
+> In code, the discount function should be stored or interpolated directly and zero-rate or forward-rate views should be
+> derived consistently, because that keeps pricing and risk internally coherent.
 
 ---
 
@@ -159,6 +167,7 @@ PV = \frac{100}{1.04}=96.1538
 $$
 
 Where:
+
 - $PV$ is the present value of the cash flow or instrument.
 
 Continuous compounding:
@@ -168,9 +177,11 @@ PV = 100 e^{-0.04}=96.0789
 $$
 
 Where:
+
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
 
 So a production system must store or infer:
+
 - compounding convention,
 - day-count convention,
 - accrual factor,
@@ -183,6 +194,7 @@ P_m(0,T)=\frac{1}{\left(1+\frac{r}{m}\right)^{mT}}
 $$
 
 Where:
+
 - $P_m(0,T)$ is the discount factor to maturity $T$ under compounding frequency $m$.
 - $m$ is the compounding frequency per year.
 - $T$ is a maturity or future time, typically measured in years from today.
@@ -201,7 +213,8 @@ $$
 
 from Euler's exponential limit and the definition of Euler's number $e$.
 
-When bootstrapping or calibrating a curve, some instruments lead to a non-linear residual equation for the unknown node or parameter.
+When bootstrapping or calibrating a curve, some instruments lead to a non-linear residual equation for the unknown node
+or parameter.
 
 A common setup is
 
@@ -210,6 +223,7 @@ f(x)=PV_{\text{model}}(x)-PV_{\text{market}}=0
 $$
 
 Where:
+
 - $x$ is the unknown node or parameter.
 - $PV_{\text{model}}(x)$ is the model price as a function of that unknown.
 - $PV_{\text{market}}$ is the observed market price or quote converted into price terms.
@@ -221,16 +235,19 @@ x_{n+1}=x_n-\frac{f(x_n)}{f'(x_n)}
 $$
 
 Where:
+
 - $n$ is the iteration index.
 - $x_n$ is the current guess.
 - $x_{n+1}$ is the next guess.
 - $f'(x_n)$ is the derivative of the residual with respect to the unknown.
 
-For example, some simple swap nodes can be solved directly, but CDS hazard nodes, implied vols, and more complex curve instruments are often solved numerically.
+For example, some simple swap nodes can be solved directly, but CDS hazard nodes, implied vols, and more complex curve
+instruments are often solved numerically.
 
 #### Example for 3.1 — Newton-Raphson for an implied yield
 
-Suppose a 2Y annual-coupon bond with face value 100 and annual coupon 4 trades at 100.50. The implied annual yield $y$ solves
+Suppose a 2Y annual-coupon bond with face value 100 and annual coupon 4 trades at 100.50. The implied annual yield $y$
+solves
 
 $$
 \frac{4}{1+y}+\frac{104}{(1+y)^2}=100.50
@@ -272,11 +289,12 @@ $$
 y\approx 3.7359\%
 $$
 
-This is the same numerical pattern used in more complex calibration problems: define a residual, compute its derivative, and iterate to the root.
+This is the same numerical pattern used in more complex calibration problems: define a residual, compute its derivative,
+and iterate to the root.
 
 ## 4. What `discount`, `zeroRate`, `forwardRate`, and `discountImpl` mean in practice
 
-If you implement a term structure in a QuantLib-style architecture, the public API usually looks like:
+In a QuantLib-style architecture, the public term-structure API usually looks like:
 
 - `discount(date_or_time)`
 - `zeroRate(date_or_time, dayCounter, compounding, frequency)`
@@ -304,6 +322,7 @@ $$
 $$
 
 Where:
+
 - $t$ is a time variable, or the real argument of a moment generating function depending on context.
 
 which returns the discount factor at time $t$.
@@ -313,7 +332,7 @@ So conceptually:
 $$
 \texttt{discount(Date)}
 \rightarrow
- t
+t
 \rightarrow
 \texttt{discountImpl}(t)
 \rightarrow
@@ -321,11 +340,12 @@ P(0,t)
 $$
 
 Where:
+
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
 
 ### 4.2 Why `discountImpl` is the right primitive
 
-If you implement only `discountImpl`, then the rest can be derived:
+When only `discountImpl` is implemented, the remaining views can be derived:
 
 - zero rates from discount factors,
 - forwards from discount-factor ratios,
@@ -383,7 +403,7 @@ This is exactly why **log-linear interpolation on discount factors** is such a n
 
 ### 4.5 Implied discount factors from a shifted reference date
 
-Sometimes you also need an **implied term structure** starting from a future date $s$.
+Some applications also require an **implied term structure** starting from a future date $s$.
 
 Then the implied discount factor from $s$ to $T$ is:
 
@@ -392,6 +412,7 @@ P(s,T) = \frac{P(0,T)}{P(0,s)}
 $$
 
 Where:
+
 - $P(0,T)$ is the discount factor from today to maturity $T$.
 - $T$ is a maturity or future time, typically measured in years from today.
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
@@ -414,6 +435,7 @@ P(T_1,T_2)=\frac{P(0,T_2)}{P(0,T_1)}
 $$
 
 Where:
+
 - $P(0,T_1)$ is the discount factor from today to time $T_1$.
 - $P(0,T_2)$ is the discount factor from today to time $T_2$.
 - $T_1$ is the start date of a forward or accrual period, measured from today.
@@ -448,7 +470,7 @@ $$
 
 ### QuantLib mapping
 
-If you already have a `YieldTermStructure`, the raw forward discount factor is usually obtained by direct ratio:
+Given an existing `YieldTermStructure`, the raw forward discount factor is usually obtained by direct ratio:
 
 ```cpp
 DiscountFactor df_0_2 = curve->discount(date2Y);
@@ -456,14 +478,14 @@ DiscountFactor df_0_5 = curve->discount(date5Y);
 DiscountFactor df_2_5 = df_0_5 / df_0_2;
 ```
 
-If you want the implied forward **rate**, call:
+For the implied forward **rate**, call:
 
 ```cpp
 Rate fwd = curve->forwardRate(date2Y, date5Y,
                               Actual365Fixed(), Continuous).rate();
 ```
 
-If you want a genuine **shifted curve object** whose new reference date is `date2Y`, use an implied term structure:
+For a genuine **shifted curve object** whose new reference date is `date2Y`, use an implied term structure:
 
 ```cpp
 Handle<YieldTermStructure> base(curve);
@@ -492,37 +514,41 @@ Instead:
 
 For example:
 
-| Internal ID | Meaning |
-|---|---|
-| `USD-RFR-ON` | USD overnight risk-free fixing |
-| `USD-OIS-1W` | 1-week USD OIS quote |
-| `USD-OIS-5Y` | 5-year USD OIS par swap |
-| `EUR-RFR-ON` | EUR overnight risk-free fixing |
-| `CHF-RFR-ON` | CHF overnight risk-free fixing |
-| `CHF-OIS-10Y` | 10-year CHF OIS par swap |
+| Internal ID   | Meaning                        |
+|---------------|--------------------------------|
+| `USD-RFR-ON`  | USD overnight risk-free fixing |
+| `USD-OIS-1W`  | 1-week USD OIS quote           |
+| `USD-OIS-5Y`  | 5-year USD OIS par swap        |
+| `EUR-RFR-ON`  | EUR overnight risk-free fixing |
+| `CHF-RFR-ON`  | CHF overnight risk-free fixing |
+| `CHF-OIS-10Y` | 10-year CHF OIS par swap       |
 
 Then the market-data layer maps them to vendor feeds.
 
-### 5.1 Bloomberg-style public examples for overnight fixings
+### 5.1 Public examples for overnight-fixing identifiers
 
 Representative publicly documented examples are:
 
 - USD SOFR overnight rate: `SOFRRATE Index`
 - EUR €STR overnight rate: `ESTRON Index`
-- CHF SARON reference: public documentation often cites Bloomberg / Refinitiv identifiers such as `SSARON` / `SARON.S`, and SIX also publishes fixings `SRFXON1`, `SRFXON2`, `SRFXON3`
+- CHF SARON reference: public documentation often cites Bloomberg / Refinitiv identifiers such as `SSARON` / `SARON.S`,
+  and SIX also publishes fixings `SRFXON1`, `SRFXON2`, `SRFXON3`
 
-For listed front-end futures, use the **exchange root plus contract month/year**, then map to the vendor mnemonic in your feed layer.
+For listed front-end futures, use the **exchange root plus contract month/year**, then map to the vendor mnemonic in
+the feed layer.
 
 Examples of public exchange roots:
+
 - CME SOFR futures: `SR3`
 - Eurex 3M SARON futures: `FSO3`
 - ICE 3M SARON futures: `SA3`
 
 ### 5.2 Practical takeaway
 
-> Normalized instrument IDs such as `USD-OIS-5Y` should be stored in the platform, while Bloomberg or exchange symbols should stay in the market-data adapter because vendor symbology is not stable enough to hard-code in pricing code.
+> Normalized instrument IDs such as `USD-OIS-5Y` should be stored in the platform, while Bloomberg or exchange symbols
+> should stay in the market-data adapter because vendor symbology is not stable enough to hard-code in pricing code.
 
-That is a very strong answer.
+This separation is the standard production pattern.
 
 ---
 
@@ -531,15 +557,18 @@ That is a very strong answer.
 ## 6.1 USD
 
 ### Discount curve
+
 The standard collateralized discount curve is the **SOFR OIS curve**.
 
 Typical raw inputs:
+
 - overnight fixing / RFR history: `SOFRRATE Index`
 - very short end: overnight, tomorrow-next, 1W, 2W, 1M, 2M, 3M OIS or cash-style inputs depending on data source
 - front-end liquid contracts: SOFR futures (`SR3`) or short OIS
 - medium / long end: SOFR OIS swaps from 1Y out to 30Y / 50Y
 
 Typical internal IDs:
+
 - `USD-RFR-ON`
 - `USD-OIS-1W`
 - `USD-OIS-1M`
@@ -553,7 +582,9 @@ Typical internal IDs:
 - `USD-OIS-30Y`
 
 ### Projection curves
+
 If the book contains term-floaters or legacy structures:
+
 - `USD-TERM-1M`
 - `USD-TERM-3M`
 - `USD-TERM-6M`
@@ -561,7 +592,9 @@ If the book contains term-floaters or legacy structures:
 These are forecast curves, not discount curves.
 
 ### Sovereign benchmark
+
 For macro views:
+
 - Treasury bills, notes, and bonds form a sovereign benchmark curve.
 - This is **not** identical to OIS.
 
@@ -570,15 +603,18 @@ For macro views:
 ## 6.2 EUR
 
 ### Discount curve
+
 The standard collateralized discount curve is the **€STR OIS curve**.
 
 Typical raw inputs:
+
 - overnight fixing: `ESTRON Index`
 - short OIS or depo/OIS hybrid quotes depending on source
 - €STR OIS swaps along standard maturities
-- optional listed front-end futures if your shop uses them
+- optional listed front-end futures when the chosen market convention set uses them
 
 Typical internal IDs:
+
 - `EUR-RFR-ON`
 - `EUR-OIS-1W`
 - `EUR-OIS-1M`
@@ -590,12 +626,16 @@ Typical internal IDs:
 - `EUR-OIS-30Y`
 
 ### Projection curves
+
 If needed for Euribor-linked products:
+
 - `EUR-EURIBOR-3M`
 - `EUR-EURIBOR-6M`
 
 ### Sovereign benchmark
+
 For macro or credit-spread analysis, people often track sovereign curves such as:
+
 - Germany (Schatz / Bobl / Bund) as a quasi-core benchmark,
 - plus BTP / OAT / Bonos spreads for relative value and risk-off / risk-on interpretation.
 
@@ -606,15 +646,19 @@ Again, that is separate from the discounting OIS curve.
 ## 6.3 CHF
 
 ### Discount curve
+
 The standard collateralized discount curve is the **SARON OIS curve**.
 
 Typical raw inputs:
-- SARON overnight reference / fixings: public sources cite `SSARON` / `SARON.S`, plus SIX fixings `SRFXON1`, `SRFXON2`, `SRFXON3`
+
+- SARON overnight reference / fixings: public sources cite `SSARON` / `SARON.S`, plus SIX fixings `SRFXON1`, `SRFXON2`,
+  `SRFXON3`
 - short SARON OIS / money-market style inputs
 - SARON futures such as Eurex `FSO3` or ICE `SA3` if used by the desk
 - SARON OIS swaps out the curve
 
 Typical internal IDs:
+
 - `CHF-RFR-ON`
 - `CHF-OIS-1W`
 - `CHF-OIS-1M`
@@ -626,10 +670,13 @@ Typical internal IDs:
 - `CHF-OIS-30Y`
 
 ### Sovereign benchmark
+
 For macro interpretation:
+
 - Swiss Confederation bonds provide the sovereign benchmark term structure.
 
 This can diverge from SARON OIS because:
+
 - sovereign cash bonds embed supply/demand and repo effects,
 - SARON is rooted in the secured overnight funding market.
 
@@ -641,7 +688,8 @@ The right answer is not “fit some line through yields.”
 
 The right answer is:
 
-> A piecewise discount curve should be bootstrapped from tradable instruments using instrument-specific pricing equations and market conventions.
+> A piecewise discount curve should be bootstrapped from tradable instruments using instrument-specific pricing
+> equations and market conventions.
 
 ### 7.1 Step 1: define conventions explicitly
 
@@ -714,22 +762,25 @@ P(0,T) \approx \frac{1}{1+r \tau}
 $$
 
 Where:
+
 - $P(0,T)$ is the discount factor from today to maturity $T$.
 - $T$ is a maturity or future time, typically measured in years from today.
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
 
-For a **par OIS swap** with fixed rate $K$ and payment dates $t_1,\dots,t_n$, the fixed rate is chosen so that the swap has zero present value at trade date:
+For a **par OIS swap** with fixed rate $K$ and payment dates $t_1,\dots,t_n$, the fixed rate is chosen so that the swap
+has zero present value at trade date:
 
 $$
 K \sum_{i=1}^{n} \alpha_i P(0,t_i) = 1 - P(0,t_n)
 $$
 
 Where:
+
 - $n$ is the number of fixed-leg payment dates in the swap.
 - $\alpha_i$ is the accrual year fraction for coupon period $i$.
 - $t_i$ is the payment date of coupon period $i$.
 
-If the earlier discount factors are already known, you solve for the last one:
+When the earlier discount factors are already known, the last one is obtained from:
 
 $$
 P(0,t_n)
@@ -771,7 +822,8 @@ This is the concrete meaning of “bootstrap sequentially.”
 
 ### 7.5 Step 5: interpolate between pillars
 
-Once you solve discount factors at pillar dates, define `discountImpl(t)` between nodes using your chosen interpolation method.
+Once discount factors are solved at pillar dates, define `discountImpl(t)` between nodes using the chosen interpolation
+method.
 
 #### Example for 7.5 — interpolation inside `discountImpl(t)`
 
@@ -801,7 +853,8 @@ The validation checklist is:
 
 #### Example for 7.6 — what a validation failure looks like
 
-Suppose the market quote for a 5Y OIS swap is 4.10%, but after building the curve the helper reprice implies 4.16%. That 6 bp residual is too large for a production curve and usually signals a problem such as:
+Suppose the market quote for a 5Y OIS swap is 4.10%, but after building the curve the helper reprice implies 4.16%.
+That 6 bp residual is too large for a production curve and usually signals a problem such as:
 
 - wrong day count,
 - wrong payment calendar,
@@ -813,6 +866,7 @@ A good platform surfaces that residual immediately instead of silently publishin
 ### 7.7 Step 7: persist and version
 
 Store:
+
 - as-of timestamp,
 - source venue(s),
 - normalized IDs,
@@ -863,6 +917,7 @@ If recession risk rises:
 - credit spreads may widen.
 
 That is why the platform must support:
+
 - live curve updates,
 - key-rate DV01,
 - scenario shocks,
@@ -888,6 +943,7 @@ $$
 $$
 
 Where:
+
 - $t$ is a time variable, or the real argument of a moment generating function depending on context.
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
 
@@ -898,6 +954,7 @@ w = \frac{t-t_i}{t_{i+1}-t_i}
 $$
 
 ### Advantages
+
 - discount factors stay positive,
 - simple and robust,
 - easy to explain and audit,
@@ -906,10 +963,12 @@ $$
 - commonly used in production.
 
 ### Drawbacks
+
 - forward curve can look too blocky,
 - less visually smooth than spline methods.
 
 ### Best use
+
 - OIS discount curves,
 - general front-office risk engines,
 - high-throughput bump-and-revalue systems.
@@ -925,6 +984,7 @@ z(t) = (1-w)z(t_i) + w z(t_{i+1})
 $$
 
 Where:
+
 - $t$ is a time variable, or the real argument of a moment generating function depending on context.
 
 then
@@ -934,21 +994,25 @@ P(0,t)=e^{-z(t)t}
 $$
 
 Where:
+
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
 
 for continuous compounding.
 
 ### Advantages
+
 - intuitive,
 - smoother than pure piecewise forwards,
 - simple to explain to non-quant users.
 
 ### Drawbacks
+
 - can create less natural discount behavior than log-linear DF,
 - forward curve can still have kinks,
 - risk can depend subtly on compounding conventions.
 
 ### Best use
+
 - reporting curves,
 - macro interpretation,
 - some legacy frameworks.
@@ -960,15 +1024,18 @@ for continuous compounding.
 You interpolate $f(0,t)$ directly.
 
 ### Advantages
+
 - can create smoother zero curves,
-- useful if your economic view is naturally forward-based.
+- useful when the economic view is naturally forward-based.
 
 ### Drawbacks
+
 - more sensitive to noise,
 - easier to create unrealistic oscillations if not constrained,
 - less robust as a default production choice.
 
 ### Best use
+
 - specialized rate-model or research contexts,
 - not the first choice for the main desk discount curve.
 
@@ -979,22 +1046,26 @@ You interpolate $f(0,t)$ directly.
 These try to make the curve smoother.
 
 ### Advantages
+
 - visually appealing,
 - smoother first derivatives,
 - can be better for option-model inputs or smooth scenario generation.
 
 ### Drawbacks
+
 - easy to overfit noisy quotes,
 - can create local artifacts,
 - risk becomes less transparent,
 - more difficult to defend if P&L explain must be audit-friendly.
 
 ### Best use
+
 - secondary reporting curves,
 - research surfaces,
 - model-building contexts where smoothness matters.
 
-> Splines are attractive visually, but for a desk discount curve robustness, monotonicity, and explainability usually matter more than cosmetic smoothness.
+> Splines are attractive visually, but for a desk discount curve robustness, monotonicity, and explainability usually
+> matter more than cosmetic smoothness.
 
 ---
 
@@ -1003,16 +1074,19 @@ These try to make the curve smoother.
 These are not sequential bootstrap curves from exact tradables; they are low-dimensional fits.
 
 ### Advantages
+
 - compact parameterization,
 - useful for macro analysis and factor interpretation,
 - convenient for scenario design and historical modeling.
 
 ### Drawbacks
+
 - not exact instrument repricing,
 - fit quality depends on objective and constraints,
 - less appropriate as the primary pricing curve.
 
 ### Best use
+
 - historical factor models,
 - scenario engines,
 - macro and risk reporting,
@@ -1024,7 +1098,8 @@ These are not sequential bootstrap curves from exact tradables; they are low-dim
 
 Again, no universal answer.
 
-The correct answer depends on whether you are:
+The appropriate policy depends on the use case:
+
 - pricing within liquid maturities,
 - running stress tests,
 - projecting long-dated insurance liabilities,
@@ -1035,7 +1110,8 @@ The correct answer depends on whether you are:
 
 The safest front-office rule is:
 
-> Disable extrapolation for live pricing unless the maturity is inside an approved liquid range or inside a clearly governed long-end policy.
+> Disable extrapolation for live pricing unless the maturity is inside an approved liquid range or inside a clearly
+> governed long-end policy.
 
 That prevents accidental pricing using nonsense tails.
 
@@ -1056,16 +1132,19 @@ e^{-f^*(T-T_{\text{LLP}})}
 $$
 
 Where:
+
 - $P(0,T)$ is the discount factor from today to maturity $T$.
 - $T$ is a maturity or future time, typically measured in years from today.
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
 
 ### Advantages
+
 - simple,
 - conservative,
 - consistent with the last observed local slope.
 
 ### Drawbacks
+
 - long-end valuation can become too sensitive to the last liquid node,
 - may not reflect plausible long-run reversion.
 
@@ -1078,6 +1157,7 @@ P(0,T)=e^{-z^* T}
 $$
 
 Where:
+
 - $P(0,T)$ is the discount factor from today to maturity $T$.
 - $T$ is a maturity or future time, typically measured in years from today.
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
@@ -1085,23 +1165,28 @@ Where:
 with $z^*=z(0,T_{\text{LLP}})$.
 
 ### Advantages
+
 - very simple.
 
 ### Drawbacks
+
 - can imply odd forward behavior beyond LLP,
 - usually less attractive than flat forward.
 
 ## 10.4 Parametric tail or UFR-style tail
 
 For some applications:
+
 - use a parametric tail,
 - or converge to an ultimate forward rate.
 
 ### Advantages
+
 - more economically shaped long end,
 - less dependence on the last liquid node.
 
 ### Drawbacks
+
 - needs strong governance,
 - often overkill for front-office macro books.
 
@@ -1112,7 +1197,7 @@ For a trading/risk platform:
 - **inside the liquid range**: piecewise bootstrap with log-linear discounts,
 - **outside the liquid range**: either no pricing, or flat-forward extrapolation under explicit governance.
 
-That is a strong, defensible answer.
+This is a robust default policy for trading and risk systems.
 
 ---
 
@@ -1121,27 +1206,30 @@ That is a strong, defensible answer.
 One concrete recommendation for a macro, rates, or credit front-office platform is:
 
 ### For OIS discount curves
+
 - bootstrap from tradable overnight / short-end / futures / OIS inputs,
 - canonical representation: discount factors,
 - interpolation: **log-linear on discount factors**,
 - extrapolation: disabled by default, with explicit flat-forward tail only if governance requires it.
 
 ### For forward curves
+
 - use tenor-specific curves if products need them,
 - still favor robust node-based bootstraps over clever-but-fragile smoothing.
 
 ### For sovereign reporting curves
+
 - keep them separate from OIS,
 - use bond-specific calibration logic,
 - never confuse sovereign yields with discounting curves.
 
-That is the implementation story that matches both good quant practice and your existing platform direction.
+This implementation pattern aligns with standard quant-platform practice.
 
 ---
 
 ## 12. Concrete `CurveBuilder` design
 
-A clean design for your C++ / Python platform is:
+A clean design for a C++ / Python platform is:
 
 ```cpp
 struct CurveSpec {
@@ -1191,73 +1279,91 @@ That aligns well with the current project architecture.
 ## 13. Common implementation questions
 
 ### Why OIS for discounting?
-Because collateralized pricing conventionally discounts at the collateral remuneration curve, and overnight RFR-based OIS is the market standard proxy.
+
+Because collateralized pricing conventionally discounts at the collateral remuneration curve, and overnight RFR-based
+OIS is the market standard proxy.
 
 ### Why not interpolate directly on yields?
-Because discount-factor interpolation is usually more stable and auditable for pricing; yield interpolation can hide undesirable forward behavior.
+
+Because discount-factor interpolation is usually more stable and auditable for pricing; yield interpolation can hide
+undesirable forward behavior.
 
 ### Why not use Nelson–Siegel for live pricing?
-Because it is a factor fit, not an exact tradable-instrument bootstrap, so it is better for scenario design and macro analysis than for primary front-office pricing.
+
+Because it is a factor fit, not an exact tradable-instrument bootstrap, so it is better for scenario design and macro
+analysis than for primary front-office pricing.
 
 ### Why separate OIS and sovereign curves?
-Because OIS reflects the collateralized funding term structure, while sovereign curves embed bond-market-specific liquidity, supply/demand, and repo effects.
 
-### What would you store in the database?
-Raw quotes, normalized IDs, as-of time, conventions package, pillar dates, pillar discount factors, interpolation policy, extrapolation policy, repricing errors, and source provenance.
+Because OIS reflects the collateralized funding term structure, while sovereign curves embed bond-market-specific
+liquidity, supply/demand, and repo effects.
+
+### Recommended database content
+
+Raw quotes, normalized IDs, as-of time, conventions package, pillar dates, pillar discount factors, interpolation
+policy, extrapolation policy, repricing errors, and source provenance.
 
 ---
 
 ## 14. Compact summary
 
-> In practice, USD, EUR, and CHF OIS discount curves should be built from normalized overnight and swap-market inputs, with vendor symbols mapped in the data layer rather than hard-coded in pricing code, and with the curve represented canonically through discount factors. In implementation terms, `discountImpl(t)` is the key primitive; `zeroRate` and `forwardRate` are derived views. For production, piecewise bootstrap with log-linear interpolation on discount factors is usually the preferred starting point because it is robust, positive, audit-friendly, and stable for P&L and risk, while strict extrapolation governance is applied beyond the last liquid point.
+> In practice, USD, EUR, and CHF OIS discount curves should be built from normalized overnight and swap-market inputs,
+> with vendor symbols mapped in the data layer rather than hard-coded in pricing code, and with the curve represented
+> canonically through discount factors. In implementation terms, `discountImpl(t)` is the key primitive; `zeroRate` and
+> `forwardRate` are derived views. For production, piecewise bootstrap with log-linear interpolation on discount factors
+> is usually the preferred starting point because it is robust, positive, audit-friendly, and stable for P&L and risk,
+> while strict extrapolation governance is applied beyond the last liquid point.
 
 ## 15. QuantLib function map: what gets called for which concept
 
 ### 15.1 Core term-structure queries
 
-| Concept | Typical QuantLib call | What it means in practice |
-|---|---|---|
-| Discount factor from today to $T$ | `curve->discount(date)` or `curve->discount(time)` | PV logic, discounting of deterministic cash flows |
-| Zero rate to $T$ | `curve->zeroRate(date, dc, comp, freq)` | reporting, macro interpretation, curve diagnostics |
-| Forward rate between two dates | `curve->forwardRate(d1, d2, dc, comp, freq)` | floating projection, forwards, carry / roll |
-| Time from reference date | `curve->timeFromReference(date)` | internal date-to-time conversion |
-| Allow extrapolation | `curve->enableExtrapolation()` | controlled use beyond last liquid pillar |
-| Shifted forward curve | `ImpliedTermStructure(baseHandle, newRefDate)` | forward-starting valuation / exposure |
+| Concept                           | Typical QuantLib call                              | What it means in practice                          |
+|-----------------------------------|----------------------------------------------------|----------------------------------------------------|
+| Discount factor from today to $T$ | `curve->discount(date)` or `curve->discount(time)` | PV logic, discounting of deterministic cash flows  |
+| Zero rate to $T$                  | `curve->zeroRate(date, dc, comp, freq)`            | reporting, macro interpretation, curve diagnostics |
+| Forward rate between two dates    | `curve->forwardRate(d1, d2, dc, comp, freq)`       | floating projection, forwards, carry / roll        |
+| Time from reference date          | `curve->timeFromReference(date)`                   | internal date-to-time conversion                   |
+| Allow extrapolation               | `curve->enableExtrapolation()`                     | controlled use beyond last liquid pillar           |
+| Shifted forward curve             | `ImpliedTermStructure(baseHandle, newRefDate)`     | forward-starting valuation / exposure              |
 
 ### 15.2 Building simple curve objects directly
 
-| Need | Typical QuantLib class |
-|---|---|
-| Flat continuously-compounded curve | `FlatForward` |
+| Need                                            | Typical QuantLib class                                    |
+|-------------------------------------------------|-----------------------------------------------------------|
+| Flat continuously-compounded curve              | `FlatForward`                                             |
 | Interpolated discount-factor curve from pillars | `InterpolatedDiscountCurve<LogLinear>` or `DiscountCurve` |
-| Interpolated zero curve | `InterpolatedZeroCurve<Linear>` or `ZeroCurve` |
-| Piecewise bootstrapped curve | `PiecewiseYieldCurve<...>` family |
+| Interpolated zero curve                         | `InterpolatedZeroCurve<Linear>` or `ZeroCurve`            |
+| Piecewise bootstrapped curve                    | `PiecewiseYieldCurve<...>` family                         |
 
 Good practice:
+
 - use a **piecewise curve with helpers** for market-consistent production curves,
 - use `FlatForward` and direct discount/zero curves for tests, small examples, and controlled scenarios,
-- use discount-factor representations as the canonical internal state unless you have a strong reason not to.
+- use discount-factor representations as the canonical internal state unless
+  a stronger alternative is explicitly justified.
 
 ### 15.3 Helper classes used during bootstrapping
 
-| Instrument family | Typical helper |
-|---|---|
-| Deposit / cash | `DepositRateHelper` |
-| FRA | `FraRateHelper` |
-| Futures | `FuturesRateHelper` |
-| OIS | `OISRateHelper` |
-| Vanilla IRS | `SwapRateHelper` |
+| Instrument family                                | Typical helper                       |
+|--------------------------------------------------|--------------------------------------|
+| Deposit / cash                                   | `DepositRateHelper`                  |
+| FRA                                              | `FraRateHelper`                      |
+| Futures                                          | `FuturesRateHelper`                  |
+| OIS                                              | `OISRateHelper`                      |
+| Vanilla IRS                                      | `SwapRateHelper`                     |
 | Cross-currency basis or more specialized helpers | desk-specific / extended helper sets |
 
-In practice, each helper encapsulates the quote convention and instrument pricing rule needed so that the bootstrapped curve reprices that instrument.
+In practice, each helper encapsulates the quote convention and instrument pricing rule needed so that the bootstrapped
+curve reprices that instrument.
 
 ### 15.4 Currency-specific overnight indexes in QuantLib
 
 | Currency | Typical QuantLib overnight index class |
-|---|---|
-| USD | `Sofr` |
-| EUR | `Estr` |
-| CHF | `Saron` |
+|----------|----------------------------------------|
+| USD      | `Sofr`                                 |
+| EUR      | `Estr`                                 |
+| CHF      | `Saron`                                |
 
 Representative construction pattern:
 
@@ -1293,10 +1399,16 @@ auto curve = ext::make_shared<PiecewiseYieldCurve<Discount, LogLinear>>(
 
 ### 15.6 Where `discountImpl` actually comes from
 
-In the QuantLib term-structure hierarchy, `YieldTermStructure` exposes public methods such as `discount`, `zeroRate`, and `forwardRate`, while derived classes are required to implement the internal primitive `discountImpl(Time)`. Public callers usually never call `discountImpl` directly; it is the protected engine behind the curve. The official class reference explicitly describes `discountImpl(Time)` as the pure virtual calculation hook in derived yield term structures.
+In the QuantLib term-structure hierarchy, `YieldTermStructure` exposes public methods such as `discount`, `zeroRate`,
+and `forwardRate`, while derived classes are required to implement the internal primitive `discountImpl(Time)`.
+Public callers usually never call `discountImpl` directly; it is the protected engine behind the curve. The official
+class reference explicitly describes `discountImpl(Time)` as the pure virtual calculation hook in derived yield term
+structures.
 
-> It is useful to think in terms of three layers: market data and helpers, the bootstrapped term-structure object, and public query methods such as `discount`, `zeroRate`, and `forwardRate`. For a forward-starting curve, either a direct discount-factor ratio or an `ImpliedTermStructure` can be used depending on whether only one number is needed or a reusable shifted curve object is required.
-
+> It is useful to think in terms of three layers: market data and helpers, the bootstrapped term-structure object, and
+> public query methods such as `discount`, `zeroRate`, and `forwardRate`. For a forward-starting curve, either a direct
+> discount-factor ratio or an `ImpliedTermStructure` can be used depending on whether only one number is needed or a
+> reusable shifted curve object is required.
 
 ## Visual aids used in this note
 

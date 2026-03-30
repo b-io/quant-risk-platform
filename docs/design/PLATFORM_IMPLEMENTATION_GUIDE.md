@@ -1,4 +1,4 @@
-# Platform Design and Implementation Guide 
+# Platform Design and Implementation Guide
 
 ## 1. Target system overview
 
@@ -40,12 +40,14 @@ $$
 ### 2.2 Why this split is good
 
 It separates:
+
 - raw data from built market objects,
 - product schema from pricing engines,
 - analytics logic from user interfaces,
 - business workflows from quant internals.
 
 This improves:
+
 - testability,
 - performance,
 - traceability,
@@ -58,6 +60,7 @@ This improves:
 ## 3.1 Raw market data is not enough
 
 Raw inputs often come in inconsistent forms:
+
 - vendor field names,
 - curve points without conventions,
 - desk overrides,
@@ -83,6 +86,7 @@ Each quote should carry enough information to build the correct market object:
 - quality / status flags.
 
 For credit specifically add:
+
 - reference entity,
 - seniority,
 - restructuring clause if relevant,
@@ -92,6 +96,7 @@ For credit specifically add:
 ### 3.3 Why this matters
 
 Without typed metadata:
+
 - bootstrapping becomes fragile,
 - factor mapping becomes ambiguous,
 - P&L explain becomes weak,
@@ -102,6 +107,7 @@ Without typed metadata:
 ## 4. Convention registry
 
 A convention registry should own:
+
 - calendars,
 - day counts,
 - business-day conventions,
@@ -115,7 +121,8 @@ Why?
 
 Because conventions are shared infrastructure, not local product trivia.
 
-> Calendars, day counts, and fixing rules should not be spread throughout pricing code. A stable convention layer ensures that pricing, risk, explain, and data validation all use the same assumptions.
+> Calendars, day counts, and fixing rules should not be spread throughout pricing code. A stable convention layer
+> ensures that pricing, risk, explain, and data validation all use the same assumptions.
 
 ---
 
@@ -124,6 +131,7 @@ Because conventions are shared infrastructure, not local product trivia.
 ## 5.1 Separate builders by object type
 
 Recommended builders:
+
 - `RatesCurveBuilder`
 - `ProjectionCurveBuilder`
 - `CreditCurveBuilder`
@@ -135,6 +143,7 @@ This is better than one giant monolithic builder.
 ## 5.2 Builder outputs
 
 Each builder should output:
+
 - built QuantLib or internal market object,
 - IDs and labels,
 - diagnostics,
@@ -142,6 +151,7 @@ Each builder should output:
 - reusable handles.
 
 #### Example for 5.2 — diagnostics surfaced to front office and support
+
 - calibration residuals,
 - missing required nodes,
 - extrapolation warnings,
@@ -155,6 +165,7 @@ Each builder should output:
 ## 6.1 What it should contain
 
 A `MarketState` should contain:
+
 - valuation date,
 - normalized quotes,
 - built curves / surfaces,
@@ -169,6 +180,7 @@ Many trades depend on the same market objects.
 Instead of rebuilding market inputs trade by trade, build the market state once and reuse it.
 
 This supports:
+
 - valuation,
 - bucketed risk,
 - scenario stress,
@@ -197,13 +209,16 @@ $$
 $$
 
 Where:
+
 - $PV$ is the present value of the cash flow or instrument.
 
 When a quote changes:
+
 - dependent objects are marked dirty,
 - recalculation happens lazily when NPV or risk is requested.
 
 That gives:
+
 - fast bump-and-revalue,
 - good scenario performance,
 - clean reuse of market and instrument objects.
@@ -211,6 +226,7 @@ That gives:
 ## 7.2 Why this is better than brute-force rebuilds
 
 Brute-force rebuild means:
+
 - reload DTOs,
 - rebuild curves,
 - rebuild instruments,
@@ -220,6 +236,7 @@ Brute-force rebuild means:
 This is simpler conceptually but too expensive at scale.
 
 A stronger production design is:
+
 - build once,
 - shock quote handles,
 - reprice.
@@ -239,6 +256,7 @@ Example factor IDs:
 - `RF:IRVOL:USD:SWAPTION:5Yx10Y:ATM`
 
 A good factor model enables:
+
 - deterministic risk,
 - historical stress,
 - P&L explain,
@@ -257,6 +275,7 @@ Without factor IDs, the platform can produce numbers but cannot explain them wel
 Trade DTOs should not be priced directly by services.
 
 Instead:
+
 - validate,
 - map to canonical product types,
 - build reusable instrument representation,
@@ -265,6 +284,7 @@ Instead:
 ## 9.2 Pricing context
 
 A pricing context resolves the market dependencies for each trade:
+
 - discount curve,
 - forecast curve,
 - credit curve,
@@ -288,6 +308,7 @@ Recommended services:
 - `MonteCarloEngine`
 
 Each service should:
+
 - consume built market state and built instruments,
 - return structured results,
 - avoid reparsing inputs,
@@ -296,6 +317,7 @@ Each service should:
 ### Good result schema
 
 Every output should carry:
+
 - run ID,
 - valuation date,
 - trade ID / portfolio ID,
@@ -312,6 +334,7 @@ That makes downstream reporting easy.
 ## 11. Persistence and auditability
 
 A platform like this should persist:
+
 - market snapshots,
 - portfolios,
 - scenarios,
@@ -322,6 +345,7 @@ A platform like this should persist:
 - diagnostics.
 
 Why this matters:
+
 - reproducibility,
 - auditability,
 - run comparison,
@@ -330,7 +354,9 @@ Why this matters:
 
 Why SQLite or SQL at all:
 
-> A persistent run history and stable serialization layer make the platform a reproducible analytics system rather than only a pricing library. The backend can evolve, but the analytics services should stay independent of the storage implementation.
+> A persistent run history and stable serialization layer make the platform a reproducible analytics system rather than
+> only a pricing library. The backend can evolve, but the analytics services should stay independent of the storage
+> implementation.
 
 ---
 
@@ -347,21 +373,27 @@ $$
 Do not implement different pricing logic for each interface.
 
 ### GUI
+
 Use for:
+
 - portfolio drill-down,
 - run comparison,
 - monitoring,
 - scenario dashboards.
 
 ### Excel API
+
 Use for:
+
 - desk consumption,
 - rapid user checks,
 - ad hoc analysis,
 - controlled UDFs or service calls.
 
 ### Python API
+
 Use for:
+
 - research workflows,
 - scripting,
 - batch analysis,
@@ -369,6 +401,7 @@ Use for:
 - integration with broader quant processes.
 
 A sensible prioritization is:
+
 - common service contracts first,
 - then user interfaces on top.
 
@@ -379,7 +412,9 @@ A sensible prioritization is:
 For this role, be ready to discuss performance beyond generic slogans.
 
 ### 13.1 Bottlenecks
+
 Typical bottlenecks:
+
 - repeated object construction,
 - repeated curve rebuilds,
 - excessive copying,
@@ -390,7 +425,9 @@ Typical bottlenecks:
 - unnecessary cross-language calls.
 
 ### 13.2 Performance levers
+
 Good levers:
+
 - build once, reuse many times,
 - keep hot loops in C++,
 - batch scenario application,
@@ -400,9 +437,12 @@ Good levers:
 - separate latency-sensitive from throughput-sensitive workloads.
 
 ### 13.3 Python vs. C++ in this platform
-A strong answer:
 
-> Python is best used where flexibility and iteration speed matter, but not in the hot path. Pricing, scenario revaluation, bucketed risk, and Monte Carlo should stay in C++. Python is ideal for orchestration, notebooks, service wrappers, and external user access, but repeated Python-to-C++ crossings inside inner loops should be minimized.
+Practical summary:
+
+> Python is best used where flexibility and iteration speed matter, but not in the hot path. Pricing, scenario
+> revaluation, bucketed risk, and Monte Carlo should stay in C++. Python is ideal for orchestration, notebooks, service
+> wrappers, and external user access, but repeated Python-to-C++ crossings inside inner loops should be minimized.
 
 ---
 
@@ -411,6 +451,7 @@ A strong answer:
 A strong quant platform needs more than unit tests.
 
 ### 14.1 Test layers
+
 - unit tests for helpers and builders,
 - integration tests for portfolio workflows,
 - regression tests for stable valuation and risk outputs,
@@ -419,6 +460,7 @@ A strong quant platform needs more than unit tests.
 - performance tests for critical workloads.
 
 ### 14.2 What to regression-test
+
 - curve calibration outputs,
 - trade valuations,
 - PV01 / CS01 buckets,
@@ -427,7 +469,9 @@ A strong quant platform needs more than unit tests.
 - persistence round-trips.
 
 ### 14.3 Why tests matter in quant systems
+
 Because tiny convention changes can materially change:
+
 - NPV,
 - sensitivities,
 - explain,
@@ -440,6 +484,7 @@ Because tiny convention changes can materially change:
 You already have the right skeleton. The most natural extension path is:
 
 ### 15.1 Strengthen rates production quality
+
 - explicit discount vs. projection curves,
 - richer factor IDs,
 - robust explain waterfall,
@@ -447,6 +492,7 @@ You already have the right skeleton. The most natural extension path is:
 - curve diagnostics.
 
 ### 15.2 Add credit market objects
+
 - typed CDS quotes,
 - issuer and seniority mapping,
 - recovery storage,
@@ -455,6 +501,7 @@ You already have the right skeleton. The most natural extension path is:
 - CS01 results.
 
 ### 15.3 Add explain and historical replay
+
 - versioned market snapshots,
 - versioned portfolio states,
 - historical factor returns,
@@ -462,6 +509,7 @@ You already have the right skeleton. The most natural extension path is:
 - run comparison.
 
 ### 15.4 Improve end-user access
+
 - richer Python bindings,
 - simple Excel service wrapper,
 - dashboard/GUI backed by persisted runs.
@@ -472,4 +520,7 @@ This is a strong extension path for the platform.
 
 ## 16. A strong closing statement for architecture questions
 
-> The platform should be treated as a reusable market-state and analytics system, not just a pricing library. The difficult part is not only pricing a trade once; it is building market-consistent curves and surfaces, reusing them efficiently across portfolios, exposing factor-based risk and explain, persisting runs for reproducibility, and making the same analytics available consistently through Python, Excel, and UI channels.
+> The platform should be treated as a reusable market-state and analytics system, not just a pricing library.
+> The difficult part is not only pricing a trade once; it is building market-consistent curves and surfaces, reusing
+> them efficiently across portfolios, exposing factor-based risk and explain, persisting runs for reproducibility, and
+> making the same analytics available consistently through Python, Excel, and UI channels.

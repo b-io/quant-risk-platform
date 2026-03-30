@@ -55,8 +55,8 @@ $$
 X_1, \dots, X_n,
 $$
 
-where each observation is assumed to come from a distribution belonging to a parametric family indexed by a
-parameter $\theta \in \Theta$. We write the realized sample as
+where each observation is assumed to come from a distribution belonging to a parametric family indexed by a parameter
+$\theta \in \Theta$. We write the realized sample as
 
 $$
 X_1=x_1,\dots,X_n=x_n.
@@ -212,9 +212,9 @@ So the MLE is simply the sample proportion of successes.
 
 ### Use cases
 
-The Bernoulli law is the simplest model for a single yes/no outcome. In credit risk, one may define $X_i=1$ if
-issuer $i$ defaults during a given horizon and $X_i=0$ otherwise. In operational-risk or control settings, one may
-set $X_i=1$ if a breach occurs during a period. In reliability, it may represent whether a component failed before a
+The Bernoulli law is the simplest model for a single yes/no outcome. In credit risk, one may define $X_i=1$ if issuer
+$i$ defaults during a given horizon and $X_i=0$ otherwise. In operational-risk or control settings, one may set
+$X_i=1$ if a breach occurs during a period. In reliability, it may represent whether a component failed before a
 deadline. In experimentation, it is the canonical model for success/failure trials. Even when real systems are more
 complex, the Bernoulli variable remains a basic building block because many portfolio models are formed by summing
 Bernoulli indicators.
@@ -1296,6 +1296,6 @@ The next natural topics after this chapter are:
 5. Brownian motion and Itô calculus,
 6. transform methods and Fourier pricing.
 
-If you want this chapter to read even more like a textbook, the next step would be to add short derivations of the means
-and variances, plus a small section on moment-generating functions and probability-generating functions.
+A natural next extension would be to add short derivations of the means and variances, plus a small section on
+moment-generating functions and probability-generating functions.
 

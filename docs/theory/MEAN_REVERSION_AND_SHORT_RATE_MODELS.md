@@ -132,9 +132,11 @@ Important special cases are:
 
 - $\gamma = 0$: **normal-rate models** such as Ho-Lee and Hull-White.
 - $\gamma = \tfrac{1}{2}$: **square-root volatility** models such as CIR and Courtadon-style square-root models.
-- $\gamma = 1$: **lognormal / proportional volatility** models such as Dothan, Rendleman-Bartter, and the log-rate formulation behind Black-Karasinski.
+- $\gamma = 1$: **lognormal / proportional volatility** models such as Dothan, Rendleman-Bartter, and the log-rate
+  formulation behind Black-Karasinski.
 
-This classification is practically useful because it explains how the volatility behaves when the short rate is low or high.
+This classification is practically useful because it explains how the volatility behaves when the short rate is low or
+high.
 
 ---
 
@@ -288,7 +290,8 @@ The diffusion shock shrinks automatically as the level of rates falls because of
 
 ### 6.2 Courtadon-style square-root models
 
-In many term-structure summaries, the **Courtadon model** is presented as an early square-root mean-reverting short-rate model of the form
+In many term-structure summaries, the **Courtadon model** is presented as an early square-root mean-reverting short-rate
+model of the form
 
 $$
 dr_t = k(\theta - r_t)dt + \sigma \sqrt{r_t} dW_t
@@ -438,8 +441,8 @@ This means:
 - long-horizon incremental shocks are damped,
 - the volatility term structure decays through time.
 
-This is useful when the desk wants the short end of the curve to be more volatile than the long end, or when option-implied
-volatility suggests a front-loaded uncertainty profile.
+This is useful when the desk wants the short end of the curve to be more volatile than the long end, or when
+option-implied volatility suggests a front-loaded uncertainty profile.
 
 ### Example for Section 8 — exponentially decaying volatility
 
@@ -508,7 +511,7 @@ These three forms differ mainly in:
 
 ## 10. Which family is best for which purpose?
 
-### When you want exact fit to today's curve
+### When exact fit to today's curve is the priority
 
 Prefer a no-arbitrage shifted or extended model such as:
 
@@ -531,7 +534,7 @@ Prefer:
 - Hull-White,
 - CIR.
 
-### When you want intuitive macro-scenario storytelling
+### When intuitive macro-scenario storytelling is the priority
 
 Prefer models with clear parameters for:
 
@@ -548,8 +551,10 @@ The main progression is:
 1. **Ho-Lee**: simple, normal, no mean reversion.
 2. **Vasicek**: adds mean reversion.
 3. **Hull-White**: adds curve fitting and optionally time-dependent volatility.
-4. **CIR / Courtadon-style square-root models**: add mean reversion with level-dependent volatility and positive-rate behavior.
-5. **Lognormal and Black-Karasinski models**: preserve positivity through proportional or log-rate dynamics, with Black-Karasinski also adding mean reversion.
+4. **CIR / Courtadon-style square-root models**: add mean reversion with level-dependent volatility and positive-rate
+   behavior.
+5. **Lognormal and Black-Karasinski models**: preserve positivity through proportional or log-rate dynamics, with
+   Black-Karasinski also adding mean reversion.
 
 That progression is useful because it mirrors how real rates platforms evolve:
 

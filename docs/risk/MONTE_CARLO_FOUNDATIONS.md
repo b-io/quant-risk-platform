@@ -25,6 +25,7 @@ V = \mathbb{E}[X]
 $$
 
 where $X$ may represent, for example:
+
 - a discounted derivative payoff
 - a path-dependent cash-flow functional
 - a portfolio loss under a scenario generator
@@ -37,21 +38,25 @@ $$
 $$
 
 Where:
+
 - $N$ is the number of simulated paths or observations.
 
 This is the core Monte Carlo estimator.
 
 Two fundamental probability results justify it:
+
 - the **Law of Large Numbers (LLN)** gives **consistency**
 - the **Central Limit Theorem (CLT)** gives the **error scale and confidence intervals**
 
 A concise summary is:
 
-> LLN tells us the Monte Carlo estimator converges to the true expectation; CLT tells us how fast the error shrinks and how to quantify uncertainty around the estimate.
+> LLN tells us the Monte Carlo estimator converges to the true expectation; CLT tells us how fast the error shrinks and
+> how to quantify uncertainty around the estimate.
 
 ## 1A. Running Monte Carlo pricing example
 
 Suppose we price a 1Y European call on an equity with:
+
 - spot $S_0 = 100$
 - strike $K = 100$
 - risk-free rate $r = 3\%$
@@ -64,6 +69,7 @@ X_i = e^{-rT}\max(S_T^{(i)}-K,0)
 $$
 
 Where:
+
 - $S_T$ is the asset price at maturity $T$.
 - $X_i$ is the $i$-th sampled observation or simulated payoff.
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
@@ -75,6 +81,7 @@ $$
 $$
 
 Where:
+
 - $N$ is the number of simulated paths or observations.
 
 ### Tiny numerical illustration
@@ -92,11 +99,13 @@ $$
 $$
 
 Interpretation:
+
 - this is only a toy estimate,
 - LLN says it stabilizes as $N$ gets large,
 - CLT says the uncertainty around 4.40 shrinks at rate $1/\sqrt{N}$.
 
 Good practice:
+
 - always report both the price and its standard error,
 - do not present a Monte Carlo number without path count, seed policy, and confidence interval.
 
@@ -109,6 +118,7 @@ $$
 $$
 
 Where:
+
 - $\mu$ is the true mean, drift, or expected value depending on context.
 - $\mathbb{E}[\cdot]$ denotes expectation.
 
@@ -119,6 +129,7 @@ $$
 $$
 
 Where:
+
 - $\hat{\mu}_N$ is the estimator of the unknown mean $\mu$ based on $N$ samples.
 - $N$ is the number of simulated paths or observations.
 
@@ -131,6 +142,7 @@ $$
 $$
 
 In Monte Carlo language:
+
 - if you rerun the simulation many times with larger and larger $N$
 - then the probability that the estimate is far from the true value goes to zero
 
@@ -147,6 +159,7 @@ $$
 $$
 
 In Monte Carlo language:
+
 - along almost every realized simulation stream
 - the running average actually settles to the true value as $N \to \infty$
 
@@ -155,10 +168,12 @@ This is why, when you plot the running Monte Carlo estimate, you expect it to st
 ### 2.3 What LLN does and does not tell you
 
 LLN tells you:
+
 - the estimator is **consistent**
 - more paths improve accuracy asymptotically
 
 LLN does **not** tell you:
+
 - how large $N$ must be in practice
 - how large the error is for a given $N$
 - what confidence interval to quote
@@ -174,6 +189,7 @@ $$
 $$
 
 Where:
+
 - $\sigma^2$ is the variance of the underlying random variable or process.
 - $\sigma$ is the volatility or standard deviation parameter.
 - $X$ is a generic random variable.
@@ -186,6 +202,7 @@ $$
 $$
 
 Where:
+
 - $\hat{\mu}_N$ is the estimator of the unknown mean $\mu$ based on $N$ samples.
 - $\mu$ is the true mean, drift, or expected value depending on context.
 - $\mathcal{N}(a,b)$ denotes a normal distribution with mean $a$ and variance $b$.
@@ -218,9 +235,9 @@ This is one of the most important practical facts in quant finance.
 
 ### 3.2 Why this rate matters so much
 
-If you want to divide the standard error by 2, you need about 4 times more paths.
+Dividing the standard error by 2 requires about 4 times more paths.
 
-If you want to divide the standard error by 10, you need about 100 times more paths.
+Dividing the standard error by 10 requires about 100 times more paths.
 
 That is why pure brute-force Monte Carlo can become expensive, and why variance reduction is so important.
 
@@ -233,6 +250,7 @@ $$
 $$
 
 Where:
+
 - $\hat{\mu}_N$ is the estimator of the unknown mean $\mu$ based on $N$ samples.
 - $\mu$ is the true mean, drift, or expected value depending on context.
 - $\sigma$ is the volatility or standard deviation parameter.
@@ -260,7 +278,8 @@ This is exactly how production Monte Carlo engines should report uncertainty.
 
 A concise summary is:
 
-> LLN tells me the estimator is converging; CLT lets me attach a confidence interval and stop once the confidence band is sufficiently small.
+> LLN tells me the estimator is converging; CLT lets me attach a confidence interval and stop once the confidence band
+> is sufficiently small.
 
 ## 5. Worked Monte Carlo pricing example
 
@@ -271,6 +290,7 @@ X = e^{-rT} f(S_T).
 $$
 
 Where:
+
 - $S_T$ is the asset price at maturity $T$.
 - $X$ is a generic random variable.
 
@@ -281,6 +301,7 @@ V = \mathbb{E}[X].
 $$
 
 Where:
+
 - $\mathbb{E}[\cdot]$ denotes expectation.
 
 Simulate $N$ terminal values or paths and compute:
@@ -290,6 +311,7 @@ $$
 $$
 
 Where:
+
 - $N$ is the number of simulated paths or observations.
 
 By LLN:
@@ -307,6 +329,7 @@ $$
 $$
 
 Where:
+
 - $\sigma$ is the volatility or standard deviation parameter.
 - $\mathcal{N}(a,b)$ denotes a normal distribution with mean $a$ and variance $b$.
 
@@ -317,9 +340,11 @@ $$
 $$
 
 Where:
+
 - $\mathrm{Var}(\cdot)$ denotes variance.
 
 So the practical workflow is:
+
 1. simulate payoffs
 2. average them to get price
 3. estimate sample variance
@@ -328,14 +353,17 @@ So the practical workflow is:
 
 ## 6. Why independence matters
 
-Classical LLN and CLT are easiest under i.i.d. assumptions. In Monte Carlo we usually design simulations so that random draws are independent or nearly independent.
+Classical LLN and CLT are easiest under i.i.d. assumptions. In Monte Carlo we usually design simulations so that random
+draws are independent or nearly independent.
 
 If samples are correlated, then:
+
 - LLN and CLT may still hold under broader conditions
 - but the variance formula changes
 - naive standard errors can be wrong
 
 This matters for:
+
 - MCMC
 - time-series resampling
 - quasi-Monte Carlo diagnostics
@@ -346,13 +374,16 @@ For standard option pricing Monte Carlo, the clean assumption is i.i.d. paths.
 ## 7. Why weak LLN is still useful for Monte Carlo
 
 The strong law is stronger, but the weak law remains useful because:
+
 - it is often easier to establish
 - consistency in probability is already enough for many asymptotic results
 - many estimator arguments only need convergence in probability
 
 In practical quant language:
 
-> Weak convergence is already enough to justify that the estimator becomes accurate as the number of paths grows. The stronger pathwise statement that one running simulation average converges almost surely is provided by the strong law.
+> Weak convergence is already enough to justify that the estimator becomes accurate as the number of paths grows.
+> The stronger pathwise statement that one running simulation average converges almost surely is provided by the strong
+> law.
 
 ## 8. CLT explains Monte Carlo error bars
 
@@ -365,6 +396,7 @@ $$
 $$
 
 Where:
+
 - $\hat{\mu}_N$ is the estimator of the unknown mean $\mu$ based on $N$ samples.
 - $\mu$ is the true mean, drift, or expected value depending on context.
 
@@ -375,6 +407,7 @@ $$
 $$
 
 Where:
+
 - $\mathcal{N}(a,b)$ denotes a normal distribution with mean $a$ and variance $b$.
 - $N$ is the number of simulated paths or observations.
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
@@ -382,6 +415,7 @@ Where:
 That is the statement behind error bars and confidence bands.
 
 So in Monte Carlo:
+
 - **LLN = convergence**
 - **CLT = uncertainty quantification**
 
@@ -394,6 +428,7 @@ $$
 $$
 
 Where:
+
 - $S_0$ is the asset price at the valuation date.
 
 Each bumped price is estimated by Monte Carlo, so each has sampling error.
@@ -401,6 +436,7 @@ Each bumped price is estimated by Monte Carlo, so each has sampling error.
 CLT tells you the noise level of each estimate and therefore the noise level of the Greek estimator.
 
 This matters because Greek estimation has a bias-variance trade-off:
+
 - smaller bump $h$ reduces finite-difference bias
 - but too small $h$ amplifies Monte Carlo noise
 
@@ -415,12 +451,14 @@ V = \mathbb{E}[\,g(\mathbb{E}[X \mid Y])\,].
 $$
 
 Where:
+
 - $X$ is a generic random variable.
 - $\mathbb{E}[\cdot]$ denotes expectation.
 
 Then Monte Carlo error appears at more than one level.
 
 CLT-type reasoning helps you understand:
+
 - where sampling error is coming from
 - whether outer or inner simulation dominates cost
 - how to allocate computational budget
@@ -440,6 +478,7 @@ $$
 $$
 
 Where:
+
 - $\hat{\mu}_N$ is the estimator of the unknown mean $\mu$ based on $N$ samples.
 - $\mu$ is the true mean, drift, or expected value depending on context.
 - $\sigma^2$ is the variance of the underlying random variable or process.
@@ -450,6 +489,7 @@ Where:
 by making $\sigma^2$ smaller.
 
 Examples:
+
 - antithetic variates
 - control variates
 - stratification
@@ -471,6 +511,7 @@ Z = X - \beta (Y - \mathbb{E}[Y]).
 $$
 
 Where:
+
 - $X$ is a generic random variable.
 - $\mathbb{E}[\cdot]$ denotes expectation.
 
@@ -493,6 +534,7 @@ which reduces Monte Carlo error.
 CLT in its standard form requires finite variance.
 
 If $X$ has finite mean but infinite variance:
+
 - LLN may still hold under suitable conditions
 - but the standard Gaussian CLT can fail
 - confidence intervals based on $s_N/\sqrt{N}$ become unreliable
@@ -505,7 +547,8 @@ Quasi-Monte Carlo replaces randomness with low-discrepancy sequences.
 
 Then the classical i.i.d. LLN / CLT story is no longer the full picture.
 
-The goal becomes better deterministic integration error, often superior to plain Monte Carlo in practice for smooth moderate-dimensional problems.
+The goal becomes better deterministic integration error, often superior to plain Monte Carlo in practice for smooth
+moderate-dimensional problems.
 
 - standard Monte Carlo: LLN + CLT + probabilistic error bars
 - quasi-Monte Carlo: deterministic low-discrepancy error logic, sometimes randomized for error estimation
@@ -513,6 +556,7 @@ The goal becomes better deterministic integration error, often superior to plain
 ## 14. Practical production guidance
 
 A strong implementation should:
+
 - report the Monte Carlo estimate
 - report sample variance and standard error
 - report a confidence interval
@@ -523,26 +567,35 @@ $$
 $$
 
 Where:
+
 - $N$ is the number of simulated paths or observations.
 
 - expose diagnostics for effective sample size, variance reduction, and path reuse
 - make the estimator and error decomposition reproducible
 
-For a front-office or risk platform, this is not optional. Users need to know not only the estimate but also its reliability.
+For a front-office or risk platform, this is not optional. Users need to know not only the estimate but also its
+reliability.
 
 ## 15. Concise summaries
 
 ### 15.1 Core explanation
 
-> In Monte Carlo pricing, we estimate an expectation by a sample average. The Law of Large Numbers justifies consistency: as the number of paths increases, the sample average converges to the true price. The Central Limit Theorem is what makes the method operational, because it says the estimation error is asymptotically Gaussian with standard deviation proportional to $1/\sqrt{N}$. That lets us compute standard errors, confidence intervals, and stopping rules.
+> In Monte Carlo pricing, we estimate an expectation by a sample average. The Law of Large Numbers justifies
+> consistency: as the number of paths increases, the sample average converges to the true price. The Central Limit
+> Theorem is what makes the method operational, because it says the estimation error is asymptotically Gaussian with
+> standard deviation proportional to $1/\sqrt{N}$. That lets us compute standard errors, confidence intervals, and
+> stopping rules.
 
 ### 15.2 Why variance reduction matters
 
-> The asymptotic Monte Carlo rate is usually still $1/\sqrt{N}$, so variance reduction is about shrinking the variance constant, not changing the rate. In practice that means tighter error bars for the same computational budget.
+> The asymptotic Monte Carlo rate is usually still $1/\sqrt{N}$, so variance reduction is about shrinking the variance
+> constant, not changing the rate. In practice that means tighter error bars for the same computational budget.
 
 ### 15.3 Weak vs. strong LLN in Monte Carlo
 
-> The weak law is enough to show that the estimator becomes accurate in probability. The strong law gives the stronger statement that the running average converges almost surely along a realized simulation stream. For practical Monte Carlo consistency arguments, weak convergence is often sufficient; for pathwise intuition, the strong law is stronger.
+> The weak law is enough to show that the estimator becomes accurate in probability. The strong law gives the stronger
+> statement that the running average converges almost surely along a realized simulation stream. For practical Monte
+> Carlo consistency arguments, weak convergence is often sufficient; for pathwise intuition, the strong law is stronger.
 
 ## 16. One-line summary
 
@@ -551,6 +604,7 @@ $$
 $$
 
 Where:
+
 - $N$ is the number of simulated paths or observations.
 
 ## 17. How the confidence interval is derived from the CLT
@@ -562,6 +616,7 @@ $$
 $$
 
 Where:
+
 - $\hat{\mu}_N$ is the estimator of the unknown mean $\mu$ based on $N$ samples.
 - $\mu$ is the true mean, drift, or expected value depending on context.
 - $\sigma^2$ is the variance of the underlying random variable or process.
@@ -627,6 +682,7 @@ For Monte Carlo pricing, $\mu$ is the true price or expectation we are estimatin
 #### Example for 17.2 — CLT confidence interval for a Monte Carlo price
 
 Suppose a Monte Carlo engine gives:
+
 - estimate $\hat V_N = 10.24$
 - sample standard deviation of discounted payoffs $s_N = 4.50$
 - number of paths $N = 10{,}000$
@@ -650,6 +706,7 @@ $$
 $$
 
 Interpretation:
+
 - the point estimate is 10.24
 - the CLT says the finite-sample Monte Carlo noise is about 8.8 cents at 95% confidence
 - front office can decide whether this precision is sufficient for pricing or hedging
@@ -659,6 +716,7 @@ Interpretation:
 CLT-based confidence intervals are useful whenever an estimator is approximately normal for large sample size.
 
 They are used to:
+
 - quantify estimation uncertainty
 - compare two models or two portfolios
 - decide whether more simulation is needed
@@ -678,6 +736,7 @@ This is much more informative than reporting only the point estimate.
 A confidence interval is exactly a probabilistic bound for an unknown parameter.
 
 Examples of parameters:
+
 - the true mean return $\mu$
 - the true option price $V$
 - the true default probability $p$
@@ -686,13 +745,15 @@ Examples of parameters:
 
 ### 19.1 Two-sided bound
 
-For a parameter $\theta$ estimated by $\hat{\theta}$ with estimated standard error $\widehat{\mathrm{SE}}(\hat{\theta})$, a large-sample interval is:
+For a parameter $\theta$ estimated by $\hat{\theta}$ with estimated standard error
+$\widehat{\mathrm{SE}}(\hat{\theta})$, a large-sample interval is:
 
 $$
 \theta \in \left[\hat{\theta}-z_{\alpha/2}\widehat{\mathrm{SE}}(\hat{\theta}),\ \hat{\theta}+z_{\alpha/2}\widehat{\mathrm{SE}}(\hat{\theta})\right]
 $$
 
 Where:
+
 - $\hat{\theta}$ is an estimator of the unknown parameter $\theta$.
 - $\theta$ is a generic unknown parameter or target quantity.
 - $\alpha$ is a tail probability or significance level.
@@ -701,6 +762,7 @@ Where:
 approximately with confidence level $1-\alpha$.
 
 Typical quantiles:
+
 - 90%: $z_{0.95}\approx 1.645$
 - 95%: $z_{0.975}\approx 1.96$
 - 99%: $z_{0.995}\approx 2.576$
@@ -714,6 +776,7 @@ $$
 $$
 
 Where:
+
 - $\hat{\theta}$ is an estimator of the unknown parameter $\theta$.
 - $\theta$ is a generic unknown parameter or target quantity.
 - $\alpha$ is a tail probability or significance level.
@@ -722,6 +785,7 @@ Where:
 approximately with confidence level $1-\alpha$.
 
 This is useful, for example, for:
+
 - upper-bounding simulation error
 - conservative exposure or loss metrics
 - testing whether a parameter exceeds a threshold
@@ -735,6 +799,7 @@ $$
 $$
 
 Where:
+
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
 
 For a Bernoulli variable, the asymptotic standard error is:
@@ -746,6 +811,7 @@ $$
 $$
 
 Where:
+
 - $n$ is the sample size.
 
 A 95% interval is approximately:
@@ -776,6 +842,7 @@ $$
 $$
 
 Where:
+
 - $\hat{\theta}$ is an estimator of the unknown parameter $\theta$.
 - $\theta$ is a generic unknown parameter or target quantity.
 
@@ -792,6 +859,7 @@ $$
 $$
 
 Where:
+
 - $\hat{\theta}$ is an estimator of the unknown parameter $\theta$.
 - $\theta$ is a generic unknown parameter or target quantity.
 - $\mathcal{N}(a,b)$ denotes a normal distribution with mean $a$ and variance $b$.
@@ -820,12 +888,14 @@ $$
 Modern front-office and risk teams do not stop at “the estimator converges eventually.”
 
 They ask:
+
 - How noisy is the number today?
 - Is the confidence interval acceptable for trading?
 - Is the numerical noise smaller than bid-offer, hedge tolerance, or P\&L explain thresholds?
 - whether more paths or better variance reduction is needed
 
 Typical operational uses:
+
 - stop a pricing run when the relative confidence interval is below a threshold
 - reject a result if the standard error is too large
 - compare model changes only if the difference is statistically meaningful relative to Monte Carlo noise
@@ -840,6 +910,7 @@ $$
 $$
 
 where:
+
 - $\eta$ is a target relative tolerance, for example 0.5% or 1%
 - $\epsilon$ avoids division by a near-zero estimate
 
@@ -848,12 +919,14 @@ This is often more meaningful to traders than a purely absolute error threshold.
 ## 22. Caveats and good practice
 
 The CLT interval is asymptotic, so it works best when:
+
 - $N$ is reasonably large
 - variance is finite
 - observations are independent or weakly dependent with the correct variance formula
 - the payoff distribution is not too pathological
 
 Good practice:
+
 - report the path count
 - report sample variance and standard error
 - report confidence intervals
@@ -861,6 +934,7 @@ Good practice:
 - avoid quoting a Monte Carlo number without its uncertainty band
 
 If the distribution is highly skewed or heavy-tailed, additional care may be needed:
+
 - more paths
 - variance reduction
 - transformed estimators

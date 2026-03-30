@@ -1,8 +1,8 @@
 # CDS Curves and Credit Risk in Practice
 
 This note consolidates the credit-specific material from the broader rates-and-risk notes.
-It focuses on how CDS spreads map to survival curves, how recovery assumptions enter calibration,
-what outputs a reusable credit curve should expose, and how CS01 attribution should be organized in a production platform.
+It focuses on how CDS spreads map to survival curves, how recovery assumptions enter calibration, what outputs a
+reusable credit curve should expose, and how CS01 attribution should be organized in a production platform.
 
 ## 3. CDS and credit curves
 
@@ -11,6 +11,7 @@ what outputs a reusable credit curve should expose, and how CS01 attribution sho
 A CDS spread is the premium paid to insure against default of a reference entity.
 
 The contract has:
+
 - premium payments until maturity or default,
 - protection payment if a credit event occurs,
 - a recovery assumption.
@@ -22,6 +23,7 @@ PV_{\text{premium}} = PV_{\text{protection}}
 $$
 
 Where:
+
 - $PV$ is the present value of the cash flow or instrument.
 
 ### 3.2 Survival probability and default density
@@ -33,6 +35,7 @@ Q(0,T) = \exp\left(-\int_0^T \lambda(u)\,du\right)
 $$
 
 Where:
+
 - $Q(0,T)$ is the survival probability from today to time $T$.
 - $u$ is the real argument of a characteristic function.
 - $T$ is a maturity or future time, typically measured in years from today.
@@ -51,6 +54,7 @@ d\mathbb{P}(\tau \le t) \approx \lambda(t)Q(0,t)\,dt
 $$
 
 Where:
+
 - $Q(0,t)$ is the survival probability from today to time $t$.
 - $\lambda(t)$ is the hazard rate or default intensity at time $t$.
 - $t$ is a time variable, or the real argument of a moment generating function depending on context.
@@ -88,6 +92,7 @@ s \sum_{i=1}^{N} \alpha_i P(0,t_i) Q(0,t_i)
 $$
 
 where:
+
 - $s$ is CDS spread,
 - $\alpha_i$ is accrual factor,
 - $P(0,t_i)$ is discount factor,
@@ -140,7 +145,8 @@ $$
 PV_{\text{protection}} \approx 0.60 \times 0.05 \times 0.95 = 0.0285
 $$
 
-So the protection leg is worth about 2.85% of notional. This is close to the premium-leg number above, which is exactly what we expect near the par spread.
+So the protection leg is worth about 2.85% of notional. This is close to the premium-leg number above, which is exactly
+what we expect near the par spread.
 
 ### 3.5 Calibration logic
 
@@ -151,13 +157,15 @@ PV_{\text{premium},i}(\lambda) - PV_{\text{protection},i}(\lambda) = 0
 $$
 
 Where:
+
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
 
 with discount curve and recovery supplied as inputs.
 
 #### Example for 3.5 — toy calibration of a flat hazard rate
 
-Suppose a 2Y CDS spread is quoted at 150 bp and recovery is 40%. In a simple flat-hazard approximation, a rough relationship is
+Suppose a 2Y CDS spread is quoted at 150 bp and recovery is 40%. In a simple flat-hazard approximation, a rough
+relationship is
 
 $$
 s \approx (1-R)\lambda
@@ -171,13 +179,17 @@ $$
 \lambda \approx 0.025 = 2.5\%
 $$
 
-A real implementation uses the full premium-leg and protection-leg equations, but this back-of-the-envelope estimate gives useful intuition.
+A real implementation uses the full premium-leg and protection-leg equations, but this back-of-the-envelope estimate
+gives useful intuition.
 
 ### 3.6 CDS curve implementation checklist
 
 A good answer:
 
-> Typed CDS market quotes should include reference entity, seniority, currency, maturity, quote convention, and recovery assumption. A reusable credit curve object should then be built from those normalized quotes plus the corresponding discount curve. The output should expose survival probabilities, hazard rates, calibration diagnostics, and factor IDs so the same curve can feed pricing, CS01, stress, and P&L explain.
+> Typed CDS market quotes should include reference entity, seniority, currency, maturity, quote convention, and recovery
+> assumption. A reusable credit curve object should then be built from those normalized quotes plus the corresponding
+> discount curve. The output should expose survival probabilities, hazard rates, calibration diagnostics, and factor IDs
+> so the same curve can feed pricing, CS01, stress, and P&L explain.
 
 That is enough to sound practical and credible.
 
@@ -194,7 +206,8 @@ A normalized CDS quote record might contain:
 - recovery assumption: 40%,
 - source timestamp: 08:00:00 New York.
 
-That metadata is what lets the platform build the correct credit curve and later aggregate CS01 by name, sector, rating, and seniority.
+That metadata is what lets the platform build the correct credit curve and later aggregate CS01 by name, sector, rating,
+and seniority.
 
 ---
 
@@ -210,7 +223,8 @@ with $\Delta = 1$ bp spread shift.
 
 #### Example for 4.1 — parallel CS01
 
-Suppose a CDS position is worth 2.40 today. After a +1 bp parallel spread shock it is worth 2.48, and after a -1 bp shock it is worth 2.32. Then
+Suppose a CDS position is worth 2.40 today. After a +1 bp parallel spread shock it is worth 2.48, and after a -1 bp
+shock it is worth 2.32. Then
 
 $$
 CS01 \approx \frac{2.48-2.32}{2}=0.08
@@ -229,11 +243,13 @@ $$
 ### 4.3 Why metadata matters more in credit
 
 Rates bucket labels can often be just:
+
 - currency,
 - curve family,
 - tenor.
 
 Credit usually needs:
+
 - reference entity,
 - seniority,
 - currency,
@@ -250,7 +266,8 @@ Two positions can both be 5Y credit trades but still belong to different risk bu
 - USD 5Y ACME Senior,
 - EUR 5Y BETA Subordinated.
 
-A tenor-only aggregation would merge them incorrectly, while a realistic credit platform keeps entity, currency, and seniority so that risk and P&L explain remain meaningful.
+A tenor-only aggregation would merge them incorrectly, while a realistic credit platform keeps entity, currency, and
+seniority so that risk and P&L explain remain meaningful.
 
 ---
 
@@ -262,13 +279,15 @@ A simple answer:
 
 - bond spread is a cash bond relative-value measure and includes bond-specific effects,
 - CDS spread is a cleaner derivative market measure of default risk,
-- in practice they are related but not identical because of liquidity, deliverability, funding, restructuring terms, and technical factors.
+- in practice they are related but not identical because of liquidity, deliverability, funding, restructuring terms, and
+  technical factors.
 
 That level of detail is usually sufficient unless a deeper calibration discussion is required.
 
 #### Example for 5 — bond spread versus CDS spread
 
-Suppose a 5Y corporate bond yields 5.40% while the matched sovereign benchmark yields 3.90%. The bond spread is about 150 bp. If the same issuer’s 5Y CDS trades at 165 bp, the two numbers are close but not identical.
+Suppose a 5Y corporate bond yields 5.40% while the matched sovereign benchmark yields 3.90%. The bond spread is about
+150 bp. If the same issuer’s 5Y CDS trades at 165 bp, the two numbers are close but not identical.
 
 The gap can come from bond liquidity, bond-specific technicals, delivery options, or funding effects.
 

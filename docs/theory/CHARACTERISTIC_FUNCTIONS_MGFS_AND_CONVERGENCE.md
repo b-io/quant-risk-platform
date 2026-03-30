@@ -23,6 +23,7 @@ $$
 $$
 
 Where:
+
 - $\mathbb{R}$ denotes the real numbers.
 - $\mathbb{E}[\cdot]$ denotes expectation.
 - $\phi_X(u)$ is the characteristic function of the random variable $X$ evaluated at $u$.
@@ -35,6 +36,7 @@ M_X(t) = \mathbb{E}[e^{tX}], \qquad t \in \mathbb{R}
 $$
 
 Where:
+
 - $M_X(t)$ is the moment generating function of the random variable $X$ evaluated at $t$.
 - $t$ is a time variable, or the real argument of a moment generating function depending on context.
 
@@ -120,6 +122,7 @@ $$
 for some or all nonzero $t$.
 
 This is the main distinction:
+
 - characteristic function: bounded oscillatory integrand
 - MGF: exponentially growing integrand
 
@@ -132,7 +135,8 @@ $$
 e^{tX}=e^{2\cdot 3}=e^6 \approx 403.43
 $$
 
-So unlike the characteristic-function integrand, the MGF integrand can become very large very quickly. For heavy-tailed distributions that is exactly why the expectation may diverge.
+So unlike the characteristic-function integrand, the MGF integrand can become very large very quickly. For heavy-tailed
+distributions that is exactly why the expectation may diverge.
 
 ### 1.3 Practical difference
 
@@ -143,6 +147,7 @@ M_X^{(n)}(0) = \mathbb{E}[X^n].
 $$
 
 Where:
+
 - $X$ is a generic random variable.
 - $n$ is the sample size.
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
@@ -155,7 +160,8 @@ $$
 
 when the moments exist.
 
-The characteristic function is more robust and more useful in heavy-tailed settings, Fourier methods, and option pricing.
+The characteristic function is more robust and more useful in heavy-tailed settings, Fourier methods, and option
+pricing.
 
 ### 1.4 Key properties of the characteristic function
 
@@ -168,6 +174,7 @@ $$
 $$
 
 Where:
+
 - $X$ is a generic random variable.
 
 - If $X \sim \mathcal{N}(\mu,\sigma^2)$, then:
@@ -177,11 +184,15 @@ $$
 $$
 
 Where:
+
 - $\mu$ is the true mean, drift, or expected value depending on context.
 - $\sigma^2$ is the variance of the underlying random variable or process.
 - $\sigma$ is the volatility or standard deviation parameter.
 
-> The characteristic function always exists because $e^{iuX}$ has modulus 1, so its expectation is always finite. The MGF uses $e^{tX}$, which can blow up exponentially in the tails, so it may not exist. The MGF is convenient for moments when it exists, while the characteristic function is more robust and is the natural object for Fourier-based methods.
+> The characteristic function always exists because $e^{iuX}$ has modulus 1, so its expectation is always finite.
+> The MGF uses $e^{tX}$, which can blow up exponentially in the tails, so it may not exist. The MGF is convenient for
+> moments when it exists, while the characteristic function is more robust and is the natural object for Fourier-based
+> methods.
 
 ## 2. Law of Large Numbers: weak vs. strong
 
@@ -192,6 +203,7 @@ $$
 $$
 
 Where:
+
 - $X_i$ is the $i$-th sampled observation or simulated payoff.
 - $\mu$ is the true mean, drift, or expected value depending on context.
 - $\mathbb{E}[\cdot]$ denotes expectation.
@@ -203,6 +215,7 @@ $$
 $$
 
 Where:
+
 - $X$ is a generic random variable.
 - $n$ is the sample size.
 
@@ -223,9 +236,11 @@ $$
 $$
 
 Where:
+
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
 
 Interpretation:
+
 - for large $n$, the sample mean is very likely to be close to the true mean
 - but this does not say what happens on every sample path
 
@@ -238,6 +253,7 @@ $$
 $$
 
 This means **almost sure convergence**. In words:
+
 - with probability 1, the entire sequence of sample means converges to $\mu$
 - equivalently, for almost every outcome, eventually the sample average settles toward the true mean
 
@@ -253,13 +269,15 @@ $$
 
 But the converse is not true in general.
 
-So your intuition is correct: in some settings the strong law may fail or may require stronger assumptions, while the weak law can still hold under weaker ones.
+The underlying intuition is that in some settings the strong law may fail or may require stronger assumptions, while the
+weak law can still hold under weaker ones.
 
 ### 2.4 Why do we keep the weak law if the strong law is stronger?
 
 Because they answer different questions and require different assumptions.
 
 The weak law is still useful because:
+
 - it is often easier to prove
 - it can hold under weaker conditions
 - for many statistical applications, convergence in probability is enough
@@ -272,6 +290,7 @@ $$
 $$
 
 Where:
+
 - $\sigma^2$ is the variance of the underlying random variable or process.
 - $\sigma$ is the volatility or standard deviation parameter.
 - $\mathrm{Var}(\cdot)$ denotes variance.
@@ -283,6 +302,7 @@ $$
 $$
 
 Where:
+
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
 
 That proves the weak law directly.
@@ -292,22 +312,27 @@ The strong law is deeper because it gives pathwise convergence, but its proof an
 ### 2.5 Intuition for the difference
 
 Weak law:
+
 - for each large $n$, the probability of being far from $\mu$ is small
 
 Strong law:
+
 - with probability 1, the sequence eventually behaves properly for all sufficiently large $n$
 
 A useful way to phrase it:
 
-> Weak law is about being close with high probability at large $n$. Strong law is about actual sample-path convergence almost surely.
+> Weak law is about being close with high probability at large $n$. Strong law is about actual sample-path convergence
+> almost surely.
 
 ### 2.6 Why this matters in practice
 
 In Monte Carlo and empirical estimation:
+
 - WLLN justifies that estimators become accurate in probability
 - SLLN justifies that one almost surely observed simulation path of running averages converges
 
 A concise statement is:
+
 - Monte Carlo consistency is often first expressed via the LLN
 - the strong law is a stronger pathwise guarantee
 - the weak law is often sufficient for statistical consistency arguments
@@ -321,6 +346,7 @@ X_n \xrightarrow{P} X
 $$
 
 Where:
+
 - $X$ is a generic random variable.
 
 means:
@@ -330,6 +356,7 @@ $$
 $$
 
 Where:
+
 - $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
 
 ### 3.2 Almost sure convergence
@@ -339,6 +366,7 @@ X_n \xrightarrow{a.s.} X
 $$
 
 Where:
+
 - $X$ is a generic random variable.
 
 means that with probability 1, the realized sequence converges pointwise.
@@ -350,6 +378,7 @@ X_n \xrightarrow{a.s.} X \implies X_n \xrightarrow{P} X.
 $$
 
 Where:
+
 - $X$ is a generic random variable.
 
 The reverse implication is false in general.
@@ -358,8 +387,14 @@ The reverse implication is false in general.
 
 ### 4.1 Characteristic function vs. MGF
 
-> The characteristic function is $\phi_X(u)=\mathbb{E}[e^{iuX}]$ and always exists because the integrand has modulus 1. The MGF is $M_X(t)=\mathbb{E}[e^{tX}]$ and may not exist because the exponential can explode in the tails. The MGF is convenient for moments when it exists; the characteristic function is more robust and is heavily used in Fourier methods and option pricing.
+> The characteristic function is $\phi_X(u)=\mathbb{E}[e^{iuX}]$ and always exists because the integrand has modulus 1.
+> The MGF is $M_X(t)=\mathbb{E}[e^{tX}]$ and may not exist because the exponential can explode in the tails. The MGF is
+> convenient for moments when it exists; the characteristic function is more robust and is heavily used in Fourier
+> methods and option pricing.
 
 ### 4.2 Weak vs. strong LLN
 
-> The weak law says the sample average converges to the true mean in probability, so deviations become unlikely as the sample size grows. The strong law says the sample average converges almost surely, which is a stronger pathwise statement. We keep the weak law because it often holds under weaker assumptions and is already enough for many statistical consistency results.
+> The weak law says the sample average converges to the true mean in probability, so deviations become unlikely as the
+> sample size grows. The strong law says the sample average converges almost surely, which is a stronger pathwise
+> statement. We keep the weak law because it often holds under weaker assumptions and is already enough for many
+> statistical consistency results.

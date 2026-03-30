@@ -67,4 +67,6 @@ Use in unit tests, examples, and controlled scenario analysis.
 
 ## 9. Practical summary
 
-> Helper instruments encode market conventions, bootstrap a curve object once, and then support valuation and risk queries through `discount`, `zeroRate`, `forwardRate`, or an implied term structure when the analytics need a shifted anchor date.
+> Helper instruments encode market conventions, bootstrap a curve object once, and then support valuation and risk
+> queries through `discount`, `zeroRate`, `forwardRate`, or an implied term structure when the analytics need a shifted
+> anchor date.

@@ -50,7 +50,7 @@ flowchart TD
   sensitivities, P&L, VaR).
 - **CLI / Python**: Expose stable application services rather than raw QuantLib internals.
 
-## 4. Portfolios and Identifiers
+## 3. Portfolios and identifiers
 
 The platform uses stable, structured internal identifiers to ensure consistency across market state, risk reports, and
 the database.
@@ -82,9 +82,9 @@ Examples:
 These identifiers are shared across market state, shock definitions, and risk reports to enable seamless reconciliation
 and attribution.
 
-## 5. Core QuantLib design choices
+## 4. Core QuantLib design choices
 
-### 3.1 Why use `SimpleQuote` handles
+### 4.1 Why use `SimpleQuote` handles
 
 `SimpleQuote` is the right primitive for a revaluation engine because it supports in-place updates of market inputs.
 
@@ -101,7 +101,7 @@ Why this matters in our project:
 
 This is the correct foundation for PV01, key-rate risk, historical stress, and scenario engines.
 
-### 3.2 Why use `RateHelper` objects for yield curves
+### 4.2 Why use `RateHelper` objects for yield curves
 
 A curve should be calibrated to market instruments, not merely interpolated through arbitrary rates.
 
@@ -117,7 +117,7 @@ A curve should be calibrated to market instruments, not merely interpolated thro
 - **Pros:** instrument-consistent bootstrapping, transparent calibration logic, industry alignment.
 - **Cons:** requires solving a non-linear system (bootstrapping), more complex than simple spline interpolation.
 
-### 3.3 Why use `PiecewiseYieldCurve<Discount, LogLinear>` initially
+### 4.3 Why use `PiecewiseYieldCurve<Discount, LogLinear>` initially
 
 This is a good first production choice because:
 
@@ -126,16 +126,18 @@ This is a good first production choice because:
 - **Tradeoff:** `LogLinear` on discounts implies piecewise constant forward rates. This is very stable but results in
   "staircase" forward curves. Cubic splines provide smoother forwards but can introduce oscillations (overshoot).
 
-## 6. Platform vs. QuantLib Architecture
+## 5. Platform vs. QuantLib architecture
 
-| Aspect      | QuantLib Approach                | Our Project Approach               | Why?                                         |
-|-------------|----------------------------------|------------------------------------|----------------------------------------------|
-| **Data**    | Object-oriented, heavy objects   | DTO-based (JSON) + SQLite          | Persistence, interop, and auditability.      |
-| **State**   | Distributed in objects           | Centralized in `MarketState`       | Easier to manage scenarios and snapshots.    |
-| **Pricing** | `setPricingEngine` on instrument | `ValuationService` wrapper         | Separation of concerns; easier to audit.     |
-| **Risk**    | Ad-hoc or via `RelinkableHandle` | Standardized `RiskService` + `RF:` | Consistent reporting and performance tuning. |
+- **Data**: QuantLib favors object-oriented, relatively heavy in-memory objects. The platform uses DTO-based
+  JSON schemas and SQLite persistence to improve interoperability, auditability, and storage discipline.
+- **State**: QuantLib state is distributed across linked objects. The platform centralizes reusable state in
+  `MarketState` so that scenarios and snapshots are easier to manage.
+- **Pricing**: QuantLib typically attaches a pricing engine directly to the instrument. The platform wraps this pattern
+  in `ValuationService` so pricing can be orchestrated, audited, and exposed consistently.
+- **Risk**: QuantLib risk can be implemented ad hoc or via relinkable handles. The platform standardizes risk reporting
+  through `RiskService` and stable `RF:` identifiers so factor reporting and performance tuning remain coherent.
 
-## 7. Current runtime flow
+## 6. Current runtime flow
 
 ```mermaid
 sequenceDiagram
@@ -156,7 +158,7 @@ sequenceDiagram
     A ->> U: return structured results
 ```
 
-## 5. Current code mapping
+## 7. Current code mapping
 
 ### Domain layer
 
@@ -232,7 +234,7 @@ Current state:
 - Monte Carlo is currently a one-step Gaussian scenario engine rather than a true path engine,
 - historical stress is still scenario replay over generic shocked quotes.
 
-## 6. Main design gaps to close next
+## 8. Main design gaps to close next
 
 ```mermaid
 flowchart LR
@@ -250,7 +252,7 @@ The main gaps are:
 4. **The analytics services do not yet share a built-position cache.**
 5. **P&L explain, stress, and Monte Carlo need more realistic models.**
 
-## 7. Target architecture evolution
+## 9. Target architecture evolution
 
 ### Phase 1: solid deterministic rates engine
 
@@ -275,7 +277,7 @@ The main gaps are:
 - cached factor mappings,
 - parallel scenario execution.
 
-## 8. Why the current design is still the right base
+## 10. Why the current design is still the right base
 
 Even though the implementation is incomplete, the chosen direction is good because:
 
@@ -284,7 +286,7 @@ Even though the implementation is incomplete, the chosen direction is good becau
 - layering is already service-oriented rather than notebook-oriented,
 - the current gaps are mainly missing abstractions and incomplete analytics, not a fundamentally wrong architecture.
 
-## 9. Documentation policy going forward
+## 11. Documentation policy going forward
 
 To keep the design coherent:
 
