@@ -4,6 +4,8 @@ This section covers credit-specific market objects and pricing inputs.
 
 ## Contents
 
+- `docs/pricing/credit/BOND_SPREADS_AND_DEFAULT_RISK.md` — cash-bond price, yield, credit spread, Z-spread,
+  asset-swap spread, CDS spread, hazard rates, recovery, CS01, and jump-to-default.
 - `docs/pricing/credit/CDS_CURVES_AND_CREDIT_RISK_IN_PRACTICE.md` — CDS intuition, premium and protection legs,
   calibration logic, CS01, and practical credit-risk usage.
 - `docs/pricing/credit/CREDIT_CURVE_CONSTRUCTION.md` — credit spread curves, hazard-rate calibration, survival
@@ -22,6 +24,7 @@ Credit is intentionally separated from rates because it introduces distinct conc
 
 After reading this section, the reader should have a clear picture of:
 
+- the difference between cash-bond spread measures and CDS spreads,
 - the difference between discounting and survival modeling,
 - the market inputs needed for credit-curve construction,
 - the outputs a reusable credit curve should expose,

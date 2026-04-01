@@ -8,12 +8,16 @@
   principles.
 - `docs/design/CURVE_BOOTSTRAP_DESIGN.md` — bootstrap-specific design note covering reconstruction, handles,
   observability, and curve update semantics.
+- `docs/design/DATA_STORAGE_LINEAGE_AND_RECONCILIATION.md` — canonical treatment of snapshots, lineage, schema
+  evolution, reconciliation, and storage-layer responsibilities.
 - `docs/design/IMPLEMENTATION_CHOICES.md` — repository-specific implementation rationale, including QuantLib wrapping,
   abstraction boundaries, and observer semantics.
 - `docs/design/MARKET_AND_CURVES.md` — market schema, convention registry, reusable curves and surfaces, and market
   snapshot design.
 - `docs/design/PLATFORM_IMPLEMENTATION_GUIDE.md` — practical implementation workflow, persistence, testing strategy,
   performance considerations, and extension path.
+- `docs/design/PYTHON_CPP_PERFORMANCE_AND_BINDINGS.md` — language split, profiling, memory and cache concerns,
+  vectorization, numerical stability, and binding design.
 - `docs/design/QUANTLIB_CURVE_API_CHEAT_SHEET.md` — common QuantLib curve objects, helper classes, and query patterns
   mapped to platform usage.
 
@@ -21,6 +25,8 @@
 
 ### Pricing documentation
 
+- `docs/pricing/credit/BOND_SPREADS_AND_DEFAULT_RISK.md` — cash-bond spread measures, CDS spread, hazard rates,
+  recovery, CS01, and jump-to-default.
 - `docs/pricing/credit/CDS_CURVES_AND_CREDIT_RISK_IN_PRACTICE.md` — CDS intuition, premium and protection legs,
   calibration logic, CS01, and practical credit-risk usage.
 - `docs/pricing/credit/CREDIT_CURVE_CONSTRUCTION.md` — credit spread curves, hazard-rate calibration, survival
@@ -35,10 +41,13 @@
   conventions, helpers, and rates risk implications.
 - `docs/pricing/rates/YIELD_CURVE_WORKED_EXAMPLE.md` — worked rates examples for discount factors, forwards, yield
   types, and recession-driven curve behavior.
+- `docs/pricing/volatility/GREEKS_AND_NONLINEAR_RISK.md` — option Greeks, non-linear risk, and scenario revaluation.
 - `docs/pricing/volatility/OPTION_PRICING_AND_EXERCISE_STYLES.md` — Black-Scholes-Merton, Black 76, European,
   American, and Bermudan exercise, plus numerical-method trade-offs.
+- `docs/pricing/volatility/OPTION_PRICING_FOUNDATIONS_AND_PUT_CALL_PARITY.md` — static no-arbitrage, put-call parity,
+  synthetic positions, and quote validation.
 - `docs/pricing/volatility/VOLATILITY_MODELS_AND_CALIBRATION_TRADEOFFS.md` — local vol, stochastic vol, SABR,
-  callable-product model choices, calibration trade-offs, and modern desk practice.
+  callable-product model choices, and calibration trade-offs.
 - `docs/pricing/volatility/VOLATILITY_SURFACES.md` — volatility quote schemas, surface construction, interpolation,
   no-arbitrage checks, sticky rules, and risk integration.
 
@@ -60,12 +69,16 @@
   foundations for simulation.
 - `docs/risk/MONTE_CARLO_IMPLEMENTATION.md` — path generation, book aggregation, parallel execution, and production
   implementation trade-offs for Monte Carlo.
+- `docs/risk/PNL_EXPLAIN_IN_PRACTICE.md` — actual versus theoretical P&L, explained versus unexplained P&L, and
+  residual control workflow.
 - `docs/risk/RISK_FACTORS_AND_ATTRIBUTION.md` — factor definitions, bucketing, aggregation, and attribution design
   across pricing and risk.
 - `docs/risk/RISK_MEASURES_AND_EXPLAIN.md` — PV01, DV01, CS01, P&L explain, attribution concepts, and reporting
   structure.
 - `docs/risk/TIME_SERIES_AND_SCENARIOS.md` — historical data handling, factor moves, and scenario-construction workflow.
 - `docs/risk/VAR.md` — historical, parametric, and Monte Carlo Value-at-Risk methods and implementation considerations.
+- `docs/risk/VAR_STRESS_BACKTESTING_AND_AGGREGATION.md` — VaR, stress testing, backtesting, and aggregation across
+  books.
 
 ### Theory foundations
 

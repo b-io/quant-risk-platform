@@ -8,7 +8,15 @@ classes, with QuantLib at the core and Python used as an interface layer.
 
 ## Quickstart
 
-For build, test, and demo instructions, see [QUICKSTART.md](QUICKSTART.md).
+For build, test, and demo instructions, including Python binding workflows and smoke tests, see [QUICKSTART.md](QUICKSTART.md).
+
+### Supported builds on Windows (summary)
+- C++ only: Debug, Release, RelWithDebInfo
+- Python bindings: Release, RelWithDebInfo
+
+Suggested commands:
+- C++ only Release: `cmake --preset Release && cmake --build --preset Release --target qrp_core`
+- Python Release: `cmake --preset Release-Python && cmake --build --preset Release-Python --target quant_risk_platform && ctest --preset Release-Python -R python_import`
 
 ## Documentation
 

@@ -13,8 +13,8 @@ vcpkg_installed/
 
 # Compiled Object files
 *.lo
-*.obj
 *.o
+*.obj
 *.slo
 
 # Compiled Static libraries
@@ -41,10 +41,10 @@ vcpkg_installed/
 *.smod
 
 # IDE
-.idea/
-.vscode/
 *.swo
 *.swp
+.idea/
+.vscode/
 CMakeUserPresets.json
 
 # Linker files
@@ -62,15 +62,19 @@ Thumbs.db
 *.d
 
 # Python
+*$py.class
+*.egg-info/
+*.py[cod]
 .env/
 .venv/
 __pycache__/
-*$py.class
-*.py[cod]
 env/
 venv/
 
 # User-specific
+*.temp
+*.tmp
+*.zip
 roadmap/
 temp/
 tmp/

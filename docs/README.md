@@ -4,13 +4,15 @@ This `docs/` tree is the canonical documentation root for the repository.
 
 ## Structure
 
-- `docs/design/` — architecture, module boundaries, market-and-curve design, implementation choices, and platform build
-  guidance.
+- `docs/design/` — architecture, module boundaries, market-and-curve design, persistence, lineage, performance, and
+  platform build guidance.
 - `docs/pricing/` — pricing and market-construction documentation, organized by subdomain: market data, rates, credit,
   and volatility.
-- `docs/risk/` — risk measures, explain, scenarios, historical stress, VaR, Monte Carlo, and macro workflow notes.
+- `docs/risk/` — risk measures, explain, scenarios, stress, VaR, Monte Carlo, and macro workflow notes.
 - `docs/theory/` — mathematical, statistical, portfolio, and asset-pricing foundations used by the implementation docs.
 - `docs/roadmap/` — implementation roadmap, review history, and progress tracking.
+- `docs/temp/` — temporary and task-specific working notes that are intentionally kept separate from the canonical book-
+  style documentation above.
 
 ## Documentation map
 
@@ -22,13 +24,16 @@ This `docs/` tree is the canonical documentation root for the repository.
   principles.
 - `docs/design/CURVE_BOOTSTRAP_DESIGN.md` — bootstrap-specific design note covering reconstruction, handles,
   observability, and curve update semantics.
+- `docs/design/DATA_STORAGE_LINEAGE_AND_RECONCILIATION.md` — snapshots, schema evolution, reconciliation, and the
+  control requirements around stored analytics.
 - `docs/design/IMPLEMENTATION_CHOICES.md` — repository-specific implementation rationale, including QuantLib wrapping,
   abstraction boundaries, and observer semantics.
-- `docs/design/INDEX.md` — alphabetical index for the design section and its closest related implementation notes.
 - `docs/design/MARKET_AND_CURVES.md` — market schema, convention registry, reusable curves and surfaces, and market
   snapshot design.
 - `docs/design/PLATFORM_IMPLEMENTATION_GUIDE.md` — practical implementation workflow, persistence, testing strategy,
   performance considerations, and extension path.
+- `docs/design/PYTHON_CPP_PERFORMANCE_AND_BINDINGS.md` — language split, profiling, memory-layout concerns,
+  vectorization, numerical stability, and binding design.
 - `docs/design/QUANTLIB_CURVE_API_CHEAT_SHEET.md` — common QuantLib curve objects, helper classes, and query patterns
   mapped to platform usage.
 
@@ -36,6 +41,8 @@ This `docs/` tree is the canonical documentation root for the repository.
 
 - `docs/pricing/INDEX.md` — alphabetical index for pricing documentation and its sub-sections, plus the preferred
   reading order.
+- `docs/pricing/credit/BOND_SPREADS_AND_DEFAULT_RISK.md` — bond price and yield, credit spread, Z-spread,
+  asset-swap spread, CDS spread, hazard rates, survival probabilities, recovery, CS01, and jump-to-default.
 - `docs/pricing/credit/CDS_CURVES_AND_CREDIT_RISK_IN_PRACTICE.md` — CDS intuition, premium and protection legs,
   calibration logic, CS01, and practical credit-risk usage.
 - `docs/pricing/credit/CREDIT_CURVE_CONSTRUCTION.md` — credit spread curves, hazard-rate calibration, survival
@@ -57,10 +64,16 @@ This `docs/` tree is the canonical documentation root for the repository.
   conventions, helpers, and rates risk implications.
 - `docs/pricing/rates/YIELD_CURVE_WORKED_EXAMPLE.md` — worked rates examples for discount factors, forwards, yield
   types, and recession-driven curve behavior.
+- `docs/pricing/volatility/GREEKS_AND_NONLINEAR_RISK.md` — delta, gamma, vega, theta, rho, portfolio aggregation,
+  non-linear exposures, and scenario revaluation versus Greeks-based approximation.
 - `docs/pricing/volatility/INDEX.md` — alphabetical index for option-pricing foundations and volatility-surface
   documentation.
+- `docs/pricing/volatility/OPTION_PRICING_AND_EXERCISE_STYLES.md` — Black-Scholes-Merton, Black 76, exercise styles,
+  and numerical-method trade-offs.
 - `docs/pricing/volatility/OPTION_PRICING_FOUNDATIONS_AND_PUT_CALL_PARITY.md` — European, American, and Bermudan option
   basics; put-call parity; arbitrage bounds; synthetic positions; and quote-validation logic.
+- `docs/pricing/volatility/VOLATILITY_MODELS_AND_CALIBRATION_TRADEOFFS.md` — local volatility, stochastic volatility,
+  SABR, and calibration trade-offs.
 - `docs/pricing/volatility/VOLATILITY_SURFACES.md` — volatility quote schemas, surface construction, interpolation
   conventions, and risk integration.
 
@@ -83,12 +96,16 @@ This `docs/` tree is the canonical documentation root for the repository.
   foundations for simulation.
 - `docs/risk/MONTE_CARLO_IMPLEMENTATION.md` — path generation, book aggregation, parallel execution, and production
   implementation trade-offs for Monte Carlo.
+- `docs/risk/PNL_EXPLAIN_IN_PRACTICE.md` — actual versus theoretical P&L, explained versus unexplained P&L, carry,
+  new-trade and fixing effects, model changes, data issues, and residual control.
 - `docs/risk/RISK_FACTORS_AND_ATTRIBUTION.md` — factor definitions, bucketing, aggregation, and attribution design
   across pricing and risk.
 - `docs/risk/RISK_MEASURES_AND_EXPLAIN.md` — PV01, DV01, CS01, P&L explain, attribution concepts, and reporting
   structure.
 - `docs/risk/TIME_SERIES_AND_SCENARIOS.md` — historical data handling, factor moves, and scenario-construction workflow.
 - `docs/risk/VAR.md` — historical, parametric, and Monte Carlo Value-at-Risk methods and implementation considerations.
+- `docs/risk/VAR_STRESS_BACKTESTING_AND_AGGREGATION.md` — historical VaR versus Monte Carlo VaR, stress testing,
+  scenario design, backtesting, and aggregation across books.
 
 ### Theory
 
@@ -120,13 +137,6 @@ This `docs/` tree is the canonical documentation root for the repository.
   historical context.
 - `docs/roadmap/STATUS.md` — current implementation status against the roadmap and documentation plan.
 
-### Support assets
-
-- `docs/pricing/rates/assets/curve_objects_relationships.png` — diagram of the main curve object relationships used in
-  the rates stack.
-- `docs/pricing/rates/assets/interpolation_tradeoffs.png` — diagram summarizing interpolation and smoothness trade-offs
-  across curve construction choices.
-
 ## Reading order for new contributors
 
 1. `docs/design/ARCHITECTURE.md` — high-level architecture, domain boundaries, and canonical design principles.
@@ -145,6 +155,7 @@ This `docs/` tree is the canonical documentation root for the repository.
 - Keep implementation-facing risk notes under `docs/risk/`.
 - Keep mathematical foundations under `docs/theory/`.
 - Keep roadmap and handoff notes under `docs/roadmap/`.
+- Keep temporary task-specific material under `docs/temp/`.
 - When adding a major module, update the relevant index file and `docs/roadmap/STATUS.md`.
 - Keep index lists alphabetical and attach a short description to each referenced file.
 - Keep deep worked examples and practical implementation notes close to the domain they support rather than in scratch

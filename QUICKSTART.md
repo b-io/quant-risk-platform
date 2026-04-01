@@ -1,8 +1,27 @@
 # Quickstart Guide
 
-Follow these steps to build the C++ core and run the Python demo using the provided automation scripts.
+This guide explains supported build workflows on Windows using CMake and how to enable optional Python bindings safely.
 
-## 1. Quick Build and Test (Recommended)
+## Supported configurations
+- C++ only: Debug, Release, RelWithDebInfo
+- Python bindings on Windows: Release, RelWithDebInfo (Debug requires a matching debug CPython and is not supported by default)
+
+## 1. Build the C++ core (no Python)
+- Using CLion profiles (preferred in this repo):
+  - Profile "Debug" → C++ only Debug build
+  - Profile "Release" → C++ only Release build
+- From command line with presets:
+  - Configure: `cmake --preset Release`
+  - Build: `cmake --build --preset Release --target qrp_core`
+
+## 2. Enable Python bindings (Windows Release/RelWithDebInfo)
+- Recommended presets:
+  - `cmake --preset Release-Python`
+  - `cmake --build --preset Release-Python --target quant_risk_platform`
+  - Smoke test: `ctest --preset Release-Python -R python_import`
+- Or via CLion "Release" profile by setting `QRP_BUILD_PYTHON=ON` in CMake options.
+
+## 3. Quick Build and Test (automation scripts)
 
 The easiest way to build and verify the platform is to use the canonical scripts.
 
@@ -25,7 +44,7 @@ chmod +x scripts/*.sh
 ./scripts/build_and_install.sh
 ```
 
-## 2. Run a Demo
+## 4. Run a Demo
 
 After building, you can run a Python demo or use the C++ CLI.
 
@@ -33,10 +52,15 @@ After building, you can run a Python demo or use the C++ CLI.
 ```bash
 # Ensure you are in a virtual environment with requirements installed
 python -m venv venv
-source venv/bin/activate  # On Windows: .\venv\Scripts\activate
+# Windows PowerShell:
+.\venv\Scripts\Activate.ps1
+# Install runtime deps
 pip install -r requirements.txt
 
-# Run the demo
+# After building the extension (see Section 2), make sure Python can find it.
+# If you used presets, the .pyd is placed under build/<preset>/python/<config>
+# Example (Release preset):
+$Env:PYTHONPATH = "build/Release-Python/python/Release"  # PowerShell
 python python/examples/demo_platform.py
 ```
 

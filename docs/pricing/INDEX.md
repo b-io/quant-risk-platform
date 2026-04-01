@@ -4,14 +4,17 @@ This folder contains market-construction and pricing-facing documentation.
 
 ## Section structure
 
-- `docs/pricing/credit/` — credit spread, hazard-rate, survival-curve, and CDS implementation notes.
+- `docs/pricing/credit/` — cash-bond spread measures, CDS curves, hazard-rate modeling, survival curves, and default
+  risk.
 - `docs/pricing/market-data/` — cross-asset market-data schema, factor normalization, and reusable market objects.
 - `docs/pricing/rates/` — rates curve construction, discounting, projection, worked examples, and model choices.
-- `docs/pricing/volatility/` — option-pricing foundations plus volatility term structures and surfaces across asset
-  classes.
+- `docs/pricing/volatility/` — option-pricing foundations, Greeks, non-linear risk, and volatility term structures and
+  surfaces across asset classes.
 
 ## Key documents
 
+- `docs/pricing/credit/BOND_SPREADS_AND_DEFAULT_RISK.md` — bond price and yield, credit spread, Z-spread,
+  asset-swap spread, CDS spread, hazard rates, survival probabilities, recovery, CS01, and jump-to-default.
 - `docs/pricing/credit/CDS_CURVES_AND_CREDIT_RISK_IN_PRACTICE.md` — CDS intuition, premium and protection legs,
   calibration logic, CS01, and practical credit-risk usage.
 - `docs/pricing/credit/CREDIT_CURVE_CONSTRUCTION.md` — credit spread curves, hazard-rate calibration, survival
@@ -28,10 +31,16 @@ This folder contains market-construction and pricing-facing documentation.
   conventions, helpers, and rates risk implications.
 - `docs/pricing/rates/YIELD_CURVE_WORKED_EXAMPLE.md` — worked rates examples for discount factors, forwards, yield
   types, and recession-driven curve behavior.
+- `docs/pricing/volatility/GREEKS_AND_NONLINEAR_RISK.md` — delta, gamma, vega, theta, rho, portfolio aggregation,
+  non-linear exposures, and scenario revaluation versus Greeks-based approximation.
+- `docs/pricing/volatility/OPTION_PRICING_AND_EXERCISE_STYLES.md` — Black-Scholes-Merton, Black 76, exercise styles,
+  and numerical-method trade-offs.
 - `docs/pricing/volatility/OPTION_PRICING_FOUNDATIONS_AND_PUT_CALL_PARITY.md` — European, American, and Bermudan
   option basics; put-call parity; arbitrage bounds; synthetic positions; and quote-validation logic.
-- `docs/pricing/volatility/VOLATILITY_SURFACES.md` — volatility quote schemas, surface construction, interpolation
-  conventions, and risk integration.
+- `docs/pricing/volatility/VOLATILITY_MODELS_AND_CALIBRATION_TRADEOFFS.md` — local volatility, stochastic volatility,
+  SABR, and calibration trade-offs.
+- `docs/pricing/volatility/VOLATILITY_SURFACES.md` — volatility quote schemas, surface construction, interpolation,
+  no-arbitrage checks, and risk integration.
 
 ## Recommended reading order
 
@@ -46,13 +55,20 @@ This folder contains market-construction and pricing-facing documentation.
    choices and modern practice.
 6. `docs/pricing/rates/TIME_DEPENDENT_VOLATILITY_AND_MEAN_REVERSION_MODELS.md` — detailed term-structure model
    trade-offs, calibration limits, and numerical examples.
-7. `docs/pricing/credit/CREDIT_CURVE_CONSTRUCTION.md` — extension from rates to credit survival modeling and recovery
+7. `docs/pricing/credit/BOND_SPREADS_AND_DEFAULT_RISK.md` — the main cash-bond and CDS spread measures needed before
+   credit-curve implementation details.
+8. `docs/pricing/credit/CREDIT_CURVE_CONSTRUCTION.md` — extension from rates to credit survival modeling and recovery
    assumptions.
-8. `docs/pricing/credit/CDS_CURVES_AND_CREDIT_RISK_IN_PRACTICE.md` — CDS-specific mechanics and risk interpretation.
-9. `docs/pricing/volatility/OPTION_PRICING_FOUNDATIONS_AND_PUT_CALL_PARITY.md` — option-payoff foundations, parity,
-   bounds, carry adjustments, and implementation controls.
-10. `docs/pricing/volatility/VOLATILITY_SURFACES.md` — volatility-surface design and cross-asset option-risk
+9. `docs/pricing/credit/CDS_CURVES_AND_CREDIT_RISK_IN_PRACTICE.md` — CDS-specific mechanics and risk interpretation.
+10. `docs/pricing/volatility/OPTION_PRICING_FOUNDATIONS_AND_PUT_CALL_PARITY.md` — option-payoff foundations, parity,
+    bounds, carry adjustments, and implementation controls.
+11. `docs/pricing/volatility/OPTION_PRICING_AND_EXERCISE_STYLES.md` — exercise-style distinctions and pricing-model
+    placement.
+12. `docs/pricing/volatility/GREEKS_AND_NONLINEAR_RISK.md` — option risk measures and when to use full revaluation.
+13. `docs/pricing/volatility/VOLATILITY_SURFACES.md` — volatility-surface design and cross-asset option-risk
     integration.
+14. `docs/pricing/volatility/VOLATILITY_MODELS_AND_CALIBRATION_TRADEOFFS.md` — dynamic-model trade-offs and calibration
+    choices.
 
 ## Maintenance rule
 

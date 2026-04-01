@@ -1,55 +1,86 @@
 {
-  "version": 3,
+  "version": 6,
   "configurePresets": [
     {
       "name": "base",
+      "displayName": "Base (VS2022, vcpkg)",
       "binaryDir": "${sourceDir}/build/${presetName}",
+      "generator": "Visual Studio 17 2022",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
       "cacheVariables": {
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-static",
-        "CMAKE_PREFIX_PATH": "${sourceDir}/build/Debug/vcpkg_installed/x64-windows-static"
+        "VCPKG_INSTALL_OPTIONS": "--allow-unsupported",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "X_VCPKG_ASSET_SOURCES": "clear"
       }
     },
     {
       "name": "Debug",
       "inherits": "base",
+      "displayName": "C++ only - Debug",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "BUILD_TESTING": "ON",
+        "CMAKE_CONFIGURATION_TYPES": "Debug",
+        "QRP_BUILD_PYTHON": "OFF"
       }
     },
     {
       "name": "Release",
       "inherits": "base",
+      "displayName": "C++ only - Release",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "BUILD_TESTING": "ON",
+        "CMAKE_CONFIGURATION_TYPES": "Release",
+        "QRP_BUILD_PYTHON": "OFF"
+      }
+    },
+    {
+      "name": "Release-Python",
+      "inherits": "base",
+      "displayName": "Python bindings - Release",
+      "cacheVariables": {
+        "BUILD_TESTING": "ON",
+        "CMAKE_CONFIGURATION_TYPES": "Release",
+        "QRP_BUILD_PYTHON": "ON"
+      }
+    },
+    {
+      "name": "RelWithDebInfo",
+      "inherits": "base",
+      "displayName": "C++ only - RelWithDebInfo",
+      "cacheVariables": {
+        "BUILD_TESTING": "ON",
+        "CMAKE_CONFIGURATION_TYPES": "RelWithDebInfo",
+        "QRP_BUILD_PYTHON": "OFF"
+      }
+    },
+    {
+      "name": "RelWithDebInfo-Python",
+      "inherits": "base",
+      "displayName": "Python bindings - RelWithDebInfo",
+      "cacheVariables": {
+        "BUILD_TESTING": "ON",
+        "CMAKE_CONFIGURATION_TYPES": "RelWithDebInfo",
+        "QRP_BUILD_PYTHON": "ON"
       }
     }
   ],
   "buildPresets": [
-    {
-      "name": "Debug",
-      "configurePreset": "Debug"
-    },
-    {
-      "name": "Release",
-      "configurePreset": "Release"
-    }
+    { "name": "Debug", "configurePreset": "Debug", "configuration": "Debug" },
+    { "name": "Release", "configurePreset": "Release", "configuration": "Release" },
+    { "name": "Release-Python", "configurePreset": "Release-Python", "configuration": "Release" },
+    { "name": "RelWithDebInfo", "configurePreset": "RelWithDebInfo", "configuration": "RelWithDebInfo" },
+    { "name": "RelWithDebInfo-Python", "configurePreset": "RelWithDebInfo-Python", "configuration": "RelWithDebInfo" }
   ],
   "testPresets": [
-    {
-      "name": "Debug",
-      "configurePreset": "Debug",
-      "output": {
-        "outputOnFailure": true
-      }
-    },
-    {
-      "name": "Release",
-      "configurePreset": "Release",
-      "output": {
-        "outputOnFailure": true
-      }
-    }
+    { "name": "Debug", "configurePreset": "Debug", "configuration": "Debug", "output": { "outputOnFailure": true } },
+    { "name": "Release", "configurePreset": "Release", "configuration": "Release", "output": { "outputOnFailure": true } },
+    { "name": "Release-Python", "configurePreset": "Release-Python", "configuration": "Release", "output": { "outputOnFailure": true } },
+    { "name": "RelWithDebInfo", "configurePreset": "RelWithDebInfo", "configuration": "RelWithDebInfo", "output": { "outputOnFailure": true } },
+    { "name": "RelWithDebInfo-Python", "configurePreset": "RelWithDebInfo-Python", "configuration": "RelWithDebInfo", "output": { "outputOnFailure": true } }
   ]
 }
