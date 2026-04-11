@@ -31,6 +31,24 @@ public:
     void store_market_snapshot(const std::string& snapshot_id, const std::string& as_of_date, const std::string& base_ccy, const std::string& curves_json = "[]") override;
     void store_market_quote(const std::string& snapshot_id, const std::string& quote_id, double value, const std::string& ccy, const std::string& metadata_json = "{}") override;
 
+    void store_market_quote_event(const domain::MarketQuoteEvent& event) override;
+    domain::MarketSnapshot load_market_snapshot_asof(
+        const std::string& market_ts,
+        const std::string& recorded_ts,
+        const std::string& base_ccy,
+        const std::string& overlay_set_id = "") override;
+
+    void store_factor_definition(const domain::FactorDefinition& factor) override;
+    void store_factor_observation(const domain::FactorObservation& obs) override;
+    void store_factor_binding(const domain::FactorBinding& binding) override;
+    
+    std::vector<domain::FactorDefinition> load_factor_definitions(const std::string& portfolio_id) override;
+    std::vector<domain::FactorBinding> load_factor_bindings(const std::vector<std::string>& factor_ids) override;
+    std::vector<domain::FactorObservation> load_factor_history(
+        const std::vector<std::string>& factor_ids,
+        const std::string& start_date,
+        const std::string& end_date) override;
+
     /**
      * @brief Loads all trades for a given portfolio from storage.
      * Rebuilds domain::Trade objects including their JSON economics.

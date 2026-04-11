@@ -1,294 +1,247 @@
 # CDS Curves and Credit Risk in Practice
 
-This note consolidates the credit-specific material from the broader rates-and-risk notes.
-It focuses on how CDS spreads map to survival curves, how recovery assumptions enter calibration, what outputs a
-reusable credit curve should expose, and how CS01 attribution should be organized in a production platform.
+This chapter explains how CDS spreads map to survival curves, how recovery enters calibration, and how a production platform should expose credit analytics for pricing, CS01, stress, and P&L explain.
 
-## 3. CDS and credit curves
+## Notation used in this chapter
 
-### 3.1 What a CDS spread represents
+Unless stated otherwise:
 
-A CDS spread is the premium paid to insure against default of a reference entity.
+- $t=0$ is the valuation date.
+- $T$ is a maturity in years from today.
+- $T_i$ is the $i$-th CDS payment date.
+- $N$ is CDS notional.
+- $s$ is the quoted CDS spread.
+- $D(0,T)$ is the discount factor from today to maturity $T$.
+- $Q(0,T)$ is the survival probability to time $T$.
+- $h(t)$ is the hazard rate or default intensity at time $t$.
+- $R$ is the recovery rate.
+- $LGD = 1-R$ is loss given default.
+- $\alpha_i$ is the accrual year fraction for premium period $[T_{i-1},T_i]$.
 
-The contract has:
+## 1. What a CDS spread represents
 
-- premium payments until maturity or default,
-- protection payment if a credit event occurs,
-- a recovery assumption.
+A CDS spread is the premium paid by the protection buyer to insure the reference obligation against default. The contract exchanges:
 
-At par spread:
+- a premium leg that is paid until maturity or default,
+- a protection leg that pays after a credit event,
+- a recovery assumption that determines the loss given default.
 
-$$
-PV_{\text{premium}} = PV_{\text{protection}}
-$$
-
-Where:
-
-- $PV$ is the present value of the cash flow or instrument.
-
-### 3.2 Survival probability and default density
-
-If hazard rate is $\lambda(t)$:
+Let $PV_{premium}(s)$ be the present value of the premium leg as a function of spread $s$, and let $PV_{protection}$ be the present value of the protection leg. At par spread the contract satisfies
 
 $$
-Q(0,T) = \exp\left(-\int_0^T \lambda(u)\,du\right)
+PV_{premium}(s)=PV_{protection}
 $$
 
 Where:
 
-- $Q(0,T)$ is the survival probability from today to time $T$.
-- $u$ is the real argument of a characteristic function.
-- $T$ is a maturity or future time, typically measured in years from today.
-- $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
+- $PV_{premium}(s)$ is the premium-leg present value.
+- $PV_{protection}$ is the protection-leg present value.
+- $s$ is the quoted running spread.
 
-Default probability up to $T$:
+## 2. Survival probability and default density
 
-$$
-1 - Q(0,T)
-$$
-
-A simple default density intuition is:
+Let $Q(0,T)$ be the probability that the reference entity survives from today to time $T$. In an intensity model with hazard rate $h(t)$,
 
 $$
-d\mathbb{P}(\tau \le t) \approx \lambda(t)Q(0,t)\,dt
+Q(0,T)=\exp\left(-\int_0^T h(t)\,dt\right)
 $$
 
 Where:
 
-- $Q(0,t)$ is the survival probability from today to time $t$.
-- $\lambda(t)$ is the hazard rate or default intensity at time $t$.
-- $t$ is a time variable, or the real argument of a moment generating function depending on context.
+- $Q(0,T)$ is survival probability to time $T$.
+- $h(t)$ is the hazard rate at time $t$.
+- $t$ is the integration variable representing time.
+- $T$ is the maturity horizon.
 
-#### Example for 3.2 — constant hazard rate intuition
-
-Suppose the hazard rate is flat at
-
-$$
-\lambda = 2\%
-$$
-
-Then survival to 3 years is
+The cumulative default probability by time $T$ is
 
 $$
-Q(0,3)=e^{-0.02\times 3}=e^{-0.06}=0.941765
+1-Q(0,T)
+$$
+
+Let $\tau$ be the random default time. For a short interval $[t,t+dt]$ the conditional default probability is approximately
+
+$$
+\mathbb{P}(\tau\in[t,t+dt]\mid\tau>t)\approx h(t)\,dt
+$$
+
+Where:
+
+- $\tau$ is default time.
+- $dt$ is a small time increment.
+
+A useful density-style identity is
+
+$$
+d\mathbb{P}(\tau\le t)\approx h(t)Q(0,t)\,dt
+$$
+
+Where:
+
+- $d\mathbb{P}(\tau\le t)$ is the incremental default probability around time $t$.
+
+### Example: constant hazard rate
+
+Let the hazard rate be constant at $h=2\%$. Then
+
+$$
+Q(0,3)=e^{-0.02\times 3}=0.941765
 $$
 
 So the default probability by year 3 is
 
 $$
-1-Q(0,3)=1-0.941765=0.058235
+1-Q(0,3)=0.058235
 $$
 
-or about 5.82%.
+## 3. Premium and protection legs
 
-### 3.3 Premium leg
-
-Ignoring some details such as accrual-on-default, the premium leg is approximately:
+Let the premium leg be approximated by scheduled coupon payments only. Then a common schematic formula is
 
 $$
-PV_{\text{premium}}
-\approx
-s \sum_{i=1}^{N} \alpha_i P(0,t_i) Q(0,t_i)
-$$
-
-where:
-
-- $s$ is CDS spread,
-- $\alpha_i$ is accrual factor,
-- $P(0,t_i)$ is discount factor,
-- $Q(0,t_i)$ is survival probability.
-
-#### Example for 3.3 — premium leg with two annual payments
-
-Suppose:
-
-- CDS spread $s=150$ bp $=0.015$,
-- annual accruals $\alpha_1=\alpha_2=1$,
-- discount factors $P(0,1)=0.97$, $P(0,2)=0.93$,
-- survival probabilities $Q(0,1)=0.99$, $Q(0,2)=0.96$.
-
-Then
-
-$$
-PV_{\text{premium}} \approx 0.015\bigl(1\times 0.97\times 0.99 + 1\times 0.93\times 0.96\bigr)
-$$
-
-$$
-=0.015(0.9603+0.8928)=0.0277965
-$$
-
-So the premium leg PV is about 2.78% of notional in this simplified setup.
-
-### 3.4 Protection leg
-
-Protection leg intuition:
-
-$$
-PV_{\text{protection}}
-\approx
-(1-R)\int_0^T P(0,u)\, d(1-Q(0,u))
-$$
-
-where $R$ is recovery.
-
-#### Example for 3.4 — protection leg intuition
-
-Suppose:
-
-- recovery $R=40\%$, so $LGD=60\%$,
-- default probability over the life of the CDS is about 5%,
-- average discounting over the horizon is about 0.95.
-
-A rough protection-leg estimate is
-
-$$
-PV_{\text{protection}} \approx 0.60 \times 0.05 \times 0.95 = 0.0285
-$$
-
-So the protection leg is worth about 2.85% of notional. This is close to the premium-leg number above, which is exactly
-what we expect near the par spread.
-
-### 3.5 Calibration logic
-
-For each quoted maturity $T_i$, solve for survival / hazard structure so that quoted spread is matched:
-
-$$
-PV_{\text{premium},i}(\lambda) - PV_{\text{protection},i}(\lambda) = 0
+PV_{premium}(s)\approx N s \sum_{i=1}^{n}\alpha_i D(0,T_i)Q(0,T_i)
 $$
 
 Where:
 
-- $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
+- $n$ is the number of premium-payment dates.
+- $\alpha_i$ is the accrual fraction of period $i$.
+- $D(0,T_i)$ is the discount factor to payment date $T_i$.
+- $Q(0,T_i)$ is survival probability to payment date $T_i$.
 
-with discount curve and recovery supplied as inputs.
-
-#### Example for 3.5 — toy calibration of a flat hazard rate
-
-Suppose a 2Y CDS spread is quoted at 150 bp and recovery is 40%. In a simple flat-hazard approximation, a rough
-relationship is
+Let the protection leg be approximated on the same tenor grid. Then
 
 $$
-s \approx (1-R)\lambda
+PV_{protection}\approx N(1-R)\sum_{i=1}^{n} D(0,T_i)\left(Q(0,T_{i-1})-Q(0,T_i)\right)
 $$
 
-So
+Where:
+
+- $1-R$ is loss given default.
+- $Q(0,T_{i-1})-Q(0,T_i)$ is the default probability over interval $[T_{i-1},T_i]$.
+
+In production pricing, accrual-on-default and exact default-time integration are included. The formulas above are still useful because they make the structure transparent:
+
+- discounting comes from the rates curve,
+- default timing comes from the survival curve,
+- loss severity comes from recovery.
+
+## 4. Back-of-the-envelope spread intuition
+
+Let the hazard rate be roughly constant and ignore discounting detail. Then a useful approximation is
 
 $$
-0.015 \approx 0.60\lambda
-\quad \Rightarrow \quad
-\lambda \approx 0.025 = 2.5\%
+s\approx h(1-R)
 $$
 
-A real implementation uses the full premium-leg and protection-leg equations, but this back-of-the-envelope estimate
-gives useful intuition.
+Where:
 
-### 3.6 CDS curve implementation checklist
+- $s$ is the CDS spread.
+- $h$ is the flat hazard rate.
+- $1-R$ is loss given default.
 
-A good answer:
+This is not a production formula, but it provides immediate intuition:
 
-> Typed CDS market quotes should include reference entity, seniority, currency, maturity, quote convention, and recovery
-> assumption. A reusable credit curve object should then be built from those normalized quotes plus the corresponding
-> discount curve. The output should expose survival probabilities, hazard rates, calibration diagnostics, and factor IDs
-> so the same curve can feed pricing, CS01, stress, and P&L explain.
+- higher hazard implies a wider spread,
+- lower recovery implies a wider spread.
 
-That is enough to sound practical and credible.
+### Example: hazard from spread
 
-#### Example for 3.6 — what implementation metadata looks like
-
-A normalized CDS quote record might contain:
-
-- reference entity: ACME Corp,
-- seniority: Senior Unsecured,
-- currency: USD,
-- maturity: 5Y,
-- quote type: par spread,
-- quote value: 185 bp,
-- recovery assumption: 40%,
-- source timestamp: 08:00:00 New York.
-
-That metadata is what lets the platform build the correct credit curve and later aggregate CS01 by name, sector, rating,
-and seniority.
-
----
-
-## 4. CS01 and credit risk attribution
-
-### 4.1 Parallel CS01
+If $s=150$ bp and $R=40\%$, then
 
 $$
-CS01 \approx \frac{V(s+\Delta) - V(s-\Delta)}{2}
+h\approx \frac{0.015}{0.60}=0.025
 $$
 
-with $\Delta = 1$ bp spread shift.
+So the implied flat hazard rate is about $2.5\%$ per year.
 
-#### Example for 4.1 — parallel CS01
+## 5. Calibration logic
 
-Suppose a CDS position is worth 2.40 today. After a +1 bp parallel spread shock it is worth 2.48, and after a -1 bp
-shock it is worth 2.32. Then
+A CDS curve builder typically solves for hazard or survival nodes so that each market CDS quote is repriced. In a piecewise-constant hazard model, the unknowns are hazard levels on successive maturity intervals.
 
-$$
-CS01 \approx \frac{2.48-2.32}{2}=0.08
-$$
-
-So the position changes by about 0.08 for a 1 bp parallel move in spreads.
-
-### 4.2 Bucketed CS01
-
-Same idea as key-rate risk, but across CDS maturities:
+Let $s_k^{mkt}$ be the market spread for maturity $T_k$. Let $h=(h_1,\ldots,h_m)$ be the hazard-parameter vector, and let $s_k^{model}(h)$ be the model-implied spread produced by $h$. A common calibration target is
 
 $$
-CS01_k \approx \frac{V(\mathbf{s}+\Delta e_k) - V(\mathbf{s}-\Delta e_k)}{2}
+s_k^{model}(h)=s_k^{mkt}
 $$
 
-### 4.3 Why metadata matters more in credit
+Where:
 
-Rates bucket labels can often be just:
+- $h=(h_1,\ldots,h_m)$ is the vector of hazard parameters.
+- $s_k^{mkt}$ is the observed market quote at tenor $k$.
+- $s_k^{model}(h)$ is the model-implied quote.
 
-- currency,
-- curve family,
-- tenor.
+If exact repricing is not possible or if smoothing is required, the objective may instead minimize weighted quote errors.
 
-Credit usually needs:
+## 6. CS01 and credit-risk attribution
 
-- reference entity,
-- seniority,
-- currency,
-- maturity bucket,
-- curve family,
-- sector/rating tags for aggregation.
+Let $V(s)$ be the present value of an instrument as a function of the shocked credit spread input $s$. A parallel one-basis-point CS01 is approximated by
 
-This is why a generic “tenor-only factor model” is not enough for credit.
+$$
+CS01\approx \frac{V(s-1\text{ bp})-V(s+1\text{ bp})}{2}
+$$
 
-#### Example for 4.3 — same tenor, different risk identity
+Where:
 
-Two positions can both be 5Y credit trades but still belong to different risk buckets:
+- $V(s\pm 1\text{ bp})$ is the repriced value after a one-basis-point spread bump.
+- $CS01$ is the change in value for a one-basis-point widening in spread under the chosen sign convention.
 
-- USD 5Y ACME Senior,
-- EUR 5Y BETA Subordinated.
+A bucketed CS01 shocks only one maturity node at a time. Let $s=(s_1,\ldots,s_m)$ be the spread vector and let $e_k$ be the unit vector for bucket $k$. Then
 
-A tenor-only aggregation would merge them incorrectly, while a realistic credit platform keeps entity, currency, and
-seniority so that risk and P&L explain remain meaningful.
+$$
+CS01_k\approx \frac{V(s-1\text{ bp}\,e_k)-V(s+1\text{ bp}\,e_k)}{2}
+$$
 
----
+Where:
 
-## 5. Bond spread vs. CDS spread
+- $CS01_k$ is sensitivity to tenor bucket $k$.
+- $s=(s_1,\ldots,s_m)$ is the spread vector across tenor buckets.
+- $e_k$ is the unit vector that selects only bucket $k$.
+- $1\text{ bp}$ is the one-basis-point shock size.
 
-You may be asked the intuition.
+### Example: parallel CS01
 
-A simple answer:
+Suppose a position is worth 2.40. After a +1 bp spread bump it is worth 2.48. After a -1 bp spread bump it is worth 2.32. Then
 
-- bond spread is a cash bond relative-value measure and includes bond-specific effects,
-- CDS spread is a cleaner derivative market measure of default risk,
-- in practice they are related but not identical because of liquidity, deliverability, funding, restructuring terms, and
-  technical factors.
+$$
+CS01\approx \frac{2.32-2.48}{2}=-0.08
+$$
 
-That level of detail is usually sufficient unless a deeper calibration discussion is required.
+Under this sign convention a spread widening loses 0.08 of value.
 
-#### Example for 5 — bond spread versus CDS spread
+## 7. Bond spread versus CDS spread
 
-Suppose a 5Y corporate bond yields 5.40% while the matched sovereign benchmark yields 3.90%. The bond spread is about
-150 bp. If the same issuer’s 5Y CDS trades at 165 bp, the two numbers are close but not identical.
+Bond spreads and CDS spreads are related but not identical.
 
-The gap can come from bond liquidity, bond-specific technicals, delivery options, or funding effects.
+- A cash-bond spread reflects the bond's coupon, maturity, financing, liquidity, and benchmark choice.
+- A CDS spread reflects the price of protection under explicit recovery and contract conventions.
+- The bond-CDS basis captures the difference between the two representations.
 
----
+The cleanest interpretation is:
+
+- bond spread is a cash-market relative-value measure,
+- CDS spread is a derivative-market protection measure.
+
+## 8. What a reusable credit curve should expose
+
+A production credit curve object should expose at least:
+
+- survival probability $Q(0,T)$,
+- cumulative default probability $1-Q(0,T)$,
+- hazard rate $h(t)$ or piecewise hazard nodes,
+- calibration diagnostics,
+- factor identifiers for spread and CS01 aggregation,
+- enough metadata to distinguish issuer, seniority, currency, restructuring clause, and recovery assumption.
+
+## 9. Practical implementation notes
+
+The credit stack should preserve the following separation:
+
+1. normalized quote records,
+2. convention resolution,
+3. discount-curve linkage,
+4. credit-curve calibration,
+5. pricing and risk services,
+6. archival lineage.
+
+That separation is what allows the same calibrated object to feed pricing, CS01, historical stress, VaR, and P&L explain without re-implementing credit logic in each report.

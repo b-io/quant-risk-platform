@@ -2,6 +2,10 @@ add_executable(unit_tests
     unit/test_dummy.cpp
     unit/test_market.cpp
     unit/test_persistence.cpp
+    unit/test_covariance.cpp
+    unit/test_scenario_engine.cpp
+    unit/test_monte_carlo.cpp
+    unit/test_monte_carlo_aging.cpp
 )
 target_link_libraries(unit_tests PRIVATE qrp_core GTest::gtest_main)
 add_test(NAME unit_tests COMMAND unit_tests)
@@ -12,3 +16,10 @@ add_executable(integration_tests
 )
 target_link_libraries(integration_tests PRIVATE qrp_core GTest::gtest_main)
 add_test(NAME integration_tests COMMAND integration_tests)
+
+if(MSVC)
+    # Ensure unique intermediate directories to avoid MSB8028 warning
+    # This warning often occurs when targets in the same directory share common names or PDB names.
+    set_target_properties(unit_tests PROPERTIES COMPILE_PDB_NAME "unit_tests_comp")
+    set_target_properties(integration_tests PROPERTIES COMPILE_PDB_NAME "integration_tests_comp")
+endif()

@@ -5,6 +5,8 @@
 #include <memory>
 #include <qrp/domain/portfolio.hpp>
 #include <qrp/domain/market_data.hpp>
+#include <qrp/domain/factors.hpp>
+#include <qrp/domain/market_event.hpp>
 
 namespace qrp::persistence {
 
@@ -29,9 +31,28 @@ public:
                              double notional, const std::string& start_date, const std::string& maturity_date,
                              const std::string& direction, const std::string& economics_json) = 0;
 
-    // Market snapshots
+    // Market snapshots and bitemporal events
     virtual void store_market_snapshot(const std::string& snapshot_id, const std::string& as_of_date, const std::string& base_ccy, const std::string& curves_json = "[]") = 0;
     virtual void store_market_quote(const std::string& snapshot_id, const std::string& quote_id, double value, const std::string& ccy, const std::string& metadata_json = "{}") = 0;
+
+    virtual void store_market_quote_event(const domain::MarketQuoteEvent& event) = 0;
+    virtual domain::MarketSnapshot load_market_snapshot_asof(
+        const std::string& market_ts,
+        const std::string& recorded_ts,
+        const std::string& base_ccy,
+        const std::string& overlay_set_id = "") = 0;
+
+    // Factors and History
+    virtual void store_factor_definition(const domain::FactorDefinition& factor) = 0;
+    virtual void store_factor_observation(const domain::FactorObservation& obs) = 0;
+    virtual void store_factor_binding(const domain::FactorBinding& binding) = 0;
+    
+    virtual std::vector<domain::FactorDefinition> load_factor_definitions(const std::string& portfolio_id) = 0;
+    virtual std::vector<domain::FactorBinding> load_factor_bindings(const std::vector<std::string>& factor_ids) = 0;
+    virtual std::vector<domain::FactorObservation> load_factor_history(
+        const std::vector<std::string>& factor_ids,
+        const std::string& start_date,
+        const std::string& end_date) = 0;
 
     // Load methods
     virtual std::vector<domain::Trade> load_trades(const std::string& portfolio_id) = 0;

@@ -250,6 +250,9 @@ QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> CurveBuilder::build_curv
     QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> curve = QuantLib::ext::make_shared<CurveT>(
         valuation_date, helpers, parse_day_count(spec.day_count));
     curve->enableExtrapolation();
+    if (state_ptr) {
+        state_ptr->add_curve(spec.id, curve);
+    }
     return curve;
 }
 
@@ -265,9 +268,12 @@ MarketSnapshot::MarketSnapshot(const domain::MarketSnapshot& dto) {
     }
 
     for (const auto& spec : dto.curves) {
-        auto curve = CurveBuilder::build_curve(spec, quote_map, val_date, state_);
-        if (curve) {
-            state_->add_curve(spec.id, curve);
+        CurveBuilder::build_curve(spec, quote_map, val_date, state_);
+    }
+
+    for (const auto& [index_name, date_fixings] : dto.fixings) {
+        for (const auto& [date_str, value] : date_fixings) {
+            state_->add_fixing(index_name, CurveBuilder::parse_date(date_str), value);
         }
     }
 }

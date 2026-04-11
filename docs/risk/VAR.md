@@ -1,97 +1,86 @@
-# Value-at-Risk Documentation
+# Value-at-Risk and Expected Shortfall
 
-This document separates VaR methodologies clearly.
+This chapter separates the main VaR methodologies and states their assumptions explicitly.
 
-## Required split
+## Notation used in this chapter
 
-The repository should document and implement three distinct approaches:
+Unless stated otherwise:
 
-1. **Historical VaR**
-2. **Parametric VaR**
-3. **Monte Carlo VaR**
+- $\Pi$ is portfolio P&L over the chosen horizon.
+- $L=-\Pi$ is loss under the positive-loss convention.
+- $\alpha$ is the confidence level.
+- $N$ is the number of scenarios or paths.
+- $L_i$ is the loss in scenario $i$.
 
-They may share factor definitions, market data, and reporting formats, but they should not be treated as one generic
-engine because the assumptions, diagnostics, and failure modes are different.
+## 1. Common definition
 
-## Common definition
+Let $L$ be the loss random variable. VaR at confidence level $\alpha$ is the loss threshold exceeded only in the tail of the distribution.
 
-For a portfolio P&L random variable $\Pi$, a one-sided confidence level $\alpha$ VaR is commonly interpreted as a loss
-threshold such that only a tail proportion of outcomes is worse than that level. In sign conventions where losses are
-reported as positive values, the VaR number is often written as the negative of a lower-tail P&L quantile.
+A compact definition is
 
-## Historical VaR
+$$
+VaR_\alpha=\mathrm{Quantile}_\alpha(L)
+$$
 
-Historical VaR replays observed historical factor moves against today's portfolio. It is intuitive and easy to explain,
-but it depends heavily on the chosen history and may underrepresent structural regime changes.
+Where:
 
-Typical workflow:
+- $\mathrm{Quantile}_\alpha(L)$ is the $\alpha$-quantile of the loss distribution.
 
-1. collect historical factor moves,
-2. map those moves onto today's market state,
-3. revalue the portfolio under each replayed scenario,
-4. read the empirical tail quantile of the resulting P&L distribution.
+Expected Shortfall at confidence level $\alpha$ is the average loss beyond VaR. In a loss convention,
 
-Historical VaR fits naturally with historical stress and scenario libraries, but it needs clean factor mapping and clear
-rules for missing history.
+$$
+ES_\alpha=\mathbb{E}[L\mid L\ge VaR_\alpha]
+$$
 
-## Parametric VaR
+## 2. Historical VaR
 
-The first target should be delta-normal VaR using a covariance matrix and a linearized risk mapping. It is fast and
-scalable, but its assumptions become weak for strong non-linearity and heavy tails.
+Historical VaR replays observed historical factor moves against today's portfolio. If the replayed losses are the sample $\{L_i\}_{i=1}^N$, then
 
-A simple delta-normal approximation uses:
+$$
+\widehat{VaR}^{hist}_\alpha=\mathrm{Quantile}_\alpha(\{L_i\}_{i=1}^N)
+$$
 
-- a vector of factor sensitivities,
-- a factor covariance matrix,
-- a horizon scaling assumption,
-- a confidence-level multiplier.
+Historical VaR is intuitive and scenario-based, but it depends on the lookback window and factor mapping.
 
-This approach is often the most practical starting point for large portfolios because it is cheap to compute and easy to
-aggregate, even though it can materially understate option or basis risks.
+## 3. Parametric VaR
 
-## Monte Carlo VaR
+In a delta-normal approximation with factor-sensitivity vector $w$ and factor covariance matrix $\Sigma$, the portfolio standard deviation is
 
-Monte Carlo VaR should sit on top of the broader simulation framework, not replace it. It is useful when the portfolio
-is non-linear or when one-step Gaussian approximations are insufficient.
+$$
+\sigma_P=\sqrt{w^\top \Sigma w}
+$$
 
-The engine should make it explicit whether it is doing:
+Where:
 
-- one-step factor simulation,
-- full path simulation,
-- simulation under a Gaussian, t, or other factor model,
-- simulation with static or stochastic volatility assumptions.
+- $w$ is the vector of factor sensitivities mapped into the parametric model.
+- $\Sigma$ is the factor covariance matrix.
 
-## Expected Shortfall
+If $z_\alpha$ is the standard-normal quantile at confidence level $\alpha$, a one-step parametric VaR is
 
-Even when the primary report is VaR, the same scenario distribution should ideally support expected shortfall as a tail
-average. That is especially useful for comparing tail shape across methodologies.
+$$
+VaR_\alpha^{para}=z_\alpha\sigma_P
+$$
 
-## Output requirements
+This method is fast and scalable, but it can understate non-linear or heavy-tailed risk.
 
-Every VaR report should state at least:
+## 4. Monte Carlo VaR
+
+Monte Carlo VaR simulates future factor states and reprices the portfolio under each state. If the simulated losses are the sample $\{L_i\}_{i=1}^N$, then
+
+$$
+\widehat{VaR}^{MC}_\alpha=\mathrm{Quantile}_\alpha(\{L_i\}_{i=1}^N)
+$$
+
+The method is flexible and handles non-linearity well, but it is computationally heavier and inherits model risk from the simulation model.
+
+## 5. Output requirements
+
+Every VaR or ES report should state at least:
 
 - method,
 - horizon,
 - confidence level,
 - factor set,
 - valuation mode,
+- lookback window or number of paths,
 - main assumptions.
-
-Useful additions are:
-
-- lookback window,
-- number of scenarios or paths,
-- covariance source,
-- treatment of non-linear products,
-- diversification versus standalone views,
-- top factor contributors.
-
-## Method comparison
-
-A clear documentation set should keep the following trade-offs visible:
-
-- **Historical VaR**: intuitive and scenario-based, but history-dependent.
-- **Parametric VaR**: fast and scalable, but assumption-heavy.
-- **Monte Carlo VaR**: flexible and better for non-linearity, but computationally heavier.
-
-That separation is important both for implementation and for interpretation of reported numbers.

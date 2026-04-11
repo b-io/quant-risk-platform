@@ -1,4 +1,5 @@
 #pragma once
+#include <qrp/domain/market_data.hpp>
 #include <qrp/domain/types.hpp>
 #include <ql/time/date.hpp>
 #include <ql/termstructures/yieldtermstructure.hpp>
@@ -55,10 +56,53 @@ public:
         return 0.0;
     }
 
+    /**
+     * @brief Resets all quote handles to values provided in the snapshot.
+     * This ensures the state is consistent with a known reference point.
+     * @param snapshot The market snapshot containing base quote values.
+     */
+    void reset_to_snapshot(const domain::MarketSnapshot& snapshot) {
+        for (const auto& q : snapshot.quotes) {
+            add_quote(q.id, q.value);
+        }
+    }
+
+    /**
+     * @brief Captures a lightweight snapshot of the current quote values.
+     * Rationale: Useful for saving a baseline (like frozen-aged) to reset to
+     * during Monte Carlo paths.
+     */
+    domain::MarketSnapshot capture_snapshot() const {
+        domain::MarketSnapshot snapshot;
+        // In a real system, we'd preserve valuation_date and other metadata.
+        // For MC reset, we primarily need the quotes.
+        for (const auto& [id, handle] : quote_handles_) {
+            domain::MarketQuote q;
+            q.id = id;
+            q.value = handle->value();
+            snapshot.quotes.push_back(q);
+        }
+        return snapshot;
+    }
+
+    void add_fixing(const std::string& index_name, const QuantLib::Date& date, double value) {
+        fixings_[index_name][date] = value;
+    }
+
+    double get_fixing(const std::string& index_name, const QuantLib::Date& date) const {
+        if (fixings_.contains(index_name) && fixings_.at(index_name).contains(date)) {
+            return fixings_.at(index_name).at(date);
+        }
+        return 0.0;
+    }
+
+    const std::map<std::string, std::map<QuantLib::Date, double>>& fixings() const { return fixings_; }
+
 private:
     QuantLib::Date valuation_date_;
     std::map<domain::CurveId, QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure>> curves_;
     std::map<std::string, QuantLib::ext::shared_ptr<QuantLib::SimpleQuote>> quote_handles_;
+    std::map<std::string, std::map<QuantLib::Date, double>> fixings_;
 };
 
 } // namespace qrp::market

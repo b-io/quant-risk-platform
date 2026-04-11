@@ -2,14 +2,29 @@ param (
     [string]$PortfolioId = "demo_macro_book",
     [string]$SnapshotId = "SNAP:2024-03-24",
     [string]$ScenarioSetId = "SC_SET_HIST_01",
-    [string]$BuildDir = "build\Debug",
+    [string]$BuildDir = "build\Release-Python",
+    [string]$Config = "Release",
     [string]$LogLevel = "info"
 )
 
-$CliExe = Join-Path $BuildDir "qrp_cli.exe"
+# Helper to find executable
+function Find-Exe($ExeName) {
+    $Paths = @(
+        "$BuildDir\$ExeName",
+        "$BuildDir\$Config\$ExeName",
+        "$BuildDir\bin\$ExeName",
+        "$BuildDir\bin\$Config\$ExeName"
+    )
+    foreach ($Path in $Paths) {
+        if (Test-Path $Path) { return $Path }
+    }
+    return $null
+}
 
-if (!(Test-Path $CliExe)) {
-    Write-Error "Could not find qrp_cli.exe at $CliExe. Please build the project first."
+$CliExe = Find-Exe "qrp_cli.exe"
+
+if ($null -eq $CliExe) {
+    Write-Error "Could not find qrp_cli.exe in $BuildDir or nested directories. Please build the project first."
     exit 1
 }
 

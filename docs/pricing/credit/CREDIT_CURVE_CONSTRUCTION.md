@@ -1,115 +1,111 @@
 # Credit Curve Construction
 
-This document is the canonical home for credit-curve design notes as the platform grows.
+This chapter describes how a production platform should build and validate reusable credit curves.
 
-## Scope
+## Notation used in this chapter
 
-Credit documentation in this repository should cover:
+Unless stated otherwise:
 
-- spread quote schema,
-- CDS conventions,
-- hazard-rate and default-probability curve construction,
-- survival probabilities,
-- recovery-rate handling,
-- credit discounting versus survival modeling,
-- CS01 and spread-factor mapping.
+- $t=0$ is the valuation date.
+- $T_k$ is the maturity of quoted CDS tenor $k$.
+- $s_k^{mkt}$ is the market CDS spread at tenor $T_k$.
+- $Q(0,T)$ is survival probability to time $T$.
+- $h(t)$ is the hazard rate at time $t$.
+- $R$ is the recovery rate.
+- $D(0,T)$ is the discount factor to maturity $T$.
+- $h=(h_1,\ldots,h_m)$ is the vector of hazard parameters used in calibration.
 
-Credit is intentionally documented separately from rates because the underlying market objects answer different
-questions. A rates curve explains discounting or forward projection. A credit curve explains default timing,
-survival, and loss-given-default assumptions.
+## 1. Scope
 
-## Core objects
+A credit curve is not a discount curve. It represents default timing and loss-given-default assumptions, not risk-free discounting. In practice the builder must combine:
 
-A production-shaped credit stack should expose at least:
+- normalized CDS or bond-spread quotes,
+- contract conventions,
+- a discount curve in the same currency,
+- a recovery assumption,
+- a chosen interpolation or bootstrap family.
 
-- a **credit quote schema** describing instrument type, reference entity, currency, seniority, restructuring clause,
-  recovery assumption, maturity, and quote convention,
-- a **credit curve specification** describing the curve family, calibration universe, interpolation choice, and
-  bootstrap hints,
-- a **credit curve object** exposing survival probability, default probability, hazard rate, and risky discounting
-  inputs,
-- a **factor mapping layer** that ties curve nodes back to CS01, stress, and P&L explain outputs.
+## 2. Core quantity
 
-## Typical market inputs
+Let $Q(0,T)$ be the survival probability from today to time $T$. In an intensity framework,
 
-The most common inputs are:
+$$
+Q(0,T)=\exp\left(-\int_0^T h(t)\,dt\right)
+$$
 
-- **CDS par spreads** across standard maturities,
-- **bond spreads** or spread-to-benchmark observations,
-- **recovery-rate assumptions**, either fixed or scenario-dependent,
-- **discount curves** used to value premium and protection legs,
-- **reference-entity metadata** such as sector, region, issuer family, and seniority.
+Where:
 
-The schema should make it explicit which quotes are direct calibration inputs and which are auxiliary metadata.
+- $h(t)$ is the hazard rate.
+- $t$ is the integration variable.
 
-## Construction flow
+If hazard is piecewise constant, this formula becomes especially convenient because each maturity interval contributes a simple exponential term.
 
-A practical construction flow is:
+## 3. Calibration target
 
-1. Normalize credit quotes into a typed market schema.
-2. Resolve credit conventions from a registry rather than from hardcoded product logic.
-3. Select a calibration family for a reference entity and seniority bucket.
-4. Combine the credit quotes with a discount curve in the same currency.
-5. Bootstrap a survival or hazard-rate term structure.
-6. Publish reusable handles so the same object can be consumed by pricing, stress, and CS01 logic.
+Let $h=(h_1,\ldots,h_m)$ be the hazard-parameter vector. Let $s_k^{model}(h)$ be the model spread implied by $h$ for tenor $T_k$. The calibration problem is to solve
 
-That sequence matters because credit construction is not independent of the discounting framework. A CDS curve is
-built from spreads, but the valuation equations still require discount factors and convention-aware premium-leg timing.
+$$
+s_k^{model}(h)=s_k^{mkt}
+$$
 
-## Outputs that should be available
+for each quoted tenor $k$.
 
-A reusable credit curve object should provide, directly or through a thin service layer:
+Where:
 
-- survival probability $Q(t)$,
-- cumulative default probability $1-Q(t)$,
-- hazard rate $\lambda(t)$,
-- risky PV inputs for CDS or credit-sensitive bonds,
-- node labels for curve diagnostics,
-- calibration diagnostics such as residual errors or failed nodes.
+- $s_k^{mkt}$ is the observed market quote.
+- $s_k^{model}(h)$ is the model-implied quote.
+- $h=(h_1,\ldots,h_m)$ is the parameter vector being solved for.
 
-## Risk implications
+When exact fit is not desired or the quote set is noisy, the builder may instead minimize a weighted objective such as the sum of squared quote errors.
 
-The design should support at least the following downstream uses:
+## 4. Construction flow
 
-- **CS01** by parallel and bucketed spread shocks,
-- **historical stress** by replaying spread moves by issuer, sector, or rating bucket,
-- **P&L explain** with spread-move and recovery buckets,
-- **VaR** where spread factors sit beside rates, FX, and volatility factors.
+A practical production flow is:
 
-Credit-factor definitions should therefore carry more metadata than a simple tenor label. They usually need a
-reference entity, seniority, currency, and spread family identifier.
+1. normalize input quotes into a typed credit-quote schema,
+2. resolve contract conventions from a registry,
+3. attach the appropriate discount curve,
+4. choose the calibration family,
+5. solve for survival or hazard nodes,
+6. publish a reusable curve object with diagnostics and factor metadata.
 
-## Intended implementation path
+## 5. Minimum outputs
 
-### Phase 1
+A reusable credit curve should expose:
 
-- extend the market schema to support credit spread instruments,
-- define issuer or reference-entity identifiers,
-- define recovery-rate storage,
-- define a `CreditCurveBuilder` interface,
-- define diagnostics and serialization fields for calibrated curves.
+- $Q(0,T)$ for survival queries,
+- $1-Q(0,T)$ for cumulative default probability,
+- hazard-rate values or hazard segments,
+- calibration residuals,
+- node labels and factor identifiers,
+- metadata such as issuer, seniority, currency, and recovery assumption.
 
-### Phase 2
+## 6. Validation checks
 
-- bootstrap survival curves from CDS spreads or simplified spread inputs,
-- expose survival probabilities and default densities,
-- map credit factors for CS01 and stress,
-- separate quoted spread data from scenario overlays.
+A calibrated curve is acceptable only if it passes both numerical and economic checks.
 
-### Phase 3
+Numerical checks:
 
-- integrate credit curves into pricing and portfolio risk aggregation,
-- support issuer-level and sector-level aggregation,
-- connect the same credit objects to explain, historical stress, VaR, and Monte Carlo workflows.
+- quoted instruments reprice within tolerance,
+- solver convergence is stable under small quote perturbations,
+- interpolation and bootstrap choices do not create oscillatory artifacts.
 
-## Why this deserves its own folder
+Economic checks:
 
-Credit curves are not just another rates curve. They add:
+- survival probability is non-increasing in maturity,
+- cumulative default probability stays between 0 and 1,
+- hazard rates are non-negative or economically interpretable under the chosen framework,
+- CS01 and scenario behavior are stable enough to support reporting.
 
-- reference-entity granularity,
-- recovery assumptions,
-- survival probabilities,
-- alignment with default timing and payoff conventions,
-- different risk sensitivities than pure rates.
+## 7. Why factor metadata matters
 
-That is why credit belongs under pricing documentation rather than being hidden inside general theory notes.
+Credit risk is not identified by tenor alone. A realistic factor key normally needs at least:
+
+- reference entity,
+- seniority,
+- currency,
+- curve family,
+- maturity bucket,
+- optional sector or rating tags.
+
+This is what allows CS01, stress, and VaR to aggregate correctly.

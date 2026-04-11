@@ -19,7 +19,9 @@ public:
     static std::vector<StressResult> run_historical_stress(
         const domain::Portfolio& portfolio,
         const domain::MarketSnapshot& base_market_dto,
-        const std::vector<market::ScenarioDefinition>& historical_scenarios);
+        const std::vector<market::ScenarioDefinition>& historical_scenarios,
+        const std::vector<domain::FactorDefinition>& factors = {},
+        const std::vector<domain::FactorBinding>& bindings = {});
 };
 
 } // namespace qrp::analytics

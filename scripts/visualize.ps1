@@ -1,15 +1,34 @@
+param(
+    [string]$Table = "summary",
+    [string]$Id = "",
+    [string]$BuildDir = "build\Release-Python",
+    [string]$Config = "Release"
+)
+
 # visualize.ps1 - Visualize data from the database
 
 $DbFile = "var\quant_risk_platform.sqlite"
-$BuildDir = "build\Debug"
-$CliExe = "$BuildDir\qrp_cli.exe"
+
+# Helper to find executable
+function Find-Exe($ExeName) {
+    $Paths = @(
+        "$BuildDir\$ExeName",
+        "$BuildDir\$Config\$ExeName",
+        "$BuildDir\bin\$ExeName",
+        "$BuildDir\bin\$Config\$ExeName"
+    )
+    foreach ($Path in $Paths) {
+        if (Test-Path $Path) { return $Path }
+    }
+    return $null
+}
+
+$CliExe = Find-Exe "qrp_cli.exe"
 
 if (!(Test-Path $DbFile)) {
     Write-Host "Database file $DbFile not found." -ForegroundColor Red
     exit 1
 }
-
-$Table = if ($args.Count -gt 0) { $args[0] } else { "summary" }
 
 function Run-Query($sql) {
     if (Get-Command sqlite3 -ErrorAction SilentlyContinue) {
@@ -17,7 +36,11 @@ function Run-Query($sql) {
     } else {
         Write-Host "sqlite3 not found. For better visualization, install sqlite3." -ForegroundColor Yellow
         Write-Host "Falling back to qrp_cli list for basic info..." -ForegroundColor Cyan
-        & $CliExe list
+        if ($null -ne $CliExe) {
+            & $CliExe list
+        } else {
+            Write-Host "Error: qrp_cli.exe not found to fallback." -ForegroundColor Red
+        }
     }
 }
 
@@ -27,26 +50,28 @@ switch ($Table) {
         Run-Query "SELECT portfolio_id, portfolio_name, base_currency FROM portfolios;"
     }
     "trades" {
-        $PortfolioId = if ($args.Count -gt 1) { $args[1] } else { "" }
-        if ($PortfolioId -eq "") {
-            Write-Host "Usage: .\scripts\visualize.ps1 trades <portfolio_id>"
+        if ($Id -eq "") {
+            Write-Host "Usage: .\scripts\visualize.ps1 trades -Id <portfolio_id>"
             exit 1
         }
-        Write-Host "=== Trades for $PortfolioId ===" -ForegroundColor Cyan
-        Run-Query "SELECT trade_id, book_id, asset_class, product_type, currency, notional FROM trades WHERE portfolio_id = '$PortfolioId';"
+        Write-Host "=== Trades for $Id ===" -ForegroundColor Cyan
+        Run-Query "SELECT trade_id, book_id, asset_class, product_type, currency, notional FROM trades WHERE portfolio_id = '$Id';"
     }
     "runs" {
         Write-Host "=== Analysis Runs ===" -ForegroundColor Cyan
         Run-Query "SELECT run_id, run_type, portfolio_id, snapshot_id, created_at FROM analysis_runs ORDER BY created_at DESC;"
     }
     "results" {
-        $RunId = if ($args.Count -gt 1) { $args[1] } else { "" }
-        if ($RunId -eq "") {
-            Write-Host "Usage: .\scripts\visualize.ps1 results <run_id>"
+        if ($Id -eq "") {
+            Write-Host "Usage: .\scripts\visualize.ps1 results -Id <run_id>"
             exit 1
         }
-        Write-Host "Using qrp_cli report for $RunId ..." -ForegroundColor Cyan
-        & $CliExe report $RunId
+        if ($null -eq $CliExe) {
+            Write-Host "Error: qrp_cli.exe not found to generate report." -ForegroundColor Red
+            exit 1
+        }
+        Write-Host "Using qrp_cli report for $Id ..." -ForegroundColor Cyan
+        & $CliExe report $Id
     }
     "summary" {
         Write-Host "=== Platform Data Summary ===" -ForegroundColor Green
@@ -56,7 +81,7 @@ switch ($Table) {
             Write-Host "Snapshots: " -NoNewline; sqlite3 "$DbFile" "SELECT count(*) FROM market_snapshots;"
             Write-Host "Runs: " -NoNewline; sqlite3 "$DbFile" "SELECT count(*) FROM analysis_runs;"
         } else {
-             & $CliExe list
+             if ($null -ne $CliExe) { & $CliExe list }
         }
         Write-Host "`nUsage: .\scripts\visualize.ps1 [portfolios | trades <id> | runs | results <id>]"
     }

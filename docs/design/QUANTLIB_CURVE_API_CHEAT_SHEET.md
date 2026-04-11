@@ -1,72 +1,56 @@
 # QuantLib Curve API Cheat Sheet
 
-This appendix maps common curve calculations to QuantLib-style calls.
+This note summarizes the QuantLib curve classes and query methods that appear most often in a production rates or credit stack.
 
-## 1. Read a discount factor
+## 1. Core idea
 
-```cpp
-DiscountFactor df = curve->discount(date);
-```
+A term structure object provides values such as discount factors, zero rates, forward rates, or survival probabilities as a function of time or date. In practice, the platform should wrap QuantLib objects behind repository-specific interfaces, but it is still useful to know the underlying QuantLib vocabulary.
 
-Use when you need present values, forward discount ratios, carry, or deterministic cash-flow discounting.
+## 2. Common yield-curve objects
 
-## 2. Read a zero rate
+- `ql.FlatForward` — flat zero or flat forward curve used for tests and simple scenarios.
+- `ql.DiscountCurve` — curve defined directly by discount factors.
+- `ql.ZeroCurve` — curve defined by zero rates.
+- `ql.ForwardCurve` — curve defined by instantaneous or simple forwards depending on construction.
+- `ql.PiecewiseLogLinearDiscount` and related piecewise curves — bootstrapped market-consistent curves.
+- `ql.RelinkableYieldTermStructureHandle` — mutable handle used to relink a pricing engine or index to a new curve without rebuilding every dependent object.
 
-```cpp
-Rate z = curve->zeroRate(date, Actual365Fixed(), Continuous).rate();
-```
+## 3. Core queries
 
-Use for reporting, curve diagnostics, and macro discussion.
+Let `curve` be a yield term structure and let `T` be a maturity date.
 
-## 3. Read a forward rate between two dates
+- `curve.discount(T)` — discount factor to date `T`.
+- `curve.zeroRate(T, dayCounter, compounding, frequency)` — zero rate implied by the curve.
+- `curve.forwardRate(T1, T2, dayCounter, compounding, frequency)` — forward rate between `T1` and `T2`.
+- `curve.referenceDate()` — curve anchor date.
+- `curve.dayCounter()` — day-count convention used by the curve.
+- `curve.maxDate()` — last supported date.
 
-```cpp
-Rate f = curve->forwardRate(d1, d2, Actual365Fixed(), Continuous).rate();
-```
+## 4. Indices and forwarding curves
 
-Use for FRA logic, desk reporting, and forward-looking interpretation.
+A floating index such as `ql.Sofr`, `ql.Euribor3M`, or `ql.USDLibor(ql.Period('3M'))` is usually built with a forwarding-curve handle. The index uses that handle to project floating coupons and can also rely on fixings history.
 
-## 4. Compute a forward discount factor
+Typical pattern:
 
-```cpp
-DiscountFactor p12 = curve->discount(d2) / curve->discount(d1);
-```
+- build a discount curve,
+- build one or more forwarding curves,
+- bind each index to the correct forwarding handle,
+- bind discounting engines to the discount curve,
+- price trades from a coherent curve set.
 
-Use for shifted-horizon valuation or to explain $P(T_1,T_2)$ directly.
+## 5. Credit objects
 
-## 5. Build a shifted curve
+For credit work the key objects are the default-probability term structures, for example hazard-rate or survival-probability curves. The same practical ideas apply:
 
-```cpp
-Handle<YieldTermStructure> base(curve);
-auto implied = ext::make_shared<ImpliedTermStructure>(base, d1);
-```
+- build from normalized quotes,
+- expose survival probabilities and default probabilities,
+- keep handles reusable across pricing, stress, and CS01 runs,
+- archive enough metadata to reproduce the calibration.
 
-Use when you need a reusable curve object with reference date $d_1$.
+## 6. Practical use rules
 
-## 6. Build a flat curve for tests
-
-```cpp
-auto flat = ext::make_shared<FlatForward>(today, 0.04, Actual365Fixed(), Continuous);
-```
-
-Use in unit tests, examples, and controlled scenario analysis.
-
-## 7. Core bootstrapping helpers
-
-- `DepositRateHelper`
-- `FraRateHelper`
-- `FuturesRateHelper`
-- `OISRateHelper`
-- `SwapRateHelper`
-
-## 8. Common overnight indexes
-
-- `Sofr`
-- `Estr`
-- `Saron`
-
-## 9. Practical summary
-
-> Helper instruments encode market conventions, bootstrap a curve object once, and then support valuation and risk
-> queries through `discount`, `zeroRate`, `forwardRate`, or an implied term structure when the analytics need a shifted
-> anchor date.
+- Use flat curves for unit tests and controlled scenario analysis.
+- Use piecewise bootstrapped curves for market-consistent pricing.
+- Archive conventions together with quotes and curve specs.
+- Prefer relinkable handles over repeated object reconstruction in risk runs.
+- Keep QuantLib-specific details inside adapters so the rest of the platform does not depend on low-level implementation choices.

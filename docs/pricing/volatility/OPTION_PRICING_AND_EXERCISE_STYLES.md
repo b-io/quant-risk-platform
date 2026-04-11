@@ -50,17 +50,31 @@ Typical examples:
 
 An American option can be exercised at any time up to expiry.
 
-The pricing problem is therefore an **optimal stopping** problem:
+Let $V^{Am}(t,S)$ be the American option value and let $H(t,S)$ be the immediate-exercise value. Then
 
 $$
-V(t,S)=
-\max\bigl(
-\text{intrinsic value},
-\text{continuation value}
-\bigr).
+V^{Am}(t,S) = \sup_{\tau \in [t,T]} \mathbb{E}^{\mathbb{Q}}_t \left[e^{-r(\tau-t)} H(\tau, S_\tau)\right]
 $$
 
-This extra flexibility makes American options worth at least as much as the corresponding European options.
+Where:
+
+- $V^{Am}(t,S)$ is the American option value at time $t$.
+- $H(t,S)$ is the payoff obtained by exercising immediately.
+- $\tau$ is an admissible stopping time between $t$ and $T$.
+- $T$ is maturity.
+- $\mathbb{Q}$ is the risk-neutral measure.
+
+In a Markovian one-factor setting the same idea can be written as a dynamic programming equation:
+
+$$
+V^{Am}(t,S) = \max\left(H(t,S), V^{cont}(t,S)\right)
+$$
+
+Where:
+
+- $V^{cont}(t,S)$ is the continuation value, meaning the discounted expected value of waiting rather than exercising now.
+
+This extra flexibility makes an American option worth at least as much as the corresponding European option.
 
 Important practical facts:
 
@@ -259,6 +273,103 @@ $$
 $$
 
 The early exercise decision is optimal here.
+
+---
+
+## 5.1 European versus American prices in theory and in practice
+
+Let $V^{Eu}$ be the European option value and let $V^{Am}$ be the American option value for the same payoff family, strike, and final maturity. Then
+
+$$
+V^{Am} \ge V^{Eu}
+$$
+
+Where:
+
+- $V^{Am}$ is the American option value.
+- $V^{Eu}$ is the European option value.
+
+The inequality holds because the American holder can always choose to behave like a European holder and exercise only at maturity.
+
+### Calls on non-dividend-paying stocks
+
+Let $C^{Am}$ be an American call and let $C^{Eu}$ be the corresponding European call on a non-dividend-paying stock. Then
+
+$$
+C^{Am} = C^{Eu}
+$$
+
+Where:
+
+- $C^{Am}$ is the American call price.
+- $C^{Eu}$ is the European call price.
+
+Meaning:
+
+- early exercise gives the holder the stock but destroys remaining time value,
+- the strike must be paid earlier,
+- there is no dividend benefit to compensate for that lost optionality.
+
+So for a plain non-dividend-paying stock call, the early-exercise right has zero value.
+
+### Puts on non-dividend-paying stocks
+
+Let $P^{Am}$ be an American put and let $P^{Eu}$ be the corresponding European put. Then
+
+$$
+P^{Am} \ge P^{Eu}
+$$
+
+Where:
+
+- $P^{Am}$ is the American put price.
+- $P^{Eu}$ is the European put price.
+
+Meaning:
+
+- if the put is deep in the money and rates are positive, exercising early can be optimal because the strike is received sooner,
+- the early-exercise right therefore has positive value in many states.
+
+### Calls on dividend-paying stocks
+
+Let $C^{Am}_{div}$ be an American call on a dividend-paying stock and let $C^{Eu}_{div}$ be the corresponding European call. Then
+
+$$
+C^{Am}_{div} \ge C^{Eu}_{div}
+$$
+
+Where:
+
+- $C^{Am}_{div}$ is the American call price when dividends matter.
+- $C^{Eu}_{div}$ is the European call price for the same contractual payoff and maturity.
+
+Meaning:
+
+- exercising just before an ex-dividend date can be optimal if the foregone dividend is large enough relative to the remaining time value.
+
+### Practical view
+
+In theory the American premium is
+
+$$
+\text{American premium} = V^{Am} - V^{Eu}
+$$
+
+Where:
+
+- $V^{Am} - V^{Eu}$ measures the value of the early-exercise right.
+
+In practice:
+
+- index options are often European and are naturally priced with Black-Scholes or Black-style formulas,
+- many single-name listed equity options are American and are priced with trees, finite differences, or approximation formulas,
+- desks often still quote or monitor them using implied-volatility language even though the pricing engine itself is American,
+- for rates products the closest practical analogue is often Bermudan rather than fully American exercise.
+
+A useful implementation principle is:
+
+- European options are usually calibration anchors because they are liquid and admit stable valuation formulas,
+- American or Bermudan options are then priced on top of calibrated curves and volatility inputs using an exercise-aware engine.
 
 ---
 

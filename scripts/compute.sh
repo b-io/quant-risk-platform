@@ -1,17 +1,49 @@
 #!/bin/bash
 
 # Default values
-PORTFOLIO_ID=${1:-"demo_macro_book"}
-SNAPSHOT_ID=${2:-"SNAP:2024-03-24"}
-SCENARIO_SET_ID=${3:-"SC_SET_HIST_01"}
-BUILD_DIR=${4:-"build/Debug"}
-LOG_LEVEL=${5:-"info"}
+PORTFOLIO_ID="demo_macro_book"
+SNAPSHOT_ID="SNAP:2024-03-24"
+SCENARIO_SET_ID="SC_SET_HIST_01"
+BUILD_DIR="build/Release-Python"
+CONFIG="Release"
+LOG_LEVEL="info"
 
-CLI_EXE="./$BUILD_DIR/qrp_cli"
+# Simple argument parsing
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -Portfolio) PORTFOLIO_ID="$2"; shift ;;
+        -Snapshot) SNAPSHOT_ID="$2"; shift ;;
+        -Scenarios) SCENARIO_SET_ID="$2"; shift ;;
+        -BuildDir) BUILD_DIR="$2"; shift ;;
+        -Config) CONFIG="$2"; shift ;;
+        -LogLevel) LOG_LEVEL="$2"; shift ;;
+        *) echo "Unknown parameter passed: $1"; exit 1 ;;
+    esac
+    shift
+done
 
-# Check if executable exists
-if [ ! -f "$CLI_EXE" ]; then
-    echo "Error: Could not find qrp_cli at $CLI_EXE. Please build the project first."
+# Helper to find executable
+find_exe() {
+    local exe_name=$1
+    local paths=(
+        "$BUILD_DIR/$exe_name"
+        "$BUILD_DIR/$CONFIG/$exe_name"
+        "$BUILD_DIR/bin/$exe_name"
+        "$BUILD_DIR/bin/$CONFIG/$exe_name"
+    )
+    for path in "${paths[@]}"; do
+        if [ -f "$path" ]; then
+            echo "$path"
+            return 0
+        fi
+    done
+    return 1
+}
+
+CLI_EXE=$(find_exe "qrp_cli")
+
+if [ -z "$CLI_EXE" ]; then
+    echo "Error: Could not find qrp_cli in $BUILD_DIR or nested directories. Please build the project first."
     exit 1
 fi
 

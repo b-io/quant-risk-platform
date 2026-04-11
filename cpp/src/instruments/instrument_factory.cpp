@@ -98,6 +98,18 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_swap(
     // Create the floating rate index linked to the forecast curve.
     auto index = market::CurveBuilder::create_ibor_index(cc, index_tenor, forecasting_term_structure);
 
+    // Apply fixings from context if any
+    for (const auto& [index_name, date_fixings] : context.market_state().fixings()) {
+        // We could match index_name with index->name() or similar
+        // For now, if the index name matches the convention's index family or is generic, add it.
+        // In a real system, fixings are global or matched more precisely.
+        if (index_name == conv.index_family || index_name == "IBOR_3M" || index_name == trade.details.at("floating_index").get<std::string>()) {
+            for (const auto& [date, value] : date_fixings) {
+                index->addFixing(date, value, true); // forceOverwrite=true
+            }
+        }
+    }
+
     auto calendar = market::CurveBuilder::parse_calendar(conv.calendar);
     auto bdc = market::CurveBuilder::parse_business_day_convention(conv.business_day_convention);
     auto fixed_freq = market::CurveBuilder::parse_frequency(conv.fixed_leg_frequency);

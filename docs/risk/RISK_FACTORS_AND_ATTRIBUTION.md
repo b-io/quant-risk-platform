@@ -1,91 +1,89 @@
 # Risk Factors and Attribution
 
-This document is the canonical home for explicit factor-risk design.
+This chapter is the canonical home for explicit factor-risk design.
 
-## Purpose
+## 1. Why explicit factors matter
 
-The platform should move from implicit bumping to explicit factor definitions. A risk factor model should identify:
+A production risk engine should not rely on undocumented implicit bumps. It should identify exactly which market object moved, how the move was represented, and how the result should aggregate.
 
-- factor type,
-- factor name,
-- asset class,
-- currency,
-- tenor or pillar,
-- shock rule,
-- aggregation tags,
-- mapping to affected trades and curves.
+A factor definition should answer:
 
-Explicit factor definitions make the engine easier to reason about and much easier to explain. The goal is not only to
-produce a number, but also to say which market objects moved, how the move was represented, and how the result should
-be aggregated.
+- what moved,
+- by how much,
+- under which convention,
+- which trades and reports consume the result.
 
-## Why this matters
+## 2. Canonical factor structure
 
-Without explicit factor definitions, the engine can still produce numbers, but it cannot easily answer business
-questions such as:
+A useful factor definition includes at least:
 
-- which curve contributed most to DV01,
-- which issuer family drove CS01,
-- how risk aggregates by desk or strategy,
-- why risk changed between two dates.
-
-A production-shaped risk engine therefore needs a factor vocabulary that is stable across valuation, stress, explain,
-and VaR.
-
-## Target objects
-
-A good next-step model would include:
-
-- `RiskFactorDefinition`,
-- `RiskFactorShockRule`,
-- `RiskAttributionReport`,
-- aggregation keys such as book, desk, currency, and strategy.
-
-## Minimum metadata per factor
-
-Each factor definition should include at least:
-
-- a stable factor ID,
 - factor family such as rates, credit, FX, equity, commodity, or volatility,
-- market object family and curve or surface identifier,
-- currency,
-- pillar, expiry, tenor, or node label where relevant,
-- shock size and shock type,
-- optional business tags such as desk, book, strategy, or issuer group.
+- market object identifier,
+- currency or underlier,
+- pillar or bucket label,
+- shock rule,
+- aggregation tags such as desk, book, strategy, issuer, or sector.
 
-## Initial factor families
+## 3. Factor-to-trade mapping
 
-- rates parallel shifts,
-- rates key-rate nodes,
+Let $r_{i,k}$ be the sensitivity of trade $i$ to factor $k$. Then portfolio exposure to factor $k$ is
+
+$$
+R_k^{portfolio}=\sum_i r_{i,k}
+$$
+
+Where:
+
+- $R_k^{portfolio}$ is the aggregated exposure to factor $k$.
+- $r_{i,k}$ is the trade-level exposure of trade $i$ to factor $k$.
+
+This formula is simple only if all trade-level results were produced from the same market snapshot, the same bump rule, and the same factor definition.
+
+## 4. Scenario attribution
+
+Let $P\&L_i^{scenario}$ be the scenario P&L of trade $i$ under a common shocked market state. Then portfolio scenario P&L is
+
+$$
+P\&L_{portfolio}^{scenario}=\sum_i P\&L_i^{scenario}
+$$
+
+Where:
+
+- $P\&L_{portfolio}^{scenario}$ is the scenario P&L after aggregation.
+
+Scenario aggregation is mathematically easy and operationally hard: every trade must be shocked and repriced under the same scenario semantics.
+
+## 5. Typical factor families
+
+- rates parallel and key-rate shifts,
 - credit spread factors,
-- FX spot factors,
-- volatility surface nodes later.
+- FX spot and basis factors,
+- equity spot and dividend factors,
+- commodity curve factors,
+- volatility surface nodes.
 
-As the platform evolves, factor families should remain separate even when they are aggregated together in one report.
-That separation is essential for explain, VaR, and stress semantics.
+## 6. Attribution views
 
-## Attribution views that should be supported
-
-Risk results become much more useful when the same raw shocks can be re-aggregated by several business axes.
-Typical views include:
+Useful attribution views include:
 
 - by trade,
-- by portfolio or book,
-- by desk or strategy,
+- by book,
+- by desk,
 - by currency,
-- by issuer or sector,
 - by factor family,
-- by tenor bucket.
+- by tenor bucket,
+- by issuer or sector for credit.
 
-## Relationship to scenarios and explain
+A strong design keeps the same raw factor definitions while allowing multiple aggregation views on top.
 
-A factor model should be reused by:
+## 7. Relationship to explain and VaR
 
-- bump-and-revalue sensitivities,
-- historical or hypothetical stress,
-- market-move explain,
-- VaR methodologies,
-- Monte Carlo simulation mappings.
+The same factor vocabulary should feed:
 
-That reuse is one of the main reasons to make factor definitions first-class objects instead of leaving them implicit in
-individual analytics services.
+- sensitivities,
+- P&L explain,
+- historical stress,
+- VaR and Expected Shortfall,
+- contribution and concentration reports.
+
+That consistency is what makes results reconcilable across reports.

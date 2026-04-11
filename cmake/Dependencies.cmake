@@ -17,6 +17,13 @@ endif()
 find_package(nlohmann_json CONFIG REQUIRED)
 message(STATUS "Found nlohmann_json: ${nlohmann_json_DIR}")
 
+# Find pybind11
+if(QRP_BUILD_PYTHON)
+    set(PYBIND11_FINDPYTHON ON)
+    find_package(pybind11 CONFIG REQUIRED)
+    message(STATUS "Found pybind11: ${pybind11_DIR}")
+endif()
+
 # Find QuantLib
 find_package(QuantLib CONFIG REQUIRED)
 message(STATUS "Found QuantLib: ${QuantLib_DIR}")

@@ -1,3 +1,6 @@
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
 #include <qrp/util/logger.hpp>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/common.h>

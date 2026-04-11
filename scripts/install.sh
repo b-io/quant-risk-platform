@@ -3,12 +3,16 @@ set -e
 
 # Install dependencies for Quant Risk Platform
 
+PRESET=${1:-"Release-Python"}
+
 # 1. Ensure Python dependencies
 echo -e "\033[0;36m--- Selecting Python Interpreter ---\033[0m"
 
 # Find the vcpkg-provided Python if it exists
 VCPKG_PYTHON=""
 candidates=(
+    "build/${PRESET}/vcpkg_installed/x64-windows/tools/python3/python.exe"
+    "build/${PRESET}/vcpkg_installed/x64-linux/tools/python3/python"
     "build/Release-Python/vcpkg_installed/x64-windows/tools/python3/python.exe"
     "build/Release-Python/vcpkg_installed/x64-linux/tools/python3/python"
     "build/Release/vcpkg_installed/x64-windows/tools/python3/python.exe"

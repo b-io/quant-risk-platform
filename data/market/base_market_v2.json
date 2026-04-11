@@ -39,5 +39,10 @@
       "calendar": "Target",
       "interpolation": "LogLinear"
     }
-  ]
+  ],
+  "fixings": {
+    "USD_LIBOR_3M": {
+      "2026-03-24": 0.055
+    }
+  }
 }

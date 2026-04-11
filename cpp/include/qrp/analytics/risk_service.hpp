@@ -16,7 +16,9 @@ class RiskService {
 public:
     static std::vector<RiskResult> compute_risk(
         const domain::Portfolio& portfolio,
-        const domain::MarketSnapshot& base_market_dto);
+        const domain::MarketSnapshot& base_market_dto,
+        const std::vector<domain::FactorDefinition>& factors = {},
+        const std::vector<domain::FactorBinding>& bindings = {});
 };
 
 } // namespace qrp::analytics

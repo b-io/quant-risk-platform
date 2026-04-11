@@ -409,7 +409,7 @@ A sensible prioritization is:
 
 ## 13. Performance engineering
 
-For this role, be ready to discuss performance beyond generic slogans.
+Performance engineering should be discussed in concrete implementation terms rather than generic slogans.
 
 ### 13.1 Bottlenecks
 

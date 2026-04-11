@@ -41,6 +41,10 @@ if(DEFINED VCPKG_TARGET_TRIPLET)
   message(STATUS "vcpkg triplet        : ${VCPKG_TARGET_TRIPLET}")
 endif()
 # Python interpreter (may be empty if bindings disabled)
+if(QRP_BUILD_PYTHON)
+  find_package(Python3 3.8 COMPONENTS Interpreter Development.Module REQUIRED)
+endif()
+
 if(DEFINED Python3_EXECUTABLE)
   message(STATUS "Python executable    : ${Python3_EXECUTABLE}")
 else()
@@ -75,6 +79,7 @@ include(cmake/Dependencies.cmake)
 # Core library
 # -----------------------
 add_library(qrp_core
+    cpp/src/analytics/covariance_estimator.cpp
     cpp/src/analytics/monte_carlo_engine.cpp
     cpp/src/analytics/pnl_explain_service.cpp
     cpp/src/analytics/risk_service.cpp
@@ -101,7 +106,7 @@ target_compile_features(qrp_core PUBLIC cxx_std_20)
 
 # Warnings
 if(MSVC)
-  target_compile_options(qrp_core PRIVATE /W4 $<$<BOOL:${QRP_WARNINGS_AS_ERRORS}>:/WX>)
+    add_compile_options(/W4 /WX /utf-8)
 else()
   target_compile_options(qrp_core PRIVATE -Wall -Wextra -Wconversion -Wpedantic $<$<BOOL:${QRP_WARNINGS_AS_ERRORS}>:-Werror>)
 endif()
@@ -120,8 +125,6 @@ endif()
 # Python bindings (optional)
 # -----------------------
 if(QRP_BUILD_PYTHON)
-  set(PYBIND11_FINDPYTHON ON)
-
   # Windows Debug safety
   if(WIN32)
     # Windows Debug safety for Python
@@ -144,13 +147,10 @@ if(QRP_BUILD_PYTHON)
     endif()
   endif()
 
-  find_package(Python3 3.8 COMPONENTS Interpreter Development.Module REQUIRED)
-  message(STATUS "Python interpreter   : ${Python3_EXECUTABLE}")
-
   find_package(pybind11 CONFIG REQUIRED)
   pybind11_add_module(quant_risk_platform cpp/bindings/module.cpp)
 
-  # Ensure dynamic CRT
+  # Windows Debug safety
   if(MSVC)
     set_target_properties(quant_risk_platform PROPERTIES
       MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"

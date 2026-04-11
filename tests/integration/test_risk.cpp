@@ -15,7 +15,25 @@ TEST(RiskIntegrationTest, ComputeRiskSamplePortfolio) {
     auto market_dto = qrp::io::load_market(market_path);
     auto portfolio_dto = qrp::io::load_portfolio(portfolio_path);
 
-    auto risk_results = qrp::analytics::RiskService::compute_risk(portfolio_dto, market_dto);
+    // Create minimal factors and bindings for risk calculation
+    std::vector<qrp::domain::FactorDefinition> factors;
+    std::vector<qrp::domain::FactorBinding> bindings;
+    
+    for (const auto& quote : market_dto.quotes) {
+        qrp::domain::FactorDefinition f;
+        f.factor_id = "RF:RATE:" + quote.id;
+        f.factor_type = qrp::domain::FactorType::RateZero;
+        f.currency = quote.currency;
+        f.tenor = quote.tenor;
+        factors.push_back(f);
+
+        qrp::domain::FactorBinding b;
+        b.factor_id = f.factor_id;
+        b.quote_id = quote.id;
+        bindings.push_back(b);
+    }
+
+    auto risk_results = qrp::analytics::RiskService::compute_risk(portfolio_dto, market_dto, factors, bindings);
 
     EXPECT_FALSE(risk_results.empty());
     for (const auto& res : risk_results) {

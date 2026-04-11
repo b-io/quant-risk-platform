@@ -169,12 +169,16 @@ struct MarketSnapshot {
     std::string valuation_date;
     std::vector<MarketQuote> quotes;
     std::vector<CurveSpec> curves;
+    std::map<std::string, std::map<std::string, double>> fixings; // index_name -> { date -> value }
 };
 
 inline void from_json(const nlohmann::json& j, MarketSnapshot& m) {
     j.at("valuation_date").get_to(m.valuation_date);
     j.at("quotes").get_to(m.quotes);
     j.at("curves").get_to(m.curves);
+    if (j.contains("fixings")) {
+        j.at("fixings").get_to(m.fixings);
+    }
 }
 
 } // namespace qrp::domain

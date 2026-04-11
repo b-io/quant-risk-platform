@@ -1,5 +1,9 @@
 # Install dependencies for Quant Risk Platform
 
+param(
+    [string]$Preset = "Release-Python"
+)
+
 # 1. Ensure Python dependencies
 Write-Host "--- Selecting Python Interpreter ---" -ForegroundColor Cyan
 
@@ -7,9 +11,10 @@ $projectRoot = $PSScriptRoot
 if (!$projectRoot) { $projectRoot = Get-Location }
 else { $projectRoot = Split-Path $projectRoot -Parent }
 
-# Find the vcpkg-provided Python 3.12 if it exists
+# Find the vcpkg-provided Python if it exists
 $vcpkgPython = $null
 $candidates = @(
+    "build\$Preset\vcpkg_installed\x64-windows\tools\python3\python.exe",
     "build\Release-Python\vcpkg_installed\x64-windows\tools\python3\python.exe",
     "build\Release\vcpkg_installed\x64-windows\tools\python3\python.exe",
     "build\Debug\vcpkg_installed\x64-windows\tools\python3\python.exe"

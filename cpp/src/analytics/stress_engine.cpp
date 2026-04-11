@@ -1,9 +1,11 @@
 #include <qrp/analytics/stress_engine.hpp>
+#include <qrp/analytics/pricing_context.hpp>
 #include <qrp/instruments/instrument_factory.hpp>
 #include <qrp/market/market_snapshot.hpp>
 #include <ql/instrument.hpp>
 #include <map>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -12,7 +14,9 @@ namespace qrp::analytics {
 std::vector<StressResult> StressEngine::run_historical_stress(
     const domain::Portfolio& portfolio,
     const domain::MarketSnapshot& base_market_dto,
-    const std::vector<market::ScenarioDefinition>& historical_scenarios) {
+    const std::vector<market::ScenarioDefinition>& historical_scenarios,
+    const std::vector<domain::FactorDefinition>& factors,
+    const std::vector<domain::FactorBinding>& bindings) {
 
     std::vector<StressResult> results;
     
@@ -34,12 +38,16 @@ std::vector<StressResult> StressEngine::run_historical_stress(
         }
     }
 
+    if (factors.empty() || bindings.empty()) {
+        throw std::runtime_error("StressEngine: Factors and bindings are required for historical stress");
+    }
+
     // 2. Iterate over scenarios using direct handle bumping
     for (const auto& scenario : historical_scenarios) {
         StressResult res;
         res.scenario_name = scenario.name;
         
-        market::ScenarioEngine::apply_scenario_to_state(*state, base_market_dto, scenario);
+        market::ScenarioEngine::apply_scenario_to_state(*state, base_market_dto, scenario, factors, bindings);
         
         double shocked_total = 0.0;
         for (auto& [id, inst] : instruments) {
@@ -51,7 +59,7 @@ std::vector<StressResult> StressEngine::run_historical_stress(
         results.push_back(res);
 
         // Reset state for next scenario
-        for (const auto& q : base_market_dto.quotes) state->add_quote(q.id, q.value);
+        state->reset_to_snapshot(base_market_dto);
     }
     
     return results;
