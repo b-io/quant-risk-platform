@@ -1,0 +1,70 @@
+{
+  "portfolio_id": "demo_portfolio",
+  "portfolio_name": "Demo Multi-Asset Portfolio",
+  "base_currency": "USD",
+  "trades": [
+    {
+      "id": "swap_usd_001",
+      "asset_class": "rates",
+      "type": "vanilla_swap",
+      "currency": "USD",
+      "notional": 10000000,
+      "start_date": "2026-03-26",
+      "maturity_date": "2031-03-26",
+      "direction": "pay_fixed",
+      "book": "BOOK:MACRO:RATES",
+      "strategy": "USD_CURVE",
+      "details": {
+        "fixed_rate": 0.0475,
+        "floating_index": "USD_LIBOR_3M"
+      }
+    },
+    {
+      "id": "bond_usd_001",
+      "asset_class": "rates",
+      "type": "fixed_rate_bond",
+      "currency": "USD",
+      "notional": 5000000,
+      "start_date": "2024-01-01",
+      "maturity_date": "2029-01-01",
+      "direction": "long",
+      "book": "BOOK:MACRO:RATES",
+      "strategy": "USD_BOND",
+      "details": {
+        "coupon_rate": 0.05,
+        "frequency": "Annual"
+      }
+    },
+    {
+      "id": "fx_fwd_eurusd_001",
+      "asset_class": "fx",
+      "type": "fx_forward",
+      "currency": "USD",
+      "notional": 12000000,
+      "start_date": "2026-03-24",
+      "maturity_date": "2026-09-30",
+      "direction": "buy_base",
+      "book": "BOOK:FLOW:FX",
+      "strategy": "EURUSD_FORWARD",
+      "details": {
+        "base_currency": "EUR",
+        "quote_currency": "USD",
+        "forward_rate": 1.1025
+      }
+    },
+    {
+      "id": "equity_spot_aapl_001",
+      "asset_class": "equity",
+      "type": "equity_spot",
+      "currency": "USD",
+      "quantity": 5000,
+      "direction": "long",
+      "book": "BOOK:VOL:EQUITY",
+      "strategy": "MEGACAP_DELTA",
+      "details": {
+        "underlier": "AAPL",
+        "reference_price": 187.2
+      }
+    }
+  ]
+}

@@ -1,22 +1,39 @@
 # Market Data and Market Objects
 
-This section groups documentation about normalized market inputs and the market objects built from them.
+This section is the entry point to the pricing layer.
 
-## Contents
+Before discussing instruments or models, the documentation must define the market state. In the platform, the market state is the normalized collection of quotes, conventions, curves, surfaces, fixings, and metadata required to reconstruct pricing inputs consistently.
 
-- `docs/pricing/market-data/MULTI_ASSET_MARKET_DATA_AND_CURVES.md` — normalized cross-asset market-data schema covering
-  rates, credit, FX, equity, commodity, and volatility inputs.
+## Canonical file
 
-## Why this section exists
+- `docs/pricing/market-data/MULTI_ASSET_MARKET_DATA_AND_CURVES.md`
 
-Market-data design is cross-asset and sits below individual pricing models. It deserves its own section because the
-platform builds reusable curves, surfaces, and factor objects that many instruments depend on.
+## Why this section comes first
+
+A valuation function can be written abstractly as
+
+$$
+PV = f(\text{trade state}, \text{market state}, \text{model state}, \text{valuation context})
+$$
+
+If the market state is under-specified, then the same trade can price differently depending on hidden defaults in code. That is exactly what the documentation should avoid.
+
+This section therefore explains:
+
+- how raw market observations are normalized,
+- how quote identity and metadata are preserved,
+- how curves and surfaces are reconstructed from stored inputs,
+- how the same market state should support valuation, explain, stress, and replay.
 
 ## What to understand from this section
 
-After reading this section, the reader should have a clear view of:
+After reading the canonical file, the reader should be able to explain:
 
-- how raw quotes are normalized into typed platform inputs,
-- why market state is separated from positions,
-- how reusable curve and surface objects fit into valuation and risk,
-- which metadata should live in the market schema rather than in product-specific code.
+- the difference between raw observations and normalized platform quotes,
+- why quote IDs, source metadata, timestamps, and conventions matter,
+- why the market layer must be reusable across products and asset classes,
+- why persistence must preserve enough structure for later reconstruction.
+
+## Suggested next step
+
+After this file, move immediately to `docs/pricing/rates/INDEX.md`, because rates curves are the first concrete example of reusable market objects.

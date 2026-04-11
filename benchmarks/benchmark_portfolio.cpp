@@ -8,8 +8,8 @@ int main() {
     try {
         std::cout << "Starting Portfolio Benchmark..." << std::endl;
 
-        auto market_dto = qrp::io::load_market("data/market/base_market.json");
-        auto portfolio = qrp::io::load_portfolio("data/portfolios/demo_macro_book.json");
+        auto market_dto = qrp::io::load_market("data/market/demo_market.json");
+        auto portfolio = qrp::io::load_portfolio("data/portfolios/demo_portfolio.json");
         qrp::market::MarketSnapshot market(market_dto);
 
         const int iterations = 100;

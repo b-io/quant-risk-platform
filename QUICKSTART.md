@@ -67,7 +67,7 @@ python python/examples/demo_platform.py
 ### C++ CLI
 ```bash
 # Adjust the path to your build directory (e.g., build/Debug or build/Release)
-./build/Debug/qrp_cli price --market data/market/base_market.json --portfolio data/portfolios/demo_macro_book.json
+./build/Debug/qrp_cli price --market data/market/demo_market.json --portfolio data/portfolios/demo_portfolio.json
 ```
 
 ## 3. Artifacts and Outputs

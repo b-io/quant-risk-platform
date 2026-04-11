@@ -64,13 +64,13 @@ echo "Initializing database schema..."
 "$CLI_EXE" init-db
 
 echo "Importing sample market data..."
-"$CLI_EXE" import-market data/market/base_market.json
+"$CLI_EXE" import-market data/market/demo_market.json
 
 echo "Importing sample portfolios..."
-"$CLI_EXE" import-portfolio data/portfolios/demo_macro_book.json
+"$CLI_EXE" import-portfolio data/portfolios/demo_portfolio.json
 
 echo "Importing sample scenarios..."
-"$CLI_EXE" import-scenarios data/scenarios/sample_scenarios.json
+"$CLI_EXE" import-scenarios data/scenarios/demo_scenarios.json
 
 echo "Data initialization complete!"
 "$CLI_EXE" list

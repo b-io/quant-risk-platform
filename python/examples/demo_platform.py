@@ -176,8 +176,8 @@ def run_demo():
     print("--- Quant Risk Platform Python Demo ---")
 
     # Load market and portfolio
-    market_path = os.path.join(project_root, "data", "market", "base_market_v2.json")
-    portfolio_path = os.path.join(project_root, "data", "portfolios", "demo_macro_book.json")
+    market_path = os.path.join(project_root, "data", "market", "demo_market.json")
+    portfolio_path = os.path.join(project_root, "data", "portfolios", "demo_portfolio.json")
 
     print(f"Loading market from {market_path}")
     market_dto = qrp.load_market(market_path)

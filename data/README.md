@@ -4,9 +4,9 @@ This directory contains JSON-formatted data for testing and demonstration purpos
 
 #### Folder Structure
 
-- `market/`: Market snapshots (`base_market.json`) containing quotes, yield curves, and other market state information.
-- `portfolios/`: Sample portfolios (`demo_macro_book.json`) with various financial trades like Swaps, FX Forwards, Options, etc.
-- `scenarios/`: Predefined market scenarios and historical returns (`sample_scenarios.json`) for stress testing and VaR analysis.
+- `market/`: Market snapshots (`demo_market.json`) containing quotes, yield curves, and other market state information.
+- `portfolios/`: Sample portfolios (`demo_portfolio.json`) with various financial trades like Swaps, FX Forwards, Options, etc.
+- `scenarios/`: Predefined market scenarios and historical returns (`demo_scenarios.json`) for stress testing and VaR analysis.
 
 #### Usage
 

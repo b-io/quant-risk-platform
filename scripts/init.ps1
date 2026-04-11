@@ -54,13 +54,13 @@ Write-Host "Initializing database schema..." -ForegroundColor Cyan
 & $CliExe init-db
 
 Write-Host "Importing sample market data..." -ForegroundColor Cyan
-& $CliExe import-market data\market\base_market.json
+& $CliExe import-market data\market\demo_market.json
 
 Write-Host "Importing sample portfolios..." -ForegroundColor Cyan
-& $CliExe import-portfolio data\portfolios\demo_macro_book.json
+& $CliExe import-portfolio data\portfolios\demo_portfolio.json
 
 Write-Host "Importing sample scenarios..." -ForegroundColor Cyan
-& $CliExe import-scenarios data\scenarios\sample_scenarios.json
+& $CliExe import-scenarios data\scenarios\demo_scenarios.json
 
 Write-Host "Data initialization complete!" -ForegroundColor Green
 & $CliExe list

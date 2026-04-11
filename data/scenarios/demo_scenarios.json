@@ -1,13 +1,13 @@
 {
-  "scenario_set_id": "SC_SET_HIST_01",
-  "name": "Historical Rates Shocks",
+  "scenario_set_id": "demo_scenarios",
+  "name": "Demo Risk Scenarios",
   "scenarios": {
-    "2008_CRISIS": {
+    "HIST_2008_CRISIS": {
       "USD_ON": 0.01,
       "USD_OIS_10Y": 0.005,
       "EUR_ON": 0.008
     },
-    "2022_INFLATION": {
+    "HIST_2022_INFLATION": {
       "USD_ON": 0.02,
       "USD_OIS_2Y": 0.015,
       "EUR_ON": 0.012
@@ -25,6 +25,20 @@
       "EUR_OIS_1M": 0.01,
       "EUR_OIS_1Y": 0.01,
       "EUR_OIS_5Y": 0.01
+    },
+    "PARALLEL_DOWN_50BP": {
+      "USD_ON": -0.005,
+      "USD_OIS_1M": -0.005,
+      "USD_OIS_3M": -0.005,
+      "USD_OIS_6M": -0.005,
+      "USD_OIS_1Y": -0.005,
+      "USD_OIS_2Y": -0.005,
+      "USD_OIS_5Y": -0.005,
+      "USD_OIS_10Y": -0.005,
+      "EUR_ON": -0.005,
+      "EUR_OIS_1M": -0.005,
+      "EUR_OIS_1Y": -0.005,
+      "EUR_OIS_5Y": -0.005
     }
   }
 }

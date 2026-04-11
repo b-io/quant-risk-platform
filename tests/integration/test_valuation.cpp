@@ -8,8 +8,8 @@
 TEST(ValuationIntegrationTest, PriceSamplePortfolio) {
     // Note: In a real test environment, we'd ensure these files are available
     // For this environment, we'll assume they are in the project root relative path
-    std::string market_path = "data/market/base_market_v2.json";
-    std::string portfolio_path = "data/portfolios/demo_macro_book.json";
+    std::string market_path = "data/market/demo_market.json";
+    std::string portfolio_path = "data/portfolios/demo_portfolio.json";
 
     if (!std::filesystem::exists(market_path)) {
         GTEST_SKIP() << "Sample data not found";

@@ -1,51 +1,91 @@
 # Risk Documentation Index
 
-This folder contains risk, explain, scenario, and simulation documentation.
+This section contains risk, explain, scenario, and simulation documentation.
+
+The risk notes should be read after the design and pricing layers. Risk depends on explicit pricing objects, explicit market factors, and clear scenario semantics.
 
 ## Core risk topics
 
-- `docs/risk/FRONT_OFFICE_AND_RISK_WORKING_PRACTICES.md` — practical workflow note on desk metrics, controls,
-  escalation, and explainability expectations.
-- `docs/risk/GLOBAL_MACRO_AND_TRADER_WORKFLOW.md` — macro event workflow, trader decision process, and how the platform
-  supports scenario design.
-- `docs/risk/HISTORICAL_STRESS.md` — historical stress testing framework, event replay design, and scenario-library
-  construction.
-- `docs/risk/MACRO_INDICATORS_AND_INDEX_CONSTRUCTION.md` — macro indicator taxonomy, aggregation logic, normalization
-  choices, and index-construction patterns.
-- `docs/risk/MACRO_REGIMES_AND_EVENT_FLOWS.md` — macro regime maps, GDP and PMI relationships, and event-flow logic for
-  scenario interpretation.
-- `docs/risk/MONTE_CARLO.md` — risk-engine view of Monte Carlo simulation, simulation architecture, and why LLN and CLT
-  matter in practice.
-- `docs/risk/MONTE_CARLO_FOUNDATIONS.md` — LLN, CLT, error bars, confidence intervals, and variance-reduction
-  foundations for simulation.
-- `docs/risk/MONTE_CARLO_IMPLEMENTATION.md` — path generation, book aggregation, parallel execution, and production
-  implementation trade-offs for Monte Carlo.
-- `docs/risk/PNL_EXPLAIN_IN_PRACTICE.md` — actual and theoretical P&L, explained versus unexplained P&L, carry,
-  cashflows, model-change effects, and residual control.
-- `docs/risk/RISK_FACTORS_AND_ATTRIBUTION.md` — factor definitions, bucketing, aggregation, and attribution design
-  across pricing and risk.
-- `docs/risk/RISK_MEASURES_AND_EXPLAIN.md` — PV01, DV01, CS01, P&L explain, attribution concepts, and reporting
-  structure.
-- `docs/risk/TIME_SERIES_AND_SCENARIOS.md` — historical data handling, factor moves, and scenario-construction workflow.
-- `docs/risk/VAR.md` — historical, parametric, and Monte Carlo Value-at-Risk methods and implementation considerations.
-- `docs/risk/VAR_STRESS_BACKTESTING_AND_AGGREGATION.md` — historical VaR versus Monte Carlo VaR, stress testing,
-  scenario design, backtesting, and aggregation across books.
+- `docs/risk/RISK_MEASURES_AND_EXPLAIN.md`
+- `docs/risk/RISK_FACTORS_AND_ATTRIBUTION.md`
+- `docs/risk/PNL_EXPLAIN_IN_PRACTICE.md`
+- `docs/risk/TIME_SERIES_AND_SCENARIOS.md`
+- `docs/risk/HISTORICAL_STRESS.md`
+- `docs/risk/VAR.md`
+- `docs/risk/VAR_STRESS_BACKTESTING_AND_AGGREGATION.md`
+- `docs/risk/MONTE_CARLO.md`
+- `docs/risk/MONTE_CARLO_FOUNDATIONS.md`
+- `docs/risk/MONTE_CARLO_IMPLEMENTATION.md`
+- `docs/risk/GLOBAL_MACRO_AND_TRADER_WORKFLOW.md`
+- `docs/risk/MACRO_INDICATORS_AND_INDEX_CONSTRUCTION.md`
+- `docs/risk/MACRO_REGIMES_AND_EVENT_FLOWS.md`
+- `docs/risk/FRONT_OFFICE_AND_RISK_WORKING_PRACTICES.md`
 
-## Recommended order
+## Recommended study order
 
-1. `docs/risk/RISK_MEASURES_AND_EXPLAIN.md` — core sensitivities, explain concepts, and reporting semantics.
-2. `docs/risk/PNL_EXPLAIN_IN_PRACTICE.md` — detailed treatment of actual, theoretical, explained, and unexplained P&L.
-3. `docs/risk/RISK_FACTORS_AND_ATTRIBUTION.md` — factor definitions, bucketing, and aggregation logic.
-4. `docs/risk/TIME_SERIES_AND_SCENARIOS.md` — historical time series, factor moves, and scenario construction.
-5. `docs/risk/HISTORICAL_STRESS.md` — event replay and historical stress-library design.
-6. `docs/risk/VAR.md` — VaR framework choices and how they relate to scenarios and simulation.
-7. `docs/risk/VAR_STRESS_BACKTESTING_AND_AGGREGATION.md` — how VaR, stress, backtesting, and book aggregation fit
-   together.
-8. `docs/risk/MONTE_CARLO.md` — conceptual Monte Carlo architecture in the engine.
-9. `docs/risk/MONTE_CARLO_FOUNDATIONS.md` — simulation statistics, error bars, and confidence interpretation.
-10. `docs/risk/MONTE_CARLO_IMPLEMENTATION.md` — production implementation details for paths, aggregation, and
-    parallelism.
-11. `docs/risk/GLOBAL_MACRO_AND_TRADER_WORKFLOW.md` — how macro workflows consume the scenario platform.
-12. `docs/risk/MACRO_INDICATORS_AND_INDEX_CONSTRUCTION.md` — macro indicator and index-construction details.
-13. `docs/risk/MACRO_REGIMES_AND_EVENT_FLOWS.md` — macro regimes and event-flow interpretation.
-14. `docs/risk/FRONT_OFFICE_AND_RISK_WORKING_PRACTICES.md` — practical operational expectations and control usage.
+### Phase 1 — risk vocabulary and explain
+
+1. `docs/risk/RISK_MEASURES_AND_EXPLAIN.md`
+2. `docs/risk/RISK_FACTORS_AND_ATTRIBUTION.md`
+3. `docs/risk/PNL_EXPLAIN_IN_PRACTICE.md`
+
+### Phase 2 — scenarios, stress, and historical replay
+
+4. `docs/risk/TIME_SERIES_AND_SCENARIOS.md`
+5. `docs/risk/HISTORICAL_STRESS.md`
+
+### Phase 3 — VaR and aggregation
+
+6. `docs/risk/VAR.md`
+7. `docs/risk/VAR_STRESS_BACKTESTING_AND_AGGREGATION.md`
+
+### Phase 4 — simulation-based risk
+
+8. `docs/risk/MONTE_CARLO.md`
+9. `docs/risk/MONTE_CARLO_FOUNDATIONS.md`
+10. `docs/risk/MONTE_CARLO_IMPLEMENTATION.md`
+
+### Phase 5 — workflow and macro context
+
+11. `docs/risk/GLOBAL_MACRO_AND_TRADER_WORKFLOW.md`
+12. `docs/risk/MACRO_INDICATORS_AND_INDEX_CONSTRUCTION.md`
+13. `docs/risk/MACRO_REGIMES_AND_EVENT_FLOWS.md`
+14. `docs/risk/FRONT_OFFICE_AND_RISK_WORKING_PRACTICES.md`
+
+## Core risk formulas
+
+A first-order explain approximation is
+
+$$
+\Delta PV \approx \sum_k \frac{\partial PV}{\partial x_k}\Delta x_k
+$$
+
+A historical VaR estimator at confidence level $\alpha$ can be expressed informally as the negative lower empirical quantile of the scenario PnL distribution:
+
+$$
+\mathrm{VaR}_{\alpha} = - q_{1-\alpha}(\mathrm{PnL})
+$$
+
+A Monte Carlo estimator of an expectation is
+
+$$
+\hat{\mu}_N = \frac{1}{N}\sum_{i=1}^{N} X_i
+$$
+
+with standard error that shrinks at order
+
+$$
+O\left(\frac{1}{\sqrt{N}}\right)
+$$
+
+This is why simulation accuracy improves slowly and why variance reduction matters in production.
+
+## What this section should clarify
+
+By the end of this section, the reader should be able to explain:
+
+- how sensitivities differ from full revaluation,
+- why explained and unexplained PnL are control concepts rather than just reporting labels,
+- how scenarios map from factor moves to repricing inputs,
+- how historical stress differs from statistical VaR,
+- why Monte Carlo requires both statistical discipline and systems engineering discipline.

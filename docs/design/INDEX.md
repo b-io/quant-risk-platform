@@ -1,100 +1,94 @@
 # Design Documentation Index
 
-## Canonical platform design
+This section is the canonical design layer for the platform.
 
-- `docs/design/ANALYTICS_SERVICES.md` — pricing, risk, explain, stress, VaR, and Monte Carlo service boundaries and
-  orchestration.
-- `docs/design/ARCHITECTURE.md` — end-to-end platform architecture, layering, domain boundaries, and canonical design
-  principles.
-- `docs/design/CURVE_BOOTSTRAP_DESIGN.md` — bootstrap-specific design note covering reconstruction, handles,
-  observability, and curve update semantics.
-- `docs/design/DATA_STORAGE_LINEAGE_AND_RECONCILIATION.md` — canonical treatment of snapshots, lineage, schema
-  evolution, reconciliation, and storage-layer responsibilities.
-- `docs/design/IMPLEMENTATION_CHOICES.md` — repository-specific implementation rationale, including QuantLib wrapping,
-  abstraction boundaries, and observer semantics.
-- `docs/design/MARKET_AND_CURVES.md` — market schema, convention registry, reusable curves and surfaces, and market
-  snapshot design.
-- `docs/design/PLATFORM_IMPLEMENTATION_GUIDE.md` — practical implementation workflow, persistence, testing strategy,
-  performance considerations, and extension path.
-- `docs/design/PYTHON_CPP_PERFORMANCE_AND_BINDINGS.md` — language split, profiling, memory and cache concerns,
-  vectorization, numerical stability, and binding design.
-- `docs/design/QUANTLIB_CURVE_API_CHEAT_SHEET.md` — common QuantLib curve objects, helper classes, and query patterns
-  mapped to platform usage.
+The design notes explain how market data, curves, instruments, analytics services, persistence, and language boundaries fit together into a single production-shaped system.
 
-## Closely related implementation notes
+## What belongs in this section
 
-### Pricing documentation
+This section is the home for:
 
-- `docs/pricing/credit/BOND_SPREADS_AND_DEFAULT_RISK.md` — cash-bond spread measures, CDS spread, hazard rates,
-  recovery, CS01, and jump-to-default.
-- `docs/pricing/credit/CDS_CURVES_AND_CREDIT_RISK_IN_PRACTICE.md` — CDS intuition, premium and protection legs,
-  calibration logic, CS01, and practical credit-risk usage.
-- `docs/pricing/credit/CREDIT_CURVE_CONSTRUCTION.md` — credit spread curves, hazard-rate calibration, survival
-  probabilities, recovery assumptions, and builder design.
-- `docs/pricing/market-data/MULTI_ASSET_MARKET_DATA_AND_CURVES.md` — normalized cross-asset market-data schema covering
-  rates, credit, FX, equity, commodity, and volatility inputs.
-- `docs/pricing/rates/DETAILED_YIELD_CURVE_IMPLEMENTATION.md` — production-oriented rates curve implementation details,
-  interpolation choices, extrapolation, and curve-stack design.
-- `docs/pricing/rates/RATES_FACTORS_AND_CURVE_MODELS.md` — rates factor modeling, short-rate and parametric curve
-  models, and practical model-selection guidance.
-- `docs/pricing/rates/YIELD_CURVE_AND_OIS_CONSTRUCTION.md` — discounting and projection curves, OIS bootstrapping,
-  conventions, helpers, and rates risk implications.
-- `docs/pricing/rates/YIELD_CURVE_WORKED_EXAMPLE.md` — worked rates examples for discount factors, forwards, yield
-  types, and recession-driven curve behavior.
-- `docs/pricing/volatility/GREEKS_AND_NONLINEAR_RISK.md` — option Greeks, non-linear risk, and scenario revaluation.
-- `docs/pricing/volatility/OPTION_PRICING_AND_EXERCISE_STYLES.md` — Black-Scholes-Merton, Black 76, European,
-  American, and Bermudan exercise, plus numerical-method trade-offs.
-- `docs/pricing/volatility/OPTION_PRICING_FOUNDATIONS_AND_PUT_CALL_PARITY.md` — static no-arbitrage, put-call parity,
-  synthetic positions, and quote validation.
-- `docs/pricing/volatility/VOLATILITY_MODELS_AND_CALIBRATION_TRADEOFFS.md` — local vol, stochastic vol, SABR,
-  callable-product model choices, and calibration trade-offs.
-- `docs/pricing/volatility/VOLATILITY_SURFACES.md` — volatility quote schemas, surface construction, interpolation,
-  no-arbitrage checks, sticky rules, and risk integration.
+- platform boundaries and module responsibilities,
+- market-state and curve-object design,
+- QuantLib integration choices and observer semantics,
+- persistence, lineage, and reconciliation requirements,
+- implementation workflow and binding strategy.
 
-### Risk documentation
+## Recommended study order
 
-- `docs/risk/FRONT_OFFICE_AND_RISK_WORKING_PRACTICES.md` — practical workflow note on desk metrics, controls,
-  escalation, and explainability expectations.
-- `docs/risk/GLOBAL_MACRO_AND_TRADER_WORKFLOW.md` — macro event workflow, trader decision process, and how the platform
-  supports scenario design.
-- `docs/risk/HISTORICAL_STRESS.md` — historical stress testing framework, event replay design, and scenario-library
-  construction.
-- `docs/risk/MACRO_INDICATORS_AND_INDEX_CONSTRUCTION.md` — macro indicator taxonomy, aggregation logic, normalization
-  choices, and index-construction patterns.
-- `docs/risk/MACRO_REGIMES_AND_EVENT_FLOWS.md` — macro regime maps, GDP and PMI relationships, and event-flow logic for
-  scenario interpretation.
-- `docs/risk/MONTE_CARLO.md` — risk-engine view of Monte Carlo simulation, simulation architecture, and why LLN and CLT
-  matter in practice.
-- `docs/risk/MONTE_CARLO_FOUNDATIONS.md` — LLN, CLT, error bars, confidence intervals, and variance-reduction
-  foundations for simulation.
-- `docs/risk/MONTE_CARLO_IMPLEMENTATION.md` — path generation, book aggregation, parallel execution, and production
-  implementation trade-offs for Monte Carlo.
-- `docs/risk/PNL_EXPLAIN_IN_PRACTICE.md` — actual versus theoretical P&L, explained versus unexplained P&L, and
-  residual control workflow.
-- `docs/risk/RISK_FACTORS_AND_ATTRIBUTION.md` — factor definitions, bucketing, aggregation, and attribution design
-  across pricing and risk.
-- `docs/risk/RISK_MEASURES_AND_EXPLAIN.md` — PV01, DV01, CS01, P&L explain, attribution concepts, and reporting
-  structure.
-- `docs/risk/TIME_SERIES_AND_SCENARIOS.md` — historical data handling, factor moves, and scenario-construction workflow.
-- `docs/risk/VAR.md` — historical, parametric, and Monte Carlo Value-at-Risk methods and implementation considerations.
-- `docs/risk/VAR_STRESS_BACKTESTING_AND_AGGREGATION.md` — VaR, stress testing, backtesting, and aggregation across
-  books.
+### Phase 1 — global structure
 
-### Theory foundations
+1. `docs/design/ARCHITECTURE.md`  
+   Read this first to understand the platform layers, the boundary between data, analytics, and storage, and the main service façade.
 
-- `docs/theory/ASSET_PRICING_FOUNDATIONS.md` — pricing-kernel view of valuation plus CAPM, APT, Black-Scholes-Merton,
-  term-structure, and credit foundations.
-- `docs/theory/BROWNIAN_MOTION_AND_ITO.md` — Brownian motion, Wiener processes, Itô calculus, and
-  stochastic-differential-equation basics.
-- `docs/theory/CHARACTERISTIC_FUNCTIONS_AND_FOURIER.md` — characteristic functions and a practical introduction to
-  Fourier methods in quantitative finance.
-- `docs/theory/CHARACTERISTIC_FUNCTIONS_MGFS_AND_CONVERGENCE.md` — moment-generating functions, characteristic
-  functions, and convergence notions used in probability and statistics.
-- `docs/theory/MARKOWITZ_PORTFOLIO_THEORY.md` — mean-variance portfolio construction, efficient frontiers, and practical
-  portfolio-theory limits.
-- `docs/theory/PROBABILITY_LIMIT_THEOREMS.md` — laws of large numbers, central limit theorem, and the convergence ideas
-  behind estimation and simulation.
-- `docs/theory/RANDOM_VARIABLES_EXPECTATION_VARIANCE.md` — random variables, expectation, variance, covariance, and core
-  probability identities.
-- `docs/theory/STATISTICAL_DISTRIBUTIONS_AND_MLE.md` — statistical distributions, maximum likelihood estimation, and
-  asymptotic behavior of estimators.
+2. `docs/design/MARKET_AND_CURVES.md`  
+   Read this next because the market-state schema and reusable curve objects drive almost every later design choice.
+
+3. `docs/design/CURVE_BOOTSTRAP_DESIGN.md`  
+   Read this once the market object model is clear. This note explains why bootstrap inputs must remain reconstructible and why quote handles matter.
+
+### Phase 2 — analytics orchestration
+
+4. `docs/design/ANALYTICS_SERVICES.md`  
+   This note explains how valuation, sensitivities, explain, stress, VaR, and simulation should be exposed as coherent services.
+
+5. `docs/design/IMPLEMENTATION_CHOICES.md`  
+   This is the repository-specific rationale note. It should explain not only *what* the code does, but *why* the code is shaped that way.
+
+### Phase 3 — persistence and production constraints
+
+6. `docs/design/DATA_STORAGE_LINEAGE_AND_RECONCILIATION.md`  
+   Read this before touching historical replay, control totals, or auditability. The stored data model determines which analyses remain reproducible.
+
+7. `docs/design/PLATFORM_IMPLEMENTATION_GUIDE.md`  
+   This is the practical build path from repository skeleton to working platform.
+
+8. `docs/design/PYTHON_CPP_PERFORMANCE_AND_BINDINGS.md`  
+   This note explains the language split and performance rationale.
+
+### Phase 4 — QuantLib-specific support material
+
+9. `docs/design/QUANTLIB_CURVE_API_CHEAT_SHEET.md`  
+   Use this as a reference while reading the curve and implementation notes.
+
+## Canonical files
+
+- `docs/design/ANALYTICS_SERVICES.md`
+- `docs/design/ARCHITECTURE.md`
+- `docs/design/CURVE_BOOTSTRAP_DESIGN.md`
+- `docs/design/DATA_STORAGE_LINEAGE_AND_RECONCILIATION.md`
+- `docs/design/IMPLEMENTATION_CHOICES.md`
+- `docs/design/MARKET_AND_CURVES.md`
+- `docs/design/PLATFORM_IMPLEMENTATION_GUIDE.md`
+- `docs/design/PYTHON_CPP_PERFORMANCE_AND_BINDINGS.md`
+- `docs/design/QUANTLIB_CURVE_API_CHEAT_SHEET.md`
+
+## Why this order works
+
+The correct design dependency is:
+
+$$
+\text{architecture} \rightarrow \text{market state} \rightarrow \text{curve construction} \rightarrow \text{analytics services} \rightarrow \text{storage and controls}
+$$
+
+This order matters because a risk or persistence design that ignores market-object structure usually becomes inconsistent later.
+
+For example, if the market layer does not preserve quote identity, conventions, and curve lineage, then a later request such as historical replay or aged-horizon revaluation becomes fragile. In symbolic form, if valuation is a function
+
+$$
+PV = f(\text{trade state}, \text{market state}, \text{model state}, \text{valuation context}),
+$$
+
+then reproducibility requires the stored representation to preserve enough information to reconstruct each argument of $f$.
+
+## Closely related sections
+
+The design notes are tightly coupled to:
+
+- `docs/pricing/INDEX.md`, because the design must support the pricing objects described there,
+- `docs/risk/INDEX.md`, because factor mapping and scenario semantics depend on the curve and service design,
+- `docs/roadmap/INDEX.md`, because implementation planning should only extend the canonical design rather than contradict it.
+
+## Maintenance rule
+
+Whenever an implementation change affects architecture, object lifetime, persistence, or observer semantics, update this section first and then update the roadmap and status notes.

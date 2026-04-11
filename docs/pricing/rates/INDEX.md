@@ -1,60 +1,70 @@
 # Rates Pricing and Curve Construction
 
-This section covers rates-specific curve construction, curve usage, dynamic term-structure modeling, and model
-selection.
+This section covers rates-specific curve construction, curve usage, dynamic term-structure modeling, and model selection.
 
-## Contents
+Rates documentation should be read in two passes:
 
-- `docs/pricing/rates/DETAILED_YIELD_CURVE_IMPLEMENTATION.md` — production-oriented rates curve implementation details,
-  interpolation choices, extrapolation, and curve-stack design.
-- `docs/pricing/rates/RATES_FACTORS_AND_CURVE_MODELS.md` — rates factor modeling, short-rate and parametric curve
-  models, modern practice, and practical model-selection guidance.
-- `docs/pricing/rates/TIME_DEPENDENT_VOLATILITY_AND_MEAN_REVERSION_MODELS.md` — mean reversion, time-dependent
-  volatility, CIR, Courtadon, Black-Karasinski, BDT, LMM comparisons, and worked numerical examples.
-- `docs/pricing/rates/YIELD_CURVE_AND_OIS_CONSTRUCTION.md` — discounting and projection curves, OIS bootstrapping,
-  conventions, helpers, and rates risk implications.
-- `docs/pricing/rates/YIELD_CURVE_WORKED_EXAMPLE.md` — worked rates examples for discount factors, forwards, yield
-  types, and recession-driven curve behavior.
+- first as **static curve construction and valuation**,
+- then as **dynamic modeling and factor interpretation**.
+
+## Canonical files
+
+- `docs/pricing/rates/YIELD_CURVE_AND_OIS_CONSTRUCTION.md`
+- `docs/pricing/rates/YIELD_CURVE_WORKED_EXAMPLE.md`
+- `docs/pricing/rates/DETAILED_YIELD_CURVE_IMPLEMENTATION.md`
+- `docs/pricing/rates/RATES_FACTORS_AND_CURVE_MODELS.md`
+- `docs/pricing/rates/TIME_DEPENDENT_VOLATILITY_AND_MEAN_REVERSION_MODELS.md`
 
 ## Support assets
 
-- `docs/pricing/rates/assets/curve_objects_relationships.png` — diagram of the main curve object relationships used in
-  the rates stack.
-- `docs/pricing/rates/assets/interpolation_tradeoffs.png` — diagram summarizing interpolation and smoothness trade-offs
-  across curve construction choices.
+- `docs/pricing/rates/assets/curve_objects_relationships.png`
+- `docs/pricing/rates/assets/interpolation_tradeoffs.png`
 
-## Scope
+## Recommended study order
 
-The rates section is the canonical home for:
+1. `docs/pricing/rates/YIELD_CURVE_AND_OIS_CONSTRUCTION.md`  
+   Learn discounting, projection, helpers, and conventions.
 
-- OIS discounting by currency,
-- IBOR or term projection curves,
-- conventions used by deposits, FRAs, futures, and swaps,
-- rates-specific bootstrap choices,
-- rates risk diagnostics and scenario foundations,
-- implementation trade-offs for interpolation, extrapolation, and dynamic rate models.
+2. `docs/pricing/rates/YIELD_CURVE_WORKED_EXAMPLE.md`  
+   Use this to verify that the formulas and curve semantics are intuitive.
 
-## What to understand from this section
+3. `docs/pricing/rates/DETAILED_YIELD_CURVE_IMPLEMENTATION.md`  
+   This is where curve objects, handles, interpolation, and implementation trade-offs become concrete.
 
-After reading this section, the reader should be able to explain:
+4. `docs/pricing/rates/RATES_FACTORS_AND_CURVE_MODELS.md`  
+   Once the static term structure is clear, place it in the wider modeling landscape.
 
-- why discount and projection curves should be separated,
-- how rates conventions affect helper construction and pricing,
-- why curve objects must be reusable across valuation, risk, and stress,
-- how rates curve design drives PV01, bucketed risk, and scenario semantics,
-- where bootstrapping ends and dynamic curve or factor modeling begins,
-- why one-factor models, affine models, and forward-rate market models make different calibration and implementation
-  trade-offs.
+5. `docs/pricing/rates/TIME_DEPENDENT_VOLATILITY_AND_MEAN_REVERSION_MODELS.md`  
+   Finish with the model families used for dynamics and scenario generation.
 
-## Recommended reading order
+## Core rates formulas
 
-1. `docs/pricing/rates/YIELD_CURVE_AND_OIS_CONSTRUCTION.md` — first understand how today's market discount and
-   projection curves are built.
-2. `docs/pricing/rates/YIELD_CURVE_WORKED_EXAMPLE.md` — then make the static curve material concrete with numerical
-   examples.
-3. `docs/pricing/rates/DETAILED_YIELD_CURVE_IMPLEMENTATION.md` — next study interpolation, extrapolation, and production
-   implementation choices.
-4. `docs/pricing/rates/RATES_FACTORS_AND_CURVE_MODELS.md` — then place short-rate, forward-rate, and parametric models
-   in the wider modeling landscape.
-5. `docs/pricing/rates/TIME_DEPENDENT_VOLATILITY_AND_MEAN_REVERSION_MODELS.md` — finally study the detailed trade-offs
-   among mean-reverting and time-dependent-volatility model families.
+Discounting is the base layer:
+
+$$
+PV = \sum_{i=1}^{n} CF_i \, D(t,T_i)
+$$
+
+A continuously compounded zero rate $z(t,T)$ and a discount factor are related by
+
+$$
+D(t,T) = e^{-z(t,T)(T-t)}
+$$
+
+The forward rate implied by discount factors is
+
+$$
+F(t;T_1,T_2) = \frac{1}{\tau(T_1,T_2)}\left(\frac{D(t,T_1)}{D(t,T_2)} - 1\right)
+$$
+
+These equations matter operationally because a rates curve object should support the queries that appear in them: discount factors, zero rates, and forwards.
+
+## What this section should make clear
+
+By the end of this section, the reader should understand:
+
+- why OIS discount curves and forward curves should usually be separated,
+- how market conventions affect curve helpers and pricing outputs,
+- why interpolation choices change both valuation smoothness and risk behavior,
+- how a rates curve becomes a reusable dependency for valuation, explain, and scenario analysis,
+- where static curve building ends and stochastic rate modeling begins.
