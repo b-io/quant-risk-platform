@@ -55,7 +55,7 @@ public:
         const std::string& end_date) = 0;
 
     // Load methods
-    virtual std::vector<domain::Trade> load_trades(const std::string& portfolio_id) = 0;
+    virtual std::vector<std::shared_ptr<domain::Trade>> load_trades(const std::string& portfolio_id) = 0;
     virtual domain::MarketSnapshot load_market_snapshot(const std::string& snapshot_id) = 0;
 
     // Run persistence

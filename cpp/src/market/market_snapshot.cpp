@@ -278,4 +278,25 @@ MarketSnapshot::MarketSnapshot(const domain::MarketSnapshot& dto) {
     }
 }
 
+domain::MarketSnapshot MarketState::capture_snapshot() const {
+    domain::MarketSnapshot snapshot;
+    snapshot.valuation_date = fmt::format("{:4d}-{:02d}-{:02d}", (int)valuation_date_.year(), (int)valuation_date_.month(), (int)valuation_date_.dayOfMonth());
+    
+    for (const auto& [id, handle] : quote_handles_) {
+        domain::MarketQuote q;
+        q.id = id;
+        q.value = handle->value();
+        snapshot.quotes.push_back(std::move(q));
+    }
+    
+    for (const auto& [index_name, date_map] : fixings_) {
+        for (const auto& [date, value] : date_map) {
+            std::string date_str = fmt::format("{:4d}-{:02d}-{:02d}", (int)date.year(), (int)date.month(), (int)date.dayOfMonth());
+            snapshot.fixings[index_name][date_str] = value;
+        }
+    }
+    
+    return snapshot;
+}
+
 } // namespace qrp::market

@@ -15,17 +15,17 @@ class MonteCarloAgingTest : public ::testing::Test {
 protected:
     void SetUp() override {
         // Create a simple swap trade
-        trade.id = "SWAP_1";
-        trade.type = "vanilla_swap";
-        trade.currency = "USD";
-        trade.notional = 1000000.0;
-        trade.start_date = "2024-03-20";
-        trade.maturity_date = "2029-03-20";
-        trade.direction = "pay_fixed";
-        trade.details = {
-            {"fixed_rate", 0.03},
-            {"floating_index", "USD_LIBOR_3M"}
-        };
+        trade = std::make_shared<VanillaSwapTrade>();
+        trade->id = "SWAP_1";
+        trade->asset_class = "Rates";
+        trade->type = "vanilla_swap";
+        trade->currency = "USD";
+        trade->notional = 1000000.0;
+        trade->start_date = "2024-03-20";
+        trade->maturity_date = "2029-03-20";
+        trade->direction = "pay_fixed";
+        trade->fixed_rate = 0.03;
+        trade->floating_index = "USD_LIBOR_3M";
         portfolio.trades.push_back(trade);
 
         // Setup base market
@@ -82,7 +82,7 @@ protected:
     }
 
     Portfolio portfolio;
-    Trade trade;
+    std::shared_ptr<VanillaSwapTrade> trade;
     MarketSnapshot base_market;
     std::map<std::string, MarketQuote> quote_map;
     std::vector<FactorDefinition> factors;

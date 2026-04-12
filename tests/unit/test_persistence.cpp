@@ -59,13 +59,15 @@ TEST_F(PersistenceTest, MarketSnapshotIdempotency) {
 TEST_F(PersistenceTest, TradeStorageAndLoading) {
     storage->store_portfolio("P1", "P1", "USD");
     storage->store_book("B1", "P1", "Book 1");
-    storage->store_trade("T1", "P1", "B1", "Rates", "Swap", "USD", 1000000.0, "2024-01-01", "2034-01-01", "Buy", "{\"notional\": 1000000}");
+    storage->store_trade("T1", "P1", "B1", "Rates", "vanilla_swap", "USD", 1000000.0, "2024-01-01", "2034-01-01", "Buy", "{\"fixed_rate\": 0.03, \"floating_index\": \"USD_LIBOR_3M\"}");
 
     auto trades = storage->load_trades("P1");
     EXPECT_EQ(trades.size(), 1);
-    EXPECT_EQ(trades[0].id, "T1");
-    EXPECT_EQ(trades[0].asset_class, "Rates");
-    EXPECT_EQ(trades[0].notional, 1000000.0);
+    EXPECT_EQ(trades[0]->id, "T1");
+    EXPECT_EQ(trades[0]->asset_class, "Rates");
+    auto swap = std::dynamic_pointer_cast<domain::VanillaSwapTrade>(trades[0]);
+    ASSERT_NE(swap, nullptr);
+    EXPECT_EQ(swap->notional, 1000000.0);
 }
 
 TEST_F(PersistenceTest, MarketSnapshotQuotesRoundTrip) {

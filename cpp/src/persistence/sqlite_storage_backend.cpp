@@ -633,8 +633,8 @@ void SQLiteStorageBackend::store_market_quote(const std::string& snapshot_id, co
     sqlite3_finalize(stmt);
 }
 
-std::vector<domain::Trade> SQLiteStorageBackend::load_trades(const std::string& portfolio_id) {
-    std::vector<domain::Trade> trades;
+std::vector<std::shared_ptr<domain::Trade>> SQLiteStorageBackend::load_trades(const std::string& portfolio_id) {
+    std::vector<std::shared_ptr<domain::Trade>> trades;
     const char* sql = "SELECT trade_id, asset_class, product_type, currency, notional, start_date, maturity_date, direction, economics_json FROM trades WHERE portfolio_id = ?;";
     
     sqlite3_stmt* stmt;
@@ -644,18 +644,53 @@ std::vector<domain::Trade> SQLiteStorageBackend::load_trades(const std::string& 
     sqlite3_bind_text(stmt, 1, portfolio_id.c_str(), -1, SQLITE_TRANSIENT);
     
     while (sqlite3_step(stmt) == SQLITE_ROW) {
-        domain::Trade t;
-        t.id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
-        t.asset_class = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-        t.type = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
-        t.currency = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
-        t.notional = sqlite3_column_double(stmt, 4);
-        t.start_date = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
-        t.maturity_date = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6));
-        t.direction = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7));
+        std::string type = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+        std::shared_ptr<domain::Trade> t;
+        if (type == "vanilla_swap") {
+            t = std::make_shared<domain::VanillaSwapTrade>();
+        } else if (type == "fixed_rate_bond") {
+            t = std::make_shared<domain::FixedRateBondTrade>();
+        } else if (type == "equity_spot") {
+            t = std::make_shared<domain::EquitySpotTrade>();
+        } else if (type == "fx_forward") {
+            t = std::make_shared<domain::FxForwardTrade>();
+        } else {
+            // Fallback for unknown types if we want to be robust but strict
+            t = std::make_shared<domain::Trade>();
+        }
+
+        t->id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+        t->asset_class = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+        t->type = type;
+        t->currency = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
+        t->direction = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7));
+        t->book = ""; // Database schema might need book/strategy in separate columns or economics
+        t->strategy = "";
+
         const char* econ_json_ptr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 8));
         if (econ_json_ptr) {
-            t.details = nlohmann::json::parse(econ_json_ptr);
+            nlohmann::json econ = nlohmann::json::parse(econ_json_ptr);
+            // Construct a temporary full JSON to use the from_json logic
+            nlohmann::json full_j;
+            full_j["id"] = t->id;
+            full_j["asset_class"] = t->asset_class;
+            full_j["type"] = t->type;
+            full_j["currency"] = t->currency;
+            full_j["direction"] = t->direction;
+            full_j["book"] = t->book;
+            full_j["strategy"] = t->strategy;
+            
+            // Map flat columns if missing in econ
+            if (!econ.contains("notional")) {
+                double notional = sqlite3_column_double(stmt, 4);
+                if (type == "equity_spot") full_j["quantity"] = notional;
+                else full_j["notional"] = notional;
+            }
+            if (!econ.contains("start_date")) full_j["start_date"] = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
+            if (!econ.contains("maturity_date")) full_j["maturity_date"] = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6));
+
+            full_j["details"] = econ;
+            t->from_json(full_j);
         }
         trades.push_back(t);
     }

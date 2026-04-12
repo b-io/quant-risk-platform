@@ -19,7 +19,7 @@
 #include <memory>
 #include <numeric>
 #include <stdexcept>
-#include <vector>
+#include <tuple>
 
 /*
 Design note (see docs/design/ANALYTICS_SERVICES.md and docs/risk/MONTE_CARLO.md):
@@ -132,21 +132,35 @@ SimulationResult MonteCarloEngine::run_simulation(
         horizon_context = std::make_unique<PricingContext>(horizon_state);
     }
 
-    std::vector<std::pair<std::string, QuantLib::ext::shared_ptr<QuantLib::Instrument>>> base_instruments;
-    std::vector<std::pair<std::string, QuantLib::ext::shared_ptr<QuantLib::Instrument>>> horizon_instruments;
+    std::vector<std::pair<std::string, std::tuple<QuantLib::ext::shared_ptr<QuantLib::Instrument>, double, double>>> base_instruments;
+    std::vector<std::pair<std::string, std::tuple<QuantLib::ext::shared_ptr<QuantLib::Instrument>, double, double>>> horizon_instruments;
 
     double base_total_npv = 0.0;
     double frozen_aged_total_npv = 0.0;
 
     result.num_trades_total = static_cast<int>(portfolio.trades.size());
 
-    for (const auto& trade : portfolio.trades) {
+    for (const auto& trade_ptr : portfolio.trades) {
+        const auto& trade = *trade_ptr;
+        double quantity = 1.0;
+        double offset_npv = 0.0;
+        
+        if (trade.type == "equity_spot") {
+            const auto& eq_trade = dynamic_cast<const domain::EquitySpotTrade&>(trade);
+            quantity = eq_trade.quantity;
+            offset_npv = -eq_trade.reference_price * quantity;
+        } else if (trade.type == "fx_forward") {
+            const auto& fx_trade = dynamic_cast<const domain::FxForwardTrade&>(trade);
+            quantity = fx_trade.notional;
+            offset_npv = -fx_trade.forward_rate * quantity;
+        }
+
         QuantLib::Settings::instance().evaluationDate() = t0;
         try {
             auto inst = instruments::InstrumentFactory::create_instrument(trade, base_context);
             if (inst) {
-                base_instruments.push_back({trade.id, inst});
-                base_total_npv += inst->NPV();
+                base_instruments.push_back({trade.id, {inst, quantity, offset_npv}});
+                base_total_npv += inst->NPV() * quantity + offset_npv;
                 result.num_trades_priced_t0++;
             } else {
                 result.num_trades_failed_t0++;
@@ -167,8 +181,8 @@ SimulationResult MonteCarloEngine::run_simulation(
             try {
                 auto h_inst = instruments::InstrumentFactory::create_instrument(trade, *horizon_context);
                 if (h_inst) {
-                    horizon_instruments.push_back({trade.id, h_inst});
-                    frozen_aged_total_npv += h_inst->NPV();
+                    horizon_instruments.push_back({trade.id, {h_inst, quantity, offset_npv}});
+                    frozen_aged_total_npv += h_inst->NPV() * quantity + offset_npv;
                     result.num_trades_priced_tH++;
                 } else {
                     result.num_trades_failed_tH++;
@@ -273,12 +287,15 @@ SimulationResult MonteCarloEngine::run_simulation(
                 }
             }
 
-            double total_npv = 0.0;
+            double total_npv_path = 0.0;
             int path_priced = 0;
             int path_failed = 0;
-            for (auto& [id, inst] : active_instruments) {
+            for (auto& [id, inst_tuple] : active_instruments) {
+                auto& inst = std::get<0>(inst_tuple);
+                double q = std::get<1>(inst_tuple);
+                double offset = std::get<2>(inst_tuple);
                 try {
-                    total_npv += inst->NPV();
+                    total_npv_path += inst->NPV() * q + offset;
                     path_priced++;
                 } catch (const std::exception& e) {
                     path_failed++;
@@ -289,14 +306,14 @@ SimulationResult MonteCarloEngine::run_simulation(
             }
             
             if (capture_trace) {
-                trace.portfolio_value_after = total_npv;
-                trace.path_pnl = total_npv - active_base_npv; // Market-only P&L relative to aged portfolio
+                trace.portfolio_value_after = total_npv_path;
+                trace.path_pnl = total_npv_path - active_base_npv; // Market-only P&L relative to aged portfolio
                 trace.num_priced = path_priced;
                 trace.num_failed = path_failed;
                 
                 if (config.mode == MonteCarloMode::AgedHorizonRevaluation) {
-                    trace.market_pnl = total_npv - frozen_aged_total_npv;
-                    trace.total_pnl = total_npv - base_total_npv;
+                    trace.market_pnl = total_npv_path - frozen_aged_total_npv;
+                    trace.total_pnl = total_npv_path - base_total_npv;
                 } else {
                     trace.market_pnl = trace.path_pnl;
                     trace.total_pnl = trace.path_pnl;
@@ -305,8 +322,15 @@ SimulationResult MonteCarloEngine::run_simulation(
                 result.traces.push_back(trace);
             }
 
-            result.portfolio_values.push_back(total_npv);
-            result.portfolio_pnls.push_back(total_npv - active_base_npv);
+            result.portfolio_values.push_back(total_npv_path);
+            
+            // For AgedHorizonRevaluation, we want to report the TOTAL P&L relative to t0 in the summary,
+            // consistent with how a risk manager would look at it.
+            if (config.mode == MonteCarloMode::AgedHorizonRevaluation) {
+                result.portfolio_pnls.push_back(total_npv_path - base_total_npv);
+            } else {
+                result.portfolio_pnls.push_back(total_npv_path - active_base_npv);
+            }
         }
 
     // 5. Final Reset: Restore state to base_market_dto before returning.

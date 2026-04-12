@@ -44,7 +44,8 @@ std::vector<PnlExplainResult> PnlExplainService::explain_pnl(
     for (const auto& r : rolled_results) rolled_map[r.trade_id] = r.npv;
 
     std::vector<PnlExplainResult> results;
-    for (const auto& trade : portfolio.trades) {
+    for (const auto& trade_ptr : portfolio.trades) {
+        const auto& trade = *trade_ptr;
         if (prev_map.contains(trade.id) && curr_map.contains(trade.id)) {
             PnlExplainResult res;
             res.trade_id = trade.id;

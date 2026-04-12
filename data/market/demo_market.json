@@ -15,7 +15,9 @@
     { "id": "EUR_OIS_5Y", "type": "OIS", "currency": "EUR", "tenor": "5Y", "value": 0.0400 },
     { "id": "USD_LIBOR_3M_FRA_3M", "type": "FRA", "currency": "USD", "tenor": "3M", "value": 0.0540, "index_family": "IBOR_3M" },
     { "id": "USD_LIBOR_3M_IRS_2Y", "type": "IRS", "currency": "USD", "tenor": "2Y", "value": 0.0550, "index_family": "IBOR_3M" },
-    { "id": "USD_LIBOR_3M_IRS_5Y", "type": "IRS", "currency": "USD", "tenor": "5Y", "value": 0.0560, "index_family": "IBOR_3M" }
+    { "id": "USD_LIBOR_3M_IRS_5Y", "type": "IRS", "currency": "USD", "tenor": "5Y", "value": 0.0560, "index_family": "IBOR_3M" },
+    { "id": "EURUSD", "type": "Future", "currency": "USD", "tenor": "SPOT", "value": 1.085 },
+    { "id": "AAPL", "type": "Future", "currency": "USD", "tenor": "SPOT", "value": 185.5 }
   ],
   "curves": [
     {

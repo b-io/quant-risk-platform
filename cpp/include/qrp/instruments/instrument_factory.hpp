@@ -15,11 +15,19 @@ public:
 
 private:
     static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_swap(
-        const domain::Trade& trade,
+        const domain::VanillaSwapTrade& trade,
         const analytics::PricingContext& context);
 
     static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_bond(
-        const domain::Trade& trade,
+        const domain::FixedRateBondTrade& trade,
+        const analytics::PricingContext& context);
+
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_fx_forward(
+        const domain::FxForwardTrade& trade,
+        const analytics::PricingContext& context);
+
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_equity_spot(
+        const domain::EquitySpotTrade& trade,
         const analytics::PricingContext& context);
 };
 

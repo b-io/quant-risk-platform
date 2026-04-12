@@ -53,7 +53,7 @@ public:
      * @brief Loads all trades for a given portfolio from storage.
      * Rebuilds domain::Trade objects including their JSON economics.
      */
-    std::vector<domain::Trade> load_trades(const std::string& portfolio_id) override;
+    std::vector<std::shared_ptr<domain::Trade>> load_trades(const std::string& portfolio_id) override;
 
     /**
      * @brief Loads a complete market snapshot.

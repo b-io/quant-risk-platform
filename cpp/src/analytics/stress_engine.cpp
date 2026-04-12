@@ -28,7 +28,8 @@ std::vector<StressResult> StressEngine::run_historical_stress(
     std::vector<std::pair<std::string, QuantLib::ext::shared_ptr<QuantLib::Instrument>>> instruments;
     std::map<std::string, double> base_map;
     double base_total = 0.0;
-    for (const auto& trade : portfolio.trades) {
+    for (const auto& trade_ptr : portfolio.trades) {
+        const auto& trade = *trade_ptr;
         auto inst = instruments::InstrumentFactory::create_instrument(trade, context);
         if (inst) {
             instruments.push_back({trade.id, inst});

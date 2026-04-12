@@ -3,6 +3,8 @@
 #include <qrp/market/market_snapshot.hpp>
 #include <ql/instruments/vanillaswap.hpp>
 #include <ql/instruments/bonds/fixedratebond.hpp>
+#include <ql/instruments/forward.hpp>
+#include <ql/instruments/stock.hpp>
 #include <ql/pricingengines/swap/discountingswapengine.hpp>
 #include <ql/pricingengines/bond/discountingbondengine.hpp>
 #include <ql/time/calendars/target.hpp>
@@ -35,9 +37,17 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_instru
     const analytics::PricingContext& context) {
 
     if (trade.type == "vanilla_swap") {
-        return create_swap(trade, context);
+        const auto& swap_trade = dynamic_cast<const domain::VanillaSwapTrade&>(trade);
+        return create_swap(swap_trade, context);
     } else if (trade.type == "fixed_rate_bond") {
-        return create_bond(trade, context);
+        const auto& bond_trade = dynamic_cast<const domain::FixedRateBondTrade&>(trade);
+        return create_bond(bond_trade, context);
+    } else if (trade.type == "fx_forward") {
+        const auto& fx_trade = dynamic_cast<const domain::FxForwardTrade&>(trade);
+        return create_fx_forward(fx_trade, context);
+    } else if (trade.type == "equity_spot") {
+        const auto& eq_trade = dynamic_cast<const domain::EquitySpotTrade&>(trade);
+        return create_equity_spot(eq_trade, context);
     }
     return nullptr;
 }
@@ -50,7 +60,7 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_instru
  * - It covers 90% of vanilla rates trading needs while providing a clean interface for NPV and fair rate.
  */
 QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_swap(
-    const domain::Trade& trade,
+    const domain::VanillaSwapTrade& trade,
     const analytics::PricingContext& context) {
 
     QuantLib::Date start = market::CurveBuilder::parse_date(trade.start_date);
@@ -59,9 +69,8 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_swap(
     QuantLib::VanillaSwap::Type type = (trade.direction == "pay_fixed") ?
         QuantLib::VanillaSwap::Payer : QuantLib::VanillaSwap::Receiver;
 
-    double fixed_rate = trade.details.at("fixed_rate").get<double>();
-    std::string float_index_name = trade.details.contains("floating_index") ? 
-        trade.details.at("floating_index").get<std::string>() : "IBOR_3M";
+    double fixed_rate = trade.fixed_rate;
+    std::string float_index_name = trade.floating_index;
     
     // Normalize index name for convention lookup
     std::string lookup_index = float_index_name;
@@ -103,7 +112,7 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_swap(
         // We could match index_name with index->name() or similar
         // For now, if the index name matches the convention's index family or is generic, add it.
         // In a real system, fixings are global or matched more precisely.
-        if (index_name == conv.index_family || index_name == "IBOR_3M" || index_name == trade.details.at("floating_index").get<std::string>()) {
+        if (index_name == conv.index_family || index_name == "IBOR_3M" || index_name == trade.floating_index) {
             for (const auto& [date, value] : date_fixings) {
                 index->addFixing(date, value, true); // forceOverwrite=true
             }
@@ -140,13 +149,13 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_swap(
  * @brief Creates a QuantLib::FixedRateBond.
  */
 QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_bond(
-    const domain::Trade& trade,
+    const domain::FixedRateBondTrade& trade,
     const analytics::PricingContext& context) {
 
     QuantLib::Date start = market::CurveBuilder::parse_date(trade.start_date);
     QuantLib::Date maturity = market::CurveBuilder::parse_date(trade.maturity_date);
 
-    double coupon_rate = trade.details.at("coupon_rate").get<double>();
+    double coupon_rate = trade.coupon_rate;
 
     domain::Currency cc = domain::from_string(trade.currency);
     auto& registry = conventions::MarketConventionRegistry::instance();
@@ -173,6 +182,37 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_bond(
 
     bond->setPricingEngine(QuantLib::ext::make_shared<QuantLib::DiscountingBondEngine>(discounting_term_structure));
     return bond;
+}
+
+/**
+ * @brief Creates an FX Forward.
+ */
+QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_fx_forward(
+    const domain::FxForwardTrade& trade,
+    const analytics::PricingContext& context) {
+    
+    // For FX Forward, we need the spot rate. In demo_market.json, it's stored as "EURUSD".
+    std::string pair = trade.base_currency + trade.quote_currency;
+    auto spot_quote = context.market_state().get_quote_handle(pair);
+    
+    if (!spot_quote) return nullptr;
+    
+    // We return a Stock instrument tied to the FX spot.
+    // The NPV will be handled by ValuationService/RiskService by applying the forward rate offset and notional.
+    return QuantLib::ext::make_shared<QuantLib::Stock>(QuantLib::Handle<QuantLib::Quote>(spot_quote));
+}
+
+/**
+ * @brief Creates an Equity Spot (simplified).
+ */
+QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_equity_spot(
+    const domain::EquitySpotTrade& trade,
+    const analytics::PricingContext& context) {
+    
+    auto quote = context.market_state().get_quote_handle(trade.underlier);
+    if (!quote) return nullptr;
+    
+    return QuantLib::ext::make_shared<QuantLib::Stock>(QuantLib::Handle<QuantLib::Quote>(quote));
 }
 
 } // namespace qrp::instruments

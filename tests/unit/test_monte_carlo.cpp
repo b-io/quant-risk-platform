@@ -12,17 +12,25 @@ using namespace qrp::domain;
 TEST(MonteCarloTest, TestAgedHorizonResetSemantics) {
     // 1. Setup minimal portfolio and market
     Portfolio portfolio;
-    Trade trade;
-    trade.id = "T1";
-    trade.asset_class = "IR";
-    trade.type = "IRS";
-    trade.currency = "USD";
-    trade.notional = 1000000.0;
-    trade.details = nlohmann::json::parse(R"({"tenor": "5Y", "fixed_rate": 0.03, "float_index": "USD_SOFR_3M"})");
+    auto trade = std::make_shared<VanillaSwapTrade>();
+    trade->id = "T1";
+    trade->asset_class = "IR";
+    trade->type = "vanilla_swap";
+    trade->currency = "USD";
+    trade->notional = 1000000.0;
+    trade->start_date = "2024-03-24";
+    trade->maturity_date = "2029-03-24";
+    trade->fixed_rate = 0.03;
+    trade->floating_index = "USD_SOFR_3M";
     portfolio.trades.push_back(trade);
 
     MarketSnapshot base_dto;
     base_dto.valuation_date = "2024-03-24";
+    
+    // Add fixing for the floating index (2 business days before start_date)
+    base_dto.fixings["USD_SOFR_3M"]["2024-03-21"] = 0.03;
+    base_dto.fixings["IBOR_3M"]["2024-03-21"] = 0.03;
+    base_dto.fixings["USD_LIBOR_3M"]["2024-03-21"] = 0.03;
     
     MarketQuote q1;
     q1.id = "USD_OIS_1M";

@@ -248,6 +248,14 @@ PYBIND11_MODULE(quant_risk_platform, m) {
         .def_readwrite("horizon_days", &analytics::SimulationResult::horizon_days)
         .def_readwrite("mode", &analytics::SimulationResult::mode)
         .def_readwrite("factor_ids", &analytics::SimulationResult::factor_ids)
+        .def_readwrite("num_trades_total", &analytics::SimulationResult::num_trades_total)
+        .def_readwrite("num_trades_priced_t0", &analytics::SimulationResult::num_trades_priced_t0)
+        .def_readwrite("num_trades_failed_t0", &analytics::SimulationResult::num_trades_failed_t0)
+        .def_readwrite("num_trades_priced_tH", &analytics::SimulationResult::num_trades_priced_tH)
+        .def_readwrite("num_trades_expired_tH", &analytics::SimulationResult::num_trades_expired_tH)
+        .def_readwrite("num_trades_failed_tH", &analytics::SimulationResult::num_trades_failed_tH)
+        .def_readwrite("num_trades_unsupported_tH", &analytics::SimulationResult::num_trades_unsupported_tH)
+        .def_readwrite("construction_errors", &analytics::SimulationResult::construction_errors)
         .def_readwrite("traces", &analytics::SimulationResult::traces);
 
     py::class_<analytics::StressResult>(m, "StressResult")
@@ -256,19 +264,45 @@ PYBIND11_MODULE(quant_risk_platform, m) {
         .def_readwrite("total_pnl", &analytics::StressResult::total_pnl)
         .def_readwrite("trade_pnls", &analytics::StressResult::trade_pnls);
 
-    py::class_<domain::Trade>(m, "Trade")
-        .def(py::init<>())
+    py::class_<domain::Trade, std::shared_ptr<domain::Trade>>(m, "Trade")
         .def_readwrite("id", &domain::Trade::id)
         .def_readwrite("asset_class", &domain::Trade::asset_class)
         .def_readwrite("type", &domain::Trade::type)
         .def_readwrite("currency", &domain::Trade::currency)
-        .def_readwrite("notional", &domain::Trade::notional)
-        .def_readwrite("start_date", &domain::Trade::start_date)
-        .def_readwrite("maturity_date", &domain::Trade::maturity_date)
         .def_readwrite("direction", &domain::Trade::direction)
         .def_readwrite("book", &domain::Trade::book)
-        .def_readwrite("strategy", &domain::Trade::strategy)
-        .def_readwrite("details", &domain::Trade::details);
+        .def_readwrite("strategy", &domain::Trade::strategy);
+
+    py::class_<domain::VanillaSwapTrade, domain::Trade, std::shared_ptr<domain::VanillaSwapTrade>>(m, "VanillaSwapTrade")
+        .def(py::init<>())
+        .def_readwrite("notional", &domain::VanillaSwapTrade::notional)
+        .def_readwrite("start_date", &domain::VanillaSwapTrade::start_date)
+        .def_readwrite("maturity_date", &domain::VanillaSwapTrade::maturity_date)
+        .def_readwrite("fixed_rate", &domain::VanillaSwapTrade::fixed_rate)
+        .def_readwrite("floating_index", &domain::VanillaSwapTrade::floating_index);
+
+    py::class_<domain::FixedRateBondTrade, domain::Trade, std::shared_ptr<domain::FixedRateBondTrade>>(m, "FixedRateBondTrade")
+        .def(py::init<>())
+        .def_readwrite("notional", &domain::FixedRateBondTrade::notional)
+        .def_readwrite("start_date", &domain::FixedRateBondTrade::start_date)
+        .def_readwrite("maturity_date", &domain::FixedRateBondTrade::maturity_date)
+        .def_readwrite("coupon_rate", &domain::FixedRateBondTrade::coupon_rate)
+        .def_readwrite("frequency", &domain::FixedRateBondTrade::frequency);
+
+    py::class_<domain::EquitySpotTrade, domain::Trade, std::shared_ptr<domain::EquitySpotTrade>>(m, "EquitySpotTrade")
+        .def(py::init<>())
+        .def_readwrite("quantity", &domain::EquitySpotTrade::quantity)
+        .def_readwrite("reference_price", &domain::EquitySpotTrade::reference_price)
+        .def_readwrite("underlier", &domain::EquitySpotTrade::underlier);
+
+    py::class_<domain::FxForwardTrade, domain::Trade, std::shared_ptr<domain::FxForwardTrade>>(m, "FxForwardTrade")
+        .def(py::init<>())
+        .def_readwrite("notional", &domain::FxForwardTrade::notional)
+        .def_readwrite("start_date", &domain::FxForwardTrade::start_date)
+        .def_readwrite("maturity_date", &domain::FxForwardTrade::maturity_date)
+        .def_readwrite("base_currency", &domain::FxForwardTrade::base_currency)
+        .def_readwrite("quote_currency", &domain::FxForwardTrade::quote_currency)
+        .def_readwrite("forward_rate", &domain::FxForwardTrade::forward_rate);
 
     py::class_<analytics::ValuationResult>(m, "ValuationResult")
         .def(py::init<>())

@@ -68,22 +68,11 @@ public:
     }
 
     /**
-     * @brief Captures a lightweight snapshot of the current quote values.
+     * @brief Captures a lightweight snapshot of the current state.
      * Rationale: Useful for saving a baseline (like frozen-aged) to reset to
      * during Monte Carlo paths.
      */
-    domain::MarketSnapshot capture_snapshot() const {
-        domain::MarketSnapshot snapshot;
-        // In a real system, we'd preserve valuation_date and other metadata.
-        // For MC reset, we primarily need the quotes.
-        for (const auto& [id, handle] : quote_handles_) {
-            domain::MarketQuote q;
-            q.id = id;
-            q.value = handle->value();
-            snapshot.quotes.push_back(q);
-        }
-        return snapshot;
-    }
+    domain::MarketSnapshot capture_snapshot() const;
 
     void add_fixing(const std::string& index_name, const QuantLib::Date& date, double value) {
         fixings_[index_name][date] = value;
