@@ -85,17 +85,126 @@ If you need to customize the build, you can use standard CMake commands.
 ### Prerequisites
 
 The platform depends on:
-- **C++ Compiler**: Supporting C++20 (MSVC 2022, GCC 11+, Clang 13+).
-- **vcpkg**: For managing C++ dependencies (QuantLib, fmt, GTest, nlohmann-json).
+- **C++ Compiler**: Supporting C++20 (MSVC 2022 recommended).
+- **vcpkg**: For managing C++ dependencies. Ensure the environment variable `VCPKG_ROOT` is set to your vcpkg installation path (e.g., `D:\BIN\vcpkg`).
+
+### Environment Setup
+
+To ensure CMake finds vcpkg automatically via presets and you can use `vcpkg` from the command line, set the `VCPKG_ROOT` environment variable and add it to your `PATH`:
+
+```powershell
+# Set VCPKG_ROOT for current session
+$env:VCPKG_ROOT = "D:\BIN\vcpkg"
+# Add to PATH for current session
+$env:PATH = "$env:VCPKG_ROOT;$env:PATH"
+
+# Set permanently for user (recommended)
+[Environment]::SetEnvironmentVariable("VCPKG_ROOT", "D:\BIN\vcpkg", "User")
+$oldPath = [Environment]::GetEnvironmentVariable("Path", "User")
+if ($oldPath -notlike "*D:\BIN\vcpkg*") {
+    [Environment]::SetEnvironmentVariable("Path", "$oldPath;D:\BIN\vcpkg", "User")
+}
+```
+
+The CMake presets read `VCPKG_TARGET_TRIPLET` from the environment. Use one of the tracked templates below to set the
+right values for your platform.
+
+When the environment file is active, CMake prints an early `Environment` banner before vcpkg starts, including the
+`QRP_ENV_PROFILE`, `VCPKG_ROOT`, and `VCPKG_TARGET_TRIPLET` values.
+
+#### Windows with MSVC
+
+If you use CLion with the MSVC toolchain from Visual Studio or Build Tools, CLion may inherit Visual Studio's bundled
+vcpkg instead of your regular vcpkg installation. In that case, use a local environment script:
+
+1. Create `.env.cmd` from `msvc.env.cmd.example`.
+2. Edit `DEV_TOOLS_ROOT` if your tools are not installed under `D:\BIN`.
+3. In CLion, open `Settings > Build, Execution, Deployment > Toolchains`.
+4. Select the MSVC/Visual Studio toolchain.
+5. Set `Environment file` to the project-local `.env.cmd`.
+6. Reset the CMake cache and reload the project.
+
+Example `.env.cmd`:
+
+```cmd
+@echo off
+set "DEV_TOOLS_ROOT=D:\BIN"
+set "QRP_VS_INSTALL_DIR=%VSINSTALLDIR%"
+set "VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
+
+if not defined QRP_VS_INSTALL_DIR (
+    if exist "%VSWHERE%" (
+        for /f "usebackq delims=" %%I in (`"%VSWHERE%" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath`) do set "QRP_VS_INSTALL_DIR=%%I"
+    )
+)
+
+if defined QRP_VS_INSTALL_DIR if exist "%QRP_VS_INSTALL_DIR%\Common7\Tools\VsDevCmd.bat" (
+    call "%QRP_VS_INSTALL_DIR%\Common7\Tools\VsDevCmd.bat" -arch=x64 -host_arch=x64 >nul
+)
+
+set "CC=cl"
+set "CXX=cl"
+set "QRP_ENV_FILE=%~f0"
+set "QRP_ENV_PROFILE=msvc"
+set "VCPKG_ROOT=%DEV_TOOLS_ROOT%\vcpkg"
+set "VCPKG_TARGET_TRIPLET=x64-windows-static-md"
+set "PATH=%DEV_TOOLS_ROOT%;%DEV_TOOLS_ROOT%\ninja;%VCPKG_ROOT%;%PATH%"
+```
+
+The real `.env.cmd` is ignored by Git because it contains machine-local paths. The tracked `msvc.env.cmd.example` is only a
+template.
+The `VsDevCmd.bat` initialization is important for MSVC builds because vcpkg host tools use `link.exe` during configure
+checks and need Visual Studio's `LIB`, `INCLUDE`, and `PATH` environment variables.
+
+The Windows template uses the vcpkg triplet `x64-windows-static-md`. This keeps third-party libraries statically linked,
+which is required by the vcpkg QuantLib port on Windows, while still using the dynamic MSVC runtime expected by Python
+extension builds.
+
+#### Linux with GCC
+
+Create a local shell environment file from `gcc.env.sh.example`:
+
+```bash
+cp gcc.env.sh.example .env.sh
+```
+
+Edit `DEV_TOOLS_ROOT` or `VCPKG_ROOT` inside `.env.sh` if needed, then source it before configuring:
+
+```bash
+. ./.env.sh
+cmake --preset Release-Python
+cmake --build --preset Release-Python
+```
+
+The GCC template uses `gcc` and `g++`, and chooses `x64-linux` or `arm64-linux` based on `uname`.
+
+#### Linux or macOS with Clang
+
+Create a local shell environment file from `clang.env.sh.example`:
+
+```bash
+cp clang.env.sh.example .env.sh
+```
+
+Edit `DEV_TOOLS_ROOT` or `VCPKG_ROOT` inside `.env.sh` if needed, then source it before configuring:
+
+```bash
+. ./.env.sh
+cmake --preset Release-Python
+cmake --build --preset Release-Python
+```
+
+The Clang template uses `clang` and `clang++`, and chooses `x64-linux`, `arm64-linux`, `x64-osx`, or `arm64-osx` based
+on `uname`. The real `.env.sh` is ignored by Git because it contains machine-local paths.
 
 ### Build Steps
 
-```bash
-# Configure the project with vcpkg toolchain
-cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=[path_to_vcpkg]/scripts/buildsystems/vcpkg.cmake
+```powershell
+# Configure the project using presets (uses $env:VCPKG_ROOT automatically)
+cmake --preset Release-Python
 
 # Build
-cmake --build build --config Debug
+cmake --build --preset Release-Python
 ```
 
 ---

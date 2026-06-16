@@ -1,4 +1,27 @@
 cmake_minimum_required(VERSION 3.20)
+
+message(STATUS "")
+message(STATUS "========== Environment ==========")
+if(DEFINED ENV{QRP_ENV_PROFILE})
+  message(STATUS "QRP env profile      : $ENV{QRP_ENV_PROFILE}")
+else()
+  message(STATUS "QRP env profile      : (not detected)")
+endif()
+if(DEFINED ENV{QRP_ENV_FILE})
+  message(STATUS "QRP env file         : $ENV{QRP_ENV_FILE}")
+endif()
+if(DEFINED ENV{DEV_TOOLS_ROOT})
+  message(STATUS "DEV_TOOLS_ROOT       : $ENV{DEV_TOOLS_ROOT}")
+endif()
+if(DEFINED ENV{VCPKG_ROOT})
+  message(STATUS "VCPKG_ROOT           : $ENV{VCPKG_ROOT}")
+endif()
+if(DEFINED ENV{VCPKG_TARGET_TRIPLET})
+  message(STATUS "VCPKG_TARGET_TRIPLET : $ENV{VCPKG_TARGET_TRIPLET}")
+endif()
+message(STATUS "=================================")
+message(STATUS "")
+
 project(quant-risk-platform VERSION 0.1.0 LANGUAGES CXX)
 
 # -----------------------
@@ -6,6 +29,7 @@ project(quant-risk-platform VERSION 0.1.0 LANGUAGES CXX)
 # -----------------------
 option(QRP_BUILD_CLI "Build the C++ CLI" ON)
 option(QRP_BUILD_PYTHON "Build Python bindings" OFF)
+option(QRP_BUILD_SHARED "Build qrp_core as a shared library" OFF)
 option(QRP_WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
 include(CTest) # defines BUILD_TESTING
 
@@ -33,6 +57,7 @@ message(STATUS "C++ compiler         : ${CMAKE_CXX_COMPILER}")
 message(STATUS "C++ compiler version : ${CMAKE_CXX_COMPILER_VERSION}")
 message(STATUS "Build CLI            : ${QRP_BUILD_CLI}")
 message(STATUS "Build Python         : ${QRP_BUILD_PYTHON}")
+message(STATUS "Build shared core    : ${QRP_BUILD_SHARED}")
 message(STATUS "Build tests          : ${BUILD_TESTING}")
 if(DEFINED CMAKE_TOOLCHAIN_FILE)
   message(STATUS "Toolchain file       : ${CMAKE_TOOLCHAIN_FILE}")
@@ -78,13 +103,22 @@ include(cmake/Dependencies.cmake)
 # -----------------------
 # Core library
 # -----------------------
-add_library(qrp_core
+if(QRP_BUILD_SHARED)
+  set(_QRP_CORE_LIBRARY_TYPE SHARED)
+else()
+  set(_QRP_CORE_LIBRARY_TYPE STATIC)
+endif()
+
+add_library(qrp_core ${_QRP_CORE_LIBRARY_TYPE}
     cpp/src/analytics/covariance_estimator.cpp
+    cpp/src/analytics/lsmc/lsmc_engine.cpp
     cpp/src/analytics/monte_carlo_engine.cpp
     cpp/src/analytics/pnl_explain_service.cpp
     cpp/src/analytics/risk_service.cpp
     cpp/src/analytics/stress_engine.cpp
     cpp/src/analytics/valuation_service.cpp
+    cpp/src/optimization/portfolio_optimization_engine.cpp
+    cpp/src/optimization/adapters/cvxpy_adapter.cpp
     cpp/src/app/quant_risk_platform.cpp
     cpp/src/conventions/market_convention_registry.cpp
     cpp/src/instruments/instrument_factory.cpp
@@ -100,7 +134,11 @@ if(MSVC)
 endif()
 target_include_directories(qrp_core PUBLIC ${QRP_INCLUDE_DIR})
 # PUBLIC if headers expose these types; keep PRIVATE for link-only deps
-target_link_libraries(qrp_core PRIVATE fmt::fmt nlohmann_json::nlohmann_json QuantLib::QuantLib spdlog::spdlog SQLite::SQLite3)
+target_link_libraries(qrp_core PRIVATE Eigen3::Eigen fmt::fmt nlohmann_json::nlohmann_json QuantLib::QuantLib spdlog::spdlog SQLite::SQLite3)
+if(WIN32 AND QRP_BUILD_SHARED)
+  # Keep the current public headers working when qrp_core is built as a DLL.
+  set_target_properties(qrp_core PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
 
 target_compile_features(qrp_core PUBLIC cxx_std_20)
 
@@ -111,12 +149,25 @@ else()
   target_compile_options(qrp_core PRIVATE -Wall -Wextra -Wconversion -Wpedantic $<$<BOOL:${QRP_WARNINGS_AS_ERRORS}>:-Werror>)
 endif()
 
+function(qrp_copy_core_runtime target_name)
+  if(WIN32 AND QRP_BUILD_SHARED)
+    add_custom_command(TARGET ${target_name} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_FILE:qrp_core>
+        $<TARGET_FILE_DIR:${target_name}>
+      COMMENT "Copying qrp_core runtime beside ${target_name}"
+      VERBATIM
+    )
+  endif()
+endfunction()
+
 # -----------------------
 # CLI (optional)
 # -----------------------
 if(QRP_BUILD_CLI)
   add_executable(qrp_cli cpp/cli/main.cpp)
   target_link_libraries(qrp_cli PRIVATE qrp_core fmt::fmt)
+  qrp_copy_core_runtime(qrp_cli)
 else()
   message(STATUS "QRP_BUILD_CLI=OFF — CLI target is skipped")
 endif()
@@ -158,15 +209,16 @@ if(QRP_BUILD_PYTHON)
   endif()
 
   target_link_libraries(quant_risk_platform PRIVATE qrp_core Python3::Module)
+  qrp_copy_core_runtime(quant_risk_platform)
 
   # Put the built .pyd/.so into a predictable subfolder for smoke tests
   set(_QRP_PY_OUT ${CMAKE_BINARY_DIR}/python)
   foreach(cfg Debug Release RelWithDebInfo MinSizeRel)
     string(TOUPPER ${cfg} CFGU)
     set_target_properties(quant_risk_platform PROPERTIES
+      ARCHIVE_OUTPUT_DIRECTORY_${CFGU} "${_QRP_PY_OUT}/${cfg}"
       LIBRARY_OUTPUT_DIRECTORY_${CFGU} "${_QRP_PY_OUT}/${cfg}"
       RUNTIME_OUTPUT_DIRECTORY_${CFGU} "${_QRP_PY_OUT}/${cfg}"
-      ARCHIVE_OUTPUT_DIRECTORY_${CFGU} "${_QRP_PY_OUT}/${cfg}"
     )
   endforeach()
 
@@ -206,6 +258,7 @@ if(QRP_BUILD_BENCHMARKS)
   if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/benchmarks/benchmark_portfolio.cpp")
     add_executable(benchmark_portfolio benchmarks/benchmark_portfolio.cpp)
     target_link_libraries(benchmark_portfolio PRIVATE qrp_core)
+    qrp_copy_core_runtime(benchmark_portfolio)
   else()
     message(STATUS "QRP_BUILD_BENCHMARKS=ON but benchmark sources not found; skipping benchmarks")
   endif()

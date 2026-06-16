@@ -1,22 +1,22 @@
 #!/bin/bash
 
 # Default values
-PORTFOLIO_ID="demo_macro_book"
-SNAPSHOT_ID="SNAP:2024-03-24"
-SCENARIO_SET_ID="SC_SET_HIST_01"
 BUILD_DIR="build/Release-Python"
 CONFIG="Release"
 LOG_LEVEL="info"
+PORTFOLIO_ID="demo_macro_book"
+SCENARIO_SET_ID="SC_SET_HIST_01"
+SNAPSHOT_ID="SNAP:2024-03-24"
 
 # Simple argument parsing
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        -Portfolio) PORTFOLIO_ID="$2"; shift ;;
-        -Snapshot) SNAPSHOT_ID="$2"; shift ;;
-        -Scenarios) SCENARIO_SET_ID="$2"; shift ;;
         -BuildDir) BUILD_DIR="$2"; shift ;;
         -Config) CONFIG="$2"; shift ;;
         -LogLevel) LOG_LEVEL="$2"; shift ;;
+        -Portfolio) PORTFOLIO_ID="$2"; shift ;;
+        -Scenarios) SCENARIO_SET_ID="$2"; shift ;;
+        -Snapshot) SNAPSHOT_ID="$2"; shift ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
     shift

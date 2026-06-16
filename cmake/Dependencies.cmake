@@ -1,6 +1,10 @@
 # Dependencies
 include(CTest)
 
+# Find Eigen3
+find_package(Eigen3 CONFIG REQUIRED)
+message(STATUS "Found Eigen3: ${Eigen3_DIR}")
+
 # Find fmt
 find_package(fmt CONFIG REQUIRED)
 message(STATUS "Found fmt: ${fmt_DIR}")

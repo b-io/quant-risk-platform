@@ -3,18 +3,17 @@
   "configurePresets": [
     {
       "name": "base",
-      "displayName": "Base (VS2022, vcpkg)",
+      "displayName": "Base (Ninja, vcpkg)",
       "binaryDir": "${sourceDir}/build/${presetName}",
-      "generator": "Visual Studio 17 2022",
-      "architecture": {
-        "value": "x64",
-        "strategy": "external"
-      },
+      "generator": "Ninja",
       "cacheVariables": {
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_INSTALL_OPTIONS": "--allow-unsupported",
-        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "VCPKG_INSTALLED_DIR": "$env{VCPKG_ROOT}/installed",
+        "VCPKG_INSTALL_OPTIONS": "--allow-unsupported;--binarysource=clear;--binarysource=files,$env{VCPKG_ROOT}/archives,readwrite;--downloads-root=$env{VCPKG_ROOT}/downloads;--x-buildtrees-root=$env{VCPKG_ROOT}/buildtrees;--x-packages-root=$env{VCPKG_ROOT}/packages",
+        "VCPKG_MANIFEST_INSTALL": "ON",
+        "VCPKG_MANIFEST_MODE": "ON",
+        "VCPKG_TARGET_TRIPLET": "$env{VCPKG_TARGET_TRIPLET}",
         "X_VCPKG_ASSET_SOURCES": "clear"
       }
     },
@@ -24,8 +23,16 @@
       "displayName": "C++ only - Debug",
       "cacheVariables": {
         "BUILD_TESTING": "ON",
-        "CMAKE_CONFIGURATION_TYPES": "Debug",
+        "CMAKE_BUILD_TYPE": "Debug",
         "QRP_BUILD_PYTHON": "OFF"
+      }
+    },
+    {
+      "name": "Debug-Shared",
+      "inherits": "Debug",
+      "displayName": "C++ only - Debug (shared qrp_core)",
+      "cacheVariables": {
+        "QRP_BUILD_SHARED": "ON"
       }
     },
     {
@@ -34,8 +41,16 @@
       "displayName": "C++ only - Release",
       "cacheVariables": {
         "BUILD_TESTING": "ON",
-        "CMAKE_CONFIGURATION_TYPES": "Release",
+        "CMAKE_BUILD_TYPE": "Release",
         "QRP_BUILD_PYTHON": "OFF"
+      }
+    },
+    {
+      "name": "Release-Shared",
+      "inherits": "Release",
+      "displayName": "C++ only - Release (shared qrp_core)",
+      "cacheVariables": {
+        "QRP_BUILD_SHARED": "ON"
       }
     },
     {
@@ -44,8 +59,16 @@
       "displayName": "Python bindings - Release",
       "cacheVariables": {
         "BUILD_TESTING": "ON",
-        "CMAKE_CONFIGURATION_TYPES": "Release",
+        "CMAKE_BUILD_TYPE": "Release",
         "QRP_BUILD_PYTHON": "ON"
+      }
+    },
+    {
+      "name": "Release-Python-Shared",
+      "inherits": "Release-Python",
+      "displayName": "Python bindings - Release (shared qrp_core)",
+      "cacheVariables": {
+        "QRP_BUILD_SHARED": "ON"
       }
     },
     {
@@ -54,8 +77,16 @@
       "displayName": "C++ only - RelWithDebInfo",
       "cacheVariables": {
         "BUILD_TESTING": "ON",
-        "CMAKE_CONFIGURATION_TYPES": "RelWithDebInfo",
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "QRP_BUILD_PYTHON": "OFF"
+      }
+    },
+    {
+      "name": "RelWithDebInfo-Shared",
+      "inherits": "RelWithDebInfo",
+      "displayName": "C++ only - RelWithDebInfo (shared qrp_core)",
+      "cacheVariables": {
+        "QRP_BUILD_SHARED": "ON"
       }
     },
     {
@@ -64,23 +95,41 @@
       "displayName": "Python bindings - RelWithDebInfo",
       "cacheVariables": {
         "BUILD_TESTING": "ON",
-        "CMAKE_CONFIGURATION_TYPES": "RelWithDebInfo",
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "QRP_BUILD_PYTHON": "ON"
+      }
+    },
+    {
+      "name": "RelWithDebInfo-Python-Shared",
+      "inherits": "RelWithDebInfo-Python",
+      "displayName": "Python bindings - RelWithDebInfo (shared qrp_core)",
+      "cacheVariables": {
+        "QRP_BUILD_SHARED": "ON"
       }
     }
   ],
   "buildPresets": [
     { "name": "Debug", "configurePreset": "Debug", "configuration": "Debug" },
+    { "name": "Debug-Shared", "configurePreset": "Debug-Shared", "configuration": "Debug" },
     { "name": "Release", "configurePreset": "Release", "configuration": "Release" },
+    { "name": "Release-Shared", "configurePreset": "Release-Shared", "configuration": "Release" },
     { "name": "Release-Python", "configurePreset": "Release-Python", "configuration": "Release" },
+    { "name": "Release-Python-Shared", "configurePreset": "Release-Python-Shared", "configuration": "Release" },
     { "name": "RelWithDebInfo", "configurePreset": "RelWithDebInfo", "configuration": "RelWithDebInfo" },
-    { "name": "RelWithDebInfo-Python", "configurePreset": "RelWithDebInfo-Python", "configuration": "RelWithDebInfo" }
+    { "name": "RelWithDebInfo-Shared", "configurePreset": "RelWithDebInfo-Shared", "configuration": "RelWithDebInfo" },
+    { "name": "RelWithDebInfo-Python", "configurePreset": "RelWithDebInfo-Python", "configuration": "RelWithDebInfo" },
+    { "name": "RelWithDebInfo-Python-Shared", "configurePreset": "RelWithDebInfo-Python-Shared", "configuration": "RelWithDebInfo" }
   ],
   "testPresets": [
     { "name": "Debug", "configurePreset": "Debug", "configuration": "Debug", "output": { "outputOnFailure": true } },
+    { "name": "Debug-Shared", "configurePreset": "Debug-Shared", "configuration": "Debug", "output": { "outputOnFailure": true } },
     { "name": "Release", "configurePreset": "Release", "configuration": "Release", "output": { "outputOnFailure": true } },
+    { "name": "Release-Shared", "configurePreset": "Release-Shared", "configuration": "Release", "output": { "outputOnFailure": true } },
     { "name": "Release-Python", "configurePreset": "Release-Python", "configuration": "Release", "output": { "outputOnFailure": true } },
+    { "name": "Release-Python-Shared", "configurePreset": "Release-Python-Shared", "configuration": "Release", "output": { "outputOnFailure": true } },
     { "name": "RelWithDebInfo", "configurePreset": "RelWithDebInfo", "configuration": "RelWithDebInfo", "output": { "outputOnFailure": true } },
-    { "name": "RelWithDebInfo-Python", "configurePreset": "RelWithDebInfo-Python", "configuration": "RelWithDebInfo", "output": { "outputOnFailure": true } }
+    { "name": "RelWithDebInfo-Shared", "configurePreset": "RelWithDebInfo-Shared", "configuration": "RelWithDebInfo", "output": { "outputOnFailure": true } },
+    { "name": "RelWithDebInfo-Python", "configurePreset": "RelWithDebInfo-Python", "configuration": "RelWithDebInfo", "output": { "outputOnFailure": true } },
+    { "name": "RelWithDebInfo-Python-Shared", "configurePreset": "RelWithDebInfo-Python-Shared", "configuration": "RelWithDebInfo", "output": { "outputOnFailure": true } }
   ]
 }

@@ -2,14 +2,14 @@
   "name": "quant-risk-platform",
   "version-string": "0.1.0",
   "dependencies": [
+    "eigen3",
     "fmt",
     "gtest",
-    "icu",
     "nlohmann-json",
     "pybind11",
     "quantlib",
     "spdlog",
     "sqlite3"
   ],
-  "builtin-baseline": "dddca6fa87f177e0678e2545c4b4636a44aa05bd"
+  "builtin-baseline": "a7acc4f979f2afde60757e0f9b572b5710ac08b1"
 }

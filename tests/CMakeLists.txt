@@ -6,8 +6,11 @@ add_executable(unit_tests
     unit/test_scenario_engine.cpp
     unit/test_monte_carlo.cpp
     unit/test_monte_carlo_aging.cpp
+    unit/optimization/test_optimization_engine.cpp
+    unit/analytics/test_lsmc_american_put.cpp
 )
 target_link_libraries(unit_tests PRIVATE qrp_core GTest::gtest_main)
+qrp_copy_core_runtime(unit_tests)
 add_test(NAME unit_tests COMMAND unit_tests)
 
 add_executable(integration_tests
@@ -15,6 +18,7 @@ add_executable(integration_tests
     integration/test_valuation.cpp
 )
 target_link_libraries(integration_tests PRIVATE qrp_core GTest::gtest_main)
+qrp_copy_core_runtime(integration_tests)
 add_test(NAME integration_tests COMMAND integration_tests)
 
 if(MSVC)

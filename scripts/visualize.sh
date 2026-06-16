@@ -2,19 +2,19 @@
 # visualize.sh - Visualize data from the database
 
 # Default values
-DB_FILE="var/quant_risk_platform.sqlite"
 BUILD_DIR="build/Release-Python"
 CONFIG="Release"
-TABLE="summary"
+DB_FILE="var/quant_risk_platform.sqlite"
 ID=""
+TABLE="summary"
 
 # Simple argument parsing
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         -BuildDir) BUILD_DIR="$2"; shift ;;
         -Config) CONFIG="$2"; shift ;;
-        -Table) TABLE="$2"; shift ;;
         -Id) ID="$2"; shift ;;
+        -Table) TABLE="$2"; shift ;;
         portfolios|trades|runs|results|risk|summary) TABLE="$1" ;;
         *) if [ -z "$ID" ]; then ID="$1"; else echo "Unknown parameter: $1"; exit 1; fi ;;
     esac

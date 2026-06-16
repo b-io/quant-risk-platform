@@ -44,7 +44,10 @@ vcpkg_installed/
 *.swo
 *.swp
 .idea/
+.vs/
 .vscode/
+.env.cmd
+.env.sh
 CMakeUserPresets.json
 
 # Linker files
