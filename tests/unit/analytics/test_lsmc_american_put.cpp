@@ -11,8 +11,8 @@ public:
     AmericanPutProblem(double strike) : strike_(strike) {}
 
     std::vector<dynamic_programming::Action> feasibleActions(
-        const dynamic_programming::State& state,
-        std::size_t timeIndex
+        const dynamic_programming::State&,
+        std::size_t
     ) const override {
         return {
             {0, "Continue", {}},
@@ -23,7 +23,7 @@ public:
     double immediateCashflow(
         const dynamic_programming::State& state,
         const dynamic_programming::Action& action,
-        std::size_t timeIndex
+        std::size_t
     ) const override {
         if (action.id == 1) { // Exercise
             double spot = state.market_variables[0];
@@ -33,17 +33,17 @@ public:
     }
 
     dynamic_programming::State nextState(
-        const dynamic_programming::State& state,
-        const dynamic_programming::Action& action,
+        const dynamic_programming::State&,
+        const dynamic_programming::Action&,
         const std::vector<double>& market_variables_next,
-        std::size_t timeIndex
+        std::size_t
     ) const override {
         return {market_variables_next, {}};
     }
 
     std::vector<double> regressionFeatures(
         const dynamic_programming::State& state,
-        std::size_t timeIndex
+        std::size_t
     ) const override {
         double s = state.market_variables[0];
         return {1.0, s, s * s};

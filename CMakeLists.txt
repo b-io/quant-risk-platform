@@ -134,7 +134,16 @@ if(MSVC)
 endif()
 target_include_directories(qrp_core PUBLIC ${QRP_INCLUDE_DIR})
 # PUBLIC if headers expose these types; keep PRIVATE for link-only deps
-target_link_libraries(qrp_core PRIVATE Eigen3::Eigen fmt::fmt nlohmann_json::nlohmann_json QuantLib::QuantLib spdlog::spdlog SQLite::SQLite3)
+target_link_libraries(qrp_core
+  PUBLIC
+    Eigen3::Eigen
+    nlohmann_json::nlohmann_json
+    QuantLib::QuantLib
+    spdlog::spdlog
+    SQLite::SQLite3
+  PRIVATE
+    fmt::fmt
+)
 if(WIN32 AND QRP_BUILD_SHARED)
   # Keep the current public headers working when qrp_core is built as a DLL.
   set_target_properties(qrp_core PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)

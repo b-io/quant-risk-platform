@@ -44,7 +44,7 @@ public:
         std::size_t timeIndex
     ) const = 0;
     
-    virtual double terminalValue(const State& state) const { return 0.0; }
+    virtual double terminalValue(const State&) const { return 0.0; }
 };
 
 } // namespace qrp::analytics::dynamic_programming

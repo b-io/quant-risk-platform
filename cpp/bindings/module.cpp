@@ -313,8 +313,8 @@ PYBIND11_MODULE(quant_risk_platform, m) {
 
     m.def("compute_risk", &analytics::RiskService::compute_risk, 
           py::arg("portfolio"), py::arg("base_market_dto"),
-          py::arg("factors") = std::vector<domain::FactorDefinition>(),
-          py::arg("bindings") = std::vector<domain::FactorBinding>(),
+          py::arg("factors"),
+          py::arg("bindings"),
           "Compute risk for a portfolio");
 
     m.def("explain_pnl", &analytics::PnlExplainService::explain_pnl, "Explain P&L between two market states");

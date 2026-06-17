@@ -30,9 +30,8 @@ std::vector<StressResult> StressEngine::run_historical_stress(
     double base_total = 0.0;
     for (const auto& trade_ptr : portfolio.trades) {
         const auto& trade = *trade_ptr;
-        auto inst = instruments::InstrumentFactory::create_instrument(trade, context);
-        if (inst) {
-            instruments.push_back({trade.id, inst});
+        if (auto inst = instruments::InstrumentFactory::create_instrument(trade, context)) {
+            instruments.emplace_back(trade.id, inst);
             double npv = inst->NPV();
             base_map[trade.id] = npv;
             base_total += npv;

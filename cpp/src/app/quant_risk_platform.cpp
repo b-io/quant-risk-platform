@@ -7,10 +7,74 @@
 #include <fmt/format.h>
 #include <chrono>
 #include <algorithm>
+#include <utility>
+#include <vector>
 
 using json = nlohmann::json;
 
 namespace qrp::app {
+
+namespace {
+
+std::vector<std::string> collect_factor_ids(const std::vector<domain::FactorDefinition>& factors) {
+    std::vector<std::string> factor_ids;
+    factor_ids.reserve(factors.size());
+    for (const auto& factor : factors) {
+        factor_ids.push_back(factor.factor_id);
+    }
+    return factor_ids;
+}
+
+std::vector<domain::FactorBinding> build_bindings_from_factor_quote_ids(
+    const std::vector<domain::FactorDefinition>& factors) {
+    std::vector<domain::FactorBinding> bindings;
+    for (const auto& factor : factors) {
+        for (const auto& quote_id : factor.quote_ids) {
+            domain::FactorBinding binding;
+            binding.factor_id = factor.factor_id;
+            binding.quote_id = quote_id;
+            binding.shock_measure = factor.shock_measure;
+            bindings.push_back(std::move(binding));
+        }
+    }
+    return bindings;
+}
+
+bool is_rate_quote(const domain::MarketQuote& quote) {
+    return quote.instrument_type == domain::QuoteInstrumentType::Deposit ||
+           quote.instrument_type == domain::QuoteInstrumentType::OIS ||
+           quote.instrument_type == domain::QuoteInstrumentType::FRA ||
+           quote.instrument_type == domain::QuoteInstrumentType::IRS;
+}
+
+std::pair<std::vector<domain::FactorDefinition>, std::vector<domain::FactorBinding>>
+build_quote_factor_fallback(const domain::MarketSnapshot& market_dto) {
+    std::vector<domain::FactorDefinition> factors;
+    std::vector<domain::FactorBinding> bindings;
+
+    for (const auto& quote : market_dto.quotes) {
+        if (!is_rate_quote(quote)) {
+            continue;
+        }
+
+        domain::FactorDefinition factor;
+        factor.factor_id = quote.id;
+        factor.factor_type = domain::FactorType::RateZero;
+        factor.currency = quote.currency;
+        factor.tenor = quote.tenor;
+        factor.quote_ids = {quote.id};
+        factors.push_back(factor);
+
+        domain::FactorBinding binding;
+        binding.factor_id = factor.factor_id;
+        binding.quote_id = quote.id;
+        bindings.push_back(binding);
+    }
+
+    return {factors, bindings};
+}
+
+} // namespace
 
 QuantRiskPlatform::QuantRiskPlatform(std::shared_ptr<persistence::StorageBackend> storage)
     : storage_(std::move(storage)) {}
@@ -147,8 +211,23 @@ std::string QuantRiskPlatform::run_risk(const std::string& portfolio_id, const s
     domain::Portfolio portfolio;
     portfolio.portfolio_id = portfolio_id;
     portfolio.trades = trades;
+
+    auto factors = storage_->load_factor_definitions(portfolio_id);
+    auto bindings = storage_->load_factor_bindings(collect_factor_ids(factors));
+    if (!factors.empty() && bindings.empty()) {
+        bindings = build_bindings_from_factor_quote_ids(factors);
+        if (!bindings.empty()) {
+            spdlog::warn("No stored factor bindings found; derived bindings from factor quote_ids");
+        }
+    }
+    if (factors.empty() || bindings.empty()) {
+        spdlog::warn("No stored risk factors/bindings found; deriving one rate factor per market quote");
+        auto fallback = build_quote_factor_fallback(market_dto);
+        factors = std::move(fallback.first);
+        bindings = std::move(fallback.second);
+    }
     
-    auto results = analytics::RiskService::compute_risk(portfolio, market_dto);
+    auto results = analytics::RiskService::compute_risk(portfolio, market_dto, factors, bindings);
     
     std::string run_id = fmt::format("RUN_RISK_{}", std::chrono::system_clock::now().time_since_epoch().count());
     storage_->store_analysis_run(run_id, "RISK", portfolio_id, snapshot_id);
