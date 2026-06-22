@@ -14,6 +14,7 @@ This module provides a generic framework for solving optimal decision problems u
   - `feasibleActions`: Returns allowed decisions at a given state and time.
   - `immediateCashflow`: Returns the cashflow for a given action.
   - `nextState`: Defines how the state evolves based on an action and market movement.
+  - `isTerminalAction`: Marks actions that stop continuation value, such as option exercise.
   - `regressionFeatures`: Basis functions for continuation value estimation.
 
 ### 3. Regression (`qrp::analytics::regression`)
@@ -47,4 +48,5 @@ To add a new asset type (e.g., Battery Storage):
 1. Inherit from `DecisionProblem`.
 2. Define the operational state (e.g., charge level).
 3. Implement `nextState` with efficiency losses and constraints.
-4. Provide relevant `regressionFeatures` (e.g., price, charge level, interactions).
+4. Override `isTerminalAction` for exercise/settlement actions that should not receive continuation value.
+5. Provide relevant `regressionFeatures` (e.g., price, charge level, interactions).

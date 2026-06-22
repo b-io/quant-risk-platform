@@ -62,7 +62,7 @@ void SQLiteStorageBackend::initialize_schema() {
             portfolio_id TEXT,
             book_id TEXT,
             asset_class TEXT,
-            product_type TEXT,
+            trade_type TEXT,
             currency TEXT,
             notional REAL,
             start_date TEXT,
@@ -209,13 +209,37 @@ void SQLiteStorageBackend::initialize_schema() {
     )");
 
     execute_sql(R"(
-        CREATE TABLE IF NOT EXISTS scenario_quotes (
+        CREATE TABLE IF NOT EXISTS scenario_factor_shocks (
             scenario_set_id TEXT,
             scenario_name TEXT,
-            quote_id TEXT,
+            factor_id TEXT,
             shock REAL,
-            PRIMARY KEY(scenario_set_id, scenario_name, quote_id),
-            FOREIGN KEY(scenario_set_id) REFERENCES scenario_sets(scenario_set_id)
+            PRIMARY KEY(scenario_set_id, scenario_name, factor_id),
+            FOREIGN KEY(scenario_set_id) REFERENCES scenario_sets(scenario_set_id),
+            FOREIGN KEY(factor_id) REFERENCES factor_definitions(factor_id)
+        );
+    )");
+
+    execute_sql(R"(
+        CREATE TABLE IF NOT EXISTS scenario_results (
+            run_id TEXT,
+            scenario_name TEXT,
+            portfolio_pnl REAL,
+            PRIMARY KEY(run_id, scenario_name),
+            FOREIGN KEY(run_id) REFERENCES analysis_runs(run_id)
+        );
+    )");
+
+    execute_sql(R"(
+        CREATE TABLE IF NOT EXISTS var_results (
+            run_id TEXT,
+            method TEXT,
+            confidence_level REAL,
+            var_value REAL,
+            expected_shortfall REAL,
+            scenario_count INTEGER,
+            PRIMARY KEY(run_id, method, confidence_level),
+            FOREIGN KEY(run_id) REFERENCES analysis_runs(run_id)
         );
     )");
 }
@@ -385,7 +409,6 @@ void SQLiteStorageBackend::store_factor_observation(const domain::FactorObservat
 }
 
 std::vector<domain::FactorDefinition> SQLiteStorageBackend::load_factor_definitions(const std::string& /*portfolio_id*/) {
-    // For now, load all factors (mapping to portfolio can be done via another table if needed)
     std::vector<domain::FactorDefinition> factors;
     const char* sql = "SELECT factor_id, factor_type, shock_measure, currency, curve_id, tenor, quote_ids_json, description FROM factor_definitions;";
     sqlite3_stmt* stmt;
@@ -568,10 +591,10 @@ void SQLiteStorageBackend::store_book(const std::string& book_id, const std::str
 }
 
 void SQLiteStorageBackend::store_trade(const std::string& trade_id, const std::string& portfolio_id, const std::string& book_id,
-                                       const std::string& asset_class, const std::string& product_type, const std::string& ccy,
+                                       const std::string& asset_class, const std::string& trade_type, const std::string& ccy,
                                        double notional, const std::string& start_date, const std::string& maturity_date,
                                        const std::string& direction, const std::string& economics_json) {
-    const char* sql = "INSERT OR REPLACE INTO trades (trade_id, portfolio_id, book_id, asset_class, product_type, currency, notional, start_date, maturity_date, direction, economics_json) "
+    const char* sql = "INSERT OR REPLACE INTO trades (trade_id, portfolio_id, book_id, asset_class, trade_type, currency, notional, start_date, maturity_date, direction, economics_json) "
                       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) {
@@ -581,7 +604,7 @@ void SQLiteStorageBackend::store_trade(const std::string& trade_id, const std::s
     sqlite3_bind_text(stmt, 2, portfolio_id.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 3, book_id.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 4, asset_class.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 5, product_type.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 5, trade_type.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 6, ccy.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_double(stmt, 7, notional);
     sqlite3_bind_text(stmt, 8, start_date.c_str(), -1, SQLITE_TRANSIENT);
@@ -635,7 +658,7 @@ void SQLiteStorageBackend::store_market_quote(const std::string& snapshot_id, co
 
 std::vector<std::shared_ptr<domain::Trade>> SQLiteStorageBackend::load_trades(const std::string& portfolio_id) {
     std::vector<std::shared_ptr<domain::Trade>> trades;
-    const char* sql = "SELECT trade_id, asset_class, product_type, currency, notional, start_date, maturity_date, direction, economics_json FROM trades WHERE portfolio_id = ?;";
+    const char* sql = "SELECT trade_id, asset_class, trade_type, currency, notional, start_date, maturity_date, direction, economics_json FROM trades WHERE portfolio_id = ?;";
     
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) {
@@ -646,22 +669,17 @@ std::vector<std::shared_ptr<domain::Trade>> SQLiteStorageBackend::load_trades(co
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         std::string type = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
         std::shared_ptr<domain::Trade> t;
-        if (type == "vanilla_swap") {
-            t = std::make_shared<domain::VanillaSwapTrade>();
-        } else if (type == "fixed_rate_bond") {
-            t = std::make_shared<domain::FixedRateBondTrade>();
-        } else if (type == "equity_spot") {
-            t = std::make_shared<domain::EquitySpotTrade>();
-        } else if (type == "fx_forward") {
-            t = std::make_shared<domain::FxForwardTrade>();
-        } else {
-            // Fallback for unknown types if we want to be robust but strict
-            t = std::make_shared<domain::Trade>();
+        try {
+            t = domain::make_trade(type);
+        } catch (...) {
+            sqlite3_finalize(stmt);
+            throw;
         }
 
         t->id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
         t->asset_class = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
         t->type = type;
+        t->trade_type = domain::parse_trade_type(type);
         t->currency = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
         t->direction = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7));
         t->book = ""; // Database schema might need book/strategy in separate columns or economics
@@ -735,18 +753,20 @@ domain::MarketSnapshot SQLiteStorageBackend::load_market_snapshot(const std::str
         if (ccy_ptr) q.currency = domain::from_string(ccy_ptr);
         
         const char* metadata_json_ptr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
-        if (metadata_json_ptr) {
-            nlohmann::json j = nlohmann::json::parse(metadata_json_ptr);
-            // Restore fields from metadata
-            if (j.contains("tenor")) q.tenor = j["tenor"];
-            if (j.contains("instrument_type")) q.instrument_type = j["instrument_type"];
-            if (j.contains("instrument_family")) q.instrument_family = j["instrument_family"];
-            if (j.contains("index_family")) q.index_family = j["index_family"];
-            if (j.contains("day_count")) q.day_count = j["day_count"];
-            if (j.contains("calendar")) q.calendar = j["calendar"];
-            if (j.contains("bdc")) q.bdc = j["bdc"];
-            if (j.contains("settlement_days")) q.settlement_days = j["settlement_days"];
+        if (!metadata_json_ptr) {
+            sqlite3_finalize(stmt);
+            throw std::runtime_error("Market quote is missing metadata_json: " + q.id);
         }
+
+        nlohmann::json j = nlohmann::json::parse(metadata_json_ptr);
+        q.instrument_type = j.at("instrument_type").get<domain::QuoteInstrumentType>();
+        if (j.contains("tenor")) q.tenor = j["tenor"];
+        if (j.contains("instrument_family")) q.instrument_family = j["instrument_family"];
+        if (j.contains("index_family")) q.index_family = j["index_family"];
+        if (j.contains("day_count")) q.day_count = j["day_count"];
+        if (j.contains("calendar")) q.calendar = j["calendar"];
+        if (j.contains("bdc")) q.bdc = j["bdc"];
+        if (j.contains("settlement_days")) q.settlement_days = j["settlement_days"];
         snapshot.quotes.push_back(q);
     }
     sqlite3_finalize(stmt);
@@ -792,6 +812,43 @@ void SQLiteStorageBackend::store_valuation_result(const std::string& run_id, con
     sqlite3_finalize(stmt);
 }
 
+void SQLiteStorageBackend::store_scenario_result(const std::string& run_id, const std::string& scenario_name, double portfolio_pnl) {
+    const char* sql = "INSERT OR REPLACE INTO scenario_results (run_id, scenario_name, portfolio_pnl) VALUES (?, ?, ?);";
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        throw std::runtime_error(fmt::format("Failed to prepare statement: {}", sqlite3_errmsg(db_)));
+    }
+    sqlite3_bind_text(stmt, 1, run_id.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 2, scenario_name.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_double(stmt, 3, portfolio_pnl);
+
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        sqlite3_finalize(stmt);
+        throw std::runtime_error(fmt::format("Failed to execute statement: {}", sqlite3_errmsg(db_)));
+    }
+    sqlite3_finalize(stmt);
+}
+
+void SQLiteStorageBackend::store_var_result(const std::string& run_id, const std::string& method, double confidence_level, double var_value, double expected_shortfall, int scenario_count) {
+    const char* sql = "INSERT OR REPLACE INTO var_results (run_id, method, confidence_level, var_value, expected_shortfall, scenario_count) VALUES (?, ?, ?, ?, ?, ?);";
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        throw std::runtime_error(fmt::format("Failed to prepare statement: {}", sqlite3_errmsg(db_)));
+    }
+    sqlite3_bind_text(stmt, 1, run_id.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 2, method.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_double(stmt, 3, confidence_level);
+    sqlite3_bind_double(stmt, 4, var_value);
+    sqlite3_bind_double(stmt, 5, expected_shortfall);
+    sqlite3_bind_int(stmt, 6, scenario_count);
+
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        sqlite3_finalize(stmt);
+        throw std::runtime_error(fmt::format("Failed to execute statement: {}", sqlite3_errmsg(db_)));
+    }
+    sqlite3_finalize(stmt);
+}
+
 void SQLiteStorageBackend::store_risk_result(const std::string& run_id, const std::string& trade_id, const std::string& measure, const std::string& rf_id, double value) {
     const char* sql = "INSERT OR REPLACE INTO risk_results (run_id, trade_id, risk_measure, risk_factor_id, value) VALUES (?, ?, ?, ?, ?);";
     sqlite3_stmt* stmt;
@@ -827,15 +884,15 @@ void SQLiteStorageBackend::store_scenario_set(const std::string& set_id, const s
     sqlite3_finalize(stmt);
 }
 
-void SQLiteStorageBackend::store_scenario_quote_shock(const std::string& set_id, const std::string& scenario_name, const std::string& quote_id, double shock) {
-    const char* sql = "INSERT OR REPLACE INTO scenario_quotes (scenario_set_id, scenario_name, quote_id, shock) VALUES (?, ?, ?, ?);";
+void SQLiteStorageBackend::store_scenario_factor_shock(const std::string& set_id, const std::string& scenario_name, const std::string& factor_id, double shock) {
+    const char* sql = "INSERT OR REPLACE INTO scenario_factor_shocks (scenario_set_id, scenario_name, factor_id, shock) VALUES (?, ?, ?, ?);";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) {
         throw std::runtime_error(fmt::format("Failed to prepare statement: {}", sqlite3_errmsg(db_)));
     }
     sqlite3_bind_text(stmt, 1, set_id.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 2, scenario_name.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 3, quote_id.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 3, factor_id.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_double(stmt, 4, shock);
     
     if (sqlite3_step(stmt) != SQLITE_DONE) {
@@ -847,14 +904,14 @@ void SQLiteStorageBackend::store_scenario_quote_shock(const std::string& set_id,
 
 std::map<std::string, std::map<std::string, double>> SQLiteStorageBackend::load_scenario_set(const std::string& set_id) {
     std::map<std::string, std::map<std::string, double>> set;
-    std::string sql = fmt::format("SELECT scenario_name, quote_id, shock FROM scenario_quotes WHERE scenario_set_id = '{}';", set_id);
+    std::string sql = fmt::format("SELECT scenario_name, factor_id, shock FROM scenario_factor_shocks WHERE scenario_set_id = '{}';", set_id);
     sqlite3_stmt* stmt;
     sqlite3_prepare_v2(db_, sql.c_str(), -1, &stmt, nullptr);
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         std::string sc_name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
-        std::string q_id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+        std::string factor_id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
         double shock = sqlite3_column_double(stmt, 2);
-        set[sc_name][q_id] = shock;
+        set[sc_name][factor_id] = shock;
     }
     sqlite3_finalize(stmt);
     return set;

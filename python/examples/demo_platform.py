@@ -1,279 +1,362 @@
+import importlib.util
+import json
 import math
 import os
 import sys
 from pathlib import Path
 
-# Setup paths to find the compiled 'quant_risk_platform' module.
-# Prefers QRP_PYTHON_PATH if set, otherwise searches in the project's build directory.
+
 script_path = Path(__file__).resolve()
 project_root = script_path.parents[2]
 
-build_path = os.environ.get("QRP_PYTHON_PATH")
-if not build_path:
-    # Match CMake's default output directory: build/Release-Python/python/Release
-    candidate = project_root / "build" / "Release-Python" / "python" / "Release"
-    if candidate.exists() and list(candidate.glob("quant_risk_platform*.pyd")):
-        build_path = str(candidate)
 
-if build_path and os.path.exists(build_path):
-    sys.path.append(build_path)
-    # On Windows (Python 3.8+), DLLs must be explicitly added to search paths.
-    if sys.platform == "win32" and hasattr(os, "add_dll_directory"):
-        os.add_dll_directory(build_path)
-else:
-    print(f"Warning: Build path '{build_path}' not found. Ensure the project is built.")
+def configure_module_path():
+    build_path = os.environ.get("QRP_PYTHON_PATH")
+    if not build_path:
+        candidates = [
+            project_root / "build" / "Release-Python" / "python" / "Release",
+            project_root / "build" / "Release-Python-Shared" / "python" / "Release",
+        ]
+        for candidate in candidates:
+            if candidate.exists() and list(candidate.glob("quant_risk_platform*")):
+                build_path = str(candidate)
+                break
+
+    if build_path and os.path.exists(build_path):
+        sys.path.append(build_path)
+        if sys.platform == "win32" and hasattr(os, "add_dll_directory"):
+            os.add_dll_directory(build_path)
+    else:
+        print(f"Warning: QRP Python module path not found: {build_path}")
+
+
+configure_module_path()
 
 try:
     import quant_risk_platform as qrp
-except ImportError as e:
-    print(f"Error: Could not import 'quant_risk_platform' module.\nDetails: {e}")
+except ImportError as exc:
+    print(f"Error: could not import 'quant_risk_platform'. Details: {exc}")
     sys.exit(1)
 
 
-def print_portfolio_summary(portfolio, base_market_dto):
-    valuation_results = qrp.price_portfolio(portfolio, base_market_dto)
-    total_npv = sum(res.npv for res in valuation_results)
-    print(f"Portfolio: {portfolio.portfolio_id}")
-    print(f"Trades: {len(portfolio.trades)}")
-    print(f"Base portfolio value: {total_npv:,.2f} USD")
+FACTOR_TYPE = {
+    "BasisSpread": qrp.FactorType.BasisSpread,
+    "CommodityForward": qrp.FactorType.CommodityForward,
+    "CreditSpread": qrp.FactorType.CreditSpread,
+    "Custom": qrp.FactorType.Custom,
+    "EquitySpot": qrp.FactorType.EquitySpot,
+    "FXSpot": qrp.FactorType.FXSpot,
+    "HazardRate": qrp.FactorType.HazardRate,
+    "RateForward": qrp.FactorType.RateForward,
+    "RateZero": qrp.FactorType.RateZero,
+    "Volatility": qrp.FactorType.Volatility,
+}
+
+CURRENCY = {
+    "CHF": qrp.Currency.CHF,
+    "EUR": qrp.Currency.EUR,
+    "GBP": qrp.Currency.GBP,
+    "JPY": qrp.Currency.JPY,
+    "UNKNOWN": qrp.Currency.UNKNOWN,
+    "USD": qrp.Currency.USD,
+}
+
+SHOCK_MEASURE = {
+    "Absolute": qrp.ShockMeasure.Absolute,
+    "BasisPoints": qrp.ShockMeasure.BasisPoints,
+    "LogReturn": qrp.ShockMeasure.LogReturn,
+    "Relative": qrp.ShockMeasure.Relative,
+    "VolPoints": qrp.ShockMeasure.VolPoints,
+}
+
+
+def section(title):
+    print("\n" + "=" * 72)
+    print(title)
+    print("=" * 72)
+
+
+def assert_close(label, actual, expected, tolerance=1e-10):
+    if abs(actual - expected) > tolerance:
+        raise AssertionError(f"{label}: expected {expected:.12f}, got {actual:.12f}")
+
+
+def quote_values(market):
+    return {quote.id: quote.value for quote in market.quotes}
+
+
+def build_factor(item):
+    factor = qrp.FactorDefinition()
+    factor.factor_id = item["factor_id"]
+    factor.factor_type = FACTOR_TYPE[item["factor_type"]]
+    factor.shock_measure = SHOCK_MEASURE[item["shock_measure"]]
+    factor.currency = CURRENCY[item.get("currency", "UNKNOWN")]
+    factor.curve_id = item.get("curve_id", "")
+    factor.tenor = item.get("tenor", "")
+    factor.quote_ids = item.get("quote_ids", [])
+    factor.description = item.get("description", "")
+    return factor
+
+
+def build_binding(item):
+    binding = qrp.FactorBinding()
+    binding.factor_id = item["factor_id"]
+    binding.quote_id = item["quote_id"]
+    binding.shock_measure = SHOCK_MEASURE[item["shock_measure"]]
+    binding.weight = item.get("weight", 1.0)
+    binding.transform = item.get("transform", "")
+    binding.selector_json = item.get("selector_json", "")
+    return binding
+
+
+def build_scenario(name, item):
+    scenario = qrp.ScenarioDefinition()
+    scenario.name = name
+    scenario.factor_shocks = dict(item["factor_shocks"])
+    return scenario
+
+
+def load_factor_scenario_set(path):
+    with open(path, "r", encoding="utf-8") as handle:
+        payload = json.load(handle)
+
+    factors = [build_factor(item) for item in payload["factors"]]
+    bindings = [build_binding(item) for item in payload["bindings"]]
+    scenarios = [build_scenario(name, item) for name, item in payload["scenarios"].items()]
+    return payload, factors, bindings, scenarios
+
+
+def print_portfolio_valuation(portfolio, market):
+    section("1. Portfolio Valuation")
+    valuation_results = qrp.price_portfolio(portfolio, market)
+    total_npv = sum(result.npv for result in valuation_results)
+    for result in valuation_results:
+        print(f"{result.trade_id:<28} {result.npv:>15,.2f} {result.currency}")
+    print("-" * 52)
+    print(f"{'TOTAL':<28} {total_npv:>15,.2f} USD")
+    if not valuation_results:
+        raise AssertionError("Expected at least one valuation result")
     return total_npv
 
 
-def print_factor_summary(factors, covariance, config):
-    print(f"\nFactors used ({len(factors)}):")
-    for i, f in enumerate(factors):
-        print(f"  {i+1}. {f.factor_id}")
+def run_factor_resolution_checks(market, factors, bindings, scenarios):
+    section("2. Factor Shock Resolution")
+    base = quote_values(market)
+    scenarios_by_name = {scenario.name: scenario for scenario in scenarios}
 
-    print(f"\nCovariance matrix:")
-    print(f"  rows = {covariance.rows()}, cols = {covariance.columns()}")
-    print(
-        f"  horizon scaling = {'already scaled' if config.covariance_is_already_horizon_scaled else f'from 1d to {config.horizon_days}d'}"
-    )
-    print(f"  seed = {config.seed}")
+    scenario = scenarios_by_name["GLOBAL_RISK_OFF"]
+    shocked = dict(qrp.resolve_quote_values(scenario, factors, bindings, market))
+
+    expected = {
+        "USD_OIS_1Y": base["USD_OIS_1Y"] - 35.0 / 10000.0,
+        "USD_OIS_2Y": base["USD_OIS_2Y"] - 35.0 / 10000.0,
+        "USD_OIS_5Y": base["USD_OIS_5Y"] - 0.8 * 35.0 / 10000.0,
+        "USD_OIS_10Y": base["USD_OIS_10Y"] - 0.6 * 35.0 / 10000.0,
+        "EURUSD": base["EURUSD"] * math.exp(scenario.factor_shocks["RF:FX:EURUSD:SPOT"]),
+        "AAPL": base["AAPL"] * (1.0 + scenario.factor_shocks["RF:EQ:AAPL:SPOT"]),
+        "USD_CAP_VOL_1Y": base["USD_CAP_VOL_1Y"] + scenario.factor_shocks["RF:VOL:USD:CAP:1Y"] / 100.0,
+    }
+
+    for quote_id, expected_value in expected.items():
+        assert_close(quote_id, shocked[quote_id], expected_value)
+        print(f"{quote_id:<18} {base[quote_id]:>10.6f} -> {shocked[quote_id]:>10.6f}")
+
+    print("Factor resolution checks passed.")
+
+
+def run_stress(portfolio, market, factors, bindings, scenarios):
+    section("3. Historical Stress")
+    stress_results = qrp.run_historical_stress(portfolio, market, scenarios, factors, bindings)
+    if len(stress_results) != len(scenarios):
+        raise AssertionError("Stress result count does not match scenario count")
+
+    for result in stress_results:
+        print(f"{result.scenario_name:<28} total P&L = {result.total_pnl:>15,.2f}")
+        for trade_id, pnl in result.trade_pnls.items():
+            if abs(pnl) > 1e-8:
+                print(f"  {trade_id:<26} {pnl:>15,.2f}")
+    return stress_results
+
+
+def run_risk(portfolio, market, factors, bindings):
+    section("4. Risk Sensitivities")
+    risk_results = qrp.compute_risk(portfolio, market, factors, bindings)
+    if not risk_results:
+        raise AssertionError("Expected risk results")
+
+    for result in risk_results:
+        print(f"{result.trade_id:<28} PV01={result.pv01:>12,.2f} CS01={result.cs01:>12,.2f}")
+        for node, value in result.bucketed_risk.items():
+            if abs(value) > 1e-8:
+                print(f"  {node:<24} {value:>12,.2f}")
+    return risk_results
+
+
+def run_pnl_explain(portfolio, market_path):
+    section("5. P&L Explain")
+    previous_market = qrp.load_market(str(market_path))
+    current_market = qrp.load_market(str(market_path))
+    current_market.valuation_date = "2026-03-25"
+
+    adjusted_quotes = []
+    for quote in current_market.quotes:
+        if quote.id.startswith("USD_OIS") or quote.id.startswith("USD_LIBOR"):
+            quote.value += 0.0005
+        elif quote.id == "EURUSD":
+            quote.value *= 1.01
+        elif quote.id == "AAPL":
+            quote.value *= 0.99
+        adjusted_quotes.append(quote)
+    current_market.quotes = adjusted_quotes
+
+    pnl_results = qrp.explain_pnl(portfolio, previous_market, current_market)
+    if not pnl_results:
+        raise AssertionError("Expected P&L explain results")
+
+    for result in pnl_results:
+        print(
+            f"{result.trade_id:<28} total={result.total_pnl:>12,.2f} "
+            f"carry={result.carry_pnl:>12,.2f} market={result.market_move_pnl:>12,.2f}"
+        )
+    return pnl_results
+
+
+def factor_variance(factor):
+    if factor.factor_type in (qrp.FactorType.RateForward, qrp.FactorType.RateZero):
+        return 1e-8
+    if factor.factor_type == qrp.FactorType.FXSpot:
+        return 1e-4
+    if factor.factor_type == qrp.FactorType.EquitySpot:
+        return 4e-4
+    if factor.factor_type == qrp.FactorType.Volatility:
+        return 0.0625
+    return 0.0
+
+
+def build_covariance(factors):
+    covariance = qrp.Matrix(len(factors), len(factors), 0.0)
+    for i, factor_i in enumerate(factors):
+        for j, factor_j in enumerate(factors):
+            if i == j:
+                covariance[i, j] = factor_variance(factor_i)
+            else:
+                covariance[i, j] = 0.15 * math.sqrt(factor_variance(factor_i) * factor_variance(factor_j))
+    return covariance
 
 
 def print_traces(traces, mode):
-    for trace in traces:
-        print(f"\nPath {trace.path_index + 1}:")
+    for trace in traces[:2]:
+        print(f"\nPath {trace.path_index + 1}")
         if mode == qrp.MonteCarloMode.AgedHorizonRevaluation:
-            print(f"  Valuation date:           {trace.valuation_date_before} -> {trace.valuation_date_after}")
-            print(f"  Base value at t0:         {trace.portfolio_value_before:,.2f}")
-            print(f"  Frozen-aged value at tH:  {trace.portfolio_value_frozen_aged:,.2f}")
-            print(f"  Shocked-aged value at tH: {trace.portfolio_value_after:,.2f}")
-            print("")
-            print(f"  Aging P&L:                {trace.aging_pnl:,.2f}")
-            print(f"  Horizon market P&L:       {trace.market_pnl:,.2f}")
-            print(f"  Total horizon P&L:        {trace.total_pnl:,.2f}")
+            print(f"  Dates:        {trace.valuation_date_before} -> {trace.valuation_date_after}")
+            print(f"  Frozen aged:  {trace.portfolio_value_frozen_aged:,.2f}")
+            print(f"  Shocked aged: {trace.portfolio_value_after:,.2f}")
+            print(f"  Total P&L:    {trace.total_pnl:,.2f}")
         else:
-            print(f"  Portfolio value: {trace.portfolio_value_before:,.2f} -> {trace.portfolio_value_after:,.2f}")
-            print(f"  Path P&L: {trace.path_pnl:,.2f}")
+            print(f"  Value:        {trace.portfolio_value_before:,.2f} -> {trace.portfolio_value_after:,.2f}")
+            print(f"  Path P&L:     {trace.path_pnl:,.2f}")
 
-        print("\n  Factor shocks:")
-        for fid, shock in trace.factor_shocks.items():
-            print(f"    {fid}: {shock:+.6f}")
-
-        print("\n  Quote changes (selected):")
-        for qid, (before, after) in trace.quote_before_after.items():
-            print(f"    {qid}: {before:.6f} -> {after:.6f}")
+        print("  Factor shocks:")
+        for factor_id, shock in trace.factor_shocks.items():
+            print(f"    {factor_id:<28} {shock:+.8f}")
 
 
-def run_mc_case(portfolio, market_dto, factors, bindings, cov, mode_name, horizon_days, num_paths, seed):
-    print(f"\n" + "=" * 50)
-    print(f"RUNNING MC CASE: Mode={mode_name}, Horizon={horizon_days}d")
-    print("=" * 50)
+def run_monte_carlo(portfolio, market, factors, bindings):
+    section("6. Monte Carlo")
+    mc_factors = [factor for factor in factors if factor.factor_id != "RF:RATE:USD:OIS:PARALLEL"]
+    covariance = build_covariance(mc_factors)
 
-    config = qrp.MonteCarloConfig()
-    config.num_paths = num_paths
-    config.seed = seed
-    config.horizon_days = horizon_days
-    if mode_name == "HorizonShockOnly":
-        config.mode = qrp.MonteCarloMode.HorizonShockOnly
-    elif mode_name == "AgedHorizonRevaluation":
-        config.mode = qrp.MonteCarloMode.AgedHorizonRevaluation
+    cases = [
+        ("HorizonShockOnly", qrp.MonteCarloMode.HorizonShockOnly, 1.0),
+        ("AgedHorizonRevaluation", qrp.MonteCarloMode.AgedHorizonRevaluation, 10.0),
+    ]
+
+    results = []
+    for label, mode, horizon_days in cases:
+        config = qrp.MonteCarloConfig()
+        config.horizon_days = horizon_days
+        config.mode = mode
+        config.num_paths = 100
+        config.seed = 42
+
+        result = qrp.run_simulation(portfolio, market, mc_factors, bindings, covariance, config)
+        if not result.portfolio_pnls:
+            raise AssertionError(f"{label} produced no P&L paths")
+
+        mean_pnl = sum(result.portfolio_pnls) / len(result.portfolio_pnls)
+        print(
+            f"{label:<24} horizon={horizon_days:>4.0f}d "
+            f"VaR95={result.var_95:>12,.2f} ES95={result.expected_shortfall_95:>12,.2f} "
+            f"mean={mean_pnl:>12,.2f}"
+        )
+        print_traces(result.traces, mode)
+        results.append(result)
+
+    return results
+
+
+def run_optional_cvxpy_worker_check():
+    section("7. Optional CVXPY Worker Check")
+    worker_path = project_root / "python" / "qrp" / "optimization" / "cvxpy_worker.py"
+    spec = importlib.util.spec_from_file_location("qrp_cvxpy_worker", worker_path)
+    if spec is None or spec.loader is None:
+        print(f"Skipped: could not load CVXPY worker from {worker_path}.")
+        return None
+
+    worker = importlib.util.module_from_spec(spec)
 
     try:
-        sim_result = qrp.run_simulation(portfolio, market_dto, factors, bindings, cov, config)
-        print(f"Simulation completed with {len(sim_result.portfolio_values)} paths.")
-
-        print("\n  Baseline Diagnostics:")
-        print(f"    Total Trades: {sim_result.num_trades_total}")
-        print(f"    Priced at t0: {sim_result.num_trades_priced_t0}")
-        if sim_result.num_trades_failed_t0 > 0:
-            print(f"    FAILED at t0: {sim_result.num_trades_failed_t0}")
-
-        if mode_name == "AgedHorizonRevaluation":
-            print(f"    Priced at tH: {sim_result.num_trades_priced_tH}")
-            if sim_result.num_trades_expired_tH > 0:
-                print(f"    Expired at tH: {sim_result.num_trades_expired_tH}")
-            if sim_result.num_trades_failed_tH > 0:
-                print(f"    FAILED at tH: {sim_result.num_trades_failed_tH}")
-            if sim_result.num_trades_unsupported_tH > 0:
-                print(f"    Unsupported at tH: {sim_result.num_trades_unsupported_tH}")
-
-        if sim_result.construction_errors:
-            print("\n  Construction Errors (Top 5):")
-            for i, (tid, err) in enumerate(list(sim_result.construction_errors.items())[:5]):
-                print(f"    {tid}: {err}")
-
-        # Print traces for first few paths
-        print_traces(sim_result.traces, config.mode)
-
-        return sim_result
-    except Exception as e:
-        print(f"Simulation failed for {mode_name} {horizon_days}d: {e}")
+        spec.loader.exec_module(worker)
+    except ImportError as exc:
+        print(f"Skipped: CVXPY worker dependencies are not available in this Python environment ({exc}).")
         return None
+
+    request = {
+        "name": "Demo maximum-return problem",
+        "variables": [
+            {"id": "AAPL", "lb": 0.0, "ub": 1.0, "integer": False},
+            {"id": "MSFT", "lb": 0.0, "ub": 1.0, "integer": False},
+        ],
+        "objectives": [
+            {"type": "MaximizeReturn", "expected_returns": {"AAPL": 0.10, "MSFT": 0.08}}
+        ],
+        "constraints": [
+            {"type": "LinearEquality", "coefficients": {"AAPL": 1.0, "MSFT": 1.0}, "target": 1.0}
+        ],
+        "config": {"solver": "OSQP", "tolerance": 1e-8, "max_iterations": 10000, "verbose": False},
+    }
+
+    result = worker.solve_optimization(request)
+    print(json.dumps(result, indent=2, sort_keys=True))
+    if result.get("status") not in {"optimal", "optimal_inaccurate"}:
+        raise AssertionError(f"CVXPY worker check failed: {result}")
+    return result
 
 
 def run_demo():
-    # ... (existing setup code until Monte Carlo Demo)
-    print("--- Quant Risk Platform Python Demo ---")
+    section("Quant Risk Platform Python Demo")
+    market_path = project_root / "data" / "market" / "demo_market.json"
+    portfolio_path = project_root / "data" / "portfolios" / "demo_portfolio.json"
+    scenario_path = project_root / "data" / "scenarios" / "demo_scenarios.json"
 
-    # Load market and portfolio
-    market_path = os.path.join(project_root, "data", "market", "demo_market.json")
-    portfolio_path = os.path.join(project_root, "data", "portfolios", "demo_portfolio.json")
+    market = qrp.load_market(str(market_path))
+    portfolio = qrp.load_portfolio(str(portfolio_path))
+    scenario_payload, factors, bindings, scenarios = load_factor_scenario_set(scenario_path)
 
-    print(f"Loading market from {market_path}")
-    market_dto = qrp.load_market(market_path)
-    print(f"Loading portfolio from {portfolio_path}")
-    portfolio = qrp.load_portfolio(portfolio_path)
+    print(f"Market date:       {market.valuation_date}")
+    print(f"Portfolio:         {portfolio.portfolio_id} ({len(portfolio.trades)} trades)")
+    print(f"Scenario set:      {scenario_payload['scenario_set_id']} ({len(scenarios)} scenarios)")
+    print(f"Factors/bindings:  {len(factors)} factors / {len(bindings)} bindings")
 
-    print(f"Loaded portfolio: {portfolio.portfolio_id} with {len(portfolio.trades)} trades.")
+    print_portfolio_valuation(portfolio, market)
+    run_factor_resolution_checks(market, factors, bindings, scenarios)
+    run_stress(portfolio, market, factors, bindings, scenarios)
+    run_risk(portfolio, market, factors, bindings)
+    run_pnl_explain(portfolio, market_path)
+    run_monte_carlo(portfolio, market, factors, bindings)
+    run_optional_cvxpy_worker_check()
 
-    # Price Portfolio
-    print("\nPricing Portfolio:")
-    valuation_results = qrp.price_portfolio(portfolio, market_dto)
-    for res in valuation_results:
-        print(f"  Trade: {res.trade_id}, NPV: {res.npv:,.2f} {res.currency}")
-
-    # Compute Risk
-    print("\nComputing Risk (PV01 and Bucketed):")
-    # Risk computation now requires factors and bindings
-    factors = []
-    bindings = []
-
-    # Define some factors for USD OIS and LIBOR
-    # 2Y OIS Node
-    f1 = qrp.FactorDefinition()
-    f1.factor_id = "USD_OIS_2Y"
-    f1.factor_type = qrp.FactorType.RateZero
-    f1.shock_measure = qrp.ShockMeasure.Absolute
-    f1.currency = qrp.Currency.USD
-    f1.tenor = "2Y"
-    f1.quote_ids = ["USD_OIS_2Y"]
-    factors.append(f1)
-
-    # 5Y OIS Node
-    f2 = qrp.FactorDefinition()
-    f2.factor_id = "USD_OIS_5Y"
-    f2.factor_type = qrp.FactorType.RateZero
-    f2.shock_measure = qrp.ShockMeasure.Absolute
-    f2.currency = qrp.Currency.USD
-    f2.tenor = "5Y"
-    f2.quote_ids = ["USD_OIS_5Y"]
-    factors.append(f2)
-
-    # 5Y LIBOR Node
-    f3 = qrp.FactorDefinition()
-    f3.factor_id = "USD_LIBOR_5Y"
-    f3.factor_type = qrp.FactorType.RateZero
-    f3.shock_measure = qrp.ShockMeasure.Absolute
-    f3.currency = qrp.Currency.USD
-    f3.tenor = "5Y"
-    f3.quote_ids = ["USD_LIBOR_3M_IRS_5Y"]
-    factors.append(f3)
-
-    # Bindings link factors to quotes
-    for f in factors:
-        b = qrp.FactorBinding()
-        b.factor_id = f.factor_id
-        b.quote_id = f.quote_ids[0]
-        b.shock_measure = qrp.ShockMeasure.Absolute
-        b.weight = 1.0
-        bindings.append(b)
-
-    try:
-        risk_results = qrp.compute_risk(portfolio, market_dto, factors, bindings)
-        for res in risk_results:
-            print(f"  Trade: {res.trade_id}, PV01: {res.pv01:,.2f}")
-            # Note: compute_risk might still return bucketed risk by quote if implemented that way internally
-            # but now it's driven by factors.
-            for node, risk in res.bucketed_risk.items():
-                if abs(risk) > 1e-4:
-                    print(f"    {node}: {risk:,.2f}")
-    except Exception as e:
-        print(f"  Risk computation failed: {e}")
-
-    # P&L Explain Demo
-    print("\nP&L Explain Demo:")
-    # Simulate a market move: 10bp up
-    curr_market_dto = qrp.load_market(market_path)
-    for quote in curr_market_dto.quotes:
-        quote.value += 0.0010
-
-    pnl_results = qrp.explain_pnl(portfolio, market_dto, curr_market_dto)
-    for res in pnl_results:
-        print(
-            f"  Trade: {res.trade_id}, "
-            f"Total P&L: {res.total_pnl:,.2f}, "
-            f"Carry: {res.carry_pnl:,.2f}, "
-            f"Market Move: {res.market_move_pnl:,.2f}"
-        )
-
-    # Monte Carlo Demo
-    print("\n" + "#" * 60)
-    print("# MONTE CARLO SIMULATION DEMO")
-    print("#" * 60)
-
-    print_portfolio_summary(portfolio, market_dto)
-
-    # Covariance for our 3 factors
-    # Let's assume some correlations and volatilities (in absolute rate terms, e.g. 1bp = 0.0001)
-    # Vol: 1bp/day -> 0.0001
-    # Var: 1e-8
-    n = len(factors)
-    cov = qrp.Matrix(n, n)
-    for i in range(n):
-        for j in range(n):
-            if i == j:
-                cov[i, j] = 1e-8  # 1bp daily vol
-            else:
-                cov[i, j] = 0.5 * 1e-8  # 0.5 correlation
-
-    cases = [
-        ("HorizonShockOnly", 1.0),
-        ("HorizonShockOnly", 10.0),
-        ("AgedHorizonRevaluation", 10.0),
-    ]
-
-    results_summary = []
-
-    for mode, horizon in cases:
-        res = run_mc_case(portfolio, market_dto, factors, bindings, cov, mode, horizon, 500, 42)
-        if res:
-            mean_pnl = sum(res.portfolio_pnls) / len(res.portfolio_pnls)
-            results_summary.append(
-                {
-                    "Mode": mode,
-                    "Horizon": f"{horizon}d",
-                    "VaR 95": f"{res.var_95:,.2f}",
-                    "ES 95": f"{res.expected_shortfall_95:,.2f}",
-                    "Mean P&L": f"{mean_pnl:,.2f}",
-                }
-            )
-        else:
-            results_summary.append(
-                {"Mode": mode, "Horizon": f"{horizon}d", "VaR 95": "N/A", "ES 95": "N/A", "Mean P&L": "N/A"}
-            )
-
-    # Print Summary Table
-    print("\n" + "=" * 80)
-    print("MONTE CARLO SUMMARY")
-    print("=" * 80)
-    print(f"{'Mode':<25} {'Horizon':<10} {'VaR 95':<15} {'ES 95':<15} {'Mean P&L':<15}")
-    print("-" * 80)
-    for r in results_summary:
-        print(f"{r['Mode']:<25} {r['Horizon']:<10} {r['VaR 95']:<15} {r['ES 95']:<15} {r['Mean P&L']:<15}")
-    print("=" * 80)
+    section("Demo completed successfully")
 
 
 if __name__ == "__main__":

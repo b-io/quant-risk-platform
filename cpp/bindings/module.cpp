@@ -11,6 +11,7 @@
 #include <qrp/domain/market_data.hpp>
 #include <qrp/domain/portfolio.hpp>
 #include <qrp/io/json_loader.hpp>
+#include <qrp/market/factor_shock_resolver.hpp>
 #include <qrp/market/market_snapshot.hpp>
 #include <qrp/market/scenario_engine.hpp>
 
@@ -51,6 +52,14 @@ PYBIND11_MODULE(quant_risk_platform, m) {
         .value("CommodityForward", domain::FactorType::CommodityForward)
         .value("BasisSpread", domain::FactorType::BasisSpread)
         .value("Custom", domain::FactorType::Custom)
+        .export_values();
+
+    py::enum_<domain::TradeType>(m, "TradeType")
+        .value("Unknown", domain::TradeType::Unknown)
+        .value("VanillaSwap", domain::TradeType::VanillaSwap)
+        .value("FixedRateBond", domain::TradeType::FixedRateBond)
+        .value("EquitySpot", domain::TradeType::EquitySpot)
+        .value("FxForward", domain::TradeType::FxForward)
         .export_values();
 
     py::enum_<analytics::MonteCarloMode>(m, "MonteCarloMode")
@@ -267,7 +276,14 @@ PYBIND11_MODULE(quant_risk_platform, m) {
     py::class_<domain::Trade, std::shared_ptr<domain::Trade>>(m, "Trade")
         .def_readwrite("id", &domain::Trade::id)
         .def_readwrite("asset_class", &domain::Trade::asset_class)
-        .def_readwrite("type", &domain::Trade::type)
+        .def_property(
+            "type",
+            [](const domain::Trade& trade) { return trade.type; },
+            [](domain::Trade& trade, const std::string& type) {
+                trade.trade_type = domain::parse_trade_type(type);
+                trade.type = domain::to_string(trade.trade_type);
+            })
+        .def_readwrite("trade_type", &domain::Trade::trade_type)
         .def_readwrite("currency", &domain::Trade::currency)
         .def_readwrite("direction", &domain::Trade::direction)
         .def_readwrite("book", &domain::Trade::book)
@@ -334,6 +350,10 @@ PYBIND11_MODULE(quant_risk_platform, m) {
           py::arg("factors") = std::vector<domain::FactorDefinition>(),
           py::arg("bindings") = std::vector<domain::FactorBinding>(),
           "Run historical stress scenarios");
+
+    m.def("resolve_quote_values", &market::FactorShockResolver::resolve_quote_values,
+          py::arg("scenario"), py::arg("factors"), py::arg("bindings"), py::arg("base_market_dto"),
+          "Resolve factor shocks into absolute quote values");
 
     m.def("run_simulation", &analytics::MonteCarloEngine::run_simulation,
           py::arg("portfolio"),

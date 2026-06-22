@@ -1,5 +1,6 @@
 #include <qrp/app/quant_risk_platform.hpp>
 #include <qrp/market/market_snapshot.hpp>
+#include <qrp/market/scenario_engine.hpp>
 #include <qrp/analytics/pricing_context.hpp>
 #include <qrp/util/logger.hpp>
 #include <fstream>
@@ -7,6 +8,8 @@
 #include <fmt/format.h>
 #include <chrono>
 #include <algorithm>
+#include <map>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
@@ -25,53 +28,41 @@ std::vector<std::string> collect_factor_ids(const std::vector<domain::FactorDefi
     return factor_ids;
 }
 
-std::vector<domain::FactorBinding> build_bindings_from_factor_quote_ids(
-    const std::vector<domain::FactorDefinition>& factors) {
-    std::vector<domain::FactorBinding> bindings;
-    for (const auto& factor : factors) {
-        for (const auto& quote_id : factor.quote_ids) {
-            domain::FactorBinding binding;
-            binding.factor_id = factor.factor_id;
-            binding.quote_id = quote_id;
-            binding.shock_measure = factor.shock_measure;
-            bindings.push_back(std::move(binding));
-        }
+domain::FactorType parse_factor_type(const std::string& value) {
+    static const std::map<std::string, domain::FactorType> factor_types = {
+        {"BasisSpread", domain::FactorType::BasisSpread},
+        {"CommodityForward", domain::FactorType::CommodityForward},
+        {"CreditSpread", domain::FactorType::CreditSpread},
+        {"Custom", domain::FactorType::Custom},
+        {"EquitySpot", domain::FactorType::EquitySpot},
+        {"FXSpot", domain::FactorType::FXSpot},
+        {"HazardRate", domain::FactorType::HazardRate},
+        {"RateForward", domain::FactorType::RateForward},
+        {"RateZero", domain::FactorType::RateZero},
+        {"Volatility", domain::FactorType::Volatility}
+    };
+
+    const auto it = factor_types.find(value);
+    if (it == factor_types.end()) {
+        throw std::invalid_argument("Unknown factor_type: " + value);
     }
-    return bindings;
+    return it->second;
 }
 
-bool is_rate_quote(const domain::MarketQuote& quote) {
-    return quote.instrument_type == domain::QuoteInstrumentType::Deposit ||
-           quote.instrument_type == domain::QuoteInstrumentType::OIS ||
-           quote.instrument_type == domain::QuoteInstrumentType::FRA ||
-           quote.instrument_type == domain::QuoteInstrumentType::IRS;
-}
+domain::ShockMeasure parse_shock_measure(const std::string& value) {
+    static const std::map<std::string, domain::ShockMeasure> shock_measures = {
+        {"Absolute", domain::ShockMeasure::Absolute},
+        {"BasisPoints", domain::ShockMeasure::BasisPoints},
+        {"LogReturn", domain::ShockMeasure::LogReturn},
+        {"Relative", domain::ShockMeasure::Relative},
+        {"VolPoints", domain::ShockMeasure::VolPoints}
+    };
 
-std::pair<std::vector<domain::FactorDefinition>, std::vector<domain::FactorBinding>>
-build_quote_factor_fallback(const domain::MarketSnapshot& market_dto) {
-    std::vector<domain::FactorDefinition> factors;
-    std::vector<domain::FactorBinding> bindings;
-
-    for (const auto& quote : market_dto.quotes) {
-        if (!is_rate_quote(quote)) {
-            continue;
-        }
-
-        domain::FactorDefinition factor;
-        factor.factor_id = quote.id;
-        factor.factor_type = domain::FactorType::RateZero;
-        factor.currency = quote.currency;
-        factor.tenor = quote.tenor;
-        factor.quote_ids = {quote.id};
-        factors.push_back(factor);
-
-        domain::FactorBinding binding;
-        binding.factor_id = factor.factor_id;
-        binding.quote_id = quote.id;
-        bindings.push_back(binding);
+    const auto it = shock_measures.find(value);
+    if (it == shock_measures.end()) {
+        throw std::invalid_argument("Unknown shock_measure: " + value);
     }
-
-    return {factors, bindings};
+    return it->second;
 }
 
 } // namespace
@@ -106,7 +97,7 @@ void QuantRiskPlatform::import_market_snapshot(const std::string& json_path) {
     for (const auto& q : data["quotes"]) {
         json metadata;
         if (q.contains("tenor")) metadata["tenor"] = q["tenor"];
-        if (q.contains("instrument_type")) metadata["instrument_type"] = q["instrument_type"];
+        metadata["instrument_type"] = q.at("instrument_type");
         if (q.contains("instrument_family")) metadata["instrument_family"] = q["instrument_family"];
         if (q.contains("index_family")) metadata["index_family"] = q["index_family"];
         if (q.contains("day_count")) metadata["day_count"] = q["day_count"];
@@ -139,9 +130,9 @@ void QuantRiskPlatform::import_portfolio(const std::string& json_path) {
         storage_->store_book(book_id, portfolio_id, book_id);
         
         std::string asset_class = t["asset_class"];
-        std::string product_type = t.value("type", t.value("product_type", "unknown"));
+        std::string trade_type = t.at("type").get<std::string>();
         std::string ccy = t["currency"];
-        double notional = t["notional"];
+        double notional = t.value("notional", t.value("quantity", 0.0));
         
         std::string direction = t.value("direction", "unknown");
         std::string start_date = t.value("start_date", "");
@@ -152,7 +143,7 @@ void QuantRiskPlatform::import_portfolio(const std::string& json_path) {
 
         json economics = t.contains("details") ? t["details"] : (t.contains("economics") ? t["economics"] : json::object());
         
-        storage_->store_trade(t["id"], portfolio_id, book_id, asset_class, product_type, ccy, notional, start_date, maturity_date, direction, economics.dump());
+        storage_->store_trade(t["id"], portfolio_id, book_id, asset_class, trade_type, ccy, notional, start_date, maturity_date, direction, economics.dump());
     }
 
     spdlog::info("Successfully imported portfolio: {}", portfolio_id);
@@ -168,10 +159,37 @@ void QuantRiskPlatform::import_scenario_set(const std::string& json_path) {
     std::string name = data.value("name", set_id);
     
     storage_->store_scenario_set(set_id, name);
+
+    for (const auto& factor_json : data.at("factors")) {
+        domain::FactorDefinition factor;
+        factor.factor_id = factor_json.at("factor_id").get<std::string>();
+        factor.factor_type = parse_factor_type(factor_json.at("factor_type").get<std::string>());
+        factor.shock_measure = parse_shock_measure(factor_json.at("shock_measure").get<std::string>());
+        factor.currency = domain::from_string(factor_json.value("currency", "UNKNOWN"));
+        factor.curve_id = factor_json.value("curve_id", "");
+        factor.tenor = factor_json.value("tenor", "");
+        if (factor_json.contains("quote_ids")) {
+            factor.quote_ids = factor_json.at("quote_ids").get<std::vector<std::string>>();
+        }
+        factor.description = factor_json.value("description", "");
+        storage_->store_factor_definition(factor);
+    }
+
+    for (const auto& binding_json : data.at("bindings")) {
+        domain::FactorBinding binding;
+        binding.factor_id = binding_json.at("factor_id").get<std::string>();
+        binding.quote_id = binding_json.at("quote_id").get<std::string>();
+        binding.shock_measure = parse_shock_measure(binding_json.at("shock_measure").get<std::string>());
+        binding.weight = binding_json.value("weight", 1.0);
+        binding.transform = binding_json.value("transform", "");
+        binding.selector_json = binding_json.value("selector_json", "");
+        storage_->store_factor_binding(binding);
+    }
     
-    for (const auto& [sc_name, shocks] : data["scenarios"].items()) {
-        for (const auto& [quote_id, shock] : shocks.items()) {
-            storage_->store_scenario_quote_shock(set_id, sc_name, quote_id, shock);
+    for (const auto& [sc_name, scenario_json] : data.at("scenarios").items()) {
+        const auto& shocks = scenario_json.at("factor_shocks");
+        for (const auto& [factor_id, shock] : shocks.items()) {
+            storage_->store_scenario_factor_shock(set_id, sc_name, factor_id, shock.get<double>());
         }
     }
     spdlog::info("Successfully imported scenario set: {}", set_id);
@@ -196,7 +214,11 @@ std::string QuantRiskPlatform::run_valuation(const std::string& portfolio_id, co
     storage_->store_analysis_run(run_id, "VALUATION", portfolio_id, snapshot_id);
     
     for (const auto& res : results) {
-        storage_->store_valuation_result(run_id, res.trade_id, res.npv, res.currency, "SUCCESS", "");
+        const auto status_it = res.tags.find("status");
+        const bool failed = status_it != res.tags.end() && status_it->second == "failed";
+        const auto error_it = res.tags.find("error");
+        const std::string error = error_it != res.tags.end() ? error_it->second : "";
+        storage_->store_valuation_result(run_id, res.trade_id, res.npv, res.currency, failed ? "FAILED" : "SUCCESS", error);
     }
     
     return run_id;
@@ -214,17 +236,8 @@ std::string QuantRiskPlatform::run_risk(const std::string& portfolio_id, const s
 
     auto factors = storage_->load_factor_definitions(portfolio_id);
     auto bindings = storage_->load_factor_bindings(collect_factor_ids(factors));
-    if (!factors.empty() && bindings.empty()) {
-        bindings = build_bindings_from_factor_quote_ids(factors);
-        if (!bindings.empty()) {
-            spdlog::warn("No stored factor bindings found; derived bindings from factor quote_ids");
-        }
-    }
     if (factors.empty() || bindings.empty()) {
-        spdlog::warn("No stored risk factors/bindings found; deriving one rate factor per market quote");
-        auto fallback = build_quote_factor_fallback(market_dto);
-        factors = std::move(fallback.first);
-        bindings = std::move(fallback.second);
+        throw std::runtime_error("Risk requires imported factor definitions and factor quote bindings");
     }
     
     auto results = analytics::RiskService::compute_risk(portfolio, market_dto, factors, bindings);
@@ -248,12 +261,19 @@ std::string QuantRiskPlatform::run_historical_var(const std::string& portfolio_i
     auto trades = storage_->load_trades(portfolio_id);
     auto market_dto = storage_->load_market_snapshot(snapshot_id);
     auto scenarios = storage_->load_scenario_set(scenario_set_id);
+    auto factors = storage_->load_factor_definitions(portfolio_id);
+    auto bindings = storage_->load_factor_bindings(collect_factor_ids(factors));
+
+    if (factors.empty() || bindings.empty()) {
+        throw std::runtime_error("Historical VaR requires imported factor definitions and factor quote bindings");
+    }
 
     domain::Portfolio portfolio;
     portfolio.portfolio_id = portfolio_id;
     portfolio.trades = trades;
 
     std::vector<double> pnl_distribution;
+    std::vector<std::pair<std::string, double>> scenario_pnls;
     
     // Initial NPV
     market::MarketSnapshot market(market_dto);
@@ -262,25 +282,23 @@ std::string QuantRiskPlatform::run_historical_var(const std::string& portfolio_i
     double base_npv = 0;
     for (const auto& r : base_results) base_npv += r.npv;
 
-    // Apply scenarios
-    for (const auto& [sc_name, shocks] : scenarios) {
-        spdlog::debug("Applying scenario: {} with {} shocks", sc_name, shocks.size());
-        // Apply shocks to market_dto (temporary copy)
-        auto shocked_market_dto = market_dto;
-        for (auto& q : shocked_market_dto.quotes) {
-            if (shocks.contains(q.id)) {
-                q.value += shocks.at(q.id);
-            }
-        }
-
-        market::MarketSnapshot shocked_market(shocked_market_dto);
-        analytics::PricingContext shocked_context(shocked_market.built_state());
+    for (const auto& [sc_name, factor_shocks] : scenarios) {
+        spdlog::debug("Applying scenario: {} with {} shocks", sc_name, factor_shocks.size());
+        market::MarketSnapshot shocked_market(market_dto);
+        auto shocked_state = shocked_market.built_state();
+        market::ScenarioDefinition scenario;
+        scenario.name = sc_name;
+        scenario.factor_shocks = factor_shocks;
+        market::ScenarioEngine::apply_scenario_to_state(*shocked_state, market_dto, scenario, factors, bindings);
+        analytics::PricingContext shocked_context(shocked_state);
         auto shocked_results = analytics::ValuationService::price_portfolio(portfolio, shocked_context);
         
         double shocked_npv = 0;
         for (const auto& r : shocked_results) shocked_npv += r.npv;
         
-        pnl_distribution.push_back(shocked_npv - base_npv);
+        double scenario_pnl = shocked_npv - base_npv;
+        pnl_distribution.push_back(scenario_pnl);
+        scenario_pnls.push_back({sc_name, scenario_pnl});
     }
 
     if (pnl_distribution.empty()) throw std::runtime_error("No scenarios to run for VaR");
@@ -293,14 +311,27 @@ std::string QuantRiskPlatform::run_historical_var(const std::string& portfolio_i
     // Simple 95% VaR (5th percentile of PnL)
     size_t idx_95 = static_cast<size_t>(0.05 * pnl_distribution.size());
     double var_95 = -pnl_distribution[idx_95]; // VaR is usually reported as a positive loss
+    double es_sum = 0.0;
+    for (size_t i = 0; i <= idx_95; ++i) {
+        es_sum += pnl_distribution[i];
+    }
+    double expected_shortfall_95 = -(es_sum / static_cast<double>(idx_95 + 1));
 
     std::string run_id = fmt::format("RUN:HVAR:{}", std::chrono::system_clock::now().time_since_epoch().count());
     storage_->store_analysis_run(run_id, "HISTORICAL_VAR", portfolio_id, snapshot_id);
-    
-    // Storing VaR result in risk_results table for now
-    storage_->store_risk_result(run_id, "PORTFOLIO", "HIST_VAR_95", "ALL", var_95);
 
-    spdlog::info("Historical VaR 95% run completed. Result: {}", var_95);
+    for (const auto& [scenario_name, scenario_pnl] : scenario_pnls) {
+        storage_->store_scenario_result(run_id, scenario_name, scenario_pnl);
+    }
+    storage_->store_var_result(
+        run_id,
+        "HISTORICAL",
+        0.95,
+        var_95,
+        expected_shortfall_95,
+        static_cast<int>(pnl_distribution.size()));
+
+    spdlog::info("Historical VaR 95% run completed. VaR: {}, ES: {}", var_95, expected_shortfall_95);
     return run_id;
 }
 

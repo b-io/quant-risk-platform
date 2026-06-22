@@ -18,6 +18,17 @@
       }
     },
     {
+      "name": "Coverage",
+      "inherits": "base",
+      "displayName": "C++ only - Coverage (GCC/Clang)",
+      "cacheVariables": {
+        "BUILD_TESTING": "ON",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "QRP_BUILD_PYTHON": "OFF",
+        "QRP_ENABLE_COVERAGE": "ON"
+      }
+    },
+    {
       "name": "Debug",
       "inherits": "base",
       "displayName": "C++ only - Debug",
@@ -109,6 +120,7 @@
     }
   ],
   "buildPresets": [
+    { "name": "Coverage", "configurePreset": "Coverage", "configuration": "Debug" },
     { "name": "Debug", "configurePreset": "Debug", "configuration": "Debug" },
     { "name": "Debug-Shared", "configurePreset": "Debug-Shared", "configuration": "Debug" },
     { "name": "Release", "configurePreset": "Release", "configuration": "Release" },
@@ -121,6 +133,7 @@
     { "name": "RelWithDebInfo-Python-Shared", "configurePreset": "RelWithDebInfo-Python-Shared", "configuration": "RelWithDebInfo" }
   ],
   "testPresets": [
+    { "name": "Coverage", "configurePreset": "Coverage", "configuration": "Debug", "output": { "outputOnFailure": true } },
     { "name": "Debug", "configurePreset": "Debug", "configuration": "Debug", "output": { "outputOnFailure": true } },
     { "name": "Debug-Shared", "configurePreset": "Debug-Shared", "configuration": "Debug", "output": { "outputOnFailure": true } },
     { "name": "Release", "configurePreset": "Release", "configuration": "Release", "output": { "outputOnFailure": true } },

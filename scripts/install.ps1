@@ -1,7 +1,8 @@
 # Install dependencies for Quant Risk Platform
 
 param(
-    [string]$Preset = "Release-Python"
+    [string]$Preset = "Release-Python",
+    [switch]$SkipEnv
 )
 
 # 1. Ensure Python dependencies
@@ -11,17 +12,33 @@ $projectRoot = $PSScriptRoot
 if (!$projectRoot) { $projectRoot = Get-Location }
 else { $projectRoot = Split-Path $projectRoot -Parent }
 
+if (-not $SkipEnv) {
+    $envScript = Join-Path $projectRoot "scripts\env.ps1"
+    if (Test-Path -LiteralPath $envScript) {
+        & $envScript -ProjectRoot $projectRoot -Quiet
+        if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+        }
+    }
+}
+
+$triplet = if ($env:VCPKG_TARGET_TRIPLET) { $env:VCPKG_TARGET_TRIPLET } else { "x64-windows-static-md" }
+
 # Find the vcpkg-provided Python if it exists
 $vcpkgPython = $null
 $candidates = @(
-    "build\$Preset\vcpkg_installed\x64-windows\tools\python3\python.exe",
-    "build\Release-Python\vcpkg_installed\x64-windows\tools\python3\python.exe",
-    "build\Release\vcpkg_installed\x64-windows\tools\python3\python.exe",
-    "build\Debug\vcpkg_installed\x64-windows\tools\python3\python.exe"
+    "build\$Preset\vcpkg_installed\$triplet\tools\python3\python.exe",
+    "build\Release-Python\vcpkg_installed\$triplet\tools\python3\python.exe",
+    "build\Release\vcpkg_installed\$triplet\tools\python3\python.exe",
+    "build\Debug\vcpkg_installed\$triplet\tools\python3\python.exe"
 )
 
+if ($env:VCPKG_ROOT) {
+    $candidates = @("installed\$triplet\tools\python3\python.exe") + $candidates
+}
+
 foreach ($relPath in $candidates) {
-    $fullPath = Join-Path $projectRoot $relPath
+    $fullPath = if ($relPath -like "installed\*") { Join-Path $env:VCPKG_ROOT $relPath } else { Join-Path $projectRoot $relPath }
     if (Test-Path $fullPath) {
         $vcpkgPython = $fullPath
         break
@@ -66,7 +83,7 @@ if ($env:VCPKG_ROOT -and (Test-Path "$env:VCPKG_ROOT\vcpkg.exe")) {
 
 if ($vcpkgPath) {
     Write-Host "Using vcpkg at: $vcpkgPath"
-    & $vcpkgPath install --allow-unsupported --triplet x64-windows
+    & $vcpkgPath install --allow-unsupported --triplet $triplet
 } else {
     Write-Warning "vcpkg not found in PATH or VCPKG_ROOT. Please install vcpkg or set VCPKG_ROOT."
 }

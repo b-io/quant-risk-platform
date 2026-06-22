@@ -14,6 +14,7 @@
 #include <ql/indexes/ibor/euribor.hpp>
 #include <ql/indexes/ibor/gbplibor.hpp>
 #include <ql/indexes/ibor/chflibor.hpp>
+#include <stdexcept>
 
 /**
  * @brief InstrumentFactory is the central factory for translating domain-level Trades into QuantLib Instruments.
@@ -36,18 +37,25 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_instru
     const domain::Trade& trade,
     const analytics::PricingContext& context) {
 
-    if (trade.type == "vanilla_swap") {
-        const auto& swap_trade = dynamic_cast<const domain::VanillaSwapTrade&>(trade);
-        return create_swap(swap_trade, context);
-    } else if (trade.type == "fixed_rate_bond") {
-        const auto& bond_trade = dynamic_cast<const domain::FixedRateBondTrade&>(trade);
-        return create_bond(bond_trade, context);
-    } else if (trade.type == "fx_forward") {
-        const auto& fx_trade = dynamic_cast<const domain::FxForwardTrade&>(trade);
-        return create_fx_forward(fx_trade, context);
-    } else if (trade.type == "equity_spot") {
-        const auto& eq_trade = dynamic_cast<const domain::EquitySpotTrade&>(trade);
-        return create_equity_spot(eq_trade, context);
+    switch (trade.trade_type) {
+        case domain::TradeType::VanillaSwap: {
+            const auto& swap_trade = dynamic_cast<const domain::VanillaSwapTrade&>(trade);
+            return create_swap(swap_trade, context);
+        }
+        case domain::TradeType::FixedRateBond: {
+            const auto& bond_trade = dynamic_cast<const domain::FixedRateBondTrade&>(trade);
+            return create_bond(bond_trade, context);
+        }
+        case domain::TradeType::FxForward: {
+            const auto& fx_trade = dynamic_cast<const domain::FxForwardTrade&>(trade);
+            return create_fx_forward(fx_trade, context);
+        }
+        case domain::TradeType::EquitySpot: {
+            const auto& eq_trade = dynamic_cast<const domain::EquitySpotTrade&>(trade);
+            return create_equity_spot(eq_trade, context);
+        }
+        case domain::TradeType::Unknown:
+            break;
     }
     return nullptr;
 }
@@ -99,19 +107,21 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_swap(
 
     // Determine the index tenor from the convention (e.g., "IBOR_3M" -> 3 months).
     size_t underscore_pos = conv.index_family.find("_");
-    QuantLib::Period index_tenor = (underscore_pos != std::string::npos) ?
-        market::CurveBuilder::parse_tenor(conv.index_family.substr(underscore_pos + 1)) :
-        QuantLib::Period(3, QuantLib::Months);
-    if (index_tenor == QuantLib::Period(0, QuantLib::Days)) index_tenor = QuantLib::Period(3, QuantLib::Months);
+    QuantLib::Period index_tenor(3, QuantLib::Months);
+    if (underscore_pos != std::string::npos && underscore_pos + 1 < conv.index_family.size()) {
+        try {
+            index_tenor = market::CurveBuilder::parse_tenor(conv.index_family.substr(underscore_pos + 1));
+        } catch (const std::invalid_argument&) {
+            index_tenor = QuantLib::Period(3, QuantLib::Months);
+        }
+    }
 
     // Create the floating rate index linked to the forecast curve.
     auto index = market::CurveBuilder::create_ibor_index(cc, index_tenor, forecasting_term_structure);
 
     // Apply fixings from context if any
     for (const auto& [index_name, date_fixings] : context.market_state().fixings()) {
-        // We could match index_name with index->name() or similar
-        // For now, if the index name matches the convention's index family or is generic, add it.
-        // In a real system, fixings are global or matched more precisely.
+        // Accept convention-level, generic, and trade-level aliases used by imported market data.
         if (index_name == conv.index_family || index_name == "IBOR_3M" || index_name == trade.floating_index) {
             for (const auto& [date, value] : date_fixings) {
                 index->addFixing(date, value, true); // forceOverwrite=true

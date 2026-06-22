@@ -4,7 +4,7 @@ This directory contains the Python-based API, examples, and notebooks for the Qu
 
 #### Directory Structure
 
-- `examples/`: Python scripts demonstrating how to use the platform for common risk management tasks.
+- `examples/`: Python scripts demonstrating and smoke-testing valuation, factor scenarios, stress, risk, P&L explain, Monte Carlo, and optional optimization-worker flows.
 - `notebooks/`: Jupyter Notebooks providing interactive walkthroughs of the platform's features, including valuation, risk analysis, and VaR.
 
 #### Key Components
@@ -17,8 +17,9 @@ The platform's core logic is implemented in C++ and exposed to Python using Pybi
    ```powershell
    .\scripts\install.ps1 -Preset Release-Python
    ```
-2. Run an example script:
+2. Run the end-to-end demo/smoke test:
    ```powershell
    python python\examples\demo_platform.py
    ```
+   The optional CVXPY worker section is skipped automatically if CVXPY is not installed in the Python environment used to run the script.
 3. Or launch a notebook to explore the API interactively.

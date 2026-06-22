@@ -33,6 +33,7 @@
 #include <ql/time/daycounters/actualactual.hpp>
 #include <ql/time/daycounters/thirty360.hpp>
 #include <fmt/format.h>
+#include <stdexcept>
 
 /*
 Design note (see docs/design/CURVE_BOOTSTRAP_DESIGN.md):
@@ -48,33 +49,62 @@ Design note (see docs/design/CURVE_BOOTSTRAP_DESIGN.md):
 namespace qrp::market {
 
 QuantLib::Date CurveBuilder::parse_date(const std::string& date_str) {
-    if (date_str.size() < 10) return QuantLib::Date();
+    auto is_digit = [](char c) {
+        return c >= '0' && c <= '9';
+    };
+
+    if (date_str.size() != 10 ||
+        date_str[4] != '-' ||
+        date_str[7] != '-' ||
+        !is_digit(date_str[0]) ||
+        !is_digit(date_str[1]) ||
+        !is_digit(date_str[2]) ||
+        !is_digit(date_str[3]) ||
+        !is_digit(date_str[5]) ||
+        !is_digit(date_str[6]) ||
+        !is_digit(date_str[8]) ||
+        !is_digit(date_str[9])) {
+        throw std::invalid_argument("Invalid date format '" + date_str + "'; expected YYYY-MM-DD");
+    }
+
     try {
         int y = std::stoi(date_str.substr(0, 4));
         int m = std::stoi(date_str.substr(5, 2));
         int d = std::stoi(date_str.substr(8, 2));
         return QuantLib::Date(d, static_cast<QuantLib::Month>(m), y);
-    } catch (...) {
-        return QuantLib::Date();
+    } catch (const std::exception& e) {
+        throw std::invalid_argument(fmt::format("Invalid date '{}': {}", date_str, e.what()));
     }
 }
 
 QuantLib::Period CurveBuilder::parse_tenor(const std::string& tenor) {
-    if (tenor.empty()) return QuantLib::Period(0, QuantLib::Days);
+    if (tenor.size() < 2) {
+        throw std::invalid_argument("Invalid tenor '" + tenor + "'; expected positive tenor like 3M or 5Y");
+    }
     
     try {
         char unit = tenor.back();
-        int value = std::stoi(tenor.substr(0, tenor.size() - 1));
+        std::string value_part = tenor.substr(0, tenor.size() - 1);
+        for (char c : value_part) {
+            if (c < '0' || c > '9') {
+                throw std::invalid_argument("tenor value must be numeric");
+            }
+        }
+        int value = std::stoi(value_part);
+        if (value <= 0) {
+            throw std::invalid_argument("tenor value must be positive");
+        }
         
         switch (unit) {
             case 'D': return QuantLib::Period(value, QuantLib::Days);
             case 'W': return QuantLib::Period(value, QuantLib::Weeks);
             case 'M': return QuantLib::Period(value, QuantLib::Months);
             case 'Y': return QuantLib::Period(value, QuantLib::Years);
-            default: return QuantLib::Period(0, QuantLib::Days);
+            default:
+                throw std::invalid_argument("tenor unit must be one of D, W, M, Y");
         }
-    } catch (...) {
-        return QuantLib::Period(0, QuantLib::Days);
+    } catch (const std::exception& e) {
+        throw std::invalid_argument(fmt::format("Invalid tenor '{}': {}", tenor, e.what()));
     }
 }
 
@@ -207,8 +237,12 @@ QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> CurveBuilder::build_curv
         if (state_ptr && state_ptr->get_quote_handle(q_id)) {
             simple_quote = state_ptr->get_quote_handle(q_id);
         } else {
-            simple_quote = QuantLib::ext::make_shared<QuantLib::SimpleQuote>(q.value);
-            if (state_ptr) state_ptr->add_quote_handle(q_id, simple_quote);
+            if (state_ptr) {
+                state_ptr->add_quote(q);
+                simple_quote = state_ptr->get_quote_handle(q_id);
+            } else {
+                simple_quote = QuantLib::ext::make_shared<QuantLib::SimpleQuote>(q.value);
+            }
         }
         
         auto quote_handle = QuantLib::Handle<QuantLib::Quote>(simple_quote);
@@ -264,7 +298,7 @@ MarketSnapshot::MarketSnapshot(const domain::MarketSnapshot& dto) {
     std::map<std::string, domain::MarketQuote> quote_map;
     for (const auto& q : dto.quotes) {
         quote_map[q.id] = q;
-        state_->add_quote(q.id, q.value);
+        state_->add_quote(q);
     }
 
     for (const auto& spec : dto.curves) {
@@ -284,7 +318,11 @@ domain::MarketSnapshot MarketState::capture_snapshot() const {
     
     for (const auto& [id, handle] : quote_handles_) {
         domain::MarketQuote q;
-        q.id = id;
+        if (auto it = quote_metadata_.find(id); it != quote_metadata_.end()) {
+            q = it->second;
+        } else {
+            q.id = id;
+        }
         q.value = handle->value();
         snapshot.quotes.push_back(std::move(q));
     }

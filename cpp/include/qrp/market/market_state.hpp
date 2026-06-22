@@ -8,6 +8,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 
 namespace qrp::market {
 
@@ -35,6 +36,11 @@ public:
 
     void add_quote_handle(const std::string& id, QuantLib::ext::shared_ptr<QuantLib::SimpleQuote> quote) {
         quote_handles_[id] = std::move(quote);
+        auto& metadata = quote_metadata_[id];
+        if (metadata.id.empty()) {
+            metadata.id = id;
+        }
+        metadata.value = quote_handles_[id]->value();
     }
 
     QuantLib::ext::shared_ptr<QuantLib::SimpleQuote> get_quote_handle(const std::string& id) const {
@@ -49,6 +55,17 @@ public:
         } else {
             add_quote_handle(id, QuantLib::ext::make_shared<QuantLib::SimpleQuote>(value));
         }
+
+        auto& metadata = quote_metadata_[id];
+        if (metadata.id.empty()) {
+            metadata.id = id;
+        }
+        metadata.value = value;
+    }
+
+    void add_quote(const domain::MarketQuote& quote) {
+        quote_metadata_[quote.id] = quote;
+        add_quote(quote.id, quote.value);
     }
 
     double get_quote(const std::string& id) const {
@@ -63,7 +80,7 @@ public:
      */
     void reset_to_snapshot(const domain::MarketSnapshot& snapshot) {
         for (const auto& q : snapshot.quotes) {
-            add_quote(q.id, q.value);
+            add_quote(q);
         }
     }
 
@@ -91,6 +108,7 @@ private:
     QuantLib::Date valuation_date_;
     std::map<domain::CurveId, QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure>> curves_;
     std::map<std::string, QuantLib::ext::shared_ptr<QuantLib::SimpleQuote>> quote_handles_;
+    std::map<std::string, domain::MarketQuote> quote_metadata_;
     std::map<std::string, std::map<QuantLib::Date, double>> fixings_;
 };
 

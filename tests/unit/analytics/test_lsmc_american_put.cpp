@@ -3,6 +3,7 @@
 #include <qrp/analytics/simulation/gbm.hpp>
 #include <qrp/analytics/dynamic_programming/decision_problem.hpp>
 #include <cmath>
+#include <iostream>
 
 using namespace qrp::analytics;
 
@@ -39,6 +40,14 @@ public:
         std::size_t
     ) const override {
         return {market_variables_next, {}};
+    }
+
+    bool isTerminalAction(
+        const dynamic_programming::State&,
+        const dynamic_programming::Action& action,
+        std::size_t
+    ) const override {
+        return action.id == 1;
     }
 
     std::vector<double> regressionFeatures(

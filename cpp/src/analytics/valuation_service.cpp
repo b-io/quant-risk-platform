@@ -3,6 +3,39 @@
 
 namespace qrp::analytics {
 
+InstrumentPricingProfile ValuationService::pricing_profile(const domain::Trade& trade) {
+    InstrumentPricingProfile profile;
+
+    switch (trade.trade_type) {
+        case domain::TradeType::EquitySpot: {
+            const auto& eq_trade = dynamic_cast<const domain::EquitySpotTrade&>(trade);
+            profile.multiplier = eq_trade.quantity;
+            profile.additive_npv = -eq_trade.reference_price * eq_trade.quantity;
+            break;
+        }
+        case domain::TradeType::FxForward: {
+            const auto& fx_trade = dynamic_cast<const domain::FxForwardTrade&>(trade);
+            profile.multiplier = fx_trade.notional;
+            profile.additive_npv = -fx_trade.forward_rate * fx_trade.notional;
+            break;
+        }
+        case domain::TradeType::VanillaSwap:
+        case domain::TradeType::FixedRateBond:
+        case domain::TradeType::Unknown:
+            break;
+    }
+
+    return profile;
+}
+
+double ValuationService::price_instrument(
+    const domain::Trade& trade,
+    const QuantLib::Instrument& instrument) {
+
+    const auto profile = pricing_profile(trade);
+    return instrument.NPV() * profile.multiplier + profile.additive_npv;
+}
+
 std::vector<ValuationResult> ValuationService::price_portfolio(
     const domain::Portfolio& portfolio,
     const PricingContext& context) {
@@ -14,23 +47,7 @@ std::vector<ValuationResult> ValuationService::price_portfolio(
         if (ql_instrument) {
             ValuationResult res;
             res.trade_id = trade.id;
-            double quantity = 1.0;
-            double ref_price = 0.0;
-            if (trade.type == "equity_spot") {
-                const auto& eq_trade = dynamic_cast<const domain::EquitySpotTrade&>(trade);
-                quantity = eq_trade.quantity;
-                ref_price = eq_trade.reference_price;
-                // NPV for EquitySpot = (CurrentPrice - ReferencePrice) * Quantity
-                res.npv = (ql_instrument->NPV() - ref_price) * quantity;
-            } else if (trade.type == "fx_forward") {
-                const auto& fx_trade = dynamic_cast<const domain::FxForwardTrade&>(trade);
-                double spot = ql_instrument->NPV();
-                // Simple NPV = (Spot - ForwardRate) * Notional
-                // Note: Simplified as we are not applying discounting to FX in this MVP stage
-                res.npv = (spot - fx_trade.forward_rate) * fx_trade.notional;
-            } else {
-                res.npv = ql_instrument->NPV() * quantity;
-            }
+            res.npv = price_instrument(trade, *ql_instrument);
             res.currency = trade.currency;
             res.tags["book"] = trade.book;
             res.tags["strategy"] = trade.strategy;
@@ -41,6 +58,7 @@ std::vector<ValuationResult> ValuationService::price_portfolio(
             res.trade_id = trade.id;
             res.npv = 0.0;
             res.currency = trade.currency;
+            res.tags["error"] = "Instrument construction failed";
             res.tags["status"] = "failed";
             results.push_back(res);
         }

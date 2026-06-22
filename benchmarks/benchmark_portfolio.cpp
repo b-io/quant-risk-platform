@@ -4,6 +4,8 @@
 #include <qrp/io/json_loader.hpp>
 #include <iostream>
 #include <chrono>
+#include <utility>
+#include <vector>
 
 namespace {
 

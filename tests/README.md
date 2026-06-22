@@ -21,3 +21,17 @@ To build and run all tests, use the provided `test.ps1` or `test.sh` scripts:
 ```
 
 Tests use the GoogleTest (gtest) framework. Individual tests or filters can be specified when running the test executables manually from the build directory.
+
+#### Coverage
+
+Coverage is opt-in and intended for GCC/Clang toolchains, for example Linux, WSL, MinGW, or Clang-based CLion profiles.
+Install `gcovr`, configure with coverage enabled, then build the `coverage` target:
+
+```bash
+cmake --preset Coverage
+cmake --build --preset Coverage --target coverage
+```
+
+The coverage target runs CTest, writes HTML to `build/Coverage/coverage/index.html`, writes XML to
+`build/Coverage/coverage/coverage.xml`, and fails if line coverage is below `QRP_COVERAGE_MIN_LINE` percent.
+The default threshold is `85`; override it with `-DQRP_COVERAGE_MIN_LINE=90` if you want a stricter gate.

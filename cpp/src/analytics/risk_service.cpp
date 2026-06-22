@@ -1,5 +1,6 @@
 #include <qrp/analytics/risk_service.hpp>
 #include <qrp/analytics/pricing_context.hpp>
+#include <qrp/analytics/valuation_service.hpp>
 #include <qrp/instruments/instrument_factory.hpp>
 #include <qrp/market/market_snapshot.hpp>
 #include <ql/instrument.hpp>
@@ -28,6 +29,15 @@ Design note (see docs/design/ANALYTICS_SERVICES.md):
  */
 namespace qrp::analytics {
 
+namespace {
+
+struct RiskInstrument {
+    const domain::Trade* trade = nullptr;
+    QuantLib::ext::shared_ptr<QuantLib::Instrument> instrument;
+};
+
+} // namespace
+
 /**
  * @brief Computes risk metrics for a given portfolio and market state.
  * @param portfolio The portfolio of trades to evaluate.
@@ -48,46 +58,31 @@ std::vector<RiskResult> RiskService::compute_risk(
     auto state = base_market.built_state();
     PricingContext context(state);
 
-    std::vector<std::pair<std::string, QuantLib::ext::shared_ptr<QuantLib::Instrument>>> ql_instruments;
+    std::vector<RiskInstrument> ql_instruments;
     for (const auto& trade_ptr : portfolio.trades) {
         const auto& trade = *trade_ptr;
         auto inst = instruments::InstrumentFactory::create_instrument(trade, context);
-        if (inst) ql_instruments.push_back({trade.id, inst});
+        if (inst) ql_instruments.push_back({&trade, inst});
     }
 
     std::map<std::string, double> base_map;
-    for (const auto& trade_ptr : portfolio.trades) {
-        auto inst_it = std::find_if(ql_instruments.begin(), ql_instruments.end(), 
-                                    [&](const auto& p) { return p.first == trade_ptr->id; });
-        if (inst_it == ql_instruments.end()) continue;
-        
-        auto ql_instrument = inst_it->second;
-        double npv = 0.0;
-        if (trade_ptr->type == "equity_spot") {
-            const auto& eq_trade = dynamic_cast<const domain::EquitySpotTrade&>(*trade_ptr);
-            npv = (ql_instrument->NPV() - eq_trade.reference_price) * eq_trade.quantity;
-        } else if (trade_ptr->type == "fx_forward") {
-            const auto& fx_trade = dynamic_cast<const domain::FxForwardTrade&>(*trade_ptr);
-            npv = (ql_instrument->NPV() - fx_trade.forward_rate) * fx_trade.notional;
-        } else {
-            npv = ql_instrument->NPV();
-        }
-        base_map[trade_ptr->id] = npv;
+    for (const auto& priced : ql_instruments) {
+        base_map[priced.trade->id] = ValuationService::price_instrument(*priced.trade, *priced.instrument);
     }
 
     if (factors.empty() || bindings.empty()) {
         throw std::runtime_error("RiskService: Factors and bindings are required for risk computation");
     }
 
-    for (const auto& [id, base_npv] : base_map) {
+    for (const auto& priced : ql_instruments) {
+        const auto& trade = *priced.trade;
+        const auto& id = trade.id;
+        const auto base_npv = base_map.at(id);
         RiskResult res;
         res.trade_id = id;
         res.pv01 = 0.0;
         res.cs01 = 0.0;
 
-        const auto& trade_it = std::find_if(portfolio.trades.begin(), portfolio.trades.end(),
-                                          [&](const auto& t) { return t->id == id; });
-        const auto& trade = **trade_it;
         std::string cc = trade.currency;
 
         // --- Factor-based Risk ---
@@ -103,22 +98,8 @@ std::vector<RiskResult> RiskService::compute_risk(
         }
         if (!pv01_scenario.factor_shocks.empty()) {
             market::ScenarioEngine::apply_scenario_to_state(*state, base_market_dto, pv01_scenario, factors, bindings);
-            for (auto& [inst_id, ql_inst] : ql_instruments) {
-                if (inst_id == id) { 
-                    double bumped_npv = 0.0;
-                    if (trade.type == "equity_spot") {
-                        const auto& eq_trade = dynamic_cast<const domain::EquitySpotTrade&>(trade);
-                        bumped_npv = (ql_inst->NPV() - eq_trade.reference_price) * eq_trade.quantity;
-                    } else if (trade.type == "fx_forward") {
-                        const auto& fx_trade = dynamic_cast<const domain::FxForwardTrade&>(trade);
-                        bumped_npv = (ql_inst->NPV() - fx_trade.forward_rate) * fx_trade.notional;
-                    } else {
-                        bumped_npv = ql_inst->NPV();
-                    }
-                    res.pv01 = (bumped_npv - base_npv); 
-                    break; 
-                }
-            }
+            double bumped_npv = ValuationService::price_instrument(trade, *priced.instrument);
+            res.pv01 = bumped_npv - base_npv;
             state->reset_to_snapshot(base_market_dto);
         }
 
@@ -132,22 +113,8 @@ std::vector<RiskResult> RiskService::compute_risk(
         }
         if (!cs01_scenario.factor_shocks.empty()) {
             market::ScenarioEngine::apply_scenario_to_state(*state, base_market_dto, cs01_scenario, factors, bindings);
-            for (auto& [inst_id, ql_inst] : ql_instruments) {
-                if (inst_id == id) { 
-                    double bumped_npv = 0.0;
-                    if (trade.type == "equity_spot") {
-                        const auto& eq_trade = dynamic_cast<const domain::EquitySpotTrade&>(trade);
-                        bumped_npv = (ql_inst->NPV() - eq_trade.reference_price) * eq_trade.quantity;
-                    } else if (trade.type == "fx_forward") {
-                        const auto& fx_trade = dynamic_cast<const domain::FxForwardTrade&>(trade);
-                        bumped_npv = (ql_inst->NPV() - fx_trade.forward_rate) * fx_trade.notional;
-                    } else {
-                        bumped_npv = ql_inst->NPV();
-                    }
-                    res.cs01 = (bumped_npv - base_npv); 
-                    break; 
-                }
-            }
+            double bumped_npv = ValuationService::price_instrument(trade, *priced.instrument);
+            res.cs01 = bumped_npv - base_npv;
             state->reset_to_snapshot(base_market_dto);
         }
 
@@ -161,23 +128,9 @@ std::vector<RiskResult> RiskService::compute_risk(
                 bucket_scenario.factor_shocks[f.factor_id] = bump_size;
 
                 market::ScenarioEngine::apply_scenario_to_state(*state, base_market_dto, bucket_scenario, factors, bindings);
-                for (auto& [inst_id, ql_inst] : ql_instruments) {
-                    if (inst_id == id) {
-                        double bumped_npv = 0.0;
-                        if (trade.type == "equity_spot") {
-                            const auto& eq_trade = dynamic_cast<const domain::EquitySpotTrade&>(trade);
-                            bumped_npv = (ql_inst->NPV() - eq_trade.reference_price) * eq_trade.quantity;
-                        } else if (trade.type == "fx_forward") {
-                            const auto& fx_trade = dynamic_cast<const domain::FxForwardTrade&>(trade);
-                            bumped_npv = (ql_inst->NPV() - fx_trade.forward_rate) * fx_trade.notional;
-                        } else {
-                            bumped_npv = ql_inst->NPV();
-                        }
-                        std::string label = f.tenor.empty() ? f.factor_id : f.tenor;
-                        res.bucketed_risk[label] += (bumped_npv - base_npv);
-                        break;
-                    }
-                }
+                double bumped_npv = ValuationService::price_instrument(trade, *priced.instrument);
+                std::string label = f.tenor.empty() ? f.factor_id : f.tenor;
+                res.bucketed_risk[label] += bumped_npv - base_npv;
                 state->reset_to_snapshot(base_market_dto);
             }
         }

@@ -19,7 +19,7 @@ class ScenarioEngine {
 public:
     /**
      * @brief Binding-aware scenario application.
-     * Resolves factor shocks into quote shocks using the provided bindings.
+     * Resolves factor shocks into absolute quote values using the provided bindings.
      */
     static void apply_scenario_to_state(
         MarketState& state,

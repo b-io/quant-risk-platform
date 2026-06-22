@@ -10,6 +10,9 @@ endif()
 if(DEFINED ENV{QRP_ENV_FILE})
   message(STATUS "QRP env file         : $ENV{QRP_ENV_FILE}")
 endif()
+if(DEFINED ENV{QRP_MSVC_ENV_READY})
+  message(STATUS "MSVC env ready       : $ENV{QRP_MSVC_ENV_READY}")
+endif()
 if(DEFINED ENV{DEV_TOOLS_ROOT})
   message(STATUS "DEV_TOOLS_ROOT       : $ENV{DEV_TOOLS_ROOT}")
 endif()
@@ -30,7 +33,9 @@ project(quant-risk-platform VERSION 0.1.0 LANGUAGES CXX)
 option(QRP_BUILD_CLI "Build the C++ CLI" ON)
 option(QRP_BUILD_PYTHON "Build Python bindings" OFF)
 option(QRP_BUILD_SHARED "Build qrp_core as a shared library" OFF)
+option(QRP_ENABLE_COVERAGE "Enable GCC/Clang coverage instrumentation" OFF)
 option(QRP_WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
+set(QRP_COVERAGE_MIN_LINE 85 CACHE STRING "Minimum line coverage percentage enforced by the coverage target")
 include(CTest) # defines BUILD_TESTING
 
 # -----------------------
@@ -56,6 +61,7 @@ message(STATUS "Binary dir           : ${CMAKE_BINARY_DIR}")
 message(STATUS "C++ compiler         : ${CMAKE_CXX_COMPILER}")
 message(STATUS "C++ compiler version : ${CMAKE_CXX_COMPILER_VERSION}")
 message(STATUS "Build CLI            : ${QRP_BUILD_CLI}")
+message(STATUS "Build coverage       : ${QRP_ENABLE_COVERAGE}")
 message(STATUS "Build Python         : ${QRP_BUILD_PYTHON}")
 message(STATUS "Build shared core    : ${QRP_BUILD_SHARED}")
 message(STATUS "Build tests          : ${BUILD_TESTING}")
@@ -152,11 +158,41 @@ endif()
 target_compile_features(qrp_core PUBLIC cxx_std_20)
 
 # Warnings
-if(MSVC)
-    add_compile_options(/W4 /WX /utf-8)
-else()
-  target_compile_options(qrp_core PRIVATE -Wall -Wextra -Wconversion -Wpedantic $<$<BOOL:${QRP_WARNINGS_AS_ERRORS}>:-Werror>)
-endif()
+function(qrp_apply_project_warnings target_name)
+  if(MSVC)
+    target_compile_options(${target_name} PRIVATE
+      /W4
+      /utf-8
+      $<$<BOOL:${QRP_WARNINGS_AS_ERRORS}>:/WX>
+    )
+  else()
+    target_compile_options(${target_name} PRIVATE
+      -Wall
+      -Wextra
+      -Wconversion
+      -Wpedantic
+      $<$<BOOL:${QRP_WARNINGS_AS_ERRORS}>:-Werror>
+    )
+  endif()
+endfunction()
+
+function(qrp_apply_coverage target_name)
+  if(NOT QRP_ENABLE_COVERAGE)
+    return()
+  endif()
+
+  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(${target_name} PRIVATE -O0 -g --coverage)
+    target_link_options(${target_name} PRIVATE --coverage)
+  elseif(MSVC)
+    message(WARNING "QRP_ENABLE_COVERAGE=ON is currently supported only with GCC/Clang coverage instrumentation; target ${target_name} will not be instrumented.")
+  else()
+    message(WARNING "QRP_ENABLE_COVERAGE=ON is not configured for compiler '${CMAKE_CXX_COMPILER_ID}'; target ${target_name} will not be instrumented.")
+  endif()
+endfunction()
+
+qrp_apply_coverage(qrp_core)
+qrp_apply_project_warnings(qrp_core)
 
 function(qrp_copy_core_runtime target_name)
   if(WIN32 AND QRP_BUILD_SHARED)
@@ -176,6 +212,8 @@ endfunction()
 if(QRP_BUILD_CLI)
   add_executable(qrp_cli cpp/cli/main.cpp)
   target_link_libraries(qrp_cli PRIVATE qrp_core fmt::fmt)
+  qrp_apply_coverage(qrp_cli)
+  qrp_apply_project_warnings(qrp_cli)
   qrp_copy_core_runtime(qrp_cli)
 else()
   message(STATUS "QRP_BUILD_CLI=OFF — CLI target is skipped")
@@ -209,6 +247,8 @@ if(QRP_BUILD_PYTHON)
 
   find_package(pybind11 CONFIG REQUIRED)
   pybind11_add_module(quant_risk_platform cpp/bindings/module.cpp)
+  qrp_apply_coverage(quant_risk_platform)
+  qrp_apply_project_warnings(quant_risk_platform)
 
   # Windows Debug safety
   if(MSVC)
@@ -260,6 +300,32 @@ else()
 endif()
 
 # -----------------------
+# Coverage (optional via QRP_ENABLE_COVERAGE)
+# -----------------------
+if(QRP_ENABLE_COVERAGE AND BUILD_TESTING AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  find_program(GCOVR_EXECUTABLE gcovr)
+  if(GCOVR_EXECUTABLE)
+    add_custom_target(coverage
+      COMMAND ${CMAKE_CTEST_COMMAND} --test-dir ${CMAKE_BINARY_DIR} --output-on-failure
+      COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/coverage
+      COMMAND ${GCOVR_EXECUTABLE}
+        --exclude ${CMAKE_SOURCE_DIR}/tests
+        --fail-under-line ${QRP_COVERAGE_MIN_LINE}
+        --filter ${CMAKE_SOURCE_DIR}/cpp
+        --html-details ${CMAKE_BINARY_DIR}/coverage/index.html
+        --print-summary
+        --root ${CMAKE_SOURCE_DIR}
+        --xml ${CMAKE_BINARY_DIR}/coverage/coverage.xml
+      COMMENT "Running tests and generating coverage report"
+      DEPENDS integration_tests unit_tests
+      VERBATIM
+    )
+  else()
+    message(WARNING "gcovr was not found; install it to use the coverage target.")
+  endif()
+endif()
+
+# -----------------------
 # Benchmarks (guarded)
 # -----------------------
 option(QRP_BUILD_BENCHMARKS "Build benchmark targets" OFF)
@@ -267,6 +333,8 @@ if(QRP_BUILD_BENCHMARKS)
   if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/benchmarks/benchmark_portfolio.cpp")
     add_executable(benchmark_portfolio benchmarks/benchmark_portfolio.cpp)
     target_link_libraries(benchmark_portfolio PRIVATE qrp_core)
+    qrp_apply_coverage(benchmark_portfolio)
+    qrp_apply_project_warnings(benchmark_portfolio)
     qrp_copy_core_runtime(benchmark_portfolio)
   else()
     message(STATUS "QRP_BUILD_BENCHMARKS=ON but benchmark sources not found; skipping benchmarks")

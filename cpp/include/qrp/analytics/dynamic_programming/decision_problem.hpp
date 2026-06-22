@@ -39,6 +39,14 @@ public:
         std::size_t timeIndex
     ) const = 0;
 
+    virtual bool isTerminalAction(
+        const State&,
+        const Action&,
+        std::size_t
+    ) const {
+        return false;
+    }
+
     virtual std::vector<double> regressionFeatures(
         const State& state,
         std::size_t timeIndex

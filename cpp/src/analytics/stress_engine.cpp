@@ -11,6 +11,15 @@
 
 namespace qrp::analytics {
 
+namespace {
+
+struct StressInstrument {
+    const domain::Trade* trade = nullptr;
+    QuantLib::ext::shared_ptr<QuantLib::Instrument> instrument;
+};
+
+} // namespace
+
 std::vector<StressResult> StressEngine::run_historical_stress(
     const domain::Portfolio& portfolio,
     const domain::MarketSnapshot& base_market_dto,
@@ -25,14 +34,14 @@ std::vector<StressResult> StressEngine::run_historical_stress(
     auto state = base_market.built_state();
     PricingContext context(state);
 
-    std::vector<std::pair<std::string, QuantLib::ext::shared_ptr<QuantLib::Instrument>>> instruments;
+    std::vector<StressInstrument> instruments;
     std::map<std::string, double> base_map;
     double base_total = 0.0;
     for (const auto& trade_ptr : portfolio.trades) {
         const auto& trade = *trade_ptr;
         if (auto inst = instruments::InstrumentFactory::create_instrument(trade, context)) {
-            instruments.emplace_back(trade.id, inst);
-            double npv = inst->NPV();
+            instruments.push_back({&trade, inst});
+            double npv = ValuationService::price_instrument(trade, *inst);
             base_map[trade.id] = npv;
             base_total += npv;
         }
@@ -50,9 +59,10 @@ std::vector<StressResult> StressEngine::run_historical_stress(
         market::ScenarioEngine::apply_scenario_to_state(*state, base_market_dto, scenario, factors, bindings);
         
         double shocked_total = 0.0;
-        for (auto& [id, inst] : instruments) {
-            double npv = inst->NPV();
-            res.trade_pnls[id] = npv - base_map[id];
+        for (const auto& priced : instruments) {
+            const auto& trade = *priced.trade;
+            double npv = ValuationService::price_instrument(trade, *priced.instrument);
+            res.trade_pnls[trade.id] = npv - base_map[trade.id];
             shocked_total += npv;
         }
         res.total_pnl = shocked_total - base_total;

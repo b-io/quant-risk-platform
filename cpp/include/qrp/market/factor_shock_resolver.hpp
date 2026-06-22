@@ -3,14 +3,16 @@
 #include <qrp/domain/factors.hpp>
 #include <qrp/market/scenario_engine.hpp>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <string>
 #include <cmath>
+#include <stdexcept>
 
 namespace qrp::market {
 
 /**
- * @brief Resolves generic factor shocks into specific quote-level shocks.
+ * @brief Resolves generic factor shocks into specific absolute quote values.
  * 
  * This service implements the production mapping layer between modeled risk factors 
  * and raw market quotes using FactorBindings.
@@ -28,13 +30,19 @@ public:
      */
     static std::unordered_map<std::string, double> resolve_quote_values(
         const ScenarioDefinition& scenario,
-        [[maybe_unused]] const std::vector<domain::FactorDefinition>& factors,
+        const std::vector<domain::FactorDefinition>& factors,
         const std::vector<domain::FactorBinding>& bindings,
         const domain::MarketSnapshot& base_market) {
         
         std::unordered_map<std::string, double> base_quotes;
         for (const auto& q : base_market.quotes) {
             base_quotes[q.id] = q.value;
+        }
+
+        std::unordered_set<std::string> known_factors;
+        known_factors.reserve(factors.size());
+        for (const auto& factor : factors) {
+            known_factors.insert(factor.factor_id);
         }
 
         // 1. Initialize with base values
@@ -45,11 +53,19 @@ public:
         std::unordered_map<std::string, double> quote_increments;
 
         for (const auto& [factor_id, shock] : scenario.factor_shocks) {
-            // Find bindings for this factor
+            if (!known_factors.contains(factor_id)) {
+                throw std::invalid_argument("Scenario factor is not defined: " + factor_id);
+            }
+
+            bool found_binding = false;
             for (const auto& binding : bindings) {
                 if (binding.factor_id != factor_id) continue;
+                found_binding = true;
                 
-                if (!base_quotes.contains(binding.quote_id)) continue;
+                if (!base_quotes.contains(binding.quote_id)) {
+                    throw std::invalid_argument(
+                        "Factor '" + factor_id + "' is bound to missing market quote: " + binding.quote_id);
+                }
                 
                 double q = base_quotes.at(binding.quote_id);
                 double increment = 0.0;
@@ -75,6 +91,10 @@ public:
                 }
 
                 quote_increments[binding.quote_id] += binding.weight * increment;
+            }
+
+            if (!found_binding) {
+                throw std::invalid_argument("Scenario factor has no quote binding: " + factor_id);
             }
         }
 

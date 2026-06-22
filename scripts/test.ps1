@@ -1,9 +1,23 @@
 param(
     [string]$BuildDir = "build\Release-Python",
-    [string]$Config = "Release"
+    [string]$Config = "Release",
+    [switch]$SkipEnv
 )
 
 # test.ps1 - Run all platform tests
+
+$scriptPath = $MyInvocation.MyCommand.Path
+$projectRoot = Split-Path (Split-Path $scriptPath -Parent) -Parent
+
+if (-not $SkipEnv) {
+    $envScript = Join-Path $projectRoot "scripts\env.ps1"
+    if (Test-Path -LiteralPath $envScript) {
+        & $envScript -ProjectRoot $projectRoot -Quiet
+        if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+        }
+    }
+}
 
 Write-Host "Building tests (Config: $Config) in $BuildDir..." -ForegroundColor Cyan
 cmake --build $BuildDir --target unit_tests integration_tests --config $Config

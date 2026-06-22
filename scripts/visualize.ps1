@@ -55,7 +55,7 @@ switch ($Table) {
             exit 1
         }
         Write-Host "=== Trades for $Id ===" -ForegroundColor Cyan
-        Run-Query "SELECT trade_id, book_id, asset_class, product_type, currency, notional FROM trades WHERE portfolio_id = '$Id';"
+        Run-Query "SELECT trade_id, book_id, asset_class, trade_type, currency, notional FROM trades WHERE portfolio_id = '$Id';"
     }
     "runs" {
         Write-Host "=== Analysis Runs ===" -ForegroundColor Cyan
@@ -66,12 +66,22 @@ switch ($Table) {
             Write-Host "Usage: .\scripts\visualize.ps1 results -Id <run_id>"
             exit 1
         }
-        if ($null -eq $CliExe) {
-            Write-Host "Error: qrp_cli.exe not found to generate report." -ForegroundColor Red
+        if (Get-Command sqlite3 -ErrorAction SilentlyContinue) {
+            Write-Host "=== Valuation Results for $Id ===" -ForegroundColor Cyan
+            Run-Query "SELECT trade_id, npv_base, valuation_ccy, status, error_message FROM valuation_results WHERE run_id = '$Id';"
+            Write-Host "=== Risk Results for $Id ===" -ForegroundColor Cyan
+            Run-Query "SELECT trade_id, risk_measure, risk_factor_id, value FROM risk_results WHERE run_id = '$Id';"
+            Write-Host "=== Scenario Results for $Id ===" -ForegroundColor Cyan
+            Run-Query "SELECT scenario_name, portfolio_pnl FROM scenario_results WHERE run_id = '$Id';"
+            Write-Host "=== VaR Results for $Id ===" -ForegroundColor Cyan
+            Run-Query "SELECT method, confidence_level, var_value, expected_shortfall, scenario_count FROM var_results WHERE run_id = '$Id';"
+        } elseif ($null -ne $CliExe) {
+            Write-Host "Using qrp_cli report for $Id ..." -ForegroundColor Cyan
+            & $CliExe report $Id
+        } else {
+            Write-Host "Error: sqlite3 and qrp_cli.exe are not available." -ForegroundColor Red
             exit 1
         }
-        Write-Host "Using qrp_cli report for $Id ..." -ForegroundColor Cyan
-        & $CliExe report $Id
     }
     "summary" {
         Write-Host "=== Platform Data Summary ===" -ForegroundColor Green

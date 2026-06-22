@@ -123,22 +123,7 @@ inline void from_json(const nlohmann::json& j, InterpolationType& i) {
 
 inline void from_json(const nlohmann::json& j, MarketQuote& q) {
     j.at("id").get_to(q.id);
-    if (j.contains("instrument_type")) j.at("instrument_type").get_to(q.instrument_type);
-    else if (j.contains("type")) {
-        // Fallback for old "type" field mapping to instrument_type
-        QuoteType old_type;
-        j.at("type").get_to(old_type);
-        switch (old_type) {
-            case QuoteType::Deposit: q.instrument_type = QuoteInstrumentType::Deposit; break;
-            case QuoteType::OIS: q.instrument_type = QuoteInstrumentType::OIS; break;
-            case QuoteType::IRS: q.instrument_type = QuoteInstrumentType::IRS; break;
-            case QuoteType::FRA: q.instrument_type = QuoteInstrumentType::FRA; break;
-            case QuoteType::Future: q.instrument_type = QuoteInstrumentType::Future; break;
-            case QuoteType::BondYield: q.instrument_type = QuoteInstrumentType::Bond; break;
-            case QuoteType::CreditSpread: q.instrument_type = QuoteInstrumentType::CDS; break;
-            default: q.instrument_type = QuoteInstrumentType::UNKNOWN; break;
-        }
-    }
+    j.at("instrument_type").get_to(q.instrument_type);
     j.at("currency").get_to(q.currency);
     j.at("tenor").get_to(q.tenor);
     j.at("value").get_to(q.value);

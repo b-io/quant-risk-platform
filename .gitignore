@@ -78,6 +78,6 @@ venv/
 *.temp
 *.tmp
 *.zip
-roadmap/
+/roadmap/
 temp/
 tmp/

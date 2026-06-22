@@ -1,6 +1,7 @@
 #include <qrp/optimization/portfolio_optimization_engine.hpp>
-#include <stdexcept>
 #include <set>
+#include <stdexcept>
+#include <utility>
 
 namespace qrp::optimization {
 
@@ -24,8 +25,8 @@ OptimizationResult PortfolioOptimizationEngine::optimize(
 
     // 1. Identify all assets involved
     std::set<std::string> all_assets;
-    for (const auto& [asset_id, _] : expected_returns) all_assets.insert(asset_id);
-    for (const auto& [asset_id, _] : current_weights) all_assets.insert(asset_id);
+    for (const auto& entry : expected_returns) all_assets.insert(entry.first);
+    for (const auto& entry : current_weights) all_assets.insert(entry.first);
     
     if (auto full_risk = std::dynamic_pointer_cast<FullCovarianceModel>(risk_model)) {
         for (const auto& asset_id : full_risk->asset_ids) all_assets.insert(asset_id);
@@ -50,6 +51,10 @@ OptimizationResult PortfolioOptimizationEngine::optimize(
             if (mv->expected_returns.empty()) {
                 mv->expected_returns = expected_returns;
             }
+        } else if (auto mr = std::dynamic_pointer_cast<MaximizeReturnObjective>(objective)) {
+            if (mr->expected_returns.empty()) {
+                mr->expected_returns = expected_returns;
+            }
         }
         problem.objectives.push_back(objective);
     }
@@ -61,6 +66,10 @@ OptimizationResult PortfolioOptimizationEngine::optimize(
     problem.constraints = constraints;
 
     // 6. Solve
+    if (!solver_->supports(problem)) {
+        throw std::runtime_error("Solver '" + solver_->name() + "' does not support this optimization problem");
+    }
+
     return solver_->solve(problem, config);
 }
 

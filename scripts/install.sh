@@ -3,7 +3,15 @@ set -e
 
 # Install dependencies for Quant Risk Platform
 
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+PROJECT_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
+
+if [ "${QRP_SKIP_ENV:-0}" != "1" ] && [ -f "$SCRIPT_DIR/env.sh" ]; then
+    QRP_ENV_QUIET=1 QRP_PROJECT_ROOT="$PROJECT_ROOT" . "$SCRIPT_DIR/env.sh"
+fi
+
 PRESET=${1:-"Release-Python"}
+TRIPLET="${VCPKG_TARGET_TRIPLET:-}"
 
 # 1. Ensure Python dependencies
 echo -e "\033[0;36m--- Selecting Python Interpreter ---\033[0m"
@@ -11,13 +19,21 @@ echo -e "\033[0;36m--- Selecting Python Interpreter ---\033[0m"
 # Find the vcpkg-provided Python if it exists
 VCPKG_PYTHON=""
 candidates=(
-    "build/${PRESET}/vcpkg_installed/x64-windows/tools/python3/python.exe"
-    "build/${PRESET}/vcpkg_installed/x64-linux/tools/python3/python"
-    "build/Release-Python/vcpkg_installed/x64-windows/tools/python3/python.exe"
-    "build/Release-Python/vcpkg_installed/x64-linux/tools/python3/python"
-    "build/Release/vcpkg_installed/x64-windows/tools/python3/python.exe"
-    "build/Release/vcpkg_installed/x64-linux/tools/python3/python"
+    "build/${PRESET}/vcpkg_installed/${TRIPLET}/tools/python3/python"
+    "build/${PRESET}/vcpkg_installed/${TRIPLET}/tools/python3/python.exe"
+    "build/Release-Python/vcpkg_installed/${TRIPLET}/tools/python3/python"
+    "build/Release-Python/vcpkg_installed/${TRIPLET}/tools/python3/python.exe"
+    "build/Release/vcpkg_installed/${TRIPLET}/tools/python3/python"
+    "build/Release/vcpkg_installed/${TRIPLET}/tools/python3/python.exe"
 )
+
+if [[ -n "${VCPKG_ROOT:-}" && -n "$TRIPLET" ]]; then
+    candidates=(
+        "${VCPKG_ROOT}/installed/${TRIPLET}/tools/python3/python"
+        "${VCPKG_ROOT}/installed/${TRIPLET}/tools/python3/python.exe"
+        "${candidates[@]}"
+    )
+fi
 
 for cand in "${candidates[@]}"; do
     if [[ -f "$cand" ]]; then
@@ -59,7 +75,11 @@ fi
 
 if [ ! -z "$VCPKG_EXEC" ]; then
     echo "Using vcpkg at: $VCPKG_EXEC"
-    "$VCPKG_EXEC" install --allow-unsupported
+    if [ -n "${VCPKG_TARGET_TRIPLET:-}" ]; then
+        "$VCPKG_EXEC" install --allow-unsupported --triplet "$VCPKG_TARGET_TRIPLET"
+    else
+        "$VCPKG_EXEC" install --allow-unsupported
+    fi
 else
     echo -e "\033[0;33mWarning: vcpkg not found in PATH or VCPKG_ROOT.\033[0m"
 fi

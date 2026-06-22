@@ -70,7 +70,7 @@ case $TABLE in
             exit 1
         fi
         echo "=== Trades for $ID ==="
-        run_query "SELECT trade_id, book_id, asset_class, product_type, currency, notional FROM trades WHERE portfolio_id = '$ID';"
+        run_query "SELECT trade_id, book_id, asset_class, trade_type, currency, notional FROM trades WHERE portfolio_id = '$ID';"
         ;;
     runs)
         echo "=== Analysis Runs ==="
@@ -81,12 +81,21 @@ case $TABLE in
             echo "Usage: $0 results <run_id>"
             exit 1
         fi
-        if [ ! -z "$CLI_EXE" ]; then
+        if command -v sqlite3 &> /dev/null; then
+            echo "=== Valuation Results for $ID ==="
+            run_query "SELECT trade_id, npv_base, valuation_ccy, status, error_message FROM valuation_results WHERE run_id = '$ID';"
+            echo "=== Risk Results for $ID ==="
+            run_query "SELECT trade_id, risk_measure, risk_factor_id, value FROM risk_results WHERE run_id = '$ID';"
+            echo "=== Scenario Results for $ID ==="
+            run_query "SELECT scenario_name, portfolio_pnl FROM scenario_results WHERE run_id = '$ID';"
+            echo "=== VaR Results for $ID ==="
+            run_query "SELECT method, confidence_level, var_value, expected_shortfall, scenario_count FROM var_results WHERE run_id = '$ID';"
+        elif [ ! -z "$CLI_EXE" ]; then
             echo "Using qrp_cli report for $ID ..."
             "$CLI_EXE" report "$ID"
         else
-            echo "=== Valuation Results for $ID ==="
-            run_query "SELECT trade_id, npv_base, valuation_ccy, status FROM valuation_results WHERE run_id = '$ID';"
+            echo "sqlite3 and qrp_cli are not available."
+            exit 1
         fi
         ;;
     risk)

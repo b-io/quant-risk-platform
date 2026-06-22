@@ -1,9 +1,38 @@
 #include <gtest/gtest.h>
 #include <qrp/persistence/sqlite_storage_backend.hpp>
 #include <filesystem>
+#include <stdexcept>
 #include <sqlite3.h>
 
 namespace qrp::testing {
+
+namespace {
+
+double QueryDouble(const std::string& db_path, const std::string& sql) {
+    sqlite3* db = nullptr;
+    if (sqlite3_open(db_path.c_str(), &db) != SQLITE_OK) {
+        throw std::runtime_error("Failed to open test database");
+    }
+
+    sqlite3_stmt* stmt = nullptr;
+    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+        sqlite3_close(db);
+        throw std::runtime_error("Failed to prepare test query");
+    }
+
+    if (sqlite3_step(stmt) != SQLITE_ROW) {
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        throw std::runtime_error("Test query returned no rows");
+    }
+
+    double value = sqlite3_column_double(stmt, 0);
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    return value;
+}
+
+} // namespace
 
 class PersistenceTest : public ::testing::Test {
 protected:
@@ -72,12 +101,12 @@ TEST_F(PersistenceTest, TradeStorageAndLoading) {
 
 TEST_F(PersistenceTest, MarketSnapshotQuotesRoundTrip) {
     storage->store_market_snapshot("S1", "2023-01-01", "USD", "[]");
-    storage->store_market_quote("S1", "USD.SOFR.10Y", 0.035, "USD", "{\"tenor\": \"10Y\"}");
-    storage->store_market_quote("S1", "USD.SOFR.5Y", 0.032, "USD", "{\"tenor\": \"5Y\"}");
+    storage->store_market_quote("S1", "USD.SOFR.10Y", 0.035, "USD", "{\"instrument_type\": \"OIS\", \"tenor\": \"10Y\"}");
+    storage->store_market_quote("S1", "USD.SOFR.5Y", 0.032, "USD", "{\"instrument_type\": \"OIS\", \"tenor\": \"5Y\"}");
 
     // Second snapshot with same quote IDs
     storage->store_market_snapshot("S2", "2023-01-02", "USD", "[]");
-    storage->store_market_quote("S2", "USD.SOFR.10Y", 0.036, "USD", "{\"tenor\": \"10Y\"}");
+    storage->store_market_quote("S2", "USD.SOFR.10Y", 0.036, "USD", "{\"instrument_type\": \"OIS\", \"tenor\": \"10Y\"}");
 
     auto s1 = storage->load_market_snapshot("S1");
     EXPECT_EQ(s1.quotes.size(), 2);
@@ -100,6 +129,21 @@ TEST_F(PersistenceTest, ValuationResultsPersistence) {
     EXPECT_EQ(results[0].trade_id, "T1");
     EXPECT_NEAR(results[0].npv, 1234.56, 1e-10);
     EXPECT_EQ(results[0].status, "SUCCESS");
+}
+
+TEST_F(PersistenceTest, ScenarioAndVarResultsPersistence) {
+    storage->store_portfolio("P1", "P1", "USD");
+    storage->store_market_snapshot("S1", "2023-01-01", "USD", "[]");
+    const std::string run_id = "RUN_HVAR_1";
+    storage->store_analysis_run(run_id, "HISTORICAL_VAR", "P1", "S1");
+    storage->store_scenario_result(run_id, "RISK_OFF", -1250.0);
+    storage->store_scenario_result(run_id, "RATES_UP", 350.0);
+    storage->store_var_result(run_id, "HISTORICAL", 0.95, 1250.0, 1250.0, 2);
+
+    EXPECT_EQ(QueryDouble(db_path, "SELECT count(*) FROM scenario_results WHERE run_id = 'RUN_HVAR_1';"), 2.0);
+    EXPECT_NEAR(QueryDouble(db_path, "SELECT portfolio_pnl FROM scenario_results WHERE scenario_name = 'RISK_OFF';"), -1250.0, 1e-10);
+    EXPECT_NEAR(QueryDouble(db_path, "SELECT var_value FROM var_results WHERE run_id = 'RUN_HVAR_1';"), 1250.0, 1e-10);
+    EXPECT_NEAR(QueryDouble(db_path, "SELECT expected_shortfall FROM var_results WHERE run_id = 'RUN_HVAR_1';"), 1250.0, 1e-10);
 }
 
 } // namespace qrp::testing

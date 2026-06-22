@@ -24,7 +24,7 @@ public:
     void store_portfolio(const std::string& portfolio_id, const std::string& name, const std::string& base_ccy) override;
     void store_book(const std::string& book_id, const std::string& portfolio_id, const std::string& name) override;
     void store_trade(const std::string& trade_id, const std::string& portfolio_id, const std::string& book_id,
-                     const std::string& asset_class, const std::string& product_type, const std::string& ccy,
+                     const std::string& asset_class, const std::string& trade_type, const std::string& ccy,
                      double notional, const std::string& start_date, const std::string& maturity_date,
                      const std::string& direction, const std::string& economics_json) override;
 
@@ -62,12 +62,14 @@ public:
     domain::MarketSnapshot load_market_snapshot(const std::string& snapshot_id) override;
 
     void store_analysis_run(const std::string& run_id, const std::string& type, const std::string& portfolio_id, const std::string& snapshot_id) override;
+    void store_scenario_result(const std::string& run_id, const std::string& scenario_name, double portfolio_pnl) override;
 
     /**
      * @brief Stores the result of a single trade valuation.
      * Includes NPV, currency, and any error message if valuation failed.
      */
     void store_valuation_result(const std::string& run_id, const std::string& trade_id, double npv, const std::string& ccy, const std::string& status, const std::string& error) override;
+    void store_var_result(const std::string& run_id, const std::string& method, double confidence_level, double var_value, double expected_shortfall, int scenario_count) override;
 
     /**
      * @brief Stores a single risk measure result (e.g., PV01, Delta).
@@ -76,7 +78,7 @@ public:
     void store_risk_result(const std::string& run_id, const std::string& trade_id, const std::string& measure, const std::string& rf_id, double value) override;
 
     void store_scenario_set(const std::string& set_id, const std::string& name) override;
-    void store_scenario_quote_shock(const std::string& set_id, const std::string& scenario_name, const std::string& quote_id, double shock) override;
+    void store_scenario_factor_shock(const std::string& set_id, const std::string& scenario_name, const std::string& factor_id, double shock) override;
     std::map<std::string, std::map<std::string, double>> load_scenario_set(const std::string& set_id) override;
 
     std::vector<std::string> list_portfolios() override;

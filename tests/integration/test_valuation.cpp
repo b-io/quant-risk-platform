@@ -27,7 +27,7 @@ TEST(ValuationIntegrationTest, PriceSamplePortfolio) {
     for (const auto& res : results) {
         EXPECT_FALSE(res.trade_id.empty());
         
-        // Skip check for unsupported trade types (they return 0 NPV currently)
+        // Failed valuations are reported per trade so one bad instrument does not hide all results.
         if (res.tags.contains("status") && res.tags.at("status") == "failed") {
             continue;
         }

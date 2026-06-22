@@ -1,10 +1,10 @@
 param (
-    [string]$PortfolioId = "demo_macro_book",
-    [string]$SnapshotId = "SNAP:2024-03-24",
-    [string]$ScenarioSetId = "SC_SET_HIST_01",
     [string]$BuildDir = "build\Release-Python",
     [string]$Config = "Release",
-    [string]$LogLevel = "info"
+    [string]$LogLevel = "info",
+    [string]$PortfolioId = "demo_portfolio",
+    [string]$ScenarioSetId = "demo_factor_scenarios",
+    [string]$SnapshotId = "SNAP:2026-03-24"
 )
 
 # Helper to find executable

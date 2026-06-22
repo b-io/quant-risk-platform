@@ -3,13 +3,24 @@
 
 param(
     [string]$Preset = "Release-Python",
-    [string[]]$ExtraArgs = @()
+    [string[]]$ExtraArgs = @(),
+    [switch]$SkipEnv
 )
 
 $scriptPath = $MyInvocation.MyCommand.Path
 $projectRoot = Split-Path (Split-Path $scriptPath -Parent) -Parent
 
 Write-Host "--- Starting Build for Quant Risk Platform (Preset: $Preset) ---" -ForegroundColor Cyan
+
+if (-not $SkipEnv) {
+    $envScript = Join-Path $projectRoot "scripts\env.ps1"
+    if (Test-Path -LiteralPath $envScript) {
+        & $envScript -ProjectRoot $projectRoot -Quiet
+        if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+        }
+    }
+}
 
 # 1. Configure CMake
 Write-Host "Configuring CMake with preset..." -ForegroundColor Yellow

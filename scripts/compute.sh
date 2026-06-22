@@ -4,9 +4,9 @@
 BUILD_DIR="build/Release-Python"
 CONFIG="Release"
 LOG_LEVEL="info"
-PORTFOLIO_ID="demo_macro_book"
-SCENARIO_SET_ID="SC_SET_HIST_01"
-SNAPSHOT_ID="SNAP:2024-03-24"
+PORTFOLIO_ID="demo_portfolio"
+SCENARIO_SET_ID="demo_factor_scenarios"
+SNAPSHOT_ID="SNAP:2026-03-24"
 
 # Simple argument parsing
 while [[ "$#" -gt 0 ]]; do

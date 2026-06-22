@@ -2,6 +2,8 @@
 #include <qrp/analytics/covariance_estimator.hpp>
 #include <ql/math/matrix.hpp>
 #include <ql/math/matrixutilities/symmetricschurdecomposition.hpp>
+#include <algorithm>
+#include <stdexcept>
 #include <vector>
 
 using namespace qrp::analytics;
@@ -82,4 +84,67 @@ TEST(CovarianceTest, TestPSDRepair) {
     
     EXPECT_NEAR(std::max(ev[0], ev[1]), 3.0, 1e-7);
     EXPECT_NEAR(std::min(ev[0], ev[1]), 0.1, 1e-7);
+}
+
+TEST(CovarianceTest, EmptyFactorsReturnsEmptyMatrix) {
+    CovarianceEstimationConfig config;
+    auto cov = CovarianceEstimator::estimate_covariance({}, {}, config);
+
+    EXPECT_EQ(cov.rows(), 0U);
+    EXPECT_EQ(cov.columns(), 0U);
+}
+
+TEST(CovarianceTest, InsufficientHistoryReturnsZeroMatrix) {
+    FactorDefinition factor;
+    factor.factor_id = "F1";
+
+    std::vector<FactorObservation> history = {
+        {"F1", "2024-01-01", 1.0, 0.01, "absolute"}
+    };
+
+    CovarianceEstimationConfig config;
+    auto cov = CovarianceEstimator::estimate_covariance({factor}, history, config);
+
+    ASSERT_EQ(cov.rows(), 1U);
+    EXPECT_DOUBLE_EQ(cov[0][0], 0.0);
+}
+
+TEST(CovarianceTest, MissingSynchronizedObservationThrows) {
+    FactorDefinition f1;
+    f1.factor_id = "F1";
+    FactorDefinition f2;
+    f2.factor_id = "F2";
+
+    std::vector<FactorObservation> history = {
+        {"F1", "2024-01-01", 1.0, 0.01, "absolute"},
+        {"F2", "2024-01-01", 1.0, 0.02, "absolute"},
+        {"F1", "2024-01-02", 1.0, 0.03, "absolute"}
+    };
+
+    CovarianceEstimationConfig config;
+
+    EXPECT_THROW(
+        CovarianceEstimator::estimate_covariance({f1, f2}, history, config),
+        std::runtime_error);
+}
+
+TEST(CovarianceTest, EwmaCovarianceUsesConfiguredLambda) {
+    FactorDefinition factor;
+    factor.factor_id = "F1";
+
+    std::vector<FactorObservation> history = {
+        {"F1", "2024-01-01", 1.0, 0.01, "absolute"},
+        {"F1", "2024-01-02", 1.0, 0.03, "absolute"}
+    };
+
+    CovarianceEstimationConfig config;
+    config.demean = false;
+    config.ewma_lambda = 0.5;
+    config.return_horizon_scaled_covariance = false;
+    config.use_ewma = true;
+
+    auto cov = CovarianceEstimator::estimate_covariance({factor}, history, config);
+
+    // Recursive EWMA from zero: 0.5 * 0 + 0.5 * 0.01^2, then 0.5 * prev + 0.5 * 0.03^2.
+    EXPECT_NEAR(cov[0][0], 0.000475, 1e-12);
 }

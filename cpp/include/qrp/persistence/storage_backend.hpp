@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include <memory>
 #include <qrp/domain/portfolio.hpp>
 #include <qrp/domain/market_data.hpp>
@@ -27,7 +28,7 @@ public:
     virtual void store_portfolio(const std::string& portfolio_id, const std::string& name, const std::string& base_ccy) = 0;
     virtual void store_book(const std::string& book_id, const std::string& portfolio_id, const std::string& name) = 0;
     virtual void store_trade(const std::string& trade_id, const std::string& portfolio_id, const std::string& book_id,
-                             const std::string& asset_class, const std::string& product_type, const std::string& ccy,
+                             const std::string& asset_class, const std::string& trade_type, const std::string& ccy,
                              double notional, const std::string& start_date, const std::string& maturity_date,
                              const std::string& direction, const std::string& economics_json) = 0;
 
@@ -60,12 +61,14 @@ public:
 
     // Run persistence
     virtual void store_analysis_run(const std::string& run_id, const std::string& type, const std::string& portfolio_id, const std::string& snapshot_id) = 0;
+    virtual void store_scenario_result(const std::string& run_id, const std::string& scenario_name, double portfolio_pnl) = 0;
     virtual void store_valuation_result(const std::string& run_id, const std::string& trade_id, double npv, const std::string& ccy, const std::string& status, const std::string& error) = 0;
+    virtual void store_var_result(const std::string& run_id, const std::string& method, double confidence_level, double var_value, double expected_shortfall, int scenario_count) = 0;
     virtual void store_risk_result(const std::string& run_id, const std::string& trade_id, const std::string& measure, const std::string& rf_id, double value) = 0;
 
     // Scenarios
     virtual void store_scenario_set(const std::string& set_id, const std::string& name) = 0;
-    virtual void store_scenario_quote_shock(const std::string& set_id, const std::string& scenario_name, const std::string& quote_id, double shock) = 0;
+    virtual void store_scenario_factor_shock(const std::string& set_id, const std::string& scenario_name, const std::string& factor_id, double shock) = 0;
     virtual std::map<std::string, std::map<std::string, double>> load_scenario_set(const std::string& set_id) = 0;
 
     // Ad hoc queries

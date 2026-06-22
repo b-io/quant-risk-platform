@@ -1,7 +1,7 @@
 #include <qrp/analytics/lsmc/lsmc_engine.hpp>
 #include <algorithm>
 #include <cmath>
-#include <iostream>
+#include <limits>
 
 namespace qrp::analytics::lsmc {
 
@@ -21,41 +21,14 @@ LsmcResult LsmcEngine::run(
         process.simulatePath(time_grid, gen, market_paths[i]);
     }
 
-    // 2. Build state paths
-    // For simplicity, we assume state transitions are deterministic given market variables.
-    // In many LSMC problems, we only need the current market variables and some simple operational state.
-    // To handle general path-dependency, we would need to store the full state path.
-    // However, if we work backwards, we might need a way to reach any state at time t.
-    // For American options, state is just (price, time).
-    // For storage, it's (price, inventory, time).
-    
-    // terminal_values[path]
+    // 2. Backward induction over simulated market paths.
+    // The decision problem owns the mapping from market variables to problem-specific state features.
     std::vector<double> path_values(N);
-    std::vector<dynamic_programming::State> current_states(N);
-    
-    // To implement LSMC properly for complex assets, we often need "optimal exercise" logic.
-    // If the state transition depends on the action, we can't easily pre-simulate the state path 
-    // without knowing the policy.
-    // But LSMC typically assumes we can estimate the continuation value V(state, t) 
-    // from a sample of states at time t.
-    
-    // For now, let's implement the backward induction assuming a fixed state path (e.g. for American options).
-    // Or better, handle the state as (market_variables, operational_variables).
-    
-    // Initial approach: assume market variables are simulated, and we find the optimal policy.
-    // If action affects operational state, we have a problem with backward induction because we don't know 
-    // which operational state we will be in at time t unless we simulate forward.
-    // Solution: either discrete states for operational variables or including them in regression.
-    
-    // Let's assume for now that we can represent the value function V(market, operational, t).
     
     // Terminal value
     for (std::size_t i = 0; i < N; ++i) {
-        dynamic_programming::State final_state;
+        dynamic_programming::State final_state = initial_state;
         final_state.market_variables = market_paths[i].at(T - 1);
-        // How to get final operational state? 
-        // For American option, it doesn't matter much (either exercised or not).
-        // For storage, it depends on all previous actions.
         path_values[i] = problem.terminalValue(final_state);
     }
 
@@ -76,10 +49,8 @@ LsmcResult LsmcEngine::run(
         std::vector<std::size_t> in_the_money_indices;
         
         for (std::size_t i = 0; i < N; ++i) {
-            dynamic_programming::State s;
+            dynamic_programming::State s = initial_state;
             s.market_variables = market_paths[i].at(t);
-            // This is where it gets tricky for storage. 
-            // For now, let's assume features only depend on market variables at t.
             auto f = problem.regressionFeatures(s, t);
             features_list.push_back(f);
             in_the_money_indices.push_back(i); 
@@ -103,35 +74,27 @@ LsmcResult LsmcEngine::run(
 
             for (std::size_t j = 0; j < in_the_money_indices.size(); ++j) {
                 std::size_t i = in_the_money_indices[j];
-                dynamic_programming::State s;
+                dynamic_programming::State s = initial_state;
                 s.market_variables = market_paths[i].at(t);
                 
                 auto actions = problem.feasibleActions(s, t);
-                double best_val = -1e308;
-                double chosen_immediate = 0;
+                if (actions.empty()) {
+                    path_values[i] = Y(i);
+                    continue;
+                }
+
+                double best_val = -std::numeric_limits<double>::infinity();
                 
                 for (const auto& action : actions) {
                     double immediate = problem.immediateCashflow(s, action, t);
-                    // This is a simplification: we assume continuation value is same for all actions.
-                    // Actually, nextState depends on action.
-                    // For American Option: Exercise -> next state is "Extinguished", Continue -> next state is "Active".
-                    // V(state, t) = max(Immediate(action) + df * E[V(next_state, t+1)])
-                    
-                    // TODO: Improve this to handle next_state properly.
-                    double val = immediate + continuation_values(j); 
+                    double continuation = problem.isTerminalAction(s, action, t) ? 0.0 : continuation_values(j);
+                    double val = immediate + continuation;
                     if (val > best_val) {
                         best_val = val;
-                        chosen_immediate = immediate;
                     }
                 }
-                
-                // For American Option style:
-                double immediate_exercise = problem.immediateCashflow(s, {1, "Exercise", {}}, t);
-                if (immediate_exercise > continuation_values(j) && immediate_exercise > 0) {
-                    path_values[i] = immediate_exercise;
-                } else {
-                    path_values[i] = Y(i);
-                }
+
+                path_values[i] = best_val;
             }
         }
     }

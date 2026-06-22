@@ -1,12 +1,18 @@
 #!/bin/bash
 # test.sh - Run all platform tests
 
+set -e
+
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+PROJECT_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
+
+if [ "${QRP_SKIP_ENV:-0}" != "1" ] && [ -f "$SCRIPT_DIR/env.sh" ]; then
+    QRP_ENV_QUIET=1 QRP_PROJECT_ROOT="$PROJECT_ROOT" . "$SCRIPT_DIR/env.sh"
+fi
+
 # Default build directory and config
 BUILD_DIR="${1:-build/Release-Python}"
 CONFIG="${2:-Release}"
-
-# Exit on error
-set -e
 
 echo "Building tests (Config: $CONFIG) in $BUILD_DIR..."
 cmake --build "$BUILD_DIR" --target unit_tests integration_tests --config "$CONFIG"

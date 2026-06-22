@@ -1,6 +1,7 @@
 #include <qrp/analytics/monte_carlo_engine.hpp>
 #include <qrp/analytics/covariance_estimator.hpp>
 #include <qrp/analytics/pricing_context.hpp>
+#include <qrp/analytics/valuation_service.hpp>
 #include <qrp/instruments/instrument_factory.hpp>
 #include <qrp/market/market_snapshot.hpp>
 #include <qrp/util/logger.hpp>
@@ -142,25 +143,14 @@ SimulationResult MonteCarloEngine::run_simulation(
 
     for (const auto& trade_ptr : portfolio.trades) {
         const auto& trade = *trade_ptr;
-        double quantity = 1.0;
-        double offset_npv = 0.0;
-        
-        if (trade.type == "equity_spot") {
-            const auto& eq_trade = dynamic_cast<const domain::EquitySpotTrade&>(trade);
-            quantity = eq_trade.quantity;
-            offset_npv = -eq_trade.reference_price * quantity;
-        } else if (trade.type == "fx_forward") {
-            const auto& fx_trade = dynamic_cast<const domain::FxForwardTrade&>(trade);
-            quantity = fx_trade.notional;
-            offset_npv = -fx_trade.forward_rate * quantity;
-        }
+        const auto profile = ValuationService::pricing_profile(trade);
 
         QuantLib::Settings::instance().evaluationDate() = t0;
         try {
             auto inst = instruments::InstrumentFactory::create_instrument(trade, base_context);
             if (inst) {
-                base_instruments.push_back({trade.id, {inst, quantity, offset_npv}});
-                base_total_npv += inst->NPV() * quantity + offset_npv;
+                base_instruments.push_back({trade.id, {inst, profile.multiplier, profile.additive_npv}});
+                base_total_npv += ValuationService::price_instrument(trade, *inst);
                 result.num_trades_priced_t0++;
             } else {
                 result.num_trades_failed_t0++;
@@ -181,8 +171,8 @@ SimulationResult MonteCarloEngine::run_simulation(
             try {
                 auto h_inst = instruments::InstrumentFactory::create_instrument(trade, *horizon_context);
                 if (h_inst) {
-                    horizon_instruments.push_back({trade.id, {h_inst, quantity, offset_npv}});
-                    frozen_aged_total_npv += h_inst->NPV() * quantity + offset_npv;
+                    horizon_instruments.push_back({trade.id, {h_inst, profile.multiplier, profile.additive_npv}});
+                    frozen_aged_total_npv += ValuationService::price_instrument(trade, *h_inst);
                     result.num_trades_priced_tH++;
                 } else {
                     result.num_trades_failed_tH++;
