@@ -1,0 +1,53 @@
+{
+  "asset_class": "rates",
+  "tolerances": {
+    "pnl_explain": 1.0,
+    "risk": 1.0,
+    "stress": 1.0,
+    "valuation": 1.0
+  },
+  "trades": {
+    "bond_usd_001": {
+      "pnl_explain": {
+        "carry_pnl": 739.47,
+        "market_move_pnl": -6313.34,
+        "total_pnl": -5573.87
+      },
+      "product_type": "fixed_rate_bond",
+      "risk": {
+        "cs01": 0.0,
+        "pv01": -1264.65
+      },
+      "stress": {
+        "CROSS_ASSET_REPRICING": -67767.37,
+        "GLOBAL_RISK_OFF": 40176.55,
+        "USD_CURVE_BEAR_STEEPENER": -40367.45
+      },
+      "support_status": "supported",
+      "valuation": {
+        "npv": 4995290.38
+      }
+    },
+    "swap_usd_001": {
+      "pnl_explain": {
+        "carry_pnl": 54.77,
+        "market_move_pnl": 19930.26,
+        "total_pnl": 19985.03
+      },
+      "product_type": "vanilla_swap",
+      "risk": {
+        "cs01": 0.0,
+        "pv01": 4243.4
+      },
+      "stress": {
+        "CROSS_ASSET_REPRICING": -3492.55,
+        "GLOBAL_RISK_OFF": 2070.8,
+        "USD_CURVE_BEAR_STEEPENER": 147479.56
+      },
+      "support_status": "supported",
+      "valuation": {
+        "npv": 367512.57
+      }
+    }
+  }
+}

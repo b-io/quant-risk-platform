@@ -10,8 +10,8 @@
 namespace qrp::analytics {
 
 enum class MonteCarloMode {
-    HorizonShockOnly,
-    AgedHorizonRevaluation
+    AgedHorizonRevaluation,
+    HorizonShockOnly
 };
 
 struct MonteCarloConfig {

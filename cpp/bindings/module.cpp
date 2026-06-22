@@ -23,83 +23,136 @@ PYBIND11_MODULE(quant_risk_platform, m) {
 
     // Enums
     py::enum_<domain::Currency>(m, "Currency")
-        .value("USD", domain::Currency::USD)
+        .value("CHF", domain::Currency::CHF)
         .value("EUR", domain::Currency::EUR)
         .value("GBP", domain::Currency::GBP)
-        .value("CHF", domain::Currency::CHF)
         .value("JPY", domain::Currency::JPY)
+        .value("USD", domain::Currency::USD)
         .value("UNKNOWN", domain::Currency::UNKNOWN)
         .export_values();
 
+    py::enum_<domain::AssetClass>(m, "AssetClass")
+        .value("Commodity", domain::AssetClass::Commodity)
+        .value("Credit", domain::AssetClass::Credit)
+        .value("Equity", domain::AssetClass::Equity)
+        .value("FX", domain::AssetClass::FX)
+        .value("Inflation", domain::AssetClass::Inflation)
+        .value("Rates", domain::AssetClass::Rates)
+        .value("Unknown", domain::AssetClass::Unknown)
+        .export_values();
+
     py::enum_<domain::CurvePurpose>(m, "CurvePurpose")
+        .value("Credit", domain::CurvePurpose::Credit)
         .value("Discount", domain::CurvePurpose::Discount)
         .value("Forward", domain::CurvePurpose::Forward)
         .value("Forward3M", domain::CurvePurpose::Forward3M)
         .value("Forward6M", domain::CurvePurpose::Forward6M)
-        .value("Credit", domain::CurvePurpose::Credit)
         .value("Volatility", domain::CurvePurpose::Volatility)
         .value("UNKNOWN", domain::CurvePurpose::UNKNOWN)
         .export_values();
 
     py::enum_<domain::FactorType>(m, "FactorType")
-        .value("FXSpot", domain::FactorType::FXSpot)
-        .value("RateZero", domain::FactorType::RateZero)
-        .value("RateForward", domain::FactorType::RateForward)
-        .value("CreditSpread", domain::FactorType::CreditSpread)
-        .value("HazardRate", domain::FactorType::HazardRate)
-        .value("Volatility", domain::FactorType::Volatility)
-        .value("EquitySpot", domain::FactorType::EquitySpot)
-        .value("CommodityForward", domain::FactorType::CommodityForward)
         .value("BasisSpread", domain::FactorType::BasisSpread)
+        .value("CommodityForward", domain::FactorType::CommodityForward)
+        .value("CreditSpread", domain::FactorType::CreditSpread)
         .value("Custom", domain::FactorType::Custom)
+        .value("EquitySpot", domain::FactorType::EquitySpot)
+        .value("FXSpot", domain::FactorType::FXSpot)
+        .value("HazardRate", domain::FactorType::HazardRate)
+        .value("RateForward", domain::FactorType::RateForward)
+        .value("RateZero", domain::FactorType::RateZero)
+        .value("Volatility", domain::FactorType::Volatility)
         .export_values();
 
     py::enum_<domain::TradeType>(m, "TradeType")
-        .value("Unknown", domain::TradeType::Unknown)
-        .value("VanillaSwap", domain::TradeType::VanillaSwap)
-        .value("FixedRateBond", domain::TradeType::FixedRateBond)
         .value("EquitySpot", domain::TradeType::EquitySpot)
+        .value("FixedRateBond", domain::TradeType::FixedRateBond)
         .value("FxForward", domain::TradeType::FxForward)
+        .value("VanillaSwap", domain::TradeType::VanillaSwap)
+        .value("Unknown", domain::TradeType::Unknown)
+        .export_values();
+
+    py::enum_<domain::ProductType>(m, "ProductType")
+        .value("CallableBond", domain::ProductType::CallableBond)
+        .value("CapFloor", domain::ProductType::CapFloor)
+        .value("Cds", domain::ProductType::Cds)
+        .value("CdsOption", domain::ProductType::CdsOption)
+        .value("CommodityFuture", domain::ProductType::CommodityFuture)
+        .value("CommodityFutureOption", domain::ProductType::CommodityFutureOption)
+        .value("CommoditySwing", domain::ProductType::CommoditySwing)
+        .value("CreditBond", domain::ProductType::CreditBond)
+        .value("CrossCurrencySwap", domain::ProductType::CrossCurrencySwap)
+        .value("Deposit", domain::ProductType::Deposit)
+        .value("EquityOption", domain::ProductType::EquityOption)
+        .value("EquitySpot", domain::ProductType::EquitySpot)
+        .value("FixedRateBond", domain::ProductType::FixedRateBond)
+        .value("Fra", domain::ProductType::Fra)
+        .value("Future", domain::ProductType::Future)
+        .value("FxForward", domain::ProductType::FxForward)
+        .value("FxOption", domain::ProductType::FxOption)
+        .value("OisSwap", domain::ProductType::OisSwap)
+        .value("Swaption", domain::ProductType::Swaption)
+        .value("VanillaSwap", domain::ProductType::VanillaSwap)
+        .value("Unknown", domain::ProductType::Unknown)
+        .export_values();
+
+    py::enum_<domain::SupportStatus>(m, "SupportStatus")
+        .value("Failed", domain::SupportStatus::Failed)
+        .value("PartiallySupported", domain::SupportStatus::PartiallySupported)
+        .value("Supported", domain::SupportStatus::Supported)
+        .value("Unsupported", domain::SupportStatus::Unsupported)
         .export_values();
 
     py::enum_<analytics::MonteCarloMode>(m, "MonteCarloMode")
-        .value("HorizonShockOnly", analytics::MonteCarloMode::HorizonShockOnly)
         .value("AgedHorizonRevaluation", analytics::MonteCarloMode::AgedHorizonRevaluation)
+        .value("HorizonShockOnly", analytics::MonteCarloMode::HorizonShockOnly)
         .export_values();
 
     py::enum_<domain::QuoteInstrumentType>(m, "QuoteInstrumentType")
+        .value("Bond", domain::QuoteInstrumentType::Bond)
+        .value("CapFloorVol", domain::QuoteInstrumentType::CapFloorVol)
+        .value("CDS", domain::QuoteInstrumentType::CDS)
         .value("Deposit", domain::QuoteInstrumentType::Deposit)
-        .value("OIS", domain::QuoteInstrumentType::OIS)
-        .value("IRS", domain::QuoteInstrumentType::IRS)
         .value("FRA", domain::QuoteInstrumentType::FRA)
         .value("Future", domain::QuoteInstrumentType::Future)
-        .value("Bond", domain::QuoteInstrumentType::Bond)
-        .value("CDS", domain::QuoteInstrumentType::CDS)
-        .value("CapFloorVol", domain::QuoteInstrumentType::CapFloorVol)
+        .value("IRS", domain::QuoteInstrumentType::IRS)
+        .value("OIS", domain::QuoteInstrumentType::OIS)
         .value("SwaptionVol", domain::QuoteInstrumentType::SwaptionVol)
         .value("UNKNOWN", domain::QuoteInstrumentType::UNKNOWN)
         .export_values();
 
     py::enum_<domain::QuoteType>(m, "QuoteType")
-        .value("Deposit", domain::QuoteType::Deposit)
-        .value("OIS", domain::QuoteType::OIS)
-        .value("IRS", domain::QuoteType::IRS)
-        .value("FRA", domain::QuoteType::FRA)
-        .value("Future", domain::QuoteType::Future)
-        .value("Swap", domain::QuoteType::Swap)
         .value("BasisSwap", domain::QuoteType::BasisSwap)
         .value("BondYield", domain::QuoteType::BondYield)
         .value("CreditSpread", domain::QuoteType::CreditSpread)
+        .value("Deposit", domain::QuoteType::Deposit)
+        .value("FRA", domain::QuoteType::FRA)
+        .value("Future", domain::QuoteType::Future)
+        .value("IRS", domain::QuoteType::IRS)
+        .value("OIS", domain::QuoteType::OIS)
+        .value("Swap", domain::QuoteType::Swap)
         .value("UNKNOWN", domain::QuoteType::UNKNOWN)
         .export_values();
 
     py::enum_<domain::ShockMeasure>(m, "ShockMeasure")
         .value("Absolute", domain::ShockMeasure::Absolute)
-        .value("Relative", domain::ShockMeasure::Relative)
-        .value("LogReturn", domain::ShockMeasure::LogReturn)
         .value("BasisPoints", domain::ShockMeasure::BasisPoints)
+        .value("LogReturn", domain::ShockMeasure::LogReturn)
+        .value("Relative", domain::ShockMeasure::Relative)
         .value("VolPoints", domain::ShockMeasure::VolPoints)
         .export_values();
+
+    m.def("is_canonical_factor_id", &domain::is_canonical_factor_id);
+    m.def("make_commodity_forward_factor_id", &domain::make_commodity_forward_factor_id);
+    m.def("make_commodity_vol_factor_id", &domain::make_commodity_vol_factor_id);
+    m.def("make_credit_spread_factor_id", &domain::make_credit_spread_factor_id);
+    m.def("make_credit_vol_factor_id", &domain::make_credit_vol_factor_id);
+    m.def("make_equity_spot_factor_id", &domain::make_equity_spot_factor_id);
+    m.def("make_equity_vol_factor_id", &domain::make_equity_vol_factor_id);
+    m.def("make_fx_spot_factor_id", &domain::make_fx_spot_factor_id);
+    m.def("make_fx_vol_factor_id", &domain::make_fx_vol_factor_id);
+    m.def("make_rates_factor_id", &domain::make_rates_factor_id);
+    m.def("make_rates_vol_factor_id", &domain::make_rates_vol_factor_id);
 
     // Classes
     py::class_<analytics::CovarianceEstimationConfig>(m, "CovarianceEstimationConfig")
@@ -276,13 +329,16 @@ PYBIND11_MODULE(quant_risk_platform, m) {
     py::class_<domain::Trade, std::shared_ptr<domain::Trade>>(m, "Trade")
         .def_readwrite("id", &domain::Trade::id)
         .def_readwrite("asset_class", &domain::Trade::asset_class)
+        .def_readwrite("asset_class_type", &domain::Trade::asset_class_type)
         .def_property(
             "type",
             [](const domain::Trade& trade) { return trade.type; },
             [](domain::Trade& trade, const std::string& type) {
                 trade.trade_type = domain::parse_trade_type(type);
+                trade.product_type = domain::product_type_from_trade_type(trade.trade_type);
                 trade.type = domain::to_string(trade.trade_type);
             })
+        .def_readwrite("product_type", &domain::Trade::product_type)
         .def_readwrite("trade_type", &domain::Trade::trade_type)
         .def_readwrite("currency", &domain::Trade::currency)
         .def_readwrite("direction", &domain::Trade::direction)
@@ -325,6 +381,11 @@ PYBIND11_MODULE(quant_risk_platform, m) {
         .def_readwrite("trade_id", &analytics::ValuationResult::trade_id)
         .def_readwrite("npv", &analytics::ValuationResult::npv)
         .def_readwrite("currency", &analytics::ValuationResult::currency)
+        .def_readwrite("asset_class", &analytics::ValuationResult::asset_class)
+        .def_readwrite("product_type", &analytics::ValuationResult::product_type)
+        .def_readwrite("support_status", &analytics::ValuationResult::support_status)
+        .def_readwrite("model_name", &analytics::ValuationResult::model_name)
+        .def_readwrite("status_message", &analytics::ValuationResult::status_message)
         .def_readwrite("tags", &analytics::ValuationResult::tags);
 
     m.def("compute_risk", &analytics::RiskService::compute_risk, 

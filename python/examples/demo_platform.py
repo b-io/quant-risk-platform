@@ -69,6 +69,25 @@ SHOCK_MEASURE = {
     "VolPoints": qrp.ShockMeasure.VolPoints,
 }
 
+REQUIRED_STRESS_SCENARIOS = {
+    "CROSS_ASSET_REPRICING",
+    "EQUITY_CRASH_VOL_SPIKE",
+    "EQUITY_RALLY_VOL_CRUSH",
+    "EUR_RATES_UP_50BP",
+    "GLOBAL_RISK_OFF",
+    "GLOBAL_RISK_ON",
+    "USD_CURVE_BEAR_FLATTENER",
+    "USD_CURVE_BEAR_STEEPENER",
+    "USD_CURVE_BULL_STEEPENER",
+    "USD_LIBOR_OIS_WIDENING",
+    "USD_RATES_PARALLEL_DOWN_100BP",
+    "USD_RATES_PARALLEL_UP_100BP",
+    "USD_STRENGTH",
+    "USD_WEAKNESS",
+    "VOL_CRUSH",
+    "VOL_SPIKE",
+}
+
 
 def section(title):
     print("\n" + "=" * 72)
@@ -81,6 +100,23 @@ def assert_close(label, actual, expected, tolerance=1e-10):
         raise AssertionError(f"{label}: expected {expected:.12f}, got {actual:.12f}")
 
 
+def load_golden_expectations(path):
+    with open(path, "r", encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def load_product_family_expectations(path):
+    fixtures = []
+    for fixture_path in sorted(path.glob("*_golden.json")):
+        with open(fixture_path, "r", encoding="utf-8") as handle:
+            fixture = json.load(handle)
+        fixture["fixture_path"] = str(fixture_path)
+        fixtures.append(fixture)
+    if not fixtures:
+        raise ValueError(f"No product-family golden fixtures found in {path}")
+    return fixtures
+
+
 def quote_values(market):
     return {quote.id: quote.value for quote in market.quotes}
 
@@ -88,6 +124,8 @@ def quote_values(market):
 def build_factor(item):
     factor = qrp.FactorDefinition()
     factor.factor_id = item["factor_id"]
+    if not qrp.is_canonical_factor_id(factor.factor_id):
+        raise ValueError(f"Non-canonical factor_id: {factor.factor_id}")
     factor.factor_type = FACTOR_TYPE[item["factor_type"]]
     factor.shock_measure = SHOCK_MEASURE[item["shock_measure"]]
     factor.currency = CURRENCY[item.get("currency", "UNKNOWN")]
@@ -121,8 +159,20 @@ def load_factor_scenario_set(path):
         payload = json.load(handle)
 
     factors = [build_factor(item) for item in payload["factors"]]
+    factor_ids = {factor.factor_id for factor in factors}
     bindings = [build_binding(item) for item in payload["bindings"]]
     scenarios = [build_scenario(name, item) for name, item in payload["scenarios"].items()]
+    missing_scenarios = REQUIRED_STRESS_SCENARIOS - set(payload["scenarios"])
+    if missing_scenarios:
+        missing = ", ".join(sorted(missing_scenarios))
+        raise ValueError(f"Missing required stress scenarios: {missing}")
+    for binding in bindings:
+        if binding.factor_id not in factor_ids:
+            raise ValueError(f"Binding references undefined factor_id: {binding.factor_id}")
+    for scenario in scenarios:
+        for factor_id in scenario.factor_shocks:
+            if factor_id not in factor_ids:
+                raise ValueError(f"Scenario references undefined factor_id: {factor_id}")
     return payload, factors, bindings, scenarios
 
 
@@ -131,12 +181,14 @@ def print_portfolio_valuation(portfolio, market):
     valuation_results = qrp.price_portfolio(portfolio, market)
     total_npv = sum(result.npv for result in valuation_results)
     for result in valuation_results:
-        print(f"{result.trade_id:<28} {result.npv:>15,.2f} {result.currency}")
+        status = result.tags.get("status", "unknown")
+        product = result.tags.get("product_type", "unknown")
+        print(f"{result.trade_id:<28} {result.npv:>15,.2f} {result.currency:<3} {status:<20} {product}")
     print("-" * 52)
     print(f"{'TOTAL':<28} {total_npv:>15,.2f} USD")
     if not valuation_results:
         raise AssertionError("Expected at least one valuation result")
-    return total_npv
+    return valuation_results, total_npv
 
 
 def run_factor_resolution_checks(market, factors, bindings, scenarios):
@@ -154,7 +206,7 @@ def run_factor_resolution_checks(market, factors, bindings, scenarios):
         "USD_OIS_10Y": base["USD_OIS_10Y"] - 0.6 * 35.0 / 10000.0,
         "EURUSD": base["EURUSD"] * math.exp(scenario.factor_shocks["RF:FX:EURUSD:SPOT"]),
         "AAPL": base["AAPL"] * (1.0 + scenario.factor_shocks["RF:EQ:AAPL:SPOT"]),
-        "USD_CAP_VOL_1Y": base["USD_CAP_VOL_1Y"] + scenario.factor_shocks["RF:VOL:USD:CAP:1Y"] / 100.0,
+        "USD_CAP_VOL_1Y": base["USD_CAP_VOL_1Y"] + scenario.factor_shocks["RF:RATESVOL:USD:CAP:1Y:ATM"] / 100.0,
     }
 
     for quote_id, expected_value in expected.items():
@@ -263,7 +315,7 @@ def print_traces(traces, mode):
 
 def run_monte_carlo(portfolio, market, factors, bindings):
     section("6. Monte Carlo")
-    mc_factors = [factor for factor in factors if factor.factor_id != "RF:RATE:USD:OIS:PARALLEL"]
+    mc_factors = [factor for factor in factors if factor.factor_id != "RF:RATES:USD:OIS:PARALLEL"]
     covariance = build_covariance(mc_factors)
 
     cases = [
@@ -290,9 +342,139 @@ def run_monte_carlo(portfolio, market, factors, bindings):
             f"mean={mean_pnl:>12,.2f}"
         )
         print_traces(result.traces, mode)
-        results.append(result)
+        results.append((label, result, mean_pnl))
 
     return results
+
+
+def validate_golden_outputs(golden, valuation_results, total_npv, stress_results, risk_results, pnl_results, mc_results):
+    section("Golden Regression Checks")
+
+    valuation = golden["valuation"]
+    valuation_tolerance = valuation.get("tolerance", 1.0)
+    assert_close("valuation.total_npv", total_npv, valuation["total_npv"], valuation_tolerance)
+    valuation_by_trade = {result.trade_id: result for result in valuation_results}
+    for trade_id, expected in valuation["trades"].items():
+        actual = valuation_by_trade[trade_id]
+        assert_close(f"valuation.{trade_id}.npv", actual.npv, expected["npv"], valuation_tolerance)
+        if actual.tags.get("product_type") != expected["product_type"]:
+            raise AssertionError(f"valuation.{trade_id}.product_type drifted")
+        if actual.tags.get("status") != expected["support_status"]:
+            raise AssertionError(f"valuation.{trade_id}.support_status drifted")
+
+    stress = golden["stress"]
+    stress_tolerance = stress.get("tolerance", 1.0)
+    stress_by_name = {result.scenario_name: result for result in stress_results}
+    for scenario_name, expected in stress.items():
+        if scenario_name == "tolerance":
+            continue
+        actual = stress_by_name[scenario_name]
+        assert_close(f"stress.{scenario_name}.total_pnl", actual.total_pnl, expected["total_pnl"], stress_tolerance)
+        for trade_id, expected_pnl in expected["trade_pnls"].items():
+            assert_close(
+                f"stress.{scenario_name}.{trade_id}",
+                actual.trade_pnls[trade_id],
+                expected_pnl,
+                stress_tolerance)
+
+    risk = golden["risk"]
+    risk_tolerance = risk.get("tolerance", 1.0)
+    risk_by_trade = {result.trade_id: result for result in risk_results}
+    for trade_id, expected in risk.items():
+        if trade_id == "tolerance":
+            continue
+        actual = risk_by_trade[trade_id]
+        assert_close(f"risk.{trade_id}.pv01", actual.pv01, expected["pv01"], risk_tolerance)
+        assert_close(f"risk.{trade_id}.cs01", actual.cs01, expected["cs01"], risk_tolerance)
+
+    pnl = golden["pnl_explain"]
+    pnl_tolerance = pnl.get("tolerance", 1.0)
+    pnl_by_trade = {result.trade_id: result for result in pnl_results}
+    for trade_id, expected in pnl.items():
+        if trade_id == "tolerance":
+            continue
+        actual = pnl_by_trade[trade_id]
+        assert_close(f"pnl.{trade_id}.carry_pnl", actual.carry_pnl, expected["carry_pnl"], pnl_tolerance)
+        assert_close(f"pnl.{trade_id}.market_move_pnl", actual.market_move_pnl, expected["market_move_pnl"], pnl_tolerance)
+        assert_close(f"pnl.{trade_id}.total_pnl", actual.total_pnl, expected["total_pnl"], pnl_tolerance)
+
+    monte_carlo = golden["monte_carlo"]
+    mc_by_label = {label: (result, mean_pnl) for label, result, mean_pnl in mc_results}
+    for label, expected in monte_carlo.items():
+        actual, mean_pnl = mc_by_label[label]
+        tolerance = expected.get("tolerance", 50.0)
+        assert_close(f"mc.{label}.expected_shortfall_95", actual.expected_shortfall_95, expected["expected_shortfall_95"], tolerance)
+        assert_close(f"mc.{label}.mean_pnl", mean_pnl, expected["mean_pnl"], tolerance)
+        assert_close(f"mc.{label}.var_95", actual.var_95, expected["var_95"], tolerance)
+
+    print("Golden regression checks passed.")
+
+
+def validate_product_family_outputs(product_families, valuation_results, stress_results, risk_results, pnl_results):
+    section("Product-Family Golden Checks")
+
+    pnl_by_trade = {result.trade_id: result for result in pnl_results}
+    risk_by_trade = {result.trade_id: result for result in risk_results}
+    stress_by_name = {result.scenario_name: result for result in stress_results}
+    valuation_by_trade = {result.trade_id: result for result in valuation_results}
+
+    for family in product_families:
+        asset_class = family["asset_class"]
+        fixture_name = Path(family["fixture_path"]).name
+        tolerances = family.get("tolerances", {})
+
+        for trade_id, expected in family["trades"].items():
+            valuation_result = valuation_by_trade[trade_id]
+            risk_result = risk_by_trade[trade_id]
+            pnl_result = pnl_by_trade[trade_id]
+
+            if valuation_result.tags.get("asset_class") != asset_class:
+                raise AssertionError(f"{fixture_name}.{trade_id}.asset_class drifted")
+            if valuation_result.tags.get("product_type") != expected["product_type"]:
+                raise AssertionError(f"{fixture_name}.{trade_id}.product_type drifted")
+            if valuation_result.tags.get("status") != expected["support_status"]:
+                raise AssertionError(f"{fixture_name}.{trade_id}.support_status drifted")
+
+            assert_close(
+                f"{fixture_name}.{trade_id}.valuation.npv",
+                valuation_result.npv,
+                expected["valuation"]["npv"],
+                tolerances.get("valuation", 1.0))
+            assert_close(
+                f"{fixture_name}.{trade_id}.risk.cs01",
+                risk_result.cs01,
+                expected["risk"]["cs01"],
+                tolerances.get("risk", 1.0))
+            assert_close(
+                f"{fixture_name}.{trade_id}.risk.pv01",
+                risk_result.pv01,
+                expected["risk"]["pv01"],
+                tolerances.get("risk", 1.0))
+            assert_close(
+                f"{fixture_name}.{trade_id}.pnl.carry_pnl",
+                pnl_result.carry_pnl,
+                expected["pnl_explain"]["carry_pnl"],
+                tolerances.get("pnl_explain", 1.0))
+            assert_close(
+                f"{fixture_name}.{trade_id}.pnl.market_move_pnl",
+                pnl_result.market_move_pnl,
+                expected["pnl_explain"]["market_move_pnl"],
+                tolerances.get("pnl_explain", 1.0))
+            assert_close(
+                f"{fixture_name}.{trade_id}.pnl.total_pnl",
+                pnl_result.total_pnl,
+                expected["pnl_explain"]["total_pnl"],
+                tolerances.get("pnl_explain", 1.0))
+
+            for scenario_name, expected_pnl in expected.get("stress", {}).items():
+                stress_result = stress_by_name[scenario_name]
+                assert_close(
+                    f"{fixture_name}.{trade_id}.stress.{scenario_name}",
+                    stress_result.trade_pnls[trade_id],
+                    expected_pnl,
+                    tolerances.get("stress", 1.0))
+
+        print(f"{asset_class:<8} fixture passed: {fixture_name}")
 
 
 def run_optional_cvxpy_worker_check():
@@ -309,6 +491,10 @@ def run_optional_cvxpy_worker_check():
         spec.loader.exec_module(worker)
     except ImportError as exc:
         print(f"Skipped: CVXPY worker dependencies are not available in this Python environment ({exc}).")
+        print("Install the optional optimization dependencies with:")
+        print("  uv sync --extra optimization")
+        print("Then run the demo with the uv-managed interpreter:")
+        print("  uv run python python/examples/demo_platform.py")
         return None
 
     request = {
@@ -337,8 +523,12 @@ def run_demo():
     section("Quant Risk Platform Python Demo")
     market_path = project_root / "data" / "market" / "demo_market.json"
     portfolio_path = project_root / "data" / "portfolios" / "demo_portfolio.json"
+    golden_path = project_root / "data" / "regression" / "demo_golden.json"
+    product_family_golden_path = project_root / "data" / "regression" / "product_families"
     scenario_path = project_root / "data" / "scenarios" / "demo_scenarios.json"
 
+    golden = load_golden_expectations(golden_path)
+    product_families = load_product_family_expectations(product_family_golden_path)
     market = qrp.load_market(str(market_path))
     portfolio = qrp.load_portfolio(str(portfolio_path))
     scenario_payload, factors, bindings, scenarios = load_factor_scenario_set(scenario_path)
@@ -348,12 +538,14 @@ def run_demo():
     print(f"Scenario set:      {scenario_payload['scenario_set_id']} ({len(scenarios)} scenarios)")
     print(f"Factors/bindings:  {len(factors)} factors / {len(bindings)} bindings")
 
-    print_portfolio_valuation(portfolio, market)
+    valuation_results, total_npv = print_portfolio_valuation(portfolio, market)
     run_factor_resolution_checks(market, factors, bindings, scenarios)
-    run_stress(portfolio, market, factors, bindings, scenarios)
-    run_risk(portfolio, market, factors, bindings)
-    run_pnl_explain(portfolio, market_path)
-    run_monte_carlo(portfolio, market, factors, bindings)
+    stress_results = run_stress(portfolio, market, factors, bindings, scenarios)
+    risk_results = run_risk(portfolio, market, factors, bindings)
+    pnl_results = run_pnl_explain(portfolio, market_path)
+    mc_results = run_monte_carlo(portfolio, market, factors, bindings)
+    validate_golden_outputs(golden, valuation_results, total_npv, stress_results, risk_results, pnl_results, mc_results)
+    validate_product_family_outputs(product_families, valuation_results, stress_results, risk_results, pnl_results)
     run_optional_cvxpy_worker_check()
 
     section("Demo completed successfully")

@@ -5,8 +5,9 @@ This directory contains JSON-formatted data for testing and demonstration purpos
 #### Folder Structure
 
 - `market/`: Market snapshots (`demo_market.json`) containing quotes, yield curves, and other market state information.
-- `portfolios/`: Sample portfolios (`demo_portfolio.json`) with various financial trades like Swaps, FX Forwards, Options, etc.
-- `scenarios/`: Factor definitions, factor-to-quote bindings, and predefined factor scenarios (`demo_scenarios.json`) for stress testing and VaR analysis.
+- `portfolios/`: Sample portfolios (`demo_portfolio.json`) with swaps, bonds, FX forwards, and equity spot exposure.
+- `regression/`: Golden expected outputs used by the Python demo to detect valuation, risk, stress, P&L explain, and Monte Carlo drift. The top-level demo baseline checks end-to-end stability, while `regression/product_families/` keeps product-family fixtures for rates, FX, and equity.
+- `scenarios/`: Factor definitions, factor-to-quote bindings, and predefined factor scenarios (`demo_scenarios.json`) for stress testing and VaR analysis. The demo set covers common first-order stresses across USD/EUR rates, curve shape, basis, FX, equity, volatility, and cross-asset risk-on/risk-off regimes.
 
 #### Usage
 

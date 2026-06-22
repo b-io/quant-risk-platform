@@ -1,0 +1,30 @@
+{
+  "asset_class": "fx",
+  "tolerances": {
+    "pnl_explain": 1.0,
+    "risk": 1.0,
+    "stress": 1.0,
+    "valuation": 1.0
+  },
+  "trades": {
+    "fx_fwd_eurusd_001": {
+      "pnl_explain": {
+        "carry_pnl": 0.0,
+        "market_move_pnl": 130200.0,
+        "total_pnl": 130200.0
+      },
+      "product_type": "fx_forward",
+      "risk": {
+        "cs01": 0.0,
+        "pv01": 0.0
+      },
+      "stress": {
+        "GLOBAL_RISK_OFF": -325500.0
+      },
+      "support_status": "partially_supported",
+      "valuation": {
+        "npv": -210000.0
+      }
+    }
+  }
+}

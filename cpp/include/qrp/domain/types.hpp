@@ -6,137 +6,137 @@
 namespace qrp::domain {
 
 enum class Currency {
-    USD,
+    CHF,
     EUR,
     GBP,
-    CHF,
     JPY,
+    USD,
     UNKNOWN
 };
 
 inline std::string to_string(Currency cc) {
     switch (cc) {
-        case Currency::USD: return "USD";
+        case Currency::CHF: return "CHF";
         case Currency::EUR: return "EUR";
         case Currency::GBP: return "GBP";
-        case Currency::CHF: return "CHF";
         case Currency::JPY: return "JPY";
+        case Currency::USD: return "USD";
         default: return "UNKNOWN";
     }
 }
 
 inline Currency from_string(const std::string& s) {
-    if (s == "USD") return Currency::USD;
+    if (s == "CHF") return Currency::CHF;
     if (s == "EUR") return Currency::EUR;
     if (s == "GBP") return Currency::GBP;
-    if (s == "CHF") return Currency::CHF;
     if (s == "JPY") return Currency::JPY;
+    if (s == "USD") return Currency::USD;
     return Currency::UNKNOWN;
 }
 
 enum class DayCount {
     ACT360,
     ACT365,
-    Thirty360,
-    ACTACT,
     ACT365F,
-    ACTACT_ISDA,
-    ACTACT_ISMA,
+    ACTACT,
     ACTACT_AFB,
     ACTACT_EURO,
+    ACTACT_ISDA,
+    ACTACT_ISMA,
+    Thirty360,
     UNKNOWN
 };
 
 enum class BusinessCalendar {
-    Target,
-    US,
-    UK,
     CHF,
     JP,
+    Target,
+    UK,
+    US,
     WeekendsOnly,
     UNKNOWN
 };
 
 enum class CurvePurpose {
+    Credit,
     Discount,
     Forward,
     Forward3M,
     Forward6M,
-    Credit,
     Volatility,
     UNKNOWN
 };
 
 enum class QuoteInstrumentType {
+    Bond,
+    CapFloorVol,
+    CDS,
     Deposit,
-    OIS,
-    IRS,
     FRA,
     Future,
-    Bond,
-    CDS,
-    CapFloorVol,
+    IRS,
+    OIS,
     SwaptionVol,
     UNKNOWN
 };
 
 enum class InterpolationType {
     CubicSpline,
-    LogLinear,
     Linear,
+    LogLinear,
     UNKNOWN
 };
 
 enum class BusinessDayConvention {
     Following,
-    ModifiedFollowing,
-    Preceding,
-    ModifiedPreceding,
-    Unadjusted,
     HalfMonthModifiedFollowing,
+    ModifiedFollowing,
+    ModifiedPreceding,
     Nearest,
+    Preceding,
+    Unadjusted,
     UNKNOWN
 };
 
 enum class Frequency {
-    Once,
     Annual,
-    Semiannual,
-    EveryFourthMonth,
-    Quarterly,
     Bimonthly,
-    Monthly,
-    EveryFourthWeek,
     Biweekly,
-    Weekly,
     Daily,
+    EveryFourthMonth,
+    EveryFourthWeek,
+    Monthly,
+    Once,
     OtherFrequency,
+    Quarterly,
+    Semiannual,
+    Weekly,
     UNKNOWN
 };
 
 enum class DateGeneration {
     Backward,
+    CDS,
+    CDS2015,
     Forward,
-    Zero,
+    OldCDS,
     ThirdWednesday,
     Twentieth,
     TwentiethIMM,
-    OldCDS,
-    CDS,
-    CDS2015,
+    Zero,
     UNKNOWN
 };
 
 enum class QuoteType {
-    Deposit,
-    OIS,
-    IRS,
-    FRA,
-    Future,
-    Swap,
     BasisSwap,
     BondYield,
     CreditSpread,
+    Deposit,
+    FRA,
+    Future,
+    IRS,
+    OIS,
+    Swap,
     UNKNOWN
 };
 

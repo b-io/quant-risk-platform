@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
+#include <qrp/app/quant_risk_platform.hpp>
 #include <qrp/persistence/sqlite_storage_backend.hpp>
 #include <filesystem>
+#include <fstream>
 #include <stdexcept>
 #include <sqlite3.h>
 
@@ -32,13 +34,38 @@ double QueryDouble(const std::string& db_path, const std::string& sql) {
     return value;
 }
 
+std::string QueryString(const std::string& db_path, const std::string& sql) {
+    sqlite3* db = nullptr;
+    if (sqlite3_open(db_path.c_str(), &db) != SQLITE_OK) {
+        throw std::runtime_error("Failed to open test database");
+    }
+
+    sqlite3_stmt* stmt = nullptr;
+    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+        sqlite3_close(db);
+        throw std::runtime_error("Failed to prepare test query");
+    }
+
+    if (sqlite3_step(stmt) != SQLITE_ROW) {
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        throw std::runtime_error("Test query returned no rows");
+    }
+
+    const char* text = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+    std::string value = text ? text : "";
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    return value;
+}
+
 } // namespace
 
 class PersistenceTest : public ::testing::Test {
 protected:
     void SetUp() override {
         db_path = "test_qrp.db";
-        storage = std::make_unique<persistence::SQLiteStorageBackend>(db_path);
+        storage = std::make_shared<persistence::SQLiteStorageBackend>(db_path);
         storage->initialize_schema();
     }
 
@@ -53,7 +80,7 @@ protected:
     }
 
     std::string db_path;
-    std::unique_ptr<persistence::SQLiteStorageBackend> storage;
+    std::shared_ptr<persistence::SQLiteStorageBackend> storage;
 };
 
 TEST_F(PersistenceTest, PortfolioIdempotency) {
@@ -122,13 +149,35 @@ TEST_F(PersistenceTest, ValuationResultsPersistence) {
     storage->store_market_snapshot("S1", "2023-01-01", "USD", "[]");
     std::string run_id = "RUN1";
     storage->store_analysis_run(run_id, "VALUATION", "P1", "S1");
-    storage->store_valuation_result(run_id, "T1", 1234.56, "USD", "SUCCESS", "");
+    storage->store_valuation_result(
+        run_id,
+        "T1",
+        1234.56,
+        "USD",
+        "SUCCESS",
+        "",
+        "rates",
+        "vanilla_swap",
+        "supported",
+        "QuantLib::VanillaSwap/DiscountingSwapEngine",
+        "Vanilla fixed-float swap pricing is supported for configured rates curves");
 
     auto results = storage->get_valuation_results(run_id);
     EXPECT_EQ(results.size(), 1);
     EXPECT_EQ(results[0].trade_id, "T1");
     EXPECT_NEAR(results[0].npv, 1234.56, 1e-10);
     EXPECT_EQ(results[0].status, "SUCCESS");
+    EXPECT_EQ(results[0].asset_class, "rates");
+    EXPECT_EQ(results[0].product_type, "vanilla_swap");
+    EXPECT_EQ(results[0].support_status, "supported");
+    EXPECT_EQ(results[0].model_name, "QuantLib::VanillaSwap/DiscountingSwapEngine");
+    EXPECT_FALSE(results[0].status_message.empty());
+    EXPECT_EQ(
+        QueryString(db_path, "SELECT support_status FROM valuation_results WHERE run_id = 'RUN1' AND trade_id = 'T1';"),
+        "supported");
+    EXPECT_EQ(
+        QueryString(db_path, "SELECT model_name FROM valuation_results WHERE run_id = 'RUN1' AND trade_id = 'T1';"),
+        "QuantLib::VanillaSwap/DiscountingSwapEngine");
 }
 
 TEST_F(PersistenceTest, ScenarioAndVarResultsPersistence) {
@@ -144,6 +193,60 @@ TEST_F(PersistenceTest, ScenarioAndVarResultsPersistence) {
     EXPECT_NEAR(QueryDouble(db_path, "SELECT portfolio_pnl FROM scenario_results WHERE scenario_name = 'RISK_OFF';"), -1250.0, 1e-10);
     EXPECT_NEAR(QueryDouble(db_path, "SELECT var_value FROM var_results WHERE run_id = 'RUN_HVAR_1';"), 1250.0, 1e-10);
     EXPECT_NEAR(QueryDouble(db_path, "SELECT expected_shortfall FROM var_results WHERE run_id = 'RUN_HVAR_1';"), 1250.0, 1e-10);
+}
+
+TEST_F(PersistenceTest, ScenarioImportRejectsNonCanonicalFactorIds) {
+    const std::string scenario_path = "bad_factor_scenario.json";
+    std::ofstream out(scenario_path);
+    out << R"json(
+        {
+          "scenario_set_id": "bad_factor_set",
+          "factors": [
+            {
+              "factor_id": "RF:RATE:USD:OIS:5Y",
+              "factor_type": "RateZero",
+              "shock_measure": "Absolute"
+            }
+          ],
+          "bindings": [],
+          "scenarios": {}
+        }
+    )json";
+    out.close();
+
+    app::QuantRiskPlatform platform(storage);
+    EXPECT_THROW(platform.import_scenario_set(scenario_path), std::invalid_argument);
+    std::filesystem::remove(scenario_path);
+}
+
+TEST_F(PersistenceTest, ScenarioImportRejectsUndefinedBindingFactorIds) {
+    const std::string scenario_path = "bad_binding_scenario.json";
+    std::ofstream out(scenario_path);
+    out << R"json(
+        {
+          "scenario_set_id": "bad_binding_set",
+          "factors": [
+            {
+              "factor_id": "RF:EQ:AAPL:SPOT",
+              "factor_type": "EquitySpot",
+              "shock_measure": "Relative"
+            }
+          ],
+          "bindings": [
+            {
+              "factor_id": "RF:EQ:MSFT:SPOT",
+              "quote_id": "MSFT",
+              "shock_measure": "Relative"
+            }
+          ],
+          "scenarios": {}
+        }
+    )json";
+    out.close();
+
+    app::QuantRiskPlatform platform(storage);
+    EXPECT_THROW(platform.import_scenario_set(scenario_path), std::invalid_argument);
+    std::filesystem::remove(scenario_path);
 }
 
 } // namespace qrp::testing

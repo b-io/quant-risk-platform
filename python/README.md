@@ -22,4 +22,10 @@ The platform's core logic is implemented in C++ and exposed to Python using Pybi
    python python\examples\demo_platform.py
    ```
    The optional CVXPY worker section is skipped automatically if CVXPY is not installed in the Python environment used to run the script.
+   Prefer installing optional solver dependencies with `uv` so they stay isolated from your system Python:
+   ```powershell
+   powershell -ExecutionPolicy ByPass -c {$env:UV_INSTALL_DIR = "D:\BIN"; irm https://astral.sh/uv/install.ps1 | iex}
+   uv sync --extra optimization
+   uv run python python\examples\demo_platform.py
+   ```
 3. Or launch a notebook to explore the API interactively.

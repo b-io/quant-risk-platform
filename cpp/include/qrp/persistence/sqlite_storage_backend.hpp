@@ -68,7 +68,18 @@ public:
      * @brief Stores the result of a single trade valuation.
      * Includes NPV, currency, and any error message if valuation failed.
      */
-    void store_valuation_result(const std::string& run_id, const std::string& trade_id, double npv, const std::string& ccy, const std::string& status, const std::string& error) override;
+    void store_valuation_result(
+        const std::string& run_id,
+        const std::string& trade_id,
+        double npv,
+        const std::string& ccy,
+        const std::string& status,
+        const std::string& error,
+        const std::string& asset_class,
+        const std::string& product_type,
+        const std::string& support_status,
+        const std::string& model_name,
+        const std::string& status_message) override;
     void store_var_result(const std::string& run_id, const std::string& method, double confidence_level, double var_value, double expected_shortfall, int scenario_count) override;
 
     /**

@@ -16,11 +16,11 @@ class RiskModel; // Forward declaration
  * @brief Status of the optimization solver.
  */
 enum class SolverStatus {
-    Solved,
-    Infeasible,
-    Unbounded,
-    LimitReached, // Iteration or time limit
     Error,
+    Infeasible,
+    LimitReached, // Iteration or time limit
+    Solved,
+    Unbounded,
     Unknown
 };
 

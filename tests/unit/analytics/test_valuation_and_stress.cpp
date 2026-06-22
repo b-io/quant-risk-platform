@@ -48,8 +48,53 @@ TEST(ValuationServiceTest, ReportsFailedInstrumentConstruction) {
     ASSERT_EQ(results.size(), 1);
     EXPECT_EQ(results[0].trade_id, "unsupported_trade");
     EXPECT_EQ(results[0].npv, 0.0);
-    EXPECT_EQ(results[0].tags.at("status"), "failed");
+    EXPECT_EQ(results[0].support_status, qrp::domain::SupportStatus::Unsupported);
+    EXPECT_EQ(results[0].product_type, qrp::domain::ProductType::Unknown);
+    EXPECT_EQ(results[0].tags.at("status"), "unsupported");
     EXPECT_EQ(results[0].tags.at("error"), "Instrument construction failed");
+}
+
+TEST(ValuationServiceTest, ReportsProductSupportMetadataForPricedTrades) {
+    qrp::domain::Portfolio portfolio;
+    portfolio.portfolio_id = "P1";
+    portfolio.trades.push_back(make_equity_trade());
+
+    qrp::domain::MarketSnapshot market_dto;
+    market_dto.valuation_date = "2026-03-24";
+    market_dto.quotes.push_back({"AAPL", qrp::domain::QuoteInstrumentType::Future, qrp::domain::Currency::USD, "SPOT", 110.0});
+
+    qrp::market::MarketSnapshot market(market_dto);
+    qrp::analytics::PricingContext context(market.built_state());
+
+    auto results = qrp::analytics::ValuationService::price_portfolio(portfolio, context);
+
+    ASSERT_EQ(results.size(), 1);
+    EXPECT_EQ(results[0].asset_class, qrp::domain::AssetClass::Equity);
+    EXPECT_EQ(results[0].product_type, qrp::domain::ProductType::EquitySpot);
+    EXPECT_EQ(results[0].support_status, qrp::domain::SupportStatus::PartiallySupported);
+    EXPECT_EQ(results[0].tags.at("product_type"), "equity_spot");
+    EXPECT_EQ(results[0].tags.at("status"), "partially_supported");
+    EXPECT_NE(results[0].model_name.find("QuantLib::Stock"), std::string::npos);
+}
+
+TEST(ValuationServiceTest, DeclaresSupportProfileForEveryProductType) {
+    for (const auto product_type : qrp::domain::all_product_types()) {
+        qrp::domain::Trade trade;
+        trade.id = qrp::domain::to_string(product_type);
+        trade.product_type = product_type;
+
+        const auto support = qrp::analytics::ValuationService::support_profile(trade);
+
+        EXPECT_EQ(support.product_type, product_type);
+        EXPECT_NE(support.status, qrp::domain::SupportStatus::Failed);
+        EXPECT_FALSE(support.model_name.empty());
+        EXPECT_FALSE(support.reason.empty());
+        if (product_type == qrp::domain::ProductType::Unknown) {
+            EXPECT_EQ(support.asset_class, qrp::domain::AssetClass::Unknown);
+        } else {
+            EXPECT_NE(support.asset_class, qrp::domain::AssetClass::Unknown);
+        }
+    }
 }
 
 TEST(StressEngineTest, UsesAdjustedTradeNpvForEquitySpot) {

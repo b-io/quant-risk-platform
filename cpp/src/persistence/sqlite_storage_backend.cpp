@@ -1,3 +1,4 @@
+#include <qrp/domain/factors.hpp>
 #include <qrp/persistence/sqlite_storage_backend.hpp>
 #include <fmt/format.h>
 #include <iostream>
@@ -121,6 +122,11 @@ void SQLiteStorageBackend::initialize_schema() {
             npv_base REAL,
             valuation_ccy TEXT,
             status TEXT,
+            asset_class TEXT,
+            product_type TEXT,
+            support_status TEXT,
+            model_name TEXT,
+            status_message TEXT,
             error_message TEXT,
             PRIMARY KEY(run_id, trade_id),
             FOREIGN KEY(run_id) REFERENCES analysis_runs(run_id)
@@ -314,14 +320,15 @@ domain::MarketSnapshot SQLiteStorageBackend::load_market_snapshot_asof(
         const char* inst_type_ptr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
         if (inst_type_ptr) {
             std::string s(inst_type_ptr);
-            // Rough mapping or just store as string
-            if (s == "Deposit") q.instrument_type = domain::QuoteInstrumentType::Deposit;
-            else if (s == "OIS") q.instrument_type = domain::QuoteInstrumentType::OIS;
-            else if (s == "IRS") q.instrument_type = domain::QuoteInstrumentType::IRS;
+            if (s == "Bond") q.instrument_type = domain::QuoteInstrumentType::Bond;
+            else if (s == "CapFloorVol") q.instrument_type = domain::QuoteInstrumentType::CapFloorVol;
+            else if (s == "CDS") q.instrument_type = domain::QuoteInstrumentType::CDS;
+            else if (s == "Deposit") q.instrument_type = domain::QuoteInstrumentType::Deposit;
             else if (s == "FRA") q.instrument_type = domain::QuoteInstrumentType::FRA;
             else if (s == "Future") q.instrument_type = domain::QuoteInstrumentType::Future;
-            else if (s == "Bond") q.instrument_type = domain::QuoteInstrumentType::Bond;
-            else if (s == "CDS") q.instrument_type = domain::QuoteInstrumentType::CDS;
+            else if (s == "IRS") q.instrument_type = domain::QuoteInstrumentType::IRS;
+            else if (s == "OIS") q.instrument_type = domain::QuoteInstrumentType::OIS;
+            else if (s == "SwaptionVol") q.instrument_type = domain::QuoteInstrumentType::SwaptionVol;
         }
         
         const char* meta = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
@@ -349,30 +356,10 @@ void SQLiteStorageBackend::store_factor_definition(const domain::FactorDefinitio
         throw std::runtime_error(fmt::format("Failed to prepare statement: {}", sqlite3_errmsg(db_)));
     }
     sqlite3_bind_text(stmt, 1, factor.factor_id.c_str(), -1, SQLITE_TRANSIENT);
-    // FactorType mapping (simplistic string conversion for storage)
-    std::string type_str = "Custom";
-    switch(factor.factor_type) {
-        case domain::FactorType::FXSpot: type_str = "FXSpot"; break;
-        case domain::FactorType::RateZero: type_str = "RateZero"; break;
-        case domain::FactorType::RateForward: type_str = "RateForward"; break;
-        case domain::FactorType::CreditSpread: type_str = "CreditSpread"; break;
-        case domain::FactorType::HazardRate: type_str = "HazardRate"; break;
-        case domain::FactorType::Volatility: type_str = "Volatility"; break;
-        case domain::FactorType::EquitySpot: type_str = "EquitySpot"; break;
-        case domain::FactorType::CommodityForward: type_str = "CommodityForward"; break;
-        case domain::FactorType::BasisSpread: type_str = "BasisSpread"; break;
-        default: break;
-    }
+    const std::string type_str = domain::to_string(factor.factor_type);
     sqlite3_bind_text(stmt, 2, type_str.c_str(), -1, SQLITE_TRANSIENT);
     
-    std::string measure_str = "Absolute";
-    switch(factor.shock_measure) {
-        case domain::ShockMeasure::Relative: measure_str = "Relative"; break;
-        case domain::ShockMeasure::LogReturn: measure_str = "LogReturn"; break;
-        case domain::ShockMeasure::BasisPoints: measure_str = "BasisPoints"; break;
-        case domain::ShockMeasure::VolPoints: measure_str = "VolPoints"; break;
-        default: break;
-    }
+    const std::string measure_str = domain::to_string(factor.shock_measure);
     sqlite3_bind_text(stmt, 3, measure_str.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 4, domain::to_string(factor.currency).c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 5, factor.curve_id.c_str(), -1, SQLITE_TRANSIENT);
@@ -420,21 +407,10 @@ std::vector<domain::FactorDefinition> SQLiteStorageBackend::load_factor_definiti
         domain::FactorDefinition f;
         f.factor_id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
         std::string type_s = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-        if (type_s == "FXSpot") f.factor_type = domain::FactorType::FXSpot;
-        else if (type_s == "RateZero") f.factor_type = domain::FactorType::RateZero;
-        else if (type_s == "RateForward") f.factor_type = domain::FactorType::RateForward;
-        else if (type_s == "CreditSpread") f.factor_type = domain::FactorType::CreditSpread;
-        else if (type_s == "HazardRate") f.factor_type = domain::FactorType::HazardRate;
-        else if (type_s == "Volatility") f.factor_type = domain::FactorType::Volatility;
-        else if (type_s == "EquitySpot") f.factor_type = domain::FactorType::EquitySpot;
-        else if (type_s == "CommodityForward") f.factor_type = domain::FactorType::CommodityForward;
-        else if (type_s == "BasisSpread") f.factor_type = domain::FactorType::BasisSpread;
+        f.factor_type = domain::parse_factor_type(type_s);
         
         std::string measure_s = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
-        if (measure_s == "Relative") f.shock_measure = domain::ShockMeasure::Relative;
-        else if (measure_s == "LogReturn") f.shock_measure = domain::ShockMeasure::LogReturn;
-        else if (measure_s == "BasisPoints") f.shock_measure = domain::ShockMeasure::BasisPoints;
-        else if (measure_s == "VolPoints") f.shock_measure = domain::ShockMeasure::VolPoints;
+        f.shock_measure = domain::parse_shock_measure(measure_s);
         
         f.currency = domain::from_string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3)));
         f.curve_id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
@@ -494,14 +470,7 @@ void SQLiteStorageBackend::store_factor_binding(const domain::FactorBinding& bin
     sqlite3_bind_text(stmt, 1, binding.factor_id.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 2, binding.quote_id.c_str(), -1, SQLITE_TRANSIENT);
     
-    std::string measure_str = "Absolute";
-    switch(binding.shock_measure) {
-        case domain::ShockMeasure::Relative: measure_str = "Relative"; break;
-        case domain::ShockMeasure::LogReturn: measure_str = "LogReturn"; break;
-        case domain::ShockMeasure::BasisPoints: measure_str = "BasisPoints"; break;
-        case domain::ShockMeasure::VolPoints: measure_str = "VolPoints"; break;
-        default: break;
-    }
+    const std::string measure_str = domain::to_string(binding.shock_measure);
     sqlite3_bind_text(stmt, 3, measure_str.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_double(stmt, 4, binding.weight);
     sqlite3_bind_text(stmt, 5, binding.transform.c_str(), -1, SQLITE_TRANSIENT);
@@ -538,11 +507,7 @@ std::vector<domain::FactorBinding> SQLiteStorageBackend::load_factor_bindings(co
         b.quote_id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
         
         std::string measure_s = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
-        if (measure_s == "Relative") b.shock_measure = domain::ShockMeasure::Relative;
-        else if (measure_s == "LogReturn") b.shock_measure = domain::ShockMeasure::LogReturn;
-        else if (measure_s == "BasisPoints") b.shock_measure = domain::ShockMeasure::BasisPoints;
-        else if (measure_s == "VolPoints") b.shock_measure = domain::ShockMeasure::VolPoints;
-        else b.shock_measure = domain::ShockMeasure::Absolute;
+        b.shock_measure = domain::parse_shock_measure(measure_s);
 
         b.weight = sqlite3_column_double(stmt, 3);
         const char* trans = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
@@ -792,8 +757,34 @@ void SQLiteStorageBackend::store_analysis_run(const std::string& run_id, const s
     sqlite3_finalize(stmt);
 }
 
-void SQLiteStorageBackend::store_valuation_result(const std::string& run_id, const std::string& trade_id, double npv, const std::string& ccy, const std::string& status, const std::string& error) {
-    const char* sql = "INSERT OR REPLACE INTO valuation_results (run_id, trade_id, npv_base, valuation_ccy, status, error_message) VALUES (?, ?, ?, ?, ?, ?);";
+void SQLiteStorageBackend::store_valuation_result(
+    const std::string& run_id,
+    const std::string& trade_id,
+    double npv,
+    const std::string& ccy,
+    const std::string& status,
+    const std::string& error,
+    const std::string& asset_class,
+    const std::string& product_type,
+    const std::string& support_status,
+    const std::string& model_name,
+    const std::string& status_message) {
+    const char* sql = R"(
+        INSERT OR REPLACE INTO valuation_results (
+            run_id,
+            trade_id,
+            npv_base,
+            valuation_ccy,
+            status,
+            asset_class,
+            product_type,
+            support_status,
+            model_name,
+            status_message,
+            error_message
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    )";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) {
         throw std::runtime_error(fmt::format("Failed to prepare statement: {}", sqlite3_errmsg(db_)));
@@ -803,7 +794,12 @@ void SQLiteStorageBackend::store_valuation_result(const std::string& run_id, con
     sqlite3_bind_double(stmt, 3, npv);
     sqlite3_bind_text(stmt, 4, ccy.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 5, status.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 6, error.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 6, asset_class.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 7, product_type.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 8, support_status.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 9, model_name.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 10, status_message.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 11, error.c_str(), -1, SQLITE_TRANSIENT);
     
     if (sqlite3_step(stmt) != SQLITE_DONE) {
         sqlite3_finalize(stmt);
@@ -956,7 +952,22 @@ std::vector<std::string> SQLiteStorageBackend::list_runs(const std::string& port
 
 std::vector<StorageBackend::ValuationRecord> SQLiteStorageBackend::get_valuation_results(const std::string& run_id) {
     std::vector<ValuationRecord> results;
-    const char* sql = "SELECT run_id, trade_id, npv_base, valuation_ccy, status FROM valuation_results WHERE run_id = ?;";
+    const char* sql = R"(
+        SELECT
+            run_id,
+            trade_id,
+            npv_base,
+            valuation_ccy,
+            status,
+            asset_class,
+            product_type,
+            support_status,
+            model_name,
+            status_message,
+            error_message
+        FROM valuation_results
+        WHERE run_id = ?;
+    )";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) {
          throw std::runtime_error(fmt::format("Failed to prepare statement: {}", sqlite3_errmsg(db_)));
@@ -970,6 +981,13 @@ std::vector<StorageBackend::ValuationRecord> SQLiteStorageBackend::get_valuation
         r.npv = sqlite3_column_double(stmt, 2);
         r.ccy = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
         r.status = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
+        r.asset_class = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
+        r.product_type = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6));
+        r.support_status = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7));
+        r.model_name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 8));
+        r.status_message = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 9));
+        const char* error_message = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 10));
+        if (error_message) r.error_message = error_message;
         results.push_back(r);
     }
     sqlite3_finalize(stmt);

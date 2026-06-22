@@ -62,7 +62,18 @@ public:
     // Run persistence
     virtual void store_analysis_run(const std::string& run_id, const std::string& type, const std::string& portfolio_id, const std::string& snapshot_id) = 0;
     virtual void store_scenario_result(const std::string& run_id, const std::string& scenario_name, double portfolio_pnl) = 0;
-    virtual void store_valuation_result(const std::string& run_id, const std::string& trade_id, double npv, const std::string& ccy, const std::string& status, const std::string& error) = 0;
+    virtual void store_valuation_result(
+        const std::string& run_id,
+        const std::string& trade_id,
+        double npv,
+        const std::string& ccy,
+        const std::string& status,
+        const std::string& error,
+        const std::string& asset_class,
+        const std::string& product_type,
+        const std::string& support_status,
+        const std::string& model_name,
+        const std::string& status_message) = 0;
     virtual void store_var_result(const std::string& run_id, const std::string& method, double confidence_level, double var_value, double expected_shortfall, int scenario_count) = 0;
     virtual void store_risk_result(const std::string& run_id, const std::string& trade_id, const std::string& measure, const std::string& rf_id, double value) = 0;
 
@@ -85,6 +96,12 @@ public:
         double npv;
         std::string ccy;
         std::string status;
+        std::string asset_class;
+        std::string product_type;
+        std::string support_status;
+        std::string model_name;
+        std::string status_message;
+        std::string error_message;
     };
 
     /**

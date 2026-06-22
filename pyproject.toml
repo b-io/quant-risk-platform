@@ -16,5 +16,11 @@ dependencies = [
     "nlohmann-json",
 ]
 
+[project.optional-dependencies]
+optimization = [
+    "cvxpy",
+    "osqp",
+]
+
 [tool.setuptools]
 packages = [] # The module is built via CMake, not standard setuptools discovery

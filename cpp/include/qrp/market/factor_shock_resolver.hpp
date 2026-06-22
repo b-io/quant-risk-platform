@@ -75,15 +75,15 @@ public:
                     case domain::ShockMeasure::Absolute:
                         increment = shock;
                         break;
-                    case domain::ShockMeasure::Relative:
-                        increment = q * shock;
+                    case domain::ShockMeasure::BasisPoints:
+                        increment = shock / 10000.0;
                         break;
                     case domain::ShockMeasure::LogReturn:
                         // q_new = q * exp(s) => increment = q * (exp(s) - 1)
                         increment = q * (std::exp(shock) - 1.0);
                         break;
-                    case domain::ShockMeasure::BasisPoints:
-                        increment = shock / 10000.0;
+                    case domain::ShockMeasure::Relative:
+                        increment = q * shock;
                         break;
                     case domain::ShockMeasure::VolPoints:
                         increment = shock / 100.0;

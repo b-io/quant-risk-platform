@@ -19,18 +19,18 @@ TEST(ScenarioEngineTest, TestFactorBindingApplication) {
     base.quotes.push_back(q1);
 
     domain::FactorDefinition f1;
-    f1.factor_id = "RF:RATE:USD:5Y";
+    f1.factor_id = domain::make_rates_factor_id(domain::Currency::USD, "OIS", "5Y");
     f1.factor_type = domain::FactorType::RateZero;
     f1.shock_measure = domain::ShockMeasure::Absolute;
 
     domain::FactorBinding b1;
-    b1.factor_id = "RF:RATE:USD:5Y";
+    b1.factor_id = f1.factor_id;
     b1.quote_id = "USD_OIS_5Y";
     b1.weight = 1.0;
     b1.shock_measure = domain::ShockMeasure::Absolute;
 
     ScenarioDefinition scenario;
-    scenario.factor_shocks["RF:RATE:USD:5Y"] = 0.0001;
+    scenario.factor_shocks[f1.factor_id] = 0.0001;
 
     MarketSnapshot snapshot(base);
     auto state = snapshot.built_state();
@@ -49,7 +49,7 @@ TEST(ScenarioEngineTest, ThrowsWhenScenarioFactorIsUndefined) {
     base.quotes.push_back(q1);
 
     ScenarioDefinition scenario;
-    scenario.factor_shocks["RF:RATE:USD:5Y"] = 0.0001;
+    scenario.factor_shocks[domain::make_rates_factor_id(domain::Currency::USD, "OIS", "5Y")] = 0.0001;
 
     MarketSnapshot snapshot(base);
     auto state = snapshot.built_state();
@@ -69,15 +69,15 @@ TEST(ScenarioEngineTest, ThrowsWhenBindingTargetsMissingQuote) {
     base.quotes.push_back(q1);
 
     domain::FactorDefinition f1;
-    f1.factor_id = "RF:RATE:USD:5Y";
+    f1.factor_id = domain::make_rates_factor_id(domain::Currency::USD, "OIS", "5Y");
     f1.factor_type = domain::FactorType::RateZero;
 
     domain::FactorBinding b1;
-    b1.factor_id = "RF:RATE:USD:5Y";
+    b1.factor_id = f1.factor_id;
     b1.quote_id = "USD_OIS_10Y";
 
     ScenarioDefinition scenario;
-    scenario.factor_shocks["RF:RATE:USD:5Y"] = 0.0001;
+    scenario.factor_shocks[f1.factor_id] = 0.0001;
 
     MarketSnapshot snapshot(base);
     auto state = snapshot.built_state();

@@ -1,0 +1,111 @@
+{
+  "monte_carlo": {
+    "AgedHorizonRevaluation": {
+      "expected_shortfall_95": 835550.59,
+      "mean_pnl": -2388.89,
+      "tolerance": 50.0,
+      "var_95": 618695.59
+    },
+    "HorizonShockOnly": {
+      "expected_shortfall_95": 274604.96,
+      "mean_pnl": -6777.14,
+      "tolerance": 50.0,
+      "var_95": 203220.57
+    }
+  },
+  "pnl_explain": {
+    "bond_usd_001": {
+      "carry_pnl": 739.47,
+      "market_move_pnl": -6313.34,
+      "total_pnl": -5573.87
+    },
+    "equity_spot_aapl_001": {
+      "carry_pnl": 0.0,
+      "market_move_pnl": -9275.0,
+      "total_pnl": -9275.0
+    },
+    "fx_fwd_eurusd_001": {
+      "carry_pnl": 0.0,
+      "market_move_pnl": 130200.0,
+      "total_pnl": 130200.0
+    },
+    "swap_usd_001": {
+      "carry_pnl": 54.77,
+      "market_move_pnl": 19930.26,
+      "total_pnl": 19985.03
+    },
+    "tolerance": 1.0
+  },
+  "risk": {
+    "bond_usd_001": {
+      "cs01": 0.0,
+      "pv01": -1264.65
+    },
+    "equity_spot_aapl_001": {
+      "cs01": 0.0,
+      "pv01": 0.0
+    },
+    "fx_fwd_eurusd_001": {
+      "cs01": 0.0,
+      "pv01": 0.0
+    },
+    "swap_usd_001": {
+      "cs01": 0.0,
+      "pv01": 4243.4
+    },
+    "tolerance": 1.0
+  },
+  "stress": {
+    "CROSS_ASSET_REPRICING": {
+      "total_pnl": -99084.91,
+      "trade_pnls": {
+        "bond_usd_001": -67767.37,
+        "equity_spot_aapl_001": -27825.0,
+        "swap_usd_001": -3492.55
+      }
+    },
+    "GLOBAL_RISK_OFF": {
+      "total_pnl": -357452.65,
+      "trade_pnls": {
+        "bond_usd_001": 40176.55,
+        "equity_spot_aapl_001": -74200.0,
+        "fx_fwd_eurusd_001": -325500.0,
+        "swap_usd_001": 2070.8
+      }
+    },
+    "USD_CURVE_BEAR_STEEPENER": {
+      "total_pnl": 107112.11,
+      "trade_pnls": {
+        "bond_usd_001": -40367.45,
+        "swap_usd_001": 147479.56
+      }
+    },
+    "tolerance": 1.0
+  },
+  "valuation": {
+    "total_npv": 5144302.94,
+    "trades": {
+      "bond_usd_001": {
+        "npv": 4995290.38,
+        "product_type": "fixed_rate_bond",
+        "support_status": "supported"
+      },
+      "equity_spot_aapl_001": {
+        "npv": -8500.0,
+        "product_type": "equity_spot",
+        "support_status": "partially_supported"
+      },
+      "fx_fwd_eurusd_001": {
+        "npv": -210000.0,
+        "product_type": "fx_forward",
+        "support_status": "partially_supported"
+      },
+      "swap_usd_001": {
+        "npv": 367512.57,
+        "product_type": "vanilla_swap",
+        "support_status": "supported"
+      }
+    },
+    "tolerance": 1.0
+  }
+}

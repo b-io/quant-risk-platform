@@ -83,7 +83,7 @@ case $TABLE in
         fi
         if command -v sqlite3 &> /dev/null; then
             echo "=== Valuation Results for $ID ==="
-            run_query "SELECT trade_id, npv_base, valuation_ccy, status, error_message FROM valuation_results WHERE run_id = '$ID';"
+            run_query "SELECT trade_id, npv_base, valuation_ccy, status, asset_class, product_type, support_status, model_name, error_message FROM valuation_results WHERE run_id = '$ID';"
             echo "=== Risk Results for $ID ==="
             run_query "SELECT trade_id, risk_measure, risk_factor_id, value FROM risk_results WHERE run_id = '$ID';"
             echo "=== Scenario Results for $ID ==="

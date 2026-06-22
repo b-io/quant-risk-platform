@@ -68,7 +68,7 @@ switch ($Table) {
         }
         if (Get-Command sqlite3 -ErrorAction SilentlyContinue) {
             Write-Host "=== Valuation Results for $Id ===" -ForegroundColor Cyan
-            Run-Query "SELECT trade_id, npv_base, valuation_ccy, status, error_message FROM valuation_results WHERE run_id = '$Id';"
+            Run-Query "SELECT trade_id, npv_base, valuation_ccy, status, asset_class, product_type, support_status, model_name, error_message FROM valuation_results WHERE run_id = '$Id';"
             Write-Host "=== Risk Results for $Id ===" -ForegroundColor Cyan
             Run-Query "SELECT trade_id, risk_measure, risk_factor_id, value FROM risk_results WHERE run_id = '$Id';"
             Write-Host "=== Scenario Results for $Id ===" -ForegroundColor Cyan

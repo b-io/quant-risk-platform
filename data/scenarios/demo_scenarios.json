@@ -3,7 +3,7 @@
   "name": "Demo Factor Scenarios",
   "factors": [
     {
-      "factor_id": "RF:RATE:USD:OIS:1M",
+      "factor_id": "RF:RATES:USD:OIS:1M",
       "factor_type": "RateZero",
       "shock_measure": "Absolute",
       "currency": "USD",
@@ -13,7 +13,7 @@
       "description": "USD OIS 1M zero-rate node"
     },
     {
-      "factor_id": "RF:RATE:USD:OIS:3M",
+      "factor_id": "RF:RATES:USD:OIS:3M",
       "factor_type": "RateZero",
       "shock_measure": "Absolute",
       "currency": "USD",
@@ -23,7 +23,7 @@
       "description": "USD OIS 3M zero-rate node"
     },
     {
-      "factor_id": "RF:RATE:USD:OIS:6M",
+      "factor_id": "RF:RATES:USD:OIS:6M",
       "factor_type": "RateZero",
       "shock_measure": "Absolute",
       "currency": "USD",
@@ -33,7 +33,7 @@
       "description": "USD OIS 6M zero-rate node"
     },
     {
-      "factor_id": "RF:RATE:USD:OIS:1Y",
+      "factor_id": "RF:RATES:USD:OIS:1Y",
       "factor_type": "RateZero",
       "shock_measure": "Absolute",
       "currency": "USD",
@@ -43,7 +43,7 @@
       "description": "USD OIS 1Y zero-rate node"
     },
     {
-      "factor_id": "RF:RATE:USD:OIS:2Y",
+      "factor_id": "RF:RATES:USD:OIS:2Y",
       "factor_type": "RateZero",
       "shock_measure": "Absolute",
       "currency": "USD",
@@ -53,7 +53,7 @@
       "description": "USD OIS 2Y zero-rate node"
     },
     {
-      "factor_id": "RF:RATE:USD:OIS:5Y",
+      "factor_id": "RF:RATES:USD:OIS:5Y",
       "factor_type": "RateZero",
       "shock_measure": "Absolute",
       "currency": "USD",
@@ -63,7 +63,7 @@
       "description": "USD OIS 5Y zero-rate node"
     },
     {
-      "factor_id": "RF:RATE:USD:OIS:10Y",
+      "factor_id": "RF:RATES:USD:OIS:10Y",
       "factor_type": "RateZero",
       "shock_measure": "Absolute",
       "currency": "USD",
@@ -73,7 +73,7 @@
       "description": "USD OIS 10Y zero-rate node"
     },
     {
-      "factor_id": "RF:RATE:USD:IBOR3M:5Y",
+      "factor_id": "RF:RATES:USD:IBOR3M:5Y",
       "factor_type": "RateForward",
       "shock_measure": "Absolute",
       "currency": "USD",
@@ -83,7 +83,7 @@
       "description": "USD 3M IBOR swap 5Y forward-curve node"
     },
     {
-      "factor_id": "RF:RATE:EUR:OIS:1Y",
+      "factor_id": "RF:RATES:EUR:OIS:1Y",
       "factor_type": "RateZero",
       "shock_measure": "Absolute",
       "currency": "EUR",
@@ -111,7 +111,7 @@
       "description": "AAPL spot relative-return factor"
     },
     {
-      "factor_id": "RF:VOL:USD:CAP:1Y",
+      "factor_id": "RF:RATESVOL:USD:CAP:1Y:ATM",
       "factor_type": "Volatility",
       "shock_measure": "VolPoints",
       "currency": "USD",
@@ -120,7 +120,7 @@
       "description": "USD cap/floor 1Y vol-point factor"
     },
     {
-      "factor_id": "RF:RATE:USD:OIS:PARALLEL",
+      "factor_id": "RF:RATES:USD:OIS:PARALLEL",
       "factor_type": "Custom",
       "shock_measure": "BasisPoints",
       "currency": "USD",
@@ -131,46 +131,129 @@
     }
   ],
   "bindings": [
-    { "factor_id": "RF:RATE:USD:OIS:1M", "quote_id": "USD_OIS_1M", "shock_measure": "Absolute", "weight": 1.0 },
-    { "factor_id": "RF:RATE:USD:OIS:3M", "quote_id": "USD_OIS_3M", "shock_measure": "Absolute", "weight": 1.0 },
-    { "factor_id": "RF:RATE:USD:OIS:6M", "quote_id": "USD_OIS_6M", "shock_measure": "Absolute", "weight": 1.0 },
-    { "factor_id": "RF:RATE:USD:OIS:1Y", "quote_id": "USD_OIS_1Y", "shock_measure": "Absolute", "weight": 1.0 },
-    { "factor_id": "RF:RATE:USD:OIS:2Y", "quote_id": "USD_OIS_2Y", "shock_measure": "Absolute", "weight": 1.0 },
-    { "factor_id": "RF:RATE:USD:OIS:5Y", "quote_id": "USD_OIS_5Y", "shock_measure": "Absolute", "weight": 1.0 },
-    { "factor_id": "RF:RATE:USD:OIS:10Y", "quote_id": "USD_OIS_10Y", "shock_measure": "Absolute", "weight": 1.0 },
-    { "factor_id": "RF:RATE:USD:IBOR3M:5Y", "quote_id": "USD_LIBOR_3M_IRS_5Y", "shock_measure": "Absolute", "weight": 1.0 },
-    { "factor_id": "RF:RATE:EUR:OIS:1Y", "quote_id": "EUR_OIS_1Y", "shock_measure": "Absolute", "weight": 1.0 },
+    { "factor_id": "RF:RATES:USD:OIS:1M", "quote_id": "USD_OIS_1M", "shock_measure": "Absolute", "weight": 1.0 },
+    { "factor_id": "RF:RATES:USD:OIS:3M", "quote_id": "USD_OIS_3M", "shock_measure": "Absolute", "weight": 1.0 },
+    { "factor_id": "RF:RATES:USD:OIS:6M", "quote_id": "USD_OIS_6M", "shock_measure": "Absolute", "weight": 1.0 },
+    { "factor_id": "RF:RATES:USD:OIS:1Y", "quote_id": "USD_OIS_1Y", "shock_measure": "Absolute", "weight": 1.0 },
+    { "factor_id": "RF:RATES:USD:OIS:2Y", "quote_id": "USD_OIS_2Y", "shock_measure": "Absolute", "weight": 1.0 },
+    { "factor_id": "RF:RATES:USD:OIS:5Y", "quote_id": "USD_OIS_5Y", "shock_measure": "Absolute", "weight": 1.0 },
+    { "factor_id": "RF:RATES:USD:OIS:10Y", "quote_id": "USD_OIS_10Y", "shock_measure": "Absolute", "weight": 1.0 },
+    { "factor_id": "RF:RATES:USD:IBOR3M:5Y", "quote_id": "USD_LIBOR_3M_IRS_5Y", "shock_measure": "Absolute", "weight": 1.0 },
+    { "factor_id": "RF:RATES:EUR:OIS:1Y", "quote_id": "EUR_OIS_1Y", "shock_measure": "Absolute", "weight": 1.0 },
     { "factor_id": "RF:FX:EURUSD:SPOT", "quote_id": "EURUSD", "shock_measure": "LogReturn", "weight": 1.0 },
     { "factor_id": "RF:EQ:AAPL:SPOT", "quote_id": "AAPL", "shock_measure": "Relative", "weight": 1.0 },
-    { "factor_id": "RF:VOL:USD:CAP:1Y", "quote_id": "USD_CAP_VOL_1Y", "shock_measure": "VolPoints", "weight": 1.0 },
-    { "factor_id": "RF:RATE:USD:OIS:PARALLEL", "quote_id": "USD_OIS_1Y", "shock_measure": "BasisPoints", "weight": 1.0 },
-    { "factor_id": "RF:RATE:USD:OIS:PARALLEL", "quote_id": "USD_OIS_2Y", "shock_measure": "BasisPoints", "weight": 1.0 },
-    { "factor_id": "RF:RATE:USD:OIS:PARALLEL", "quote_id": "USD_OIS_5Y", "shock_measure": "BasisPoints", "weight": 0.8 },
-    { "factor_id": "RF:RATE:USD:OIS:PARALLEL", "quote_id": "USD_OIS_10Y", "shock_measure": "BasisPoints", "weight": 0.6 }
+    { "factor_id": "RF:RATESVOL:USD:CAP:1Y:ATM", "quote_id": "USD_CAP_VOL_1Y", "shock_measure": "VolPoints", "weight": 1.0 },
+    { "factor_id": "RF:RATES:USD:OIS:PARALLEL", "quote_id": "USD_OIS_1Y", "shock_measure": "BasisPoints", "weight": 1.0 },
+    { "factor_id": "RF:RATES:USD:OIS:PARALLEL", "quote_id": "USD_OIS_2Y", "shock_measure": "BasisPoints", "weight": 1.0 },
+    { "factor_id": "RF:RATES:USD:OIS:PARALLEL", "quote_id": "USD_OIS_5Y", "shock_measure": "BasisPoints", "weight": 0.8 },
+    { "factor_id": "RF:RATES:USD:OIS:PARALLEL", "quote_id": "USD_OIS_10Y", "shock_measure": "BasisPoints", "weight": 0.6 }
   ],
   "scenarios": {
-    "USD_CURVE_BEAR_STEEPENER": {
+    "CROSS_ASSET_REPRICING": {
       "factor_shocks": {
-        "RF:RATE:USD:OIS:2Y": 0.0025,
-        "RF:RATE:USD:OIS:5Y": 0.0040,
-        "RF:RATE:USD:OIS:10Y": 0.0060,
-        "RF:RATE:USD:IBOR3M:5Y": 0.0035
+        "RF:EQ:AAPL:SPOT": -0.03,
+        "RF:RATES:EUR:OIS:1Y": 0.0030,
+        "RF:RATES:USD:OIS:PARALLEL": 60.0,
+        "RF:RATESVOL:USD:CAP:1Y:ATM": 1.5
+      }
+    },
+    "EQUITY_CRASH_VOL_SPIKE": {
+      "factor_shocks": {
+        "RF:EQ:AAPL:SPOT": -0.20,
+        "RF:RATESVOL:USD:CAP:1Y:ATM": 8.0
+      }
+    },
+    "EQUITY_RALLY_VOL_CRUSH": {
+      "factor_shocks": {
+        "RF:EQ:AAPL:SPOT": 0.12,
+        "RF:RATESVOL:USD:CAP:1Y:ATM": -3.0
+      }
+    },
+    "EUR_RATES_UP_50BP": {
+      "factor_shocks": {
+        "RF:RATES:EUR:OIS:1Y": 0.0050
       }
     },
     "GLOBAL_RISK_OFF": {
       "factor_shocks": {
-        "RF:RATE:USD:OIS:PARALLEL": -35.0,
-        "RF:FX:EURUSD:SPOT": -0.025317807984289876,
         "RF:EQ:AAPL:SPOT": -0.08,
-        "RF:VOL:USD:CAP:1Y": 3.0
+        "RF:FX:EURUSD:SPOT": -0.025317807984289876,
+        "RF:RATES:USD:OIS:PARALLEL": -35.0,
+        "RF:RATESVOL:USD:CAP:1Y:ATM": 3.0
       }
     },
-    "INFLATION_REPRICING": {
+    "GLOBAL_RISK_ON": {
       "factor_shocks": {
-        "RF:RATE:USD:OIS:PARALLEL": 60.0,
-        "RF:RATE:EUR:OIS:1Y": 0.0030,
-        "RF:EQ:AAPL:SPOT": -0.03,
-        "RF:VOL:USD:CAP:1Y": 1.5
+        "RF:EQ:AAPL:SPOT": 0.08,
+        "RF:FX:EURUSD:SPOT": 0.015,
+        "RF:RATES:USD:OIS:PARALLEL": 40.0,
+        "RF:RATESVOL:USD:CAP:1Y:ATM": -2.0
+      }
+    },
+    "USD_CURVE_BEAR_FLATTENER": {
+      "factor_shocks": {
+        "RF:RATES:USD:OIS:1M": 0.0100,
+        "RF:RATES:USD:OIS:3M": 0.0090,
+        "RF:RATES:USD:OIS:6M": 0.0075,
+        "RF:RATES:USD:OIS:1Y": 0.0060,
+        "RF:RATES:USD:OIS:2Y": 0.0040,
+        "RF:RATES:USD:OIS:5Y": 0.0020,
+        "RF:RATES:USD:OIS:10Y": 0.0010
+      }
+    },
+    "USD_CURVE_BEAR_STEEPENER": {
+      "factor_shocks": {
+        "RF:RATES:USD:OIS:2Y": 0.0025,
+        "RF:RATES:USD:OIS:5Y": 0.0040,
+        "RF:RATES:USD:OIS:10Y": 0.0060,
+        "RF:RATES:USD:IBOR3M:5Y": 0.0035
+      }
+    },
+    "USD_CURVE_BULL_STEEPENER": {
+      "factor_shocks": {
+        "RF:RATES:USD:OIS:1M": -0.0100,
+        "RF:RATES:USD:OIS:3M": -0.0090,
+        "RF:RATES:USD:OIS:6M": -0.0075,
+        "RF:RATES:USD:OIS:1Y": -0.0060,
+        "RF:RATES:USD:OIS:2Y": -0.0040,
+        "RF:RATES:USD:OIS:5Y": -0.0020,
+        "RF:RATES:USD:OIS:10Y": -0.0010
+      }
+    },
+    "USD_LIBOR_OIS_WIDENING": {
+      "factor_shocks": {
+        "RF:RATES:USD:IBOR3M:5Y": 0.0075,
+        "RF:RATES:USD:OIS:5Y": -0.0010
+      }
+    },
+    "USD_RATES_PARALLEL_DOWN_100BP": {
+      "factor_shocks": {
+        "RF:RATES:USD:OIS:PARALLEL": -100.0
+      }
+    },
+    "USD_RATES_PARALLEL_UP_100BP": {
+      "factor_shocks": {
+        "RF:RATES:USD:OIS:PARALLEL": 100.0
+      }
+    },
+    "USD_STRENGTH": {
+      "factor_shocks": {
+        "RF:FX:EURUSD:SPOT": -0.05
+      }
+    },
+    "USD_WEAKNESS": {
+      "factor_shocks": {
+        "RF:FX:EURUSD:SPOT": 0.05
+      }
+    },
+    "VOL_CRUSH": {
+      "factor_shocks": {
+        "RF:RATESVOL:USD:CAP:1Y:ATM": -5.0
+      }
+    },
+    "VOL_SPIKE": {
+      "factor_shocks": {
+        "RF:RATESVOL:USD:CAP:1Y:ATM": 10.0
       }
     }
   }

@@ -38,9 +38,9 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_instru
     const analytics::PricingContext& context) {
 
     switch (trade.trade_type) {
-        case domain::TradeType::VanillaSwap: {
-            const auto& swap_trade = dynamic_cast<const domain::VanillaSwapTrade&>(trade);
-            return create_swap(swap_trade, context);
+        case domain::TradeType::EquitySpot: {
+            const auto& eq_trade = dynamic_cast<const domain::EquitySpotTrade&>(trade);
+            return create_equity_spot(eq_trade, context);
         }
         case domain::TradeType::FixedRateBond: {
             const auto& bond_trade = dynamic_cast<const domain::FixedRateBondTrade&>(trade);
@@ -50,9 +50,9 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_instru
             const auto& fx_trade = dynamic_cast<const domain::FxForwardTrade&>(trade);
             return create_fx_forward(fx_trade, context);
         }
-        case domain::TradeType::EquitySpot: {
-            const auto& eq_trade = dynamic_cast<const domain::EquitySpotTrade&>(trade);
-            return create_equity_spot(eq_trade, context);
+        case domain::TradeType::VanillaSwap: {
+            const auto& swap_trade = dynamic_cast<const domain::VanillaSwapTrade&>(trade);
+            return create_swap(swap_trade, context);
         }
         case domain::TradeType::Unknown:
             break;

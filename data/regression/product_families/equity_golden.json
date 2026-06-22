@@ -1,0 +1,31 @@
+{
+  "asset_class": "equity",
+  "tolerances": {
+    "pnl_explain": 1.0,
+    "risk": 1.0,
+    "stress": 1.0,
+    "valuation": 1.0
+  },
+  "trades": {
+    "equity_spot_aapl_001": {
+      "pnl_explain": {
+        "carry_pnl": 0.0,
+        "market_move_pnl": -9275.0,
+        "total_pnl": -9275.0
+      },
+      "product_type": "equity_spot",
+      "risk": {
+        "cs01": 0.0,
+        "pv01": 0.0
+      },
+      "stress": {
+        "CROSS_ASSET_REPRICING": -27825.0,
+        "GLOBAL_RISK_OFF": -74200.0
+      },
+      "support_status": "partially_supported",
+      "valuation": {
+        "npv": -8500.0
+      }
+    }
+  }
+}

@@ -13,40 +13,40 @@ inline void from_json(const nlohmann::json& j, Currency& c) {
 
 inline void from_json(const nlohmann::json& j, CurvePurpose& p) {
     std::string s = j.get<std::string>();
-    if (s == "Discount") p = CurvePurpose::Discount;
+    if (s == "Credit") p = CurvePurpose::Credit;
+    else if (s == "Discount") p = CurvePurpose::Discount;
     else if (s == "Forward") p = CurvePurpose::Forward;
     else if (s == "Forward3M") p = CurvePurpose::Forward3M;
     else if (s == "Forward6M") p = CurvePurpose::Forward6M;
-    else if (s == "Credit") p = CurvePurpose::Credit;
     else if (s == "Volatility") p = CurvePurpose::Volatility;
     else p = CurvePurpose::UNKNOWN;
 }
 
 inline void from_json(const nlohmann::json& j, QuoteInstrumentType& q) {
     std::string s = j.get<std::string>();
-    if (s == "Deposit") q = QuoteInstrumentType::Deposit;
-    else if (s == "OIS") q = QuoteInstrumentType::OIS;
-    else if (s == "IRS") q = QuoteInstrumentType::IRS;
+    if (s == "Bond") q = QuoteInstrumentType::Bond;
+    else if (s == "CapFloorVol") q = QuoteInstrumentType::CapFloorVol;
+    else if (s == "CDS") q = QuoteInstrumentType::CDS;
+    else if (s == "Deposit") q = QuoteInstrumentType::Deposit;
     else if (s == "FRA") q = QuoteInstrumentType::FRA;
     else if (s == "Future") q = QuoteInstrumentType::Future;
-    else if (s == "Bond") q = QuoteInstrumentType::Bond;
-    else if (s == "CDS") q = QuoteInstrumentType::CDS;
-    else if (s == "CapFloorVol") q = QuoteInstrumentType::CapFloorVol;
+    else if (s == "IRS") q = QuoteInstrumentType::IRS;
+    else if (s == "OIS") q = QuoteInstrumentType::OIS;
     else if (s == "SwaptionVol") q = QuoteInstrumentType::SwaptionVol;
     else q = QuoteInstrumentType::UNKNOWN;
 }
 
 inline void from_json(const nlohmann::json& j, QuoteType& q) {
     std::string s = j.get<std::string>();
-    if (s == "OIS_DISCOUNT") q = QuoteType::OIS;
-    else if (s == "IBOR_3M") q = QuoteType::IRS;
-    else if (s == "IRS_6M") q = QuoteType::IRS;
-    else if (s == "BOND_SPREAD") q = QuoteType::BondYield;
+    if (s == "BOND_SPREAD") q = QuoteType::BondYield;
     else if (s == "CREDIT_HAZARD") q = QuoteType::CreditSpread;
-    else if (s == "FRA") q = QuoteType::FRA;
     else if (s == "Deposit") q = QuoteType::Deposit;
+    else if (s == "FRA") q = QuoteType::FRA;
+    else if (s == "IBOR_3M") q = QuoteType::IRS;
     else if (s == "IRS") q = QuoteType::IRS;
+    else if (s == "IRS_6M") q = QuoteType::IRS;
     else if (s == "OIS") q = QuoteType::OIS;
+    else if (s == "OIS_DISCOUNT") q = QuoteType::OIS;
     else q = QuoteType::UNKNOWN;
 }
 
@@ -55,22 +55,22 @@ inline void from_json(const nlohmann::json& j, DayCount& d) {
     if (s == "ACT360") d = DayCount::ACT360;
     else if (s == "ACT365") d = DayCount::ACT365;
     else if (s == "ACT365F") d = DayCount::ACT365F;
-    else if (s == "Thirty360") d = DayCount::Thirty360;
     else if (s == "ACTACT") d = DayCount::ACTACT;
-    else if (s == "ACTACT_ISDA") d = DayCount::ACTACT_ISDA;
-    else if (s == "ACTACT_ISMA") d = DayCount::ACTACT_ISMA;
     else if (s == "ACTACT_AFB") d = DayCount::ACTACT_AFB;
     else if (s == "ACTACT_EURO") d = DayCount::ACTACT_EURO;
+    else if (s == "ACTACT_ISDA") d = DayCount::ACTACT_ISDA;
+    else if (s == "ACTACT_ISMA") d = DayCount::ACTACT_ISMA;
+    else if (s == "Thirty360") d = DayCount::Thirty360;
     else d = DayCount::UNKNOWN;
 }
 
 inline void from_json(const nlohmann::json& j, BusinessCalendar& b) {
     std::string s = j.get<std::string>();
-    if (s == "Target") b = BusinessCalendar::Target;
-    else if (s == "US" || s == "USA") b = BusinessCalendar::US;
-    else if (s == "UK" || s == "GBR") b = BusinessCalendar::UK;
-    else if (s == "CHF" || s == "CHE") b = BusinessCalendar::CHF;
+    if (s == "CHF" || s == "CHE") b = BusinessCalendar::CHF;
     else if (s == "JP" || s == "JPN") b = BusinessCalendar::JP;
+    else if (s == "Target") b = BusinessCalendar::Target;
+    else if (s == "UK" || s == "GBR") b = BusinessCalendar::UK;
+    else if (s == "US" || s == "USA") b = BusinessCalendar::US;
     else if (s == "WeekendsOnly") b = BusinessCalendar::WeekendsOnly;
     else b = BusinessCalendar::UNKNOWN;
 }
@@ -78,46 +78,51 @@ inline void from_json(const nlohmann::json& j, BusinessCalendar& b) {
 inline void from_json(const nlohmann::json& j, BusinessDayConvention& b) {
     std::string s = j.get<std::string>();
     if (s == "Following") b = BusinessDayConvention::Following;
-    else if (s == "ModifiedFollowing") b = BusinessDayConvention::ModifiedFollowing;
-    else if (s == "Preceding") b = BusinessDayConvention::Preceding;
-    else if (s == "ModifiedPreceding") b = BusinessDayConvention::ModifiedPreceding;
-    else if (s == "Unadjusted") b = BusinessDayConvention::Unadjusted;
     else if (s == "HalfMonthModifiedFollowing") b = BusinessDayConvention::HalfMonthModifiedFollowing;
+    else if (s == "ModifiedFollowing") b = BusinessDayConvention::ModifiedFollowing;
+    else if (s == "ModifiedPreceding") b = BusinessDayConvention::ModifiedPreceding;
     else if (s == "Nearest") b = BusinessDayConvention::Nearest;
+    else if (s == "Preceding") b = BusinessDayConvention::Preceding;
+    else if (s == "Unadjusted") b = BusinessDayConvention::Unadjusted;
     else b = BusinessDayConvention::UNKNOWN;
 }
 
 inline void from_json(const nlohmann::json& j, Frequency& f) {
     std::string s = j.get<std::string>();
     if (s == "Annual") f = Frequency::Annual;
-    else if (s == "Semiannual") f = Frequency::Semiannual;
-    else if (s == "Quarterly") f = Frequency::Quarterly;
-    else if (s == "Monthly") f = Frequency::Monthly;
-    else if (s == "Weekly") f = Frequency::Weekly;
+    else if (s == "Bimonthly") f = Frequency::Bimonthly;
+    else if (s == "Biweekly") f = Frequency::Biweekly;
     else if (s == "Daily") f = Frequency::Daily;
+    else if (s == "EveryFourthMonth") f = Frequency::EveryFourthMonth;
+    else if (s == "EveryFourthWeek") f = Frequency::EveryFourthWeek;
+    else if (s == "Monthly") f = Frequency::Monthly;
     else if (s == "Once") f = Frequency::Once;
+    else if (s == "OtherFrequency") f = Frequency::OtherFrequency;
+    else if (s == "Quarterly") f = Frequency::Quarterly;
+    else if (s == "Semiannual") f = Frequency::Semiannual;
+    else if (s == "Weekly") f = Frequency::Weekly;
     else f = Frequency::UNKNOWN;
 }
 
 inline void from_json(const nlohmann::json& j, DateGeneration& d) {
     std::string s = j.get<std::string>();
     if (s == "Backward") d = DateGeneration::Backward;
+    else if (s == "CDS") d = DateGeneration::CDS;
+    else if (s == "CDS2015") d = DateGeneration::CDS2015;
     else if (s == "Forward") d = DateGeneration::Forward;
-    else if (s == "Zero") d = DateGeneration::Zero;
+    else if (s == "OldCDS") d = DateGeneration::OldCDS;
     else if (s == "ThirdWednesday") d = DateGeneration::ThirdWednesday;
     else if (s == "Twentieth") d = DateGeneration::Twentieth;
     else if (s == "TwentiethIMM") d = DateGeneration::TwentiethIMM;
-    else if (s == "OldCDS") d = DateGeneration::OldCDS;
-    else if (s == "CDS") d = DateGeneration::CDS;
-    else if (s == "CDS2015") d = DateGeneration::CDS2015;
+    else if (s == "Zero") d = DateGeneration::Zero;
     else d = DateGeneration::UNKNOWN;
 }
 
 inline void from_json(const nlohmann::json& j, InterpolationType& i) {
     std::string s = j.get<std::string>();
-    if (s == "Linear") i = InterpolationType::Linear;
+    if (s == "CubicSpline") i = InterpolationType::CubicSpline;
+    else if (s == "Linear") i = InterpolationType::Linear;
     else if (s == "LogLinear") i = InterpolationType::LogLinear;
-    else if (s == "CubicSpline") i = InterpolationType::CubicSpline;
     else i = InterpolationType::UNKNOWN;
 }
 

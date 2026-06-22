@@ -1,4 +1,5 @@
 #include <qrp/app/quant_risk_platform.hpp>
+#include <qrp/domain/factors.hpp>
 #include <qrp/market/market_snapshot.hpp>
 #include <qrp/market/scenario_engine.hpp>
 #include <qrp/analytics/pricing_context.hpp>
@@ -9,6 +10,7 @@
 #include <chrono>
 #include <algorithm>
 #include <map>
+#include <set>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -26,43 +28,6 @@ std::vector<std::string> collect_factor_ids(const std::vector<domain::FactorDefi
         factor_ids.push_back(factor.factor_id);
     }
     return factor_ids;
-}
-
-domain::FactorType parse_factor_type(const std::string& value) {
-    static const std::map<std::string, domain::FactorType> factor_types = {
-        {"BasisSpread", domain::FactorType::BasisSpread},
-        {"CommodityForward", domain::FactorType::CommodityForward},
-        {"CreditSpread", domain::FactorType::CreditSpread},
-        {"Custom", domain::FactorType::Custom},
-        {"EquitySpot", domain::FactorType::EquitySpot},
-        {"FXSpot", domain::FactorType::FXSpot},
-        {"HazardRate", domain::FactorType::HazardRate},
-        {"RateForward", domain::FactorType::RateForward},
-        {"RateZero", domain::FactorType::RateZero},
-        {"Volatility", domain::FactorType::Volatility}
-    };
-
-    const auto it = factor_types.find(value);
-    if (it == factor_types.end()) {
-        throw std::invalid_argument("Unknown factor_type: " + value);
-    }
-    return it->second;
-}
-
-domain::ShockMeasure parse_shock_measure(const std::string& value) {
-    static const std::map<std::string, domain::ShockMeasure> shock_measures = {
-        {"Absolute", domain::ShockMeasure::Absolute},
-        {"BasisPoints", domain::ShockMeasure::BasisPoints},
-        {"LogReturn", domain::ShockMeasure::LogReturn},
-        {"Relative", domain::ShockMeasure::Relative},
-        {"VolPoints", domain::ShockMeasure::VolPoints}
-    };
-
-    const auto it = shock_measures.find(value);
-    if (it == shock_measures.end()) {
-        throw std::invalid_argument("Unknown shock_measure: " + value);
-    }
-    return it->second;
 }
 
 } // namespace
@@ -159,12 +124,16 @@ void QuantRiskPlatform::import_scenario_set(const std::string& json_path) {
     std::string name = data.value("name", set_id);
     
     storage_->store_scenario_set(set_id, name);
+    std::set<std::string> factor_ids;
 
     for (const auto& factor_json : data.at("factors")) {
         domain::FactorDefinition factor;
         factor.factor_id = factor_json.at("factor_id").get<std::string>();
-        factor.factor_type = parse_factor_type(factor_json.at("factor_type").get<std::string>());
-        factor.shock_measure = parse_shock_measure(factor_json.at("shock_measure").get<std::string>());
+        if (!domain::is_canonical_factor_id(factor.factor_id)) {
+            throw std::invalid_argument("Non-canonical factor_id in scenario set: " + factor.factor_id);
+        }
+        factor.factor_type = domain::parse_factor_type(factor_json.at("factor_type").get<std::string>());
+        factor.shock_measure = domain::parse_shock_measure(factor_json.at("shock_measure").get<std::string>());
         factor.currency = domain::from_string(factor_json.value("currency", "UNKNOWN"));
         factor.curve_id = factor_json.value("curve_id", "");
         factor.tenor = factor_json.value("tenor", "");
@@ -173,13 +142,17 @@ void QuantRiskPlatform::import_scenario_set(const std::string& json_path) {
         }
         factor.description = factor_json.value("description", "");
         storage_->store_factor_definition(factor);
+        factor_ids.insert(factor.factor_id);
     }
 
     for (const auto& binding_json : data.at("bindings")) {
         domain::FactorBinding binding;
         binding.factor_id = binding_json.at("factor_id").get<std::string>();
+        if (!factor_ids.contains(binding.factor_id)) {
+            throw std::invalid_argument("Binding references undefined factor_id: " + binding.factor_id);
+        }
         binding.quote_id = binding_json.at("quote_id").get<std::string>();
-        binding.shock_measure = parse_shock_measure(binding_json.at("shock_measure").get<std::string>());
+        binding.shock_measure = domain::parse_shock_measure(binding_json.at("shock_measure").get<std::string>());
         binding.weight = binding_json.value("weight", 1.0);
         binding.transform = binding_json.value("transform", "");
         binding.selector_json = binding_json.value("selector_json", "");
@@ -189,6 +162,9 @@ void QuantRiskPlatform::import_scenario_set(const std::string& json_path) {
     for (const auto& [sc_name, scenario_json] : data.at("scenarios").items()) {
         const auto& shocks = scenario_json.at("factor_shocks");
         for (const auto& [factor_id, shock] : shocks.items()) {
+            if (!factor_ids.contains(factor_id)) {
+                throw std::invalid_argument("Scenario references undefined factor_id: " + factor_id);
+            }
             storage_->store_scenario_factor_shock(set_id, sc_name, factor_id, shock.get<double>());
         }
     }
@@ -218,7 +194,18 @@ std::string QuantRiskPlatform::run_valuation(const std::string& portfolio_id, co
         const bool failed = status_it != res.tags.end() && status_it->second == "failed";
         const auto error_it = res.tags.find("error");
         const std::string error = error_it != res.tags.end() ? error_it->second : "";
-        storage_->store_valuation_result(run_id, res.trade_id, res.npv, res.currency, failed ? "FAILED" : "SUCCESS", error);
+        storage_->store_valuation_result(
+            run_id,
+            res.trade_id,
+            res.npv,
+            res.currency,
+            failed ? "FAILED" : "SUCCESS",
+            error,
+            domain::to_string(res.asset_class),
+            domain::to_string(res.product_type),
+            domain::to_string(res.support_status),
+            res.model_name,
+            res.status_message);
     }
     
     return run_id;
@@ -346,13 +333,25 @@ void QuantRiskPlatform::get_run_report(const std::string& run_id) {
     double total_npv = 0;
     std::string base_ccy = results[0].ccy;
 
-    fmt::print("{:<20} | {:<15} | {:<10} | {:<10}\n", "Trade ID", "NPV", "CCY", "Status");
-    fmt::print("{:-<60}\n", "");
+    fmt::print(
+        "{:<20} | {:<15} | {:<10} | {:<18} | {:<20}\n",
+        "Trade ID",
+        "NPV",
+        "CCY",
+        "Product",
+        "Support");
+    fmt::print("{:-<95}\n", "");
     for (const auto& r : results) {
-        fmt::print("{:<20} | {:>15.2f} | {:<10} | {:<10}\n", r.trade_id, r.npv, r.ccy, r.status);
+        fmt::print(
+            "{:<20} | {:>15.2f} | {:<10} | {:<18} | {:<20}\n",
+            r.trade_id,
+            r.npv,
+            r.ccy,
+            r.product_type,
+            r.support_status);
         if (r.ccy == base_ccy) total_npv += r.npv;
     }
-    fmt::print("{:-<60}\n", "");
+    fmt::print("{:-<95}\n", "");
     fmt::print("{:<20} | {:>15.2f} | {:<10}\n", "TOTAL (Base CCY)", total_npv, base_ccy);
 }
 

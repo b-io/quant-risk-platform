@@ -21,7 +21,9 @@ TEST(RiskIntegrationTest, ComputeRiskSamplePortfolio) {
     
     for (const auto& quote : market_dto.quotes) {
         qrp::domain::FactorDefinition f;
-        f.factor_id = "RF:RATE:" + quote.id;
+        const std::string curve = quote.index_family.empty() ? quote.id : quote.index_family;
+        const std::string tenor = quote.tenor.empty() ? "SPOT" : quote.tenor;
+        f.factor_id = qrp::domain::make_rates_factor_id(quote.currency, curve, tenor);
         f.factor_type = qrp::domain::FactorType::RateZero;
         f.currency = quote.currency;
         f.tenor = quote.tenor;
