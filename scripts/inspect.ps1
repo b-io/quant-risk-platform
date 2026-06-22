@@ -2,12 +2,25 @@ param(
     [string]$Table = "summary",
     [string]$Id = "",
     [string]$BuildDir = "build\Release-Python",
-    [string]$Config = "Release"
+    [string]$Config = "Release",
+    [string]$DbFile = "var\quant_risk_platform.sqlite",
+    [switch]$SkipEnv
 )
 
-# visualize.ps1 - Visualize data from the database
+# inspect.ps1 - Inspect persisted data and run outputs from the database
 
-$DbFile = "var\quant_risk_platform.sqlite"
+$scriptPath = $MyInvocation.MyCommand.Path
+$projectRoot = Split-Path (Split-Path $scriptPath -Parent) -Parent
+
+if (-not $SkipEnv) {
+    $envScript = Join-Path $projectRoot "scripts\env.ps1"
+    if (Test-Path -LiteralPath $envScript) {
+        & $envScript -ProjectRoot $projectRoot -Quiet
+        if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+        }
+    }
+}
 
 # Helper to find executable
 function Find-Exe($ExeName) {
@@ -34,7 +47,7 @@ function Run-Query($sql) {
     if (Get-Command sqlite3 -ErrorAction SilentlyContinue) {
         sqlite3 -header -column "$DbFile" "$sql"
     } else {
-        Write-Host "sqlite3 not found. For better visualization, install sqlite3." -ForegroundColor Yellow
+        Write-Host "sqlite3 not found. For richer inspection, install sqlite3." -ForegroundColor Yellow
         Write-Host "Falling back to qrp_cli list for basic info..." -ForegroundColor Cyan
         if ($null -ne $CliExe) {
             & $CliExe list
@@ -51,7 +64,7 @@ switch ($Table) {
     }
     "trades" {
         if ($Id -eq "") {
-            Write-Host "Usage: .\scripts\visualize.ps1 trades -Id <portfolio_id>"
+            Write-Host "Usage: .\scripts\inspect.ps1 trades -Id <portfolio_id>"
             exit 1
         }
         Write-Host "=== Trades for $Id ===" -ForegroundColor Cyan
@@ -63,12 +76,12 @@ switch ($Table) {
     }
     "results" {
         if ($Id -eq "") {
-            Write-Host "Usage: .\scripts\visualize.ps1 results -Id <run_id>"
+            Write-Host "Usage: .\scripts\inspect.ps1 results -Id <run_id>"
             exit 1
         }
         if (Get-Command sqlite3 -ErrorAction SilentlyContinue) {
             Write-Host "=== Valuation Results for $Id ===" -ForegroundColor Cyan
-            Run-Query "SELECT trade_id, npv_base, valuation_ccy, status, asset_class, product_type, support_status, model_name, error_message FROM valuation_results WHERE run_id = '$Id';"
+            Run-Query "SELECT trade_id, npv_base, valuation_ccy, status, asset_class, product_type, support_status, model_name, status_message, error_message FROM valuation_results WHERE run_id = '$Id';"
             Write-Host "=== Risk Results for $Id ===" -ForegroundColor Cyan
             Run-Query "SELECT trade_id, risk_measure, risk_factor_id, value FROM risk_results WHERE run_id = '$Id';"
             Write-Host "=== Scenario Results for $Id ===" -ForegroundColor Cyan
@@ -83,6 +96,14 @@ switch ($Table) {
             exit 1
         }
     }
+    "risk" {
+        if ($Id -eq "") {
+            Write-Host "Usage: .\scripts\inspect.ps1 risk -Id <run_id>"
+            exit 1
+        }
+        Write-Host "=== Risk Results for $Id ===" -ForegroundColor Cyan
+        Run-Query "SELECT trade_id, risk_measure, risk_factor_id, value FROM risk_results WHERE run_id = '$Id';"
+    }
     "summary" {
         Write-Host "=== Platform Data Summary ===" -ForegroundColor Green
         if (Get-Command sqlite3 -ErrorAction SilentlyContinue) {
@@ -93,10 +114,10 @@ switch ($Table) {
         } else {
              if ($null -ne $CliExe) { & $CliExe list }
         }
-        Write-Host "`nUsage: .\scripts\visualize.ps1 [portfolios | trades <id> | runs | results <id>]"
+        Write-Host "`nUsage: .\scripts\inspect.ps1 [portfolios | trades | runs | results | risk] [-Id <id>] [-DbFile <path>]"
     }
     default {
         Write-Host "Unknown option: $Table"
-        Write-Host "Usage: .\scripts\visualize.ps1 [portfolios | trades <id> | runs | results <id>]"
+        Write-Host "Usage: .\scripts\inspect.ps1 [portfolios | trades | runs | results | risk] [-Id <id>] [-DbFile <path>]"
     }
 }

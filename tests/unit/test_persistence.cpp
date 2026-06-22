@@ -203,7 +203,7 @@ TEST_F(PersistenceTest, ScenarioImportRejectsNonCanonicalFactorIds) {
           "scenario_set_id": "bad_factor_set",
           "factors": [
             {
-              "factor_id": "RF:RATE:USD:OIS:5Y",
+              "factor_id": "RF:RATES:USD::5Y",
               "factor_type": "RateZero",
               "shock_measure": "Absolute"
             }

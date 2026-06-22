@@ -25,7 +25,7 @@
 /*
 Design note (see docs/design/ANALYTICS_SERVICES.md and docs/risk/MONTE_CARLO.md):
 - We implement a one-step, factor-based Monte Carlo to generate coherent shocks across currencies.
-- The factor covariance is represented by a (mocked) symmetric positive-definite matrix and sampled via
+- The factor covariance is represented by a symmetric positive-definite matrix and sampled via
   Cholesky decomposition (L·Z). This produces correlated Gaussian shocks consistent with the covariance.
 - We do not rebuild curves for each path; instead we bump quote handles and rely on QuantLib's Observer pattern
   to lazily reprice cached instruments. This drastically improves throughput.
@@ -89,10 +89,10 @@ SimulationResult MonteCarloEngine::run_simulation(
             }
         }
         
-        // Preserve reactive repricing: rebuild curves in the horizon state.
-        // Step 1: Age the quotes (simple approximation for MVP: keep base values
-        // or compute forwards if we had more info). 
-        // For production, this would use ForwardRate for rate quotes.
+        // Preserve reactive repricing by rebuilding curves in the horizon state.
+        // Frozen-aging policy: advance the valuation date while keeping market quote
+        // levels unchanged. Forward-projected market states should be supplied by a
+        // dedicated market-data evolution model when that workflow is introduced.
         frozen_aged_market_dto.valuation_date = fmt::format("{:4d}-{:02d}-{:02d}", (int)tH.year(), (int)tH.month(), (int)tH.dayOfMonth());
         
         // Step 2: Re-build curves in the horizon_state using these quotes.

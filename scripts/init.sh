@@ -1,21 +1,36 @@
 #!/bin/bash
 # init.sh - Initialize the database and load sample data
 
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+PROJECT_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
+
 # Default values
 BUILD_DIR="build/Release-Python"
 CONFIG="Release"
+MARKET_FILE="data/market/demo_market.json"
+PORTFOLIO_FILE="data/portfolios/demo_portfolio.json"
+SCENARIO_FILE="data/scenarios/demo_scenarios.json"
 FORCE=false
+SKIP_ENV=0
 
 # Simple argument parsing
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         -BuildDir) BUILD_DIR="$2"; shift ;;
         -Config) CONFIG="$2"; shift ;;
-        -f|-Force|--force) FORCE=true ;;
-        *) echo "Unknown parameter passed: $1"; exit 1 ;;
+        -MarketFile) MARKET_FILE="$2"; shift ;;
+        -PortfolioFile) PORTFOLIO_FILE="$2"; shift ;;
+        -ScenarioFile) SCENARIO_FILE="$2"; shift ;;
+        -Force) FORCE=true ;;
+        -SkipEnv) SKIP_ENV=1 ;;
+        *) echo "Unknown parameter: $1"; exit 1 ;;
     esac
     shift
 done
+
+if [ "$SKIP_ENV" != "1" ] && [ -f "$SCRIPT_DIR/env.sh" ]; then
+    QRP_ENV_QUIET=1 QRP_PROJECT_ROOT="$PROJECT_ROOT" . "$SCRIPT_DIR/env.sh"
+fi
 
 # Helper to find executable
 find_exe() {
@@ -64,13 +79,13 @@ echo "Initializing database schema..."
 "$CLI_EXE" init-db
 
 echo "Importing sample market data..."
-"$CLI_EXE" import-market data/market/demo_market.json
+"$CLI_EXE" import-market "$MARKET_FILE"
 
 echo "Importing sample portfolios..."
-"$CLI_EXE" import-portfolio data/portfolios/demo_portfolio.json
+"$CLI_EXE" import-portfolio "$PORTFOLIO_FILE"
 
 echo "Importing sample scenarios..."
-"$CLI_EXE" import-scenarios data/scenarios/demo_scenarios.json
+"$CLI_EXE" import-scenarios "$SCENARIO_FILE"
 
 echo "Data initialization complete!"
 "$CLI_EXE" list

@@ -583,7 +583,7 @@ Typical internal IDs:
 
 ### Projection curves
 
-If the book contains term-floaters or legacy structures:
+If the book contains term-floaters or non-standard structures:
 
 - `USD-TERM-1M`
 - `USD-TERM-3M`
@@ -1015,7 +1015,7 @@ for continuous compounding.
 
 - reporting curves,
 - macro interpretation,
-- some legacy frameworks.
+- established curve frameworks.
 
 ---
 

@@ -259,8 +259,8 @@ cmake --build --preset Release-Python
 The Clang template uses `clang` and `clang++`, and chooses `x64-linux`, `arm64-linux`, `x64-osx`, or `arm64-osx` based
 on `uname`. The real `.env.sh` is ignored by Git because it contains machine-local paths.
 
-The Bash build, install, and test scripts source `scripts/env.sh` automatically when `.env.sh` exists. Set
-`QRP_SKIP_ENV=1` if you intentionally want to use the current shell environment as-is.
+The Bash build, install, and test scripts source `scripts/env.sh` automatically when `.env.sh` exists. Pass
+`-SkipEnv` if you intentionally want to use the current shell environment as-is.
 
 ### Build Steps
 

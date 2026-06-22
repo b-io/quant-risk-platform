@@ -227,7 +227,7 @@ QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> CurveBuilder::build_curv
     std::shared_ptr<MarketState> state_ptr) {
 
     std::vector<QuantLib::ext::shared_ptr<QuantLib::RateHelper>> helpers;
-    QuantLib::Handle<QuantLib::YieldTermStructure> dummy;
+    QuantLib::Handle<QuantLib::YieldTermStructure> empty_term_structure;
     
     for (const auto& q_id : spec.quote_ids) {
         if (!quotes.contains(q_id)) continue;
@@ -264,16 +264,16 @@ QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> CurveBuilder::build_curv
             helpers.push_back(QuantLib::ext::make_shared<QuantLib::DepositRateHelper>(
                 quote_handle, tenor, settlement_days, cal, bdc, false, dc));
         } else if (q.instrument_type == domain::QuoteInstrumentType::FRA) {
-            auto index = create_ibor_index(q.currency, QuantLib::Period(3, QuantLib::Months), dummy); // default 3M unless extended
+            auto index = create_ibor_index(q.currency, QuantLib::Period(3, QuantLib::Months), empty_term_structure); // default 3M index convention
             helpers.push_back(QuantLib::ext::make_shared<QuantLib::FraRateHelper>(quote_handle, tenor, index));
         } else if (q.instrument_type == domain::QuoteInstrumentType::IRS) {
-            auto index = create_ibor_index(q.currency, QuantLib::Period(3, QuantLib::Months), dummy); // default 3M unless extended
+            auto index = create_ibor_index(q.currency, QuantLib::Period(3, QuantLib::Months), empty_term_structure); // default 3M index convention
             auto fixed_freq = parse_frequency(conv.fixed_leg_frequency);
             auto fixed_dc = parse_day_count(conv.fixed_leg_day_count);
             helpers.push_back(QuantLib::ext::make_shared<QuantLib::SwapRateHelper>(
                 quote_handle, tenor, cal, fixed_freq, bdc, fixed_dc, index));
         } else if (q.instrument_type == domain::QuoteInstrumentType::OIS) {
-            auto index = create_overnight_index(q.currency, dummy);
+            auto index = create_overnight_index(q.currency, empty_term_structure);
             helpers.push_back(QuantLib::ext::make_shared<QuantLib::OISRateHelper>(settlement_days, tenor, quote_handle, index));
         }
     }

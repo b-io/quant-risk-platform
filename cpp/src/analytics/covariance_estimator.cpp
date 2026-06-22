@@ -46,10 +46,9 @@ QuantLib::Matrix CovarianceEstimator::estimate_covariance(
             if (it != factor_history.end()) {
                 X[i][k] = it->second;
             } else {
-                // By default, we do not fill with zero if data is missing for a specific date.
-                // Requirement 7.5: Reject or handle missing history explicitly.
-                // For MVP, we throw if any factor is missing a date that others have, 
-                // ensuring a synchronized history.
+                // Missing observations are rejected rather than silently filled.
+                // Covariance estimation requires synchronized factor history unless
+                // a caller supplies an explicit missing-data policy upstream.
                 throw std::runtime_error("CovarianceEstimator: Missing observation for factor " 
                     + factors[i].factor_id + " on date " + dates[k]);
             }

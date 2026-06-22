@@ -147,7 +147,7 @@ Production schemas evolve. New products, conventions, and reporting requirements
 Good practice includes:
 
 - explicit schema versioning,
-- backward-compatible readers where feasible,
+- explicit migrations between schema versions,
 - migration scripts,
 - documented deprecation paths,
 - validation of old snapshots under new code.

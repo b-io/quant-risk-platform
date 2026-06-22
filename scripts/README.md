@@ -8,12 +8,12 @@ Most scripts are provided in both PowerShell (`.ps1`) and Bash (`.sh`) versions 
 | Script      | Purpose                                                           |
 |-------------|-------------------------------------------------------------------|
 | `build`     | Compiles the project using CMake presets.                         |
-| `env`       | Imports the project-local `.env.cmd` or `.env.sh`.                |
-| `install`   | Installs Python and C++ dependencies (via vcpkg).                 |
-| `init`      | Initializes the SQLite database and loads sample data.            |
-| `test`      | Builds and runs unit and integration tests.                       |
 | `compute`   | Orchestrates a full valuation, risk, and VaR computation flow.    |
-| `visualize` | Provides a quick way to query and display data from the database. |
+| `env`       | Imports the project-local `.env.cmd` or `.env.sh`.                |
+| `init`      | Initializes the SQLite database and loads sample data.            |
+| `inspect`   | Provides a quick way to inspect persisted database tables and run outputs. |
+| `install`   | Installs Python and C++ dependencies (via vcpkg).                 |
+| `test`      | Builds and runs unit and integration tests.                       |
 
 #### Usage Examples
 
@@ -31,8 +31,8 @@ Use a CMake preset (e.g., `Release-Python`) to build everything:
 ./scripts/build.sh
 ```
 
-On Windows, `build.ps1`, `install.ps1`, and `test.ps1` automatically import `.env.cmd` when it exists. For manual
-`cmake --build` commands from a normal PowerShell terminal, dot-source the same environment first:
+On Windows, the PowerShell wrapper scripts automatically import `.env.cmd` when it exists. For manual `cmake --build`
+commands from a normal PowerShell terminal, dot-source the same environment first:
 
 ```powershell
 . .\scripts\env.ps1
@@ -49,8 +49,8 @@ On Linux/macOS, create `.env.sh` from either `gcc.env.sh.example` or `clang.env.
 cmake --build build/Release-Python --target unit_tests -j 10
 ```
 
-`build.sh`, `install.sh`, and `test.sh` source `scripts/env.sh` automatically when `.env.sh` exists. Set
-`QRP_SKIP_ENV=1` to disable automatic environment loading.
+The Bash wrapper scripts source `scripts/env.sh` automatically when `.env.sh` exists. Pass `-SkipEnv` to disable
+automatic environment loading.
 
 ##### 2. Initializing Data
 
@@ -59,6 +59,11 @@ Set up the database and import sample market data, portfolios, and scenarios:
 ```powershell
 # PowerShell (using default build directory)
 .\scripts\init.ps1 -Force
+```
+
+```bash
+# Bash (using default build directory)
+./scripts/init.sh -Force
 ```
 
 ##### 3. Running a Full Analysis Flow
@@ -70,14 +75,29 @@ Run valuation, sensitivities, and Value-at-Risk for the demo portfolio:
 .\scripts\compute.ps1
 ```
 
-##### 4. Visualizing Results
+```bash
+# Bash (using default build directory)
+./scripts/compute.sh
+```
+
+##### 4. Inspecting Results
 
 List all portfolios or view results of a specific run:
 
 ```powershell
 # PowerShell
-.\scripts\visualize.ps1 portfolios
-.\scripts\visualize.ps1 results -Id RUN_VAL_...
+.\scripts\inspect.ps1 portfolios
+.\scripts\inspect.ps1 results -Id RUN_VAL_...
+.\scripts\inspect.ps1 risk -Id RUN_RISK_...
+.\scripts\inspect.ps1 summary -DbFile var\quant_risk_platform.sqlite
+```
+
+```bash
+# Bash
+./scripts/inspect.sh portfolios
+./scripts/inspect.sh results -Id RUN_VAL_...
+./scripts/inspect.sh risk -Id RUN_RISK_...
+./scripts/inspect.sh summary -DbFile var/quant_risk_platform.sqlite
 ```
 
 ##### 5. Running Tests
@@ -91,3 +111,22 @@ List all portfolios or view results of a specific run:
 
 Most scripts support `-BuildDir` and `-Config` (or `-Preset`) to allow working with different build environments. By
 default, they now target `build\Release-Python` and the `Release-Python` preset.
+
+The public option names are intentionally shared across PowerShell and Bash where applicable:
+
+- `-BuildDir`: select an existing build directory for CLI/test/database scripts.
+- `-Config`: select an existing build configuration for CLI/test/database scripts.
+- `-DbFile`: select the SQLite database for inspection.
+- `-ExtraArgs`: pass remaining arguments to CMake configure in build scripts.
+- `-Force`: reinitialize existing local data during database initialization.
+- `-Id`: select the run identifier for inspection.
+- `-LogLevel`: select the compute-flow log level.
+- `-MarketFile`: select the market-data input file for database initialization.
+- `-PortfolioFile`: select the portfolio input file for database initialization.
+- `-PortfolioId`: select the compute-flow portfolio.
+- `-Preset`: select a CMake preset for build/install scripts.
+- `-ScenarioFile`: select the scenario input file for database initialization.
+- `-ScenarioSetId`: select the compute-flow scenario set.
+- `-SkipEnv`: skip automatic project environment loading.
+- `-SnapshotId`: select the compute-flow market snapshot.
+- `-Table`: select the database table or result category for inspection.

@@ -116,10 +116,12 @@ else()
 endif()
 
 add_library(qrp_core ${_QRP_CORE_LIBRARY_TYPE}
+    cpp/src/analytics/cashflow_extractor.cpp
     cpp/src/analytics/covariance_estimator.cpp
     cpp/src/analytics/lsmc/lsmc_engine.cpp
     cpp/src/analytics/monte_carlo_engine.cpp
     cpp/src/analytics/pnl_explain_service.cpp
+    cpp/src/analytics/product_pricing_registry.cpp
     cpp/src/analytics/risk_service.cpp
     cpp/src/analytics/stress_engine.cpp
     cpp/src/analytics/valuation_service.cpp
@@ -133,6 +135,11 @@ add_library(qrp_core ${_QRP_CORE_LIBRARY_TYPE}
     cpp/src/market/scenario_engine.cpp
     cpp/src/persistence/repositories.cpp
     cpp/src/persistence/sqlite_storage_backend.cpp
+    cpp/src/persistence/sqlite_storage_factors.cpp
+    cpp/src/persistence/sqlite_storage_market.cpp
+    cpp/src/persistence/sqlite_storage_portfolio.cpp
+    cpp/src/persistence/sqlite_storage_results.cpp
+    cpp/src/persistence/sqlite_storage_schema.cpp
     cpp/src/util/logger.cpp
 )
 if(MSVC)
@@ -246,7 +253,13 @@ if(QRP_BUILD_PYTHON)
   endif()
 
   find_package(pybind11 CONFIG REQUIRED)
-  pybind11_add_module(quant_risk_platform cpp/bindings/module.cpp)
+  pybind11_add_module(quant_risk_platform
+    cpp/bindings/bind_analytics.cpp
+    cpp/bindings/bind_domain.cpp
+    cpp/bindings/bind_io.cpp
+    cpp/bindings/bind_market.cpp
+    cpp/bindings/module.cpp
+  )
   qrp_apply_coverage(quant_risk_platform)
   qrp_apply_project_warnings(quant_risk_platform)
 

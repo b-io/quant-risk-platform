@@ -2,8 +2,8 @@
 # This script builds both C++ and Python components
 
 param(
-    [string]$Preset = "Release-Python",
     [string[]]$ExtraArgs = @(),
+    [string]$Preset = "Release-Python",
     [switch]$SkipEnv
 )
 

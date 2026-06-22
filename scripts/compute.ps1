@@ -4,8 +4,22 @@ param (
     [string]$LogLevel = "info",
     [string]$PortfolioId = "demo_portfolio",
     [string]$ScenarioSetId = "demo_factor_scenarios",
-    [string]$SnapshotId = "SNAP:2026-03-24"
+    [string]$SnapshotId = "SNAP:2026-03-24",
+    [switch]$SkipEnv
 )
+
+$scriptPath = $MyInvocation.MyCommand.Path
+$projectRoot = Split-Path (Split-Path $scriptPath -Parent) -Parent
+
+if (-not $SkipEnv) {
+    $envScript = Join-Path $projectRoot "scripts\env.ps1"
+    if (Test-Path -LiteralPath $envScript) {
+        & $envScript -ProjectRoot $projectRoot -Quiet
+        if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+        }
+    }
+}
 
 # Helper to find executable
 function Find-Exe($ExeName) {

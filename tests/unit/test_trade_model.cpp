@@ -15,12 +15,12 @@ TEST(TradeModelTest, ParsesCanonicalAssetClassesAndProductTypes) {
     EXPECT_EQ(qrp::domain::parse_asset_class("rates"), qrp::domain::AssetClass::Rates);
     EXPECT_EQ(qrp::domain::parse_asset_class("FX"), qrp::domain::AssetClass::FX);
     EXPECT_EQ(qrp::domain::parse_asset_class("commodities"), qrp::domain::AssetClass::Commodity);
-    EXPECT_EQ(qrp::domain::parse_asset_class("legacy"), qrp::domain::AssetClass::Unknown);
+    EXPECT_EQ(qrp::domain::parse_asset_class("unknown_asset_class"), qrp::domain::AssetClass::Unknown);
 
     EXPECT_EQ(qrp::domain::parse_product_type("swaption"), qrp::domain::ProductType::Swaption);
     EXPECT_EQ(qrp::domain::parse_product_type("fx_option"), qrp::domain::ProductType::FxOption);
     EXPECT_EQ(qrp::domain::parse_product_type("commodity_future_option"), qrp::domain::ProductType::CommodityFutureOption);
-    EXPECT_EQ(qrp::domain::parse_product_type("legacy"), qrp::domain::ProductType::Unknown);
+    EXPECT_EQ(qrp::domain::parse_product_type("unknown_product_type"), qrp::domain::ProductType::Unknown);
 }
 
 TEST(TradeModelTest, BuildsCanonicalFactorIds) {
@@ -70,8 +70,8 @@ TEST(TradeModelTest, ParsesAndSerializesFactorEnums) {
         qrp::domain::to_string(qrp::domain::ShockMeasure::VolPoints),
         "VolPoints");
 
-    EXPECT_THROW(qrp::domain::parse_factor_type("LegacyFactor"), std::invalid_argument);
-    EXPECT_THROW(qrp::domain::parse_shock_measure("LegacyShock"), std::invalid_argument);
+    EXPECT_THROW(qrp::domain::parse_factor_type("UnsupportedFactor"), std::invalid_argument);
+    EXPECT_THROW(qrp::domain::parse_shock_measure("UnsupportedShock"), std::invalid_argument);
 }
 
 TEST(TradeModelTest, RejectsMalformedFactorTokens) {
@@ -98,15 +98,15 @@ TEST(TradeModelTest, ValidatesCanonicalFactorIds) {
     EXPECT_TRUE(qrp::domain::is_canonical_factor_id("RF:RATES:USD:OIS:5Y"));
     EXPECT_TRUE(qrp::domain::is_canonical_factor_id("RF:RATESVOL:USD:SWAPTION:1Y:5Y"));
 
-    EXPECT_FALSE(qrp::domain::is_canonical_factor_id("RF:RATE:USD:OIS:5Y"));
-    EXPECT_FALSE(qrp::domain::is_canonical_factor_id("RF:VOL:USD:CAP:1Y"));
+    EXPECT_FALSE(qrp::domain::is_canonical_factor_id("RF:RATES:USD:OIS"));
+    EXPECT_FALSE(qrp::domain::is_canonical_factor_id("RF:RATESVOL:USD:SWAPTION:1Y"));
     EXPECT_FALSE(qrp::domain::is_canonical_factor_id("RF:RATES:USD::5Y"));
     EXPECT_FALSE(qrp::domain::is_canonical_factor_id("RATES:USD:OIS:5Y"));
 }
 
 TEST(TradeModelTest, RejectsUnknownTradeTypes) {
-    EXPECT_THROW(qrp::domain::parse_trade_type("legacy_trade"), std::runtime_error);
-    EXPECT_THROW(qrp::domain::make_trade("legacy_trade"), std::runtime_error);
+    EXPECT_THROW(qrp::domain::parse_trade_type("unsupported_trade"), std::runtime_error);
+    EXPECT_THROW(qrp::domain::make_trade("unsupported_trade"), std::runtime_error);
 }
 
 TEST(TradeModelTest, PortfolioJsonUsesCanonicalTradeFactory) {

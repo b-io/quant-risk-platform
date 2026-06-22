@@ -1,4 +1,5 @@
 #include <qrp/instruments/instrument_factory.hpp>
+#include <qrp/analytics/product_pricing_registry.hpp>
 #include <qrp/conventions/market_convention_registry.hpp>
 #include <qrp/market/market_snapshot.hpp>
 #include <ql/instruments/vanillaswap.hpp>
@@ -36,28 +37,7 @@ namespace qrp::instruments {
 QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_instrument(
     const domain::Trade& trade,
     const analytics::PricingContext& context) {
-
-    switch (trade.trade_type) {
-        case domain::TradeType::EquitySpot: {
-            const auto& eq_trade = dynamic_cast<const domain::EquitySpotTrade&>(trade);
-            return create_equity_spot(eq_trade, context);
-        }
-        case domain::TradeType::FixedRateBond: {
-            const auto& bond_trade = dynamic_cast<const domain::FixedRateBondTrade&>(trade);
-            return create_bond(bond_trade, context);
-        }
-        case domain::TradeType::FxForward: {
-            const auto& fx_trade = dynamic_cast<const domain::FxForwardTrade&>(trade);
-            return create_fx_forward(fx_trade, context);
-        }
-        case domain::TradeType::VanillaSwap: {
-            const auto& swap_trade = dynamic_cast<const domain::VanillaSwapTrade&>(trade);
-            return create_swap(swap_trade, context);
-        }
-        case domain::TradeType::Unknown:
-            break;
-    }
-    return nullptr;
+    return analytics::ProductPricingRegistry::create_instrument(trade, context);
 }
 
 /**
@@ -201,7 +181,7 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_fx_for
     const domain::FxForwardTrade& trade,
     const analytics::PricingContext& context) {
     
-    // For FX Forward, we need the spot rate. In demo_market.json, it's stored as "EURUSD".
+    // FX spot quote IDs use the concatenated base/quote pair convention, e.g. EURUSD.
     std::string pair = trade.base_currency + trade.quote_currency;
     auto spot_quote = context.market_state().get_quote_handle(pair);
     
@@ -213,7 +193,7 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_fx_for
 }
 
 /**
- * @brief Creates an Equity Spot (simplified).
+ * @brief Creates an equity spot instrument linked to the underlier quote.
  */
 QuantLib::ext::shared_ptr<QuantLib::Instrument> InstrumentFactory::create_equity_spot(
     const domain::EquitySpotTrade& trade,

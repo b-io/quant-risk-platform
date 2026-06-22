@@ -13,7 +13,6 @@ public:
         const domain::Trade& trade,
         const analytics::PricingContext& context);
 
-private:
     static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_swap(
         const domain::VanillaSwapTrade& trade,
         const analytics::PricingContext& context);

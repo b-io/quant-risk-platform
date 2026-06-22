@@ -1,4 +1,5 @@
 #include <qrp/analytics/pnl_explain_service.hpp>
+#include <qrp/analytics/cashflow_extractor.hpp>
 #include <qrp/analytics/valuation_service.hpp>
 #include <qrp/market/market_snapshot.hpp>
 #include <map>
@@ -20,15 +21,9 @@ std::vector<PnlExplainResult> PnlExplainService::explain_pnl(
     PricingContext prev_context(prev_state);
     PricingContext curr_context(curr_state);
 
-    // Roll date context: t1 valuation date but using t0 market data
-    QuantLib::Date t0 = prev_state->valuation_date();
-    QuantLib::Date t1 = curr_state->valuation_date();
-    
-    // Create a temporary state for carry calculation
-    auto rolled_state = std::make_shared<qrp::market::MarketState>(t1);
-    // Copy all curves and handles from prev_state to rolled_state
-    // In a production system, we'd ensure handles point to correct data.
-    // Here, we can rebuild the prev_market at t1
+    // Carry uses the previous market snapshot rebuilt at the current valuation date.
+    // This recreates quote handles and curves consistently instead of sharing mutable
+    // handles between independent market states.
     domain::MarketSnapshot rolled_dto = prev_market_dto;
     rolled_dto.valuation_date = curr_market_dto.valuation_date;
     qrp::market::MarketSnapshot rolled_market(rolled_dto);
@@ -58,9 +53,11 @@ std::vector<PnlExplainResult> PnlExplainService::explain_pnl(
             // 1. Carry (Roll date P&L: NPV at t1 with t0 market - NPV at t0 with t0 market)
             res.carry_pnl = rolled_npv - res.prev_npv;
             
-            // 2. Realized Cash (Coupons, fixings)
-            // Simplified: extract from total move if we had a cashflow engine
-            res.cash_pnl = 0.0; 
+            const auto cashflow = CashflowExtractor::extract_realized_cashflows(
+                trade,
+                prev_market_dto,
+                curr_market_dto);
+            res.cash_pnl = cashflow.realized_cash_pnl;
 
             // 3. Market Move (Residual from total - carry - cash)
             res.market_move_pnl = res.total_pnl - res.carry_pnl - res.cash_pnl;

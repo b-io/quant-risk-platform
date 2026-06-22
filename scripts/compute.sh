@@ -1,5 +1,8 @@
 #!/bin/bash
 
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+PROJECT_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
+
 # Default values
 BUILD_DIR="build/Release-Python"
 CONFIG="Release"
@@ -7,6 +10,7 @@ LOG_LEVEL="info"
 PORTFOLIO_ID="demo_portfolio"
 SCENARIO_SET_ID="demo_factor_scenarios"
 SNAPSHOT_ID="SNAP:2026-03-24"
+SKIP_ENV=0
 
 # Simple argument parsing
 while [[ "$#" -gt 0 ]]; do
@@ -14,13 +18,18 @@ while [[ "$#" -gt 0 ]]; do
         -BuildDir) BUILD_DIR="$2"; shift ;;
         -Config) CONFIG="$2"; shift ;;
         -LogLevel) LOG_LEVEL="$2"; shift ;;
-        -Portfolio) PORTFOLIO_ID="$2"; shift ;;
-        -Scenarios) SCENARIO_SET_ID="$2"; shift ;;
-        -Snapshot) SNAPSHOT_ID="$2"; shift ;;
-        *) echo "Unknown parameter passed: $1"; exit 1 ;;
+        -PortfolioId) PORTFOLIO_ID="$2"; shift ;;
+        -ScenarioSetId) SCENARIO_SET_ID="$2"; shift ;;
+        -SnapshotId) SNAPSHOT_ID="$2"; shift ;;
+        -SkipEnv) SKIP_ENV=1 ;;
+        *) echo "Unknown parameter: $1"; exit 1 ;;
     esac
     shift
 done
+
+if [ "$SKIP_ENV" != "1" ] && [ -f "$SCRIPT_DIR/env.sh" ]; then
+    QRP_ENV_QUIET=1 QRP_PROJECT_ROOT="$PROJECT_ROOT" . "$SCRIPT_DIR/env.sh"
+fi
 
 # Helper to find executable
 find_exe() {

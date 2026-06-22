@@ -6,13 +6,23 @@ set -e
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 PROJECT_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
 
-if [ "${QRP_SKIP_ENV:-0}" != "1" ] && [ -f "$SCRIPT_DIR/env.sh" ]; then
+BUILD_DIR="build/Release-Python"
+CONFIG="Release"
+SKIP_ENV=0
+
+while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+        -BuildDir) BUILD_DIR="$2"; shift ;;
+        -Config) CONFIG="$2"; shift ;;
+        -SkipEnv) SKIP_ENV=1 ;;
+        *) echo "Unknown parameter: $1"; exit 1 ;;
+    esac
+    shift
+done
+
+if [ "$SKIP_ENV" != "1" ] && [ -f "$SCRIPT_DIR/env.sh" ]; then
     QRP_ENV_QUIET=1 QRP_PROJECT_ROOT="$PROJECT_ROOT" . "$SCRIPT_DIR/env.sh"
 fi
-
-# Default build directory and config
-BUILD_DIR="${1:-build/Release-Python}"
-CONFIG="${2:-Release}"
 
 echo "Building tests (Config: $CONFIG) in $BUILD_DIR..."
 cmake --build "$BUILD_DIR" --target unit_tests integration_tests --config "$CONFIG"

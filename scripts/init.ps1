@@ -1,10 +1,27 @@
 param(
     [string]$BuildDir = "build\Release-Python",
     [string]$Config = "Release",
-    [switch]$Force = $false
+    [string]$MarketFile = "data\market\demo_market.json",
+    [string]$PortfolioFile = "data\portfolios\demo_portfolio.json",
+    [string]$ScenarioFile = "data\scenarios\demo_scenarios.json",
+    [switch]$Force = $false,
+    [switch]$SkipEnv
 )
 
 # init.ps1 - Initialize the database and load sample data
+
+$scriptPath = $MyInvocation.MyCommand.Path
+$projectRoot = Split-Path (Split-Path $scriptPath -Parent) -Parent
+
+if (-not $SkipEnv) {
+    $envScript = Join-Path $projectRoot "scripts\env.ps1"
+    if (Test-Path -LiteralPath $envScript) {
+        & $envScript -ProjectRoot $projectRoot -Quiet
+        if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+        }
+    }
+}
 
 # Helper to find executable in either $BuildDir\ or $BuildDir\$Config\
 function Find-Exe($ExeName) {
@@ -28,10 +45,12 @@ if ($null -eq $CliExe) {
     exit 1
 }
 
-# Ensure var directory exists
-if (!(Test-Path var)) { New-Item -ItemType Directory -Path var }
+$dbDirectory = Split-Path -Parent $DbFile
+if ($dbDirectory -and !(Test-Path -LiteralPath $dbDirectory)) {
+    New-Item -ItemType Directory -Path $dbDirectory -Force | Out-Null
+}
 
-if (Test-Path $DbFile) {
+if (Test-Path -LiteralPath $DbFile) {
     if (!$Force) {
         $title = "Warning: Database Exists"
         $message = "Database $DbFile already exists. Do you want to delete and recreate it?"
@@ -47,20 +66,20 @@ if (Test-Path $DbFile) {
     }
     
     Write-Host "Deleting $DbFile..." -ForegroundColor Yellow
-    Remove-Item $DbFile
+    Remove-Item -LiteralPath $DbFile
 }
 
 Write-Host "Initializing database schema..." -ForegroundColor Cyan
 & $CliExe init-db
 
 Write-Host "Importing sample market data..." -ForegroundColor Cyan
-& $CliExe import-market data\market\demo_market.json
+& $CliExe import-market $MarketFile
 
 Write-Host "Importing sample portfolios..." -ForegroundColor Cyan
-& $CliExe import-portfolio data\portfolios\demo_portfolio.json
+& $CliExe import-portfolio $PortfolioFile
 
 Write-Host "Importing sample scenarios..." -ForegroundColor Cyan
-& $CliExe import-scenarios data\scenarios\demo_scenarios.json
+& $CliExe import-scenarios $ScenarioFile
 
 Write-Host "Data initialization complete!" -ForegroundColor Green
 & $CliExe list
