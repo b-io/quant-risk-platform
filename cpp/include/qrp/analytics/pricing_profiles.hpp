@@ -8,9 +8,11 @@ namespace qrp::analytics {
 
 struct CashflowExtractionResult {
     double realized_cash_pnl = 0.0;
-    domain::SupportStatus support_status = domain::SupportStatus::Supported;
+    bool extraction_supported = false;
     std::string model_name;
+    domain::SupportStatus support_status = domain::SupportStatus::Unsupported;
     std::string status_message;
+    std::map<std::string, std::string> tags;
 };
 
 struct InstrumentPricingProfile {

@@ -25,15 +25,18 @@ domain::ProductType resolve_product_type(const domain::Trade& trade) {
 }
 
 CashflowExtractionResult no_realized_cashflows(
-    const domain::Trade&,
+    const domain::Trade& trade,
     const domain::MarketSnapshot& previous_market,
     const domain::MarketSnapshot& current_market) {
     static_cast<void>(previous_market);
     static_cast<void>(current_market);
 
     CashflowExtractionResult result;
+    result.extraction_supported = false;
     result.model_name = "NoRealizedCashflowExtractor";
+    result.support_status = domain::SupportStatus::Unsupported;
     result.status_message = "No realized cashflow event source is configured for this product";
+    result.tags["trade_id"] = trade.id;
     return result;
 }
 
@@ -212,10 +215,10 @@ CashflowExtractionResult ProductPricingRegistry::extract_realized_cashflows(
     auto result = definition.cashflow_extractor
         ? definition.cashflow_extractor(trade, previous_market, current_market)
         : no_realized_cashflows(trade, previous_market, current_market);
-    result.support_status = definition.status;
     if (result.model_name.empty()) {
         result.model_name = definition.model_name;
     }
+    result.tags["product_support_status"] = domain::to_string(definition.status);
     return result;
 }
 

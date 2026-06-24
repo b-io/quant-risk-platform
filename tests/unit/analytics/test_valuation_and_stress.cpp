@@ -1,9 +1,12 @@
 #include <gtest/gtest.h>
+#include <qrp/analytics/pnl_explain_service.hpp>
 #include <qrp/analytics/pricing_context.hpp>
 #include <qrp/analytics/stress_engine.hpp>
 #include <qrp/analytics/valuation_service.hpp>
 #include <qrp/market/market_snapshot.hpp>
+#include <map>
 #include <memory>
+#include <string>
 
 namespace {
 
@@ -132,4 +135,58 @@ TEST(StressEngineTest, UsesAdjustedTradeNpvForEquitySpot) {
     ASSERT_EQ(results.size(), 1);
     EXPECT_NEAR(results[0].trade_pnls.at("equity_aapl"), 100.0, 1e-10);
     EXPECT_NEAR(results[0].total_pnl, 100.0, 1e-10);
+}
+
+TEST(PnlExplainServiceTest, PreservesValuationDiagnosticsAndComponentLines) {
+    qrp::domain::Portfolio portfolio;
+    portfolio.portfolio_id = "P1";
+    portfolio.trades.push_back(make_equity_trade());
+
+    qrp::domain::MarketSnapshot previous_market;
+    previous_market.valuation_date = "2026-03-24";
+    previous_market.quotes.push_back(
+        {"AAPL", qrp::domain::QuoteInstrumentType::Future, qrp::domain::Currency::USD, "SPOT", 100.0});
+
+    qrp::domain::MarketSnapshot current_market = previous_market;
+    current_market.valuation_date = "2026-03-25";
+    current_market.quotes[0].value = 110.0;
+
+    const auto results = qrp::analytics::PnlExplainService::explain_pnl(
+        portfolio,
+        previous_market,
+        current_market);
+
+    ASSERT_EQ(results.size(), 1);
+    const auto& result = results[0];
+    EXPECT_EQ(result.trade_id, "equity_aapl");
+    EXPECT_TRUE(result.prev_valuation_available);
+    EXPECT_TRUE(result.curr_valuation_available);
+    EXPECT_TRUE(result.rolled_valuation_available);
+    EXPECT_EQ(result.prev_valuation.trade_id, "equity_aapl");
+    EXPECT_EQ(result.curr_valuation.support_status, qrp::domain::SupportStatus::PartiallySupported);
+    EXPECT_EQ(result.rolled_valuation.model_name, result.prev_valuation.model_name);
+    EXPECT_NEAR(result.prev_npv, 0.0, 1e-10);
+    EXPECT_NEAR(result.curr_npv, 100.0, 1e-10);
+    EXPECT_NEAR(result.total_pnl, 100.0, 1e-10);
+    EXPECT_NEAR(result.carry_pnl, 0.0, 1e-10);
+    EXPECT_NEAR(result.cash_pnl, 0.0, 1e-10);
+    EXPECT_NEAR(result.market_move_pnl, 100.0, 1e-10);
+    EXPECT_NEAR(result.residual, 0.0, 1e-10);
+    EXPECT_FALSE(result.cashflow_extraction.extraction_supported);
+    EXPECT_EQ(result.cashflow_extraction.support_status, qrp::domain::SupportStatus::Unsupported);
+    EXPECT_EQ(result.diagnostics.at("cashflow_extraction_supported"), "false");
+    EXPECT_EQ(result.diagnostics.at("cashflow_support_status"), "unsupported");
+
+    std::map<std::string, qrp::analytics::PnlExplainComponent> components;
+    for (const auto& component : result.components) {
+        components[component.component_id] = component;
+    }
+
+    ASSERT_EQ(components.size(), 4);
+    EXPECT_EQ(components.at("carry").component_type, qrp::analytics::PnlExplainComponentType::Carry);
+    EXPECT_EQ(components.at("cash").component_type, qrp::analytics::PnlExplainComponentType::Cash);
+    EXPECT_EQ(components.at("market_move").component_type, qrp::analytics::PnlExplainComponentType::MarketMove);
+    EXPECT_EQ(components.at("residual").component_type, qrp::analytics::PnlExplainComponentType::Residual);
+    EXPECT_NEAR(components.at("market_move").amount, 100.0, 1e-10);
+    EXPECT_EQ(components.at("cash").tags.at("extraction_supported"), "false");
 }

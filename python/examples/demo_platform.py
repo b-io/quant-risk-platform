@@ -1,9 +1,14 @@
+import argparse
+import importlib.machinery
 import importlib.util
 import json
 import math
 import os
 import sys
+import webbrowser
 from pathlib import Path
+
+from demo_dashboard import create_plotly_dashboard
 
 
 script_path = Path(__file__).resolve()
@@ -15,12 +20,28 @@ def configure_module_path():
     if not build_path:
         candidates = [
             project_root / "build" / "Release-Python" / "python" / "Release",
+            project_root / "build" / "Release-Python" / "python",
             project_root / "build" / "Release-Python-Shared" / "python" / "Release",
+            project_root / "build" / "Release-Python-Shared" / "python",
         ]
+        incompatible_extensions = []
         for candidate in candidates:
-            if candidate.exists() and list(candidate.glob("quant_risk_platform*")):
+            extension_files = list(candidate.glob("quant_risk_platform*.pyd")) + list(candidate.glob("quant_risk_platform*.so"))
+            compatible_files = [
+                path for path in extension_files
+                if any(path.name.endswith(suffix) for suffix in importlib.machinery.EXTENSION_SUFFIXES)
+            ]
+            if compatible_files:
                 build_path = str(candidate)
                 break
+            incompatible_extensions.extend(extension_files)
+        if not build_path and incompatible_extensions:
+            suffixes = ", ".join(importlib.machinery.EXTENSION_SUFFIXES)
+            found = "\n  ".join(str(path) for path in incompatible_extensions)
+            print("Warning: found compiled quant_risk_platform extensions, but none match this Python runtime.")
+            print(f"Current Python: {sys.executable}")
+            print(f"Compatible extension suffixes: {suffixes}")
+            print(f"Found extensions:\n  {found}")
 
     if build_path and os.path.exists(build_path):
         sys.path.append(build_path)
@@ -519,7 +540,17 @@ def run_optional_cvxpy_worker_check():
     return result
 
 
-def run_demo():
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Run the Quant Risk Platform Python demo.")
+    parser.add_argument(
+        "--dashboard",
+        action="store_true",
+        help="Create reports/demo_risk_dashboard.html and open it in the default web browser.")
+    return parser.parse_args()
+
+
+def run_demo(dashboard=False):
     section("Quant Risk Platform Python Demo")
     market_path = project_root / "data" / "market" / "demo_market.json"
     portfolio_path = project_root / "data" / "portfolios" / "demo_portfolio.json"
@@ -546,10 +577,32 @@ def run_demo():
     mc_results = run_monte_carlo(portfolio, market, factors, bindings)
     validate_golden_outputs(golden, valuation_results, total_npv, stress_results, risk_results, pnl_results, mc_results)
     validate_product_family_outputs(product_families, valuation_results, stress_results, risk_results, pnl_results)
-    run_optional_cvxpy_worker_check()
+    optimization_result = run_optional_cvxpy_worker_check()
+    if dashboard:
+        dashboard_path = create_plotly_dashboard(
+            portfolio=portfolio,
+            valuation_results=valuation_results,
+            total_npv=total_npv,
+            stress_results=stress_results,
+            risk_results=risk_results,
+            pnl_results=pnl_results,
+            mc_results=mc_results,
+            factors=factors,
+            market_valuation_date=market.valuation_date,
+            scenarios=scenarios,
+            output_path=project_root / "reports" / "demo_risk_dashboard.html",
+            optimization_result=optimization_result,
+        )
+        if dashboard_path:
+            print(f"\nDashboard written to: {dashboard_path}")
+            webbrowser.open(dashboard_path.resolve().as_uri())
+            print("Dashboard opened in your default web browser.")
+        else:
+            print("Dashboard was not generated, so there is no webpage to open.")
 
     section("Demo completed successfully")
 
 
 if __name__ == "__main__":
-    run_demo()
+    args = parse_args()
+    run_demo(dashboard=args.dashboard)

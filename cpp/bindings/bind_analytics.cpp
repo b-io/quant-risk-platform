@@ -21,8 +21,14 @@ namespace qrp::bindings {
 void bind_analytics(py::module_& m) {
         py::enum_<analytics::MonteCarloMode>(m, "MonteCarloMode")
             .value("AgedHorizonRevaluation", analytics::MonteCarloMode::AgedHorizonRevaluation)
-            .value("HorizonShockOnly", analytics::MonteCarloMode::HorizonShockOnly)
-            .export_values();
+            .value("HorizonShockOnly", analytics::MonteCarloMode::HorizonShockOnly);
+
+        py::enum_<analytics::PnlExplainComponentType>(m, "PnlExplainComponentType")
+            .value("Carry", analytics::PnlExplainComponentType::Carry)
+            .value("Cash", analytics::PnlExplainComponentType::Cash)
+            .value("MarketMove", analytics::PnlExplainComponentType::MarketMove)
+            .value("Residual", analytics::PnlExplainComponentType::Residual);
+
         py::class_<analytics::CovarianceEstimationConfig>(m, "CovarianceEstimationConfig")
             .def(py::init<>())
             .def_readwrite("start_date", &analytics::CovarianceEstimationConfig::start_date)
@@ -70,7 +76,44 @@ void bind_analytics(py::module_& m) {
             .def_readwrite("market_pnl", &analytics::PathTrace::market_pnl)
             .def_readwrite("total_pnl", &analytics::PathTrace::total_pnl)
             .def_readwrite("valuation_date_before", &analytics::PathTrace::valuation_date_before)
-            .def_readwrite("valuation_date_after", &analytics::PathTrace::valuation_date_after);
+            .def_readwrite("valuation_date_after", &analytics::PathTrace::valuation_date_after)
+            .def_readwrite("num_priced", &analytics::PathTrace::num_priced)
+            .def_readwrite("num_expired", &analytics::PathTrace::num_expired)
+            .def_readwrite("num_failed", &analytics::PathTrace::num_failed)
+            .def_readwrite("num_unsupported", &analytics::PathTrace::num_unsupported);
+
+        py::class_<analytics::CashflowExtractionResult>(m, "CashflowExtractionResult")
+            .def(py::init<>())
+            .def_readwrite("realized_cash_pnl", &analytics::CashflowExtractionResult::realized_cash_pnl)
+            .def_readwrite("extraction_supported", &analytics::CashflowExtractionResult::extraction_supported)
+            .def_readwrite("model_name", &analytics::CashflowExtractionResult::model_name)
+            .def_readwrite("support_status", &analytics::CashflowExtractionResult::support_status)
+            .def_readwrite("status_message", &analytics::CashflowExtractionResult::status_message)
+            .def_readwrite("tags", &analytics::CashflowExtractionResult::tags);
+
+        py::class_<analytics::ValuationResult>(m, "ValuationResult")
+            .def(py::init<>())
+            .def_readwrite("asset_class", &analytics::ValuationResult::asset_class)
+            .def_readwrite("currency", &analytics::ValuationResult::currency)
+            .def_readwrite("model_name", &analytics::ValuationResult::model_name)
+            .def_readwrite("npv", &analytics::ValuationResult::npv)
+            .def_readwrite("product_type", &analytics::ValuationResult::product_type)
+            .def_readwrite("support_status", &analytics::ValuationResult::support_status)
+            .def_readwrite("status_message", &analytics::ValuationResult::status_message)
+            .def_readwrite("tags", &analytics::ValuationResult::tags)
+            .def_readwrite("trade_id", &analytics::ValuationResult::trade_id);
+
+        py::class_<analytics::PnlExplainComponent>(m, "PnlExplainComponent")
+            .def(py::init<>())
+            .def_readwrite("component_id", &analytics::PnlExplainComponent::component_id)
+            .def_readwrite("component_type", &analytics::PnlExplainComponent::component_type)
+            .def_readwrite("label", &analytics::PnlExplainComponent::label)
+            .def_readwrite("amount", &analytics::PnlExplainComponent::amount)
+            .def_readwrite("factor_id", &analytics::PnlExplainComponent::factor_id)
+            .def_readwrite("model_name", &analytics::PnlExplainComponent::model_name)
+            .def_readwrite("support_status", &analytics::PnlExplainComponent::support_status)
+            .def_readwrite("status_message", &analytics::PnlExplainComponent::status_message)
+            .def_readwrite("tags", &analytics::PnlExplainComponent::tags);
 
         py::class_<analytics::PnlExplainResult>(m, "PnlExplainResult")
             .def(py::init<>())
@@ -79,8 +122,18 @@ void bind_analytics(py::module_& m) {
             .def_readwrite("curr_npv", &analytics::PnlExplainResult::curr_npv)
             .def_readwrite("total_pnl", &analytics::PnlExplainResult::total_pnl)
             .def_readwrite("carry_pnl", &analytics::PnlExplainResult::carry_pnl)
+            .def_readwrite("market_move_pnl", &analytics::PnlExplainResult::market_move_pnl)
             .def_readwrite("cash_pnl", &analytics::PnlExplainResult::cash_pnl)
-            .def_readwrite("market_move_pnl", &analytics::PnlExplainResult::market_move_pnl);
+            .def_readwrite("residual", &analytics::PnlExplainResult::residual)
+            .def_readwrite("prev_valuation_available", &analytics::PnlExplainResult::prev_valuation_available)
+            .def_readwrite("curr_valuation_available", &analytics::PnlExplainResult::curr_valuation_available)
+            .def_readwrite("rolled_valuation_available", &analytics::PnlExplainResult::rolled_valuation_available)
+            .def_readwrite("prev_valuation", &analytics::PnlExplainResult::prev_valuation)
+            .def_readwrite("curr_valuation", &analytics::PnlExplainResult::curr_valuation)
+            .def_readwrite("rolled_valuation", &analytics::PnlExplainResult::rolled_valuation)
+            .def_readwrite("cashflow_extraction", &analytics::PnlExplainResult::cashflow_extraction)
+            .def_readwrite("components", &analytics::PnlExplainResult::components)
+            .def_readwrite("diagnostics", &analytics::PnlExplainResult::diagnostics);
         py::class_<analytics::RiskResult>(m, "RiskResult")
             .def(py::init<>())
             .def_readwrite("trade_id", &analytics::RiskResult::trade_id)
@@ -98,6 +151,7 @@ void bind_analytics(py::module_& m) {
             .def_readwrite("horizon_days", &analytics::SimulationResult::horizon_days)
             .def_readwrite("mode", &analytics::SimulationResult::mode)
             .def_readwrite("factor_ids", &analytics::SimulationResult::factor_ids)
+            .def_readwrite("traces", &analytics::SimulationResult::traces)
             .def_readwrite("num_trades_total", &analytics::SimulationResult::num_trades_total)
             .def_readwrite("num_trades_priced_t0", &analytics::SimulationResult::num_trades_priced_t0)
             .def_readwrite("num_trades_failed_t0", &analytics::SimulationResult::num_trades_failed_t0)
@@ -105,26 +159,13 @@ void bind_analytics(py::module_& m) {
             .def_readwrite("num_trades_expired_tH", &analytics::SimulationResult::num_trades_expired_tH)
             .def_readwrite("num_trades_failed_tH", &analytics::SimulationResult::num_trades_failed_tH)
             .def_readwrite("num_trades_unsupported_tH", &analytics::SimulationResult::num_trades_unsupported_tH)
-            .def_readwrite("construction_errors", &analytics::SimulationResult::construction_errors)
-            .def_readwrite("traces", &analytics::SimulationResult::traces);
+            .def_readwrite("construction_errors", &analytics::SimulationResult::construction_errors);
 
         py::class_<analytics::StressResult>(m, "StressResult")
             .def(py::init<>())
             .def_readwrite("scenario_name", &analytics::StressResult::scenario_name)
             .def_readwrite("total_pnl", &analytics::StressResult::total_pnl)
             .def_readwrite("trade_pnls", &analytics::StressResult::trade_pnls);
-        py::class_<analytics::ValuationResult>(m, "ValuationResult")
-            .def(py::init<>())
-            .def_readwrite("trade_id", &analytics::ValuationResult::trade_id)
-            .def_readwrite("npv", &analytics::ValuationResult::npv)
-            .def_readwrite("currency", &analytics::ValuationResult::currency)
-            .def_readwrite("asset_class", &analytics::ValuationResult::asset_class)
-            .def_readwrite("product_type", &analytics::ValuationResult::product_type)
-            .def_readwrite("support_status", &analytics::ValuationResult::support_status)
-            .def_readwrite("model_name", &analytics::ValuationResult::model_name)
-            .def_readwrite("status_message", &analytics::ValuationResult::status_message)
-            .def_readwrite("tags", &analytics::ValuationResult::tags);
-
         m.def("compute_risk", &analytics::RiskService::compute_risk, 
               py::arg("portfolio"), py::arg("base_market_dto"),
               py::arg("factors"),

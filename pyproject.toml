@@ -17,6 +17,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+dashboard = [
+    "plotly",
+]
 optimization = [
     "cvxpy",
     "osqp",

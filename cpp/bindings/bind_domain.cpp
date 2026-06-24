@@ -10,15 +10,6 @@ using namespace qrp;
 namespace qrp::bindings {
 
 void bind_domain(py::module_& m) {
-        py::enum_<domain::Currency>(m, "Currency")
-            .value("CHF", domain::Currency::CHF)
-            .value("EUR", domain::Currency::EUR)
-            .value("GBP", domain::Currency::GBP)
-            .value("JPY", domain::Currency::JPY)
-            .value("USD", domain::Currency::USD)
-            .value("UNKNOWN", domain::Currency::UNKNOWN)
-            .export_values();
-
         py::enum_<domain::AssetClass>(m, "AssetClass")
             .value("Commodity", domain::AssetClass::Commodity)
             .value("Credit", domain::AssetClass::Credit)
@@ -26,8 +17,34 @@ void bind_domain(py::module_& m) {
             .value("FX", domain::AssetClass::FX)
             .value("Inflation", domain::AssetClass::Inflation)
             .value("Rates", domain::AssetClass::Rates)
-            .value("Unknown", domain::AssetClass::Unknown)
-            .export_values();
+            .value("Unknown", domain::AssetClass::Unknown);
+
+        py::enum_<domain::BusinessCalendar>(m, "BusinessCalendar")
+            .value("CHF", domain::BusinessCalendar::CHF)
+            .value("JP", domain::BusinessCalendar::JP)
+            .value("Target", domain::BusinessCalendar::Target)
+            .value("UK", domain::BusinessCalendar::UK)
+            .value("US", domain::BusinessCalendar::US)
+            .value("WeekendsOnly", domain::BusinessCalendar::WeekendsOnly)
+            .value("UNKNOWN", domain::BusinessCalendar::UNKNOWN);
+
+        py::enum_<domain::BusinessDayConvention>(m, "BusinessDayConvention")
+            .value("Following", domain::BusinessDayConvention::Following)
+            .value("HalfMonthModifiedFollowing", domain::BusinessDayConvention::HalfMonthModifiedFollowing)
+            .value("ModifiedFollowing", domain::BusinessDayConvention::ModifiedFollowing)
+            .value("ModifiedPreceding", domain::BusinessDayConvention::ModifiedPreceding)
+            .value("Nearest", domain::BusinessDayConvention::Nearest)
+            .value("Preceding", domain::BusinessDayConvention::Preceding)
+            .value("Unadjusted", domain::BusinessDayConvention::Unadjusted)
+            .value("UNKNOWN", domain::BusinessDayConvention::UNKNOWN);
+
+        py::enum_<domain::Currency>(m, "Currency")
+            .value("CHF", domain::Currency::CHF)
+            .value("EUR", domain::Currency::EUR)
+            .value("GBP", domain::Currency::GBP)
+            .value("JPY", domain::Currency::JPY)
+            .value("USD", domain::Currency::USD)
+            .value("UNKNOWN", domain::Currency::UNKNOWN);
 
         py::enum_<domain::CurvePurpose>(m, "CurvePurpose")
             .value("Credit", domain::CurvePurpose::Credit)
@@ -36,8 +53,31 @@ void bind_domain(py::module_& m) {
             .value("Forward3M", domain::CurvePurpose::Forward3M)
             .value("Forward6M", domain::CurvePurpose::Forward6M)
             .value("Volatility", domain::CurvePurpose::Volatility)
-            .value("UNKNOWN", domain::CurvePurpose::UNKNOWN)
-            .export_values();
+            .value("UNKNOWN", domain::CurvePurpose::UNKNOWN);
+
+        py::enum_<domain::DateGeneration>(m, "DateGeneration")
+            .value("Backward", domain::DateGeneration::Backward)
+            .value("CDS", domain::DateGeneration::CDS)
+            .value("CDS2015", domain::DateGeneration::CDS2015)
+            .value("Forward", domain::DateGeneration::Forward)
+            .value("OldCDS", domain::DateGeneration::OldCDS)
+            .value("ThirdWednesday", domain::DateGeneration::ThirdWednesday)
+            .value("Twentieth", domain::DateGeneration::Twentieth)
+            .value("TwentiethIMM", domain::DateGeneration::TwentiethIMM)
+            .value("Zero", domain::DateGeneration::Zero)
+            .value("UNKNOWN", domain::DateGeneration::UNKNOWN);
+
+        py::enum_<domain::DayCount>(m, "DayCount")
+            .value("ACT360", domain::DayCount::ACT360)
+            .value("ACT365", domain::DayCount::ACT365)
+            .value("ACT365F", domain::DayCount::ACT365F)
+            .value("ACTACT", domain::DayCount::ACTACT)
+            .value("ACTACT_AFB", domain::DayCount::ACTACT_AFB)
+            .value("ACTACT_EURO", domain::DayCount::ACTACT_EURO)
+            .value("ACTACT_ISDA", domain::DayCount::ACTACT_ISDA)
+            .value("ACTACT_ISMA", domain::DayCount::ACTACT_ISMA)
+            .value("Thirty360", domain::DayCount::Thirty360)
+            .value("UNKNOWN", domain::DayCount::UNKNOWN);
 
         py::enum_<domain::FactorType>(m, "FactorType")
             .value("BasisSpread", domain::FactorType::BasisSpread)
@@ -49,16 +89,28 @@ void bind_domain(py::module_& m) {
             .value("HazardRate", domain::FactorType::HazardRate)
             .value("RateForward", domain::FactorType::RateForward)
             .value("RateZero", domain::FactorType::RateZero)
-            .value("Volatility", domain::FactorType::Volatility)
-            .export_values();
+            .value("Volatility", domain::FactorType::Volatility);
 
-        py::enum_<domain::TradeType>(m, "TradeType")
-            .value("EquitySpot", domain::TradeType::EquitySpot)
-            .value("FixedRateBond", domain::TradeType::FixedRateBond)
-            .value("FxForward", domain::TradeType::FxForward)
-            .value("VanillaSwap", domain::TradeType::VanillaSwap)
-            .value("Unknown", domain::TradeType::Unknown)
-            .export_values();
+        py::enum_<domain::Frequency>(m, "Frequency")
+            .value("Annual", domain::Frequency::Annual)
+            .value("Bimonthly", domain::Frequency::Bimonthly)
+            .value("Biweekly", domain::Frequency::Biweekly)
+            .value("Daily", domain::Frequency::Daily)
+            .value("EveryFourthMonth", domain::Frequency::EveryFourthMonth)
+            .value("EveryFourthWeek", domain::Frequency::EveryFourthWeek)
+            .value("Monthly", domain::Frequency::Monthly)
+            .value("Once", domain::Frequency::Once)
+            .value("OtherFrequency", domain::Frequency::OtherFrequency)
+            .value("Quarterly", domain::Frequency::Quarterly)
+            .value("Semiannual", domain::Frequency::Semiannual)
+            .value("Weekly", domain::Frequency::Weekly)
+            .value("UNKNOWN", domain::Frequency::UNKNOWN);
+
+        py::enum_<domain::InterpolationType>(m, "InterpolationType")
+            .value("CubicSpline", domain::InterpolationType::CubicSpline)
+            .value("Linear", domain::InterpolationType::Linear)
+            .value("LogLinear", domain::InterpolationType::LogLinear)
+            .value("UNKNOWN", domain::InterpolationType::UNKNOWN);
 
         py::enum_<domain::ProductType>(m, "ProductType")
             .value("CallableBond", domain::ProductType::CallableBond)
@@ -81,15 +133,8 @@ void bind_domain(py::module_& m) {
             .value("OisSwap", domain::ProductType::OisSwap)
             .value("Swaption", domain::ProductType::Swaption)
             .value("VanillaSwap", domain::ProductType::VanillaSwap)
-            .value("Unknown", domain::ProductType::Unknown)
-            .export_values();
+            .value("Unknown", domain::ProductType::Unknown);
 
-        py::enum_<domain::SupportStatus>(m, "SupportStatus")
-            .value("Failed", domain::SupportStatus::Failed)
-            .value("PartiallySupported", domain::SupportStatus::PartiallySupported)
-            .value("Supported", domain::SupportStatus::Supported)
-            .value("Unsupported", domain::SupportStatus::Unsupported)
-            .export_values();
         py::enum_<domain::QuoteInstrumentType>(m, "QuoteInstrumentType")
             .value("Bond", domain::QuoteInstrumentType::Bond)
             .value("CapFloorVol", domain::QuoteInstrumentType::CapFloorVol)
@@ -100,8 +145,7 @@ void bind_domain(py::module_& m) {
             .value("IRS", domain::QuoteInstrumentType::IRS)
             .value("OIS", domain::QuoteInstrumentType::OIS)
             .value("SwaptionVol", domain::QuoteInstrumentType::SwaptionVol)
-            .value("UNKNOWN", domain::QuoteInstrumentType::UNKNOWN)
-            .export_values();
+            .value("UNKNOWN", domain::QuoteInstrumentType::UNKNOWN);
 
         py::enum_<domain::QuoteType>(m, "QuoteType")
             .value("BasisSwap", domain::QuoteType::BasisSwap)
@@ -113,16 +157,27 @@ void bind_domain(py::module_& m) {
             .value("IRS", domain::QuoteType::IRS)
             .value("OIS", domain::QuoteType::OIS)
             .value("Swap", domain::QuoteType::Swap)
-            .value("UNKNOWN", domain::QuoteType::UNKNOWN)
-            .export_values();
+            .value("UNKNOWN", domain::QuoteType::UNKNOWN);
 
         py::enum_<domain::ShockMeasure>(m, "ShockMeasure")
             .value("Absolute", domain::ShockMeasure::Absolute)
             .value("BasisPoints", domain::ShockMeasure::BasisPoints)
             .value("LogReturn", domain::ShockMeasure::LogReturn)
             .value("Relative", domain::ShockMeasure::Relative)
-            .value("VolPoints", domain::ShockMeasure::VolPoints)
-            .export_values();
+            .value("VolPoints", domain::ShockMeasure::VolPoints);
+
+        py::enum_<domain::SupportStatus>(m, "SupportStatus")
+            .value("Failed", domain::SupportStatus::Failed)
+            .value("PartiallySupported", domain::SupportStatus::PartiallySupported)
+            .value("Supported", domain::SupportStatus::Supported)
+            .value("Unsupported", domain::SupportStatus::Unsupported);
+
+        py::enum_<domain::TradeType>(m, "TradeType")
+            .value("EquitySpot", domain::TradeType::EquitySpot)
+            .value("FixedRateBond", domain::TradeType::FixedRateBond)
+            .value("FxForward", domain::TradeType::FxForward)
+            .value("VanillaSwap", domain::TradeType::VanillaSwap)
+            .value("Unknown", domain::TradeType::Unknown);
 
         m.def("is_canonical_factor_id", &domain::is_canonical_factor_id);
         m.def("make_commodity_forward_factor_id", &domain::make_commodity_forward_factor_id);
@@ -195,12 +250,12 @@ void bind_domain(py::module_& m) {
             .def(py::init<>())
             .def_readwrite("valuation_date", &domain::MarketSnapshot::valuation_date)
             .def_readwrite("quotes", &domain::MarketSnapshot::quotes)
-            .def_readwrite("curves", &domain::MarketSnapshot::curves);
+            .def_readwrite("curves", &domain::MarketSnapshot::curves)
+            .def_readwrite("fixings", &domain::MarketSnapshot::fixings);
 
         py::class_<domain::Trade, std::shared_ptr<domain::Trade>>(m, "Trade")
             .def_readwrite("id", &domain::Trade::id)
             .def_readwrite("asset_class", &domain::Trade::asset_class)
-            .def_readwrite("asset_class_type", &domain::Trade::asset_class_type)
             .def_property(
                 "type",
                 [](const domain::Trade& trade) { return trade.type; },
@@ -209,6 +264,7 @@ void bind_domain(py::module_& m) {
                     trade.product_type = domain::product_type_from_trade_type(trade.trade_type);
                     trade.type = domain::to_string(trade.trade_type);
                 })
+            .def_readwrite("asset_class_type", &domain::Trade::asset_class_type)
             .def_readwrite("product_type", &domain::Trade::product_type)
             .def_readwrite("trade_type", &domain::Trade::trade_type)
             .def_readwrite("currency", &domain::Trade::currency)

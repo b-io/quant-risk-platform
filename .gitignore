@@ -79,5 +79,6 @@ venv/
 *.tmp
 *.zip
 roadmap/
+reports/
 temp/
 tmp/
