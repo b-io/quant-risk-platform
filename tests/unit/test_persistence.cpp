@@ -144,6 +144,100 @@ TEST_F(PersistenceTest, MarketSnapshotQuotesRoundTrip) {
     EXPECT_EQ(s2.quotes[0].tenor, "10Y");
 }
 
+TEST_F(PersistenceTest, MarketSnapshotPreservesPhase2MarketFields) {
+    storage->store_market_snapshot("S_PHASE2", "2026-03-24", "USD", R"json([
+        {
+          "id": { "currency": "USD", "family": "OIS" },
+          "purpose": "OISDiscount",
+          "construction_family": "RatesOIS",
+          "quote_ids": ["USD_OIS_2Y"],
+          "day_count": "ACT360",
+          "calendar": "US",
+          "interpolation": "LogLinear"
+        }
+    ])json");
+    storage->store_market_quote("S_PHASE2", "EURUSD.SPOT", 1.085, "USD", R"json({
+        "instrument_type": "FXSpot",
+        "quote_type": "FXSpot",
+        "risk_factor_id": "RF:FX:EURUSD:SPOT",
+        "tenor": "SPOT",
+        "underlier": "EURUSD",
+        "source_name": "Composite",
+        "source_ts": "2026-03-24T17:00:00Z",
+        "stale_after_days": 1
+    })json");
+    storage->store_market_quote("S_PHASE2", "USD_OIS_2Y", 0.0538, "USD", R"json({
+        "instrument_type": "OIS",
+        "quote_type": "OIS",
+        "risk_factor_id": "RF:RATES:USD:OIS:2Y",
+        "tenor": "2Y",
+        "source_name": "Composite",
+        "source_ts": "2026-03-24T17:00:00Z",
+        "stale_after_days": 1
+    })json");
+
+    auto snapshot = storage->load_market_snapshot("S_PHASE2");
+
+    EXPECT_EQ(snapshot.snapshot_id, "S_PHASE2");
+    EXPECT_EQ(snapshot.schema_version, 2);
+    EXPECT_EQ(snapshot.base_currency, domain::Currency::USD);
+    ASSERT_EQ(snapshot.curves.size(), 1U);
+    EXPECT_EQ(snapshot.curves[0].purpose, domain::CurvePurpose::OISDiscount);
+    EXPECT_EQ(snapshot.curves[0].construction_family, "RatesOIS");
+    ASSERT_EQ(snapshot.quotes.size(), 2U);
+    EXPECT_EQ(snapshot.quotes[0].id, "EURUSD.SPOT");
+    EXPECT_EQ(snapshot.quotes[0].instrument_type, domain::QuoteInstrumentType::FXSpot);
+    EXPECT_EQ(snapshot.quotes[0].quote_type, domain::QuoteType::FXSpot);
+    EXPECT_EQ(snapshot.quotes[0].risk_factor_id, "RF:FX:EURUSD:SPOT");
+    EXPECT_EQ(snapshot.quotes[0].underlier, "EURUSD");
+    EXPECT_TRUE(snapshot.diagnostics.empty());
+    EXPECT_EQ(
+        QueryString(db_path, "SELECT quote_type FROM market_quotes WHERE snapshot_id = 'S_PHASE2' AND quote_id = 'EURUSD.SPOT';"),
+        "FXSpot");
+}
+
+TEST_F(PersistenceTest, MarketQuoteEventsLoadLatestAsOfWithProvenance) {
+    domain::MarketQuoteEvent old_event;
+    old_event.event_id = "EVT_OLD";
+    old_event.quote_id = "AAPL.SPOT";
+    old_event.factor_id = "RF:EQ:AAPL:SPOT";
+    old_event.market_ts = "2026-03-23";
+    old_event.recorded_ts = "2026-03-23T18:00:00Z";
+    old_event.source_name = "Composite";
+    old_event.source_ts = "2026-03-23T17:00:00Z";
+    old_event.value = 184.0;
+    old_event.currency = domain::Currency::USD;
+    old_event.tenor = "SPOT";
+    old_event.instrument_type = "EquitySpot";
+    old_event.metadata_json = R"json({
+        "quote_type": "EquitySpot",
+        "underlier": "AAPL",
+        "stale_after_days": 2
+    })json";
+    storage->store_market_quote_event(old_event);
+
+    domain::MarketQuoteEvent new_event = old_event;
+    new_event.event_id = "EVT_NEW";
+    new_event.market_ts = "2026-03-24";
+    new_event.recorded_ts = "2026-03-24T18:00:00Z";
+    new_event.source_ts = "2026-03-24T17:00:00Z";
+    new_event.value = 185.5;
+    storage->store_market_quote_event(new_event);
+
+    auto snapshot = storage->load_market_snapshot_asof("2026-03-24", "2026-03-24T19:00:00Z", "USD");
+
+    EXPECT_EQ(snapshot.valuation_date, "2026-03-24");
+    EXPECT_EQ(snapshot.base_currency, domain::Currency::USD);
+    ASSERT_EQ(snapshot.quotes.size(), 1U);
+    EXPECT_EQ(snapshot.quotes[0].id, "AAPL.SPOT");
+    EXPECT_EQ(snapshot.quotes[0].instrument_type, domain::QuoteInstrumentType::EquitySpot);
+    EXPECT_EQ(snapshot.quotes[0].quote_type, domain::QuoteType::EquitySpot);
+    EXPECT_EQ(snapshot.quotes[0].risk_factor_id, "RF:EQ:AAPL:SPOT");
+    EXPECT_EQ(snapshot.quotes[0].source_name, "Composite");
+    EXPECT_DOUBLE_EQ(snapshot.quotes[0].value, 185.5);
+    EXPECT_TRUE(snapshot.diagnostics.empty());
+}
+
 TEST_F(PersistenceTest, ValuationResultsPersistence) {
     storage->store_portfolio("P1", "P1", "USD");
     storage->store_market_snapshot("S1", "2023-01-01", "USD", "[]");

@@ -72,19 +72,12 @@ After building, you can run a Python demo or use the C++ CLI.
 
 ### Python Demo
 
-```bash
-# Ensure you are in a virtual environment with requirements installed
-python -m venv venv
-# Windows PowerShell:
-.\venv\Scripts\Activate.ps1
-# Install runtime deps
-pip install -r requirements.txt
-
-# After building the extension (see Section 2), make sure Python can find it.
-# If you used presets, the .pyd is placed under build/<preset>/python/<config>
-# Example (Release preset):
-$Env:PYTHONPATH = "build/Release-Python/python/Release"  # PowerShell
-python python/examples/demo_platform.py
+```powershell
+# Build the extension first, then run the pinned Python 3.12 demo environment.
+cmake --preset Release-Python
+cmake --build --preset Release-Python --target quant_risk_platform
+uv sync --extra dashboard --extra optimization
+uv run python python\examples\demo_platform.py
 ```
 
 ### C++ CLI

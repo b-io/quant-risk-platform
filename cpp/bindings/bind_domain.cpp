@@ -9,6 +9,9 @@ using namespace qrp;
 
 namespace qrp::bindings {
 
+/**
+ * @brief Registers domain enums and DTOs with the Python extension module.
+ */
 void bind_domain(py::module_& m) {
         py::enum_<domain::AssetClass>(m, "AssetClass")
             .value("Commodity", domain::AssetClass::Commodity)
@@ -47,12 +50,30 @@ void bind_domain(py::module_& m) {
             .value("UNKNOWN", domain::Currency::UNKNOWN);
 
         py::enum_<domain::CurvePurpose>(m, "CurvePurpose")
+            // Commodity
+            .value("CommodityForward", domain::CurvePurpose::CommodityForward)
+            .value("CommodityVolatility", domain::CurvePurpose::CommodityVolatility)
+            // Credit
             .value("Credit", domain::CurvePurpose::Credit)
+            .value("CreditSpread", domain::CurvePurpose::CreditSpread)
+            .value("Hazard", domain::CurvePurpose::Hazard)
+            .value("Recovery", domain::CurvePurpose::Recovery)
+            // Equity
+            .value("EquityBorrow", domain::CurvePurpose::EquityBorrow)
+            .value("EquityDividend", domain::CurvePurpose::EquityDividend)
+            .value("EquityVolatility", domain::CurvePurpose::EquityVolatility)
+            // FX
+            .value("FXForward", domain::CurvePurpose::FXForward)
+            .value("FXVolatility", domain::CurvePurpose::FXVolatility)
+            // Generic
+            .value("Volatility", domain::CurvePurpose::Volatility)
+            // Rates
             .value("Discount", domain::CurvePurpose::Discount)
             .value("Forward", domain::CurvePurpose::Forward)
             .value("Forward3M", domain::CurvePurpose::Forward3M)
             .value("Forward6M", domain::CurvePurpose::Forward6M)
-            .value("Volatility", domain::CurvePurpose::Volatility)
+            .value("Inflation", domain::CurvePurpose::Inflation)
+            .value("OISDiscount", domain::CurvePurpose::OISDiscount)
             .value("UNKNOWN", domain::CurvePurpose::UNKNOWN);
 
         py::enum_<domain::DateGeneration>(m, "DateGeneration")
@@ -80,16 +101,22 @@ void bind_domain(py::module_& m) {
             .value("UNKNOWN", domain::DayCount::UNKNOWN);
 
         py::enum_<domain::FactorType>(m, "FactorType")
-            .value("BasisSpread", domain::FactorType::BasisSpread)
+            // Commodity
             .value("CommodityForward", domain::FactorType::CommodityForward)
+            // Credit
             .value("CreditSpread", domain::FactorType::CreditSpread)
-            .value("Custom", domain::FactorType::Custom)
-            .value("EquitySpot", domain::FactorType::EquitySpot)
-            .value("FXSpot", domain::FactorType::FXSpot)
             .value("HazardRate", domain::FactorType::HazardRate)
+            // Equity
+            .value("EquitySpot", domain::FactorType::EquitySpot)
+            // FX
+            .value("FXSpot", domain::FactorType::FXSpot)
+            // Generic
+            .value("Custom", domain::FactorType::Custom)
+            .value("Volatility", domain::FactorType::Volatility)
+            // Rates
+            .value("BasisSpread", domain::FactorType::BasisSpread)
             .value("RateForward", domain::FactorType::RateForward)
-            .value("RateZero", domain::FactorType::RateZero)
-            .value("Volatility", domain::FactorType::Volatility);
+            .value("RateZero", domain::FactorType::RateZero);
 
         py::enum_<domain::Frequency>(m, "Frequency")
             .value("Annual", domain::Frequency::Annual)
@@ -136,24 +163,68 @@ void bind_domain(py::module_& m) {
             .value("Unknown", domain::ProductType::Unknown);
 
         py::enum_<domain::QuoteInstrumentType>(m, "QuoteInstrumentType")
+            // Commodity
+            .value("CommodityForward", domain::QuoteInstrumentType::CommodityForward)
+            .value("CommodityFuture", domain::QuoteInstrumentType::CommodityFuture)
+            .value("CommoditySpot", domain::QuoteInstrumentType::CommoditySpot)
+            .value("CommodityVol", domain::QuoteInstrumentType::CommodityVol)
+            .value("ConvenienceYield", domain::QuoteInstrumentType::ConvenienceYield)
+            // Credit
             .value("Bond", domain::QuoteInstrumentType::Bond)
-            .value("CapFloorVol", domain::QuoteInstrumentType::CapFloorVol)
+            .value("BondPrice", domain::QuoteInstrumentType::BondPrice)
+            .value("BondSpread", domain::QuoteInstrumentType::BondSpread)
             .value("CDS", domain::QuoteInstrumentType::CDS)
+            .value("CreditIndex", domain::QuoteInstrumentType::CreditIndex)
+            .value("CreditSpread", domain::QuoteInstrumentType::CreditSpread)
+            .value("HazardRate", domain::QuoteInstrumentType::HazardRate)
+            .value("RecoveryRate", domain::QuoteInstrumentType::RecoveryRate)
+            // Equity
+            .value("BorrowRate", domain::QuoteInstrumentType::BorrowRate)
+            .value("DividendYield", domain::QuoteInstrumentType::DividendYield)
+            .value("EquitySpot", domain::QuoteInstrumentType::EquitySpot)
+            .value("EquityVol", domain::QuoteInstrumentType::EquityVol)
+            // FX
+            .value("FXForward", domain::QuoteInstrumentType::FXForward)
+            .value("FXForwardPoint", domain::QuoteInstrumentType::FXForwardPoint)
+            .value("FXSpot", domain::QuoteInstrumentType::FXSpot)
+            .value("FXVol", domain::QuoteInstrumentType::FXVol)
+            // Generic
+            .value("Future", domain::QuoteInstrumentType::Future)
+            // Rates
+            .value("CapFloorVol", domain::QuoteInstrumentType::CapFloorVol)
             .value("Deposit", domain::QuoteInstrumentType::Deposit)
             .value("FRA", domain::QuoteInstrumentType::FRA)
-            .value("Future", domain::QuoteInstrumentType::Future)
+            .value("InterestRateFuture", domain::QuoteInstrumentType::InterestRateFuture)
             .value("IRS", domain::QuoteInstrumentType::IRS)
             .value("OIS", domain::QuoteInstrumentType::OIS)
             .value("SwaptionVol", domain::QuoteInstrumentType::SwaptionVol)
             .value("UNKNOWN", domain::QuoteInstrumentType::UNKNOWN);
 
         py::enum_<domain::QuoteType>(m, "QuoteType")
-            .value("BasisSwap", domain::QuoteType::BasisSwap)
+            // Commodity
+            .value("CommodityForward", domain::QuoteType::CommodityForward)
+            // Credit
             .value("BondYield", domain::QuoteType::BondYield)
             .value("CreditSpread", domain::QuoteType::CreditSpread)
+            .value("HazardRate", domain::QuoteType::HazardRate)
+            .value("RecoveryRate", domain::QuoteType::RecoveryRate)
+            // Equity
+            .value("BorrowRate", domain::QuoteType::BorrowRate)
+            .value("DividendYield", domain::QuoteType::DividendYield)
+            .value("EquitySpot", domain::QuoteType::EquitySpot)
+            // FX
+            .value("FXForward", domain::QuoteType::FXForward)
+            .value("FXForwardPoint", domain::QuoteType::FXForwardPoint)
+            .value("FXSpot", domain::QuoteType::FXSpot)
+            // Generic
+            .value("Future", domain::QuoteType::Future)
+            .value("Price", domain::QuoteType::Price)
+            .value("Volatility", domain::QuoteType::Volatility)
+            // Rates
+            .value("BasisSwap", domain::QuoteType::BasisSwap)
             .value("Deposit", domain::QuoteType::Deposit)
             .value("FRA", domain::QuoteType::FRA)
-            .value("Future", domain::QuoteType::Future)
+            .value("InterestRateFuture", domain::QuoteType::InterestRateFuture)
             .value("IRS", domain::QuoteType::IRS)
             .value("OIS", domain::QuoteType::OIS)
             .value("Swap", domain::QuoteType::Swap)
@@ -202,7 +273,11 @@ void bind_domain(py::module_& m) {
             .def_readwrite("quote_ids", &domain::CurveSpec::quote_ids)
             .def_readwrite("day_count", &domain::CurveSpec::day_count)
             .def_readwrite("calendar", &domain::CurveSpec::calendar)
-            .def_readwrite("interpolation", &domain::CurveSpec::interpolation);
+            .def_readwrite("interpolation", &domain::CurveSpec::interpolation)
+            .def_readwrite("construction_family", &domain::CurveSpec::construction_family)
+            .def_readwrite("collateral_curve_id", &domain::CurveSpec::collateral_curve_id)
+            .def_readwrite("discount_curve_id", &domain::CurveSpec::discount_curve_id)
+            .def_readwrite("metadata_json", &domain::CurveSpec::metadata_json);
 
         py::class_<domain::FactorBinding>(m, "FactorBinding")
             .def(py::init<>())
@@ -239,19 +314,51 @@ void bind_domain(py::module_& m) {
             .def_readwrite("currency", &domain::MarketQuote::currency)
             .def_readwrite("tenor", &domain::MarketQuote::tenor)
             .def_readwrite("value", &domain::MarketQuote::value)
+            .def_readwrite("risk_factor_id", &domain::MarketQuote::risk_factor_id)
+            .def_readwrite("quote_type", &domain::MarketQuote::quote_type)
+            .def_readwrite("underlier", &domain::MarketQuote::underlier)
+            .def_readwrite("expiry", &domain::MarketQuote::expiry)
+            .def_readwrite("strike", &domain::MarketQuote::strike)
             .def_readwrite("instrument_family", &domain::MarketQuote::instrument_family)
             .def_readwrite("index_family", &domain::MarketQuote::index_family)
             .def_readwrite("day_count", &domain::MarketQuote::day_count)
             .def_readwrite("calendar", &domain::MarketQuote::calendar)
             .def_readwrite("bdc", &domain::MarketQuote::bdc)
-            .def_readwrite("settlement_days", &domain::MarketQuote::settlement_days);
+            .def_readwrite("settlement_days", &domain::MarketQuote::settlement_days)
+            .def_readwrite("market_ts", &domain::MarketQuote::market_ts)
+            .def_readwrite("recorded_ts", &domain::MarketQuote::recorded_ts)
+            .def_readwrite("source_name", &domain::MarketQuote::source_name)
+            .def_readwrite("source_ts", &domain::MarketQuote::source_ts)
+            .def_readwrite("stale_after_days", &domain::MarketQuote::stale_after_days);
+
+        py::class_<domain::MarketDataDiagnostic>(m, "MarketDataDiagnostic")
+            .def(py::init<>())
+            .def_readwrite("severity", &domain::MarketDataDiagnostic::severity)
+            .def_readwrite("code", &domain::MarketDataDiagnostic::code)
+            .def_readwrite("message", &domain::MarketDataDiagnostic::message)
+            .def_readwrite("quote_id", &domain::MarketDataDiagnostic::quote_id)
+            .def_readwrite("curve_id", &domain::MarketDataDiagnostic::curve_id);
 
         py::class_<domain::MarketSnapshot>(m, "MarketSnapshot")
             .def(py::init<>())
             .def_readwrite("valuation_date", &domain::MarketSnapshot::valuation_date)
+            .def_readwrite("snapshot_id", &domain::MarketSnapshot::snapshot_id)
+            .def_readwrite("schema_version", &domain::MarketSnapshot::schema_version)
+            .def_readwrite("base_currency", &domain::MarketSnapshot::base_currency)
+            .def_readwrite("source_name", &domain::MarketSnapshot::source_name)
+            .def_readwrite("recorded_ts", &domain::MarketSnapshot::recorded_ts)
+            .def_readwrite("default_stale_after_days", &domain::MarketSnapshot::default_stale_after_days)
             .def_readwrite("quotes", &domain::MarketSnapshot::quotes)
             .def_readwrite("curves", &domain::MarketSnapshot::curves)
-            .def_readwrite("fixings", &domain::MarketSnapshot::fixings);
+            .def_readwrite("fixings", &domain::MarketSnapshot::fixings)
+            .def_readwrite("diagnostics", &domain::MarketSnapshot::diagnostics);
+
+        m.def("blocking_market_snapshot_diagnostics", &domain::blocking_market_snapshot_diagnostics);
+        m.def("collect_market_snapshot_diagnostics", &domain::collect_market_snapshot_diagnostics);
+        m.def("format_market_data_diagnostic", &domain::format_market_data_diagnostic);
+        m.def("is_blocking_market_data_diagnostic", &domain::is_blocking_market_data_diagnostic);
+        m.def("throw_if_market_snapshot_not_ready", &domain::throw_if_market_snapshot_not_ready);
+        m.def("validate_market_snapshot", &domain::validate_market_snapshot);
 
         py::class_<domain::Trade, std::shared_ptr<domain::Trade>>(m, "Trade")
             .def_readwrite("id", &domain::Trade::id)

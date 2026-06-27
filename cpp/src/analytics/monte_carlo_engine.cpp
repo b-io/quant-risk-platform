@@ -100,7 +100,7 @@ SimulationResult MonteCarloEngine::run_simulation(
         for (const auto& q : base_market_dto.quotes) quote_map[q.id] = q;
 
         for (const auto& curve_spec : base_market_dto.curves) {
-            auto curve = market::CurveBuilder::build_curve(curve_spec, quote_map, tH, horizon_state);
+            auto curve = market::CurveBuilder::build_rate_curve(curve_spec, quote_map, tH, horizon_state);
             if (curve) {
                 horizon_state->add_curve(curve_spec.id, curve);
             }

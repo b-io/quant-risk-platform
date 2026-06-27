@@ -17,18 +17,16 @@ The platform's core logic is implemented in C++ and exposed to Python using Pybi
    ```powershell
    .\scripts\install.ps1 -Preset Release-Python
    ```
-2. Run the end-to-end demo/smoke test:
-   ```powershell
-   python python\examples\demo_platform.py
-   ```
-   The optional CVXPY worker section is skipped automatically if its optional dependencies are not installed in the Python environment used to run the script.
-   Prefer installing optional dependencies with `uv` so they stay isolated from your system Python:
+2. Run the end-to-end demo/smoke test with the pinned Python 3.12 environment:
    ```powershell
    powershell -ExecutionPolicy ByPass -c {$env:UV_INSTALL_DIR = "D:\BIN"; irm https://astral.sh/uv/install.ps1 | iex}
    uv sync --extra dashboard --extra optimization
    uv run python python\examples\demo_platform.py
    ```
-   To generate and open the interactive Plotly risk dashboard, including the finance theme and light/dark toggle:
+   The optional CVXPY worker section is skipped automatically if its optional dependencies are not installed in the
+   Python environment used to run the script.
+   To generate and open the interactive Plotly risk dashboard, including finance themes, light/dark mode, support
+   coverage, stress/risk/Monte Carlo panels, and market-as-of/generated timestamps:
    ```powershell
    uv run python python\examples\demo_platform.py --dashboard
    ```

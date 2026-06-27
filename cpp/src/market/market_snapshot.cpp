@@ -33,7 +33,10 @@
 #include <ql/time/daycounters/actualactual.hpp>
 #include <ql/time/daycounters/thirty360.hpp>
 #include <fmt/format.h>
+#include <algorithm>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 /*
 Design note (see docs/design/CURVE_BOOTSTRAP_DESIGN.md):
@@ -47,6 +50,56 @@ Design note (see docs/design/CURVE_BOOTSTRAP_DESIGN.md):
   positivity of discount factors and is an industry-standard choice for production curves.
 */
 namespace qrp::market {
+namespace {
+
+/**
+ * @brief Formats a curve id for market-builder diagnostics.
+ */
+std::string curve_id_to_string(const domain::CurveId& id) {
+    return domain::to_string(id.currency) + ":" + id.family;
+}
+
+/**
+ * @brief Returns whether a string looks like a canonical YYYY-MM-DD date.
+ */
+bool is_iso_date_string(const std::string& value) {
+    if (value.size() != 10 || value[4] != '-' || value[7] != '-') {
+        return false;
+    }
+    for (std::size_t i = 0; i < value.size(); ++i) {
+        if (i == 4 || i == 7) {
+            continue;
+        }
+        if (value[i] < '0' || value[i] > '9') {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * @brief Resolves an interest-rate future expiry into the date consumed by QuantLib helpers.
+ */
+QuantLib::Date resolve_future_expiry_date(
+    const domain::MarketQuote& quote,
+    const QuantLib::Date& valuation_date,
+    const QuantLib::Calendar& calendar) {
+    if (!quote.expiry.empty() && is_iso_date_string(quote.expiry)) {
+        return CurveBuilder::parse_date(quote.expiry);
+    }
+
+    const auto expiry_tenor = !quote.expiry.empty() ? quote.expiry : quote.tenor;
+    return calendar.advance(valuation_date, CurveBuilder::parse_tenor(expiry_tenor));
+}
+
+/**
+ * @brief Converts a futures quote into a QuantLib futures price.
+ */
+double futures_price_from_quote(double value) {
+    return value > 1.0 ? value : 100.0 * (1.0 - value);
+}
+
+} // namespace
 
 QuantLib::Date CurveBuilder::parse_date(const std::string& date_str) {
     auto is_digit = [](char c) {
@@ -220,7 +273,43 @@ QuantLib::ext::shared_ptr<QuantLib::IborIndex> CurveBuilder::create_ibor_index(
     }
 }
 
-QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> CurveBuilder::build_curve(
+bool CurveBuilder::supports_rates_curve_purpose(domain::CurvePurpose purpose) {
+    switch (purpose) {
+        case domain::CurvePurpose::Discount:
+        case domain::CurvePurpose::Forward:
+        case domain::CurvePurpose::Forward3M:
+        case domain::CurvePurpose::Forward6M:
+        case domain::CurvePurpose::OISDiscount:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool CurveBuilder::supports_rates_curve_quote(domain::QuoteInstrumentType type) {
+    switch (type) {
+        case domain::QuoteInstrumentType::Deposit:
+        case domain::QuoteInstrumentType::FRA:
+        case domain::QuoteInstrumentType::InterestRateFuture:
+        case domain::QuoteInstrumentType::IRS:
+        case domain::QuoteInstrumentType::OIS:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool CurveBuilder::supports_rates_vol_quote(domain::QuoteInstrumentType type) {
+    switch (type) {
+        case domain::QuoteInstrumentType::CapFloorVol:
+        case domain::QuoteInstrumentType::SwaptionVol:
+            return true;
+        default:
+            return false;
+    }
+}
+
+QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> CurveBuilder::build_rate_curve(
     const domain::CurveSpec& spec,
     const std::map<std::string, domain::MarketQuote>& quotes,
     const QuantLib::Date& valuation_date,
@@ -232,6 +321,7 @@ QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> CurveBuilder::build_curv
     for (const auto& q_id : spec.quote_ids) {
         if (!quotes.contains(q_id)) continue;
         const auto& q = quotes.at(q_id);
+        if (!supports_rates_curve_quote(q.instrument_type)) continue;
         
         QuantLib::ext::shared_ptr<QuantLib::SimpleQuote> simple_quote;
         if (state_ptr && state_ptr->get_quote_handle(q_id)) {
@@ -266,6 +356,15 @@ QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> CurveBuilder::build_curv
         } else if (q.instrument_type == domain::QuoteInstrumentType::FRA) {
             auto index = create_ibor_index(q.currency, QuantLib::Period(3, QuantLib::Months), empty_term_structure); // default 3M index convention
             helpers.push_back(QuantLib::ext::make_shared<QuantLib::FraRateHelper>(quote_handle, tenor, index));
+        } else if (q.instrument_type == domain::QuoteInstrumentType::InterestRateFuture) {
+            auto futures_quote_handle = quote_handle;
+            if (q.value <= 1.0) {
+                auto futures_price_quote = QuantLib::ext::make_shared<QuantLib::SimpleQuote>(futures_price_from_quote(q.value));
+                futures_quote_handle = QuantLib::Handle<QuantLib::Quote>(futures_price_quote);
+            }
+            const auto expiry_date = resolve_future_expiry_date(q, valuation_date, cal);
+            auto index = create_ibor_index(q.currency, QuantLib::Period(3, QuantLib::Months), empty_term_structure);
+            helpers.push_back(QuantLib::ext::make_shared<QuantLib::FuturesRateHelper>(futures_quote_handle, expiry_date, index));
         } else if (q.instrument_type == domain::QuoteInstrumentType::IRS) {
             auto index = create_ibor_index(q.currency, QuantLib::Period(3, QuantLib::Months), empty_term_structure); // default 3M index convention
             auto fixed_freq = parse_frequency(conv.fixed_leg_frequency);
@@ -290,26 +389,74 @@ QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> CurveBuilder::build_curv
     return curve;
 }
 
-MarketSnapshot::MarketSnapshot(const domain::MarketSnapshot& dto) {
+RatesMarketBuildResult RatesMarketBuilder::build(const domain::MarketSnapshot& dto) {
+    domain::throw_if_market_snapshot_not_ready(dto);
+
     QuantLib::Date val_date = CurveBuilder::parse_date(dto.valuation_date);
     QuantLib::Settings::instance().evaluationDate() = val_date;
-    state_ = std::make_shared<MarketState>(val_date);
+
+    RatesMarketBuildResult result;
+    result.state = std::make_shared<MarketState>(val_date);
 
     std::map<std::string, domain::MarketQuote> quote_map;
     for (const auto& q : dto.quotes) {
         quote_map[q.id] = q;
-        state_->add_quote(q);
+        result.state->add_quote(q);
+        if (CurveBuilder::supports_rates_vol_quote(q.instrument_type)) {
+            result.rates_vol_quote_ids.push_back(q.id);
+        }
     }
 
+    std::vector<std::string> failures;
     for (const auto& spec : dto.curves) {
-        CurveBuilder::build_curve(spec, quote_map, val_date, state_);
+        CurveBuildResult curve_result;
+        curve_result.id = spec.id;
+        curve_result.purpose = spec.purpose;
+        curve_result.quote_ids = spec.quote_ids;
+
+        if (!CurveBuilder::supports_rates_curve_purpose(spec.purpose)) {
+            curve_result.status_message = "Skipped: curve purpose is not supported by the rates builder";
+            result.curve_results.push_back(std::move(curve_result));
+            continue;
+        }
+
+        try {
+            auto curve = CurveBuilder::build_rate_curve(spec, quote_map, val_date, result.state);
+            if (curve) {
+                curve_result.built = true;
+                curve_result.status_message = "Built";
+            } else {
+                curve_result.status_message = "No supported rates curve helper quotes were available";
+                failures.push_back(curve_id_to_string(spec.id) + ": " + curve_result.status_message);
+            }
+        } catch (const std::exception& e) {
+            curve_result.status_message = e.what();
+            failures.push_back(curve_id_to_string(spec.id) + ": " + curve_result.status_message);
+        }
+
+        result.curve_results.push_back(std::move(curve_result));
     }
 
     for (const auto& [index_name, date_fixings] : dto.fixings) {
         for (const auto& [date_str, value] : date_fixings) {
-            state_->add_fixing(index_name, CurveBuilder::parse_date(date_str), value);
+            result.state->add_fixing(index_name, CurveBuilder::parse_date(date_str), value);
         }
     }
+
+    if (!failures.empty()) {
+        std::string message = "Rates market build failed";
+        for (const auto& failure : failures) {
+            message += "; " + failure;
+        }
+        throw std::runtime_error(message);
+    }
+
+    return result;
+}
+
+MarketSnapshot::MarketSnapshot(const domain::MarketSnapshot& dto) {
+    auto result = RatesMarketBuilder::build(dto);
+    state_ = std::move(result.state);
 }
 
 domain::MarketSnapshot MarketState::capture_snapshot() const {

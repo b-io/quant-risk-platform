@@ -42,6 +42,7 @@ TEST(MonteCarloTest, TestAgedHorizonResetSemantics) {
 
     CurveSpec spec;
     spec.id = {Currency::USD, "OIS"};
+    spec.purpose = CurvePurpose::OISDiscount;
     spec.quote_ids = {"USD_OIS_1M"};
     base_dto.curves.push_back(spec);
 

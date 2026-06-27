@@ -6,6 +6,7 @@ import math
 import os
 import sys
 import webbrowser
+from collections import defaultdict
 from pathlib import Path
 
 from demo_dashboard import create_plotly_dashboard
@@ -109,6 +110,44 @@ REQUIRED_STRESS_SCENARIOS = {
     "VOL_SPIKE",
 }
 
+QUOTE_INSTRUMENT_CATEGORY = {
+    # Commodity
+    "CommodityForward": "Commodity",
+    "CommodityFuture": "Commodity",
+    "CommoditySpot": "Commodity",
+    "CommodityVol": "Commodity",
+    "ConvenienceYield": "Commodity",
+    # Credit
+    "Bond": "Credit",
+    "BondPrice": "Credit",
+    "BondSpread": "Credit",
+    "CDS": "Credit",
+    "CreditIndex": "Credit",
+    "CreditSpread": "Credit",
+    "HazardRate": "Credit",
+    "RecoveryRate": "Credit",
+    # Equity
+    "BorrowRate": "Equity",
+    "DividendYield": "Equity",
+    "EquitySpot": "Equity",
+    "EquityVol": "Equity",
+    # FX
+    "FXForward": "FX",
+    "FXForwardPoint": "FX",
+    "FXSpot": "FX",
+    "FXVol": "FX",
+    # Generic
+    "Future": "Generic",
+    # Rates
+    "CapFloorVol": "Rates",
+    "Deposit": "Rates",
+    "FRA": "Rates",
+    "InterestRateFuture": "Rates",
+    "IRS": "Rates",
+    "OIS": "Rates",
+    "SwaptionVol": "Rates",
+}
+
 
 def section(title):
     print("\n" + "=" * 72)
@@ -119,6 +158,10 @@ def section(title):
 def assert_close(label, actual, expected, tolerance=1e-10):
     if abs(actual - expected) > tolerance:
         raise AssertionError(f"{label}: expected {expected:.12f}, got {actual:.12f}")
+
+
+def enum_name(value):
+    return getattr(value, "name", str(value).rsplit(".", 1)[-1])
 
 
 def load_golden_expectations(path):
@@ -140,6 +183,58 @@ def load_product_family_expectations(path):
 
 def quote_values(market):
     return {quote.id: quote.value for quote in market.quotes}
+
+
+def print_market_data_coverage(market, factors, bindings):
+    section("1. Market Data Coverage")
+    diagnostics = qrp.collect_market_snapshot_diagnostics(market)
+    blocking = [item for item in diagnostics if qrp.is_blocking_market_data_diagnostic(item)]
+    if blocking:
+        for item in blocking:
+            print(qrp.format_market_data_diagnostic(item))
+        raise AssertionError("Market snapshot has blocking diagnostics")
+
+    quote_ids = {quote.id for quote in market.quotes}
+    factor_quote_ids = {quote_id for factor in factors for quote_id in factor.quote_ids}
+    binding_quote_ids = {binding.quote_id for binding in bindings}
+    curve_quote_ids = {quote_id for curve in market.curves for quote_id in curve.quote_ids}
+
+    print(f"Snapshot:          {market.snapshot_id}")
+    print(f"Market date:       {market.valuation_date}")
+    print(f"Quotes/curves:     {len(market.quotes)} quotes / {len(market.curves)} curves")
+    print(f"Diagnostics:       {len(diagnostics)} non-blocking")
+
+    grouped = defaultdict(lambda: defaultdict(list))
+    for quote in market.quotes:
+        instrument = enum_name(quote.instrument_type)
+        category = QUOTE_INSTRUMENT_CATEGORY.get(instrument, "Generic")
+        grouped[category][instrument].append(quote.id)
+
+    print("\nQuotes by category")
+    for category in sorted(grouped):
+        print(f"  {category}")
+        for instrument in sorted(grouped[category]):
+            ids = ", ".join(sorted(grouped[category][instrument]))
+            print(f"    {instrument:<20} {ids}")
+
+    print("\nRates curve build report")
+    for result in sorted(qrp.build_rates_market_report(market), key=lambda item: (enum_name(item.id.currency), item.id.family)):
+        status = "built" if result.built else "skipped"
+        curve_id = f"{enum_name(result.id.currency)}:{result.id.family}"
+        print(f"  {curve_id:<16} {status:<7} {enum_name(result.purpose):<12} {result.status_message}")
+
+    missing_binding_quotes = sorted(binding_quote_ids - quote_ids)
+    missing_factor_quotes = sorted(factor_quote_ids - quote_ids)
+    if missing_binding_quotes or missing_factor_quotes:
+        missing = sorted(set(missing_binding_quotes) | set(missing_factor_quotes))
+        raise AssertionError(f"Scenario factors reference missing market quotes: {', '.join(missing)}")
+
+    exercised_quote_ids = curve_quote_ids | binding_quote_ids
+    catalog_only_quote_ids = sorted(quote_ids - exercised_quote_ids)
+    if catalog_only_quote_ids:
+        print("\nCatalog-only quotes")
+        for quote_id in catalog_only_quote_ids:
+            print(f"  {quote_id}")
 
 
 def build_factor(item):
@@ -198,7 +293,7 @@ def load_factor_scenario_set(path):
 
 
 def print_portfolio_valuation(portfolio, market):
-    section("1. Portfolio Valuation")
+    section("2. Portfolio Valuation")
     valuation_results = qrp.price_portfolio(portfolio, market)
     total_npv = sum(result.npv for result in valuation_results)
     for result in valuation_results:
@@ -213,7 +308,7 @@ def print_portfolio_valuation(portfolio, market):
 
 
 def run_factor_resolution_checks(market, factors, bindings, scenarios):
-    section("2. Factor Shock Resolution")
+    section("3. Factor Shock Resolution")
     base = quote_values(market)
     scenarios_by_name = {scenario.name: scenario for scenario in scenarios}
 
@@ -238,7 +333,7 @@ def run_factor_resolution_checks(market, factors, bindings, scenarios):
 
 
 def run_stress(portfolio, market, factors, bindings, scenarios):
-    section("3. Historical Stress")
+    section("4. Historical Stress")
     stress_results = qrp.run_historical_stress(portfolio, market, scenarios, factors, bindings)
     if len(stress_results) != len(scenarios):
         raise AssertionError("Stress result count does not match scenario count")
@@ -252,7 +347,7 @@ def run_stress(portfolio, market, factors, bindings, scenarios):
 
 
 def run_risk(portfolio, market, factors, bindings):
-    section("4. Risk Sensitivities")
+    section("5. Risk Sensitivities")
     risk_results = qrp.compute_risk(portfolio, market, factors, bindings)
     if not risk_results:
         raise AssertionError("Expected risk results")
@@ -266,7 +361,7 @@ def run_risk(portfolio, market, factors, bindings):
 
 
 def run_pnl_explain(portfolio, market_path):
-    section("5. P&L Explain")
+    section("6. P&L Explain")
     previous_market = qrp.load_market(str(market_path))
     current_market = qrp.load_market(str(market_path))
     current_market.valuation_date = "2026-03-25"
@@ -335,7 +430,7 @@ def print_traces(traces, mode):
 
 
 def run_monte_carlo(portfolio, market, factors, bindings):
-    section("6. Monte Carlo")
+    section("7. Monte Carlo")
     mc_factors = [factor for factor in factors if factor.factor_id != "RF:RATES:USD:OIS:PARALLEL"]
     covariance = build_covariance(mc_factors)
 
@@ -499,7 +594,7 @@ def validate_product_family_outputs(product_families, valuation_results, stress_
 
 
 def run_optional_cvxpy_worker_check():
-    section("7. Optional CVXPY Worker Check")
+    section("8. Optional CVXPY Worker Check")
     worker_path = project_root / "python" / "qrp" / "optimization" / "cvxpy_worker.py"
     spec = importlib.util.spec_from_file_location("qrp_cvxpy_worker", worker_path)
     if spec is None or spec.loader is None:
@@ -569,6 +664,7 @@ def run_demo(dashboard=False):
     print(f"Scenario set:      {scenario_payload['scenario_set_id']} ({len(scenarios)} scenarios)")
     print(f"Factors/bindings:  {len(factors)} factors / {len(bindings)} bindings")
 
+    print_market_data_coverage(market, factors, bindings)
     valuation_results, total_npv = print_portfolio_valuation(portfolio, market)
     run_factor_resolution_checks(market, factors, bindings, scenarios)
     stress_results = run_stress(portfolio, market, factors, bindings, scenarios)

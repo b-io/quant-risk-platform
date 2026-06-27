@@ -53,12 +53,14 @@ protected:
 
         CurveSpec spec;
         spec.id = {Currency::USD, "OIS"};
+        spec.purpose = CurvePurpose::OISDiscount;
         spec.quote_ids = {"USD_OIS_1M", "USD_OIS_5Y"};
         base_market.curves.push_back(spec);
         
         // Also add IBOR curve for forecasting (same as OIS for simplicity)
         CurveSpec spec_ibor;
         spec_ibor.id = {Currency::USD, "IBOR_3M"};
+        spec_ibor.purpose = CurvePurpose::Forward3M;
         spec_ibor.quote_ids = {"USD_OIS_1M", "USD_OIS_5Y"};
         base_market.curves.push_back(spec_ibor);
 

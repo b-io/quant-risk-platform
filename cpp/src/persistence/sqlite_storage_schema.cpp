@@ -3,6 +3,9 @@
 
 namespace qrp::persistence {
 
+/**
+ * @brief Creates the SQLite schema for reference data, market data, scenarios, and results.
+ */
 void SQLiteStorageBackend::initialize_schema() {
     // 1. Portfolios and Trades
     execute_sql(R"(
@@ -52,10 +55,15 @@ void SQLiteStorageBackend::initialize_schema() {
     execute_sql(R"(
         CREATE TABLE IF NOT EXISTS market_snapshots (
             snapshot_id TEXT PRIMARY KEY,
-            as_of_date TEXT,
-            scenario_name TEXT,
+            schema_version INTEGER NOT NULL DEFAULT 2,
+            as_of_date TEXT NOT NULL,
             base_currency TEXT,
+            source_name TEXT,
+            recorded_ts TEXT,
+            default_stale_after_days INTEGER DEFAULT -1,
+            scenario_name TEXT,
             curves_json TEXT,
+            diagnostics_json TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
     )");
@@ -65,10 +73,19 @@ void SQLiteStorageBackend::initialize_schema() {
             snapshot_id TEXT,
             quote_id TEXT,
             risk_factor_id TEXT,
+            quote_type TEXT,
+            underlier TEXT,
+            expiry TEXT,
+            strike TEXT,
             value REAL,
             currency TEXT,
             tenor TEXT,
             instrument_type TEXT,
+            market_ts TEXT,
+            recorded_ts TEXT,
+            source_name TEXT,
+            source_ts TEXT,
+            stale_after_days INTEGER DEFAULT -1,
             metadata_json TEXT,
             PRIMARY KEY(snapshot_id, quote_id),
             FOREIGN KEY(snapshot_id) REFERENCES market_snapshots(snapshot_id)

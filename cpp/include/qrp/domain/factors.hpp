@@ -13,16 +13,27 @@ namespace qrp::domain {
  * Each type implies a specific mapping to market quotes and curve nodes.
  */
 enum class FactorType {
-    BasisSpread,      // Absolute shifts on basis curves
+    // Commodity
     CommodityForward, // Relative moves on forward curves
+
+    // Credit
     CreditSpread,     // Absolute shifts on credit spreads
-    Custom,           // User-defined factor
-    EquitySpot,       // Relative/Log-returns on equity prices
-    FXSpot,           // Relative moves on spot rates
     HazardRate,       // Absolute shifts on default probabilities
+
+    // Equity
+    EquitySpot,       // Relative/Log-returns on equity prices
+
+    // FX
+    FXSpot,           // Relative moves on spot rates
+
+    // Generic
+    Custom,           // User-defined factor
+    Volatility,       // Absolute or relative moves on vol surfaces
+
+    // Rates
+    BasisSpread,      // Absolute shifts on basis curves
     RateForward,      // Absolute shifts on forward rates
-    RateZero,         // Absolute shifts on zero rates
-    Volatility        // Absolute or relative moves on vol surfaces
+    RateZero          // Absolute shifts on zero rates
 };
 
 /**
@@ -36,20 +47,38 @@ enum class ShockMeasure {
     VolPoints         // f_new = f_old + shock / 100 (if old is in percent)
 };
 
+/**
+ * @brief Parses a risk factor type from its canonical string.
+ */
 inline FactorType parse_factor_type(const std::string& value) {
-    if (value == "BasisSpread") return FactorType::BasisSpread;
+    // Commodity
     if (value == "CommodityForward") return FactorType::CommodityForward;
+
+    // Credit
     if (value == "CreditSpread") return FactorType::CreditSpread;
-    if (value == "Custom") return FactorType::Custom;
-    if (value == "EquitySpot") return FactorType::EquitySpot;
-    if (value == "FXSpot") return FactorType::FXSpot;
     if (value == "HazardRate") return FactorType::HazardRate;
+
+    // Equity
+    if (value == "EquitySpot") return FactorType::EquitySpot;
+
+    // FX
+    if (value == "FXSpot") return FactorType::FXSpot;
+
+    // Generic
+    if (value == "Custom") return FactorType::Custom;
+    if (value == "Volatility") return FactorType::Volatility;
+
+    // Rates
+    if (value == "BasisSpread") return FactorType::BasisSpread;
     if (value == "RateForward") return FactorType::RateForward;
     if (value == "RateZero") return FactorType::RateZero;
-    if (value == "Volatility") return FactorType::Volatility;
+
     throw std::invalid_argument("Unknown factor_type: " + value);
 }
 
+/**
+ * @brief Parses a shock measure from its canonical string.
+ */
 inline ShockMeasure parse_shock_measure(const std::string& value) {
     if (value == "Absolute") return ShockMeasure::Absolute;
     if (value == "BasisPoints") return ShockMeasure::BasisPoints;
@@ -59,22 +88,39 @@ inline ShockMeasure parse_shock_measure(const std::string& value) {
     throw std::invalid_argument("Unknown shock_measure: " + value);
 }
 
+/**
+ * @brief Converts a factor type to its canonical string.
+ */
 inline std::string to_string(FactorType factor_type) {
     switch (factor_type) {
-        case FactorType::BasisSpread: return "BasisSpread";
+        // Commodity
         case FactorType::CommodityForward: return "CommodityForward";
+
+        // Credit
         case FactorType::CreditSpread: return "CreditSpread";
-        case FactorType::Custom: return "Custom";
-        case FactorType::EquitySpot: return "EquitySpot";
-        case FactorType::FXSpot: return "FXSpot";
         case FactorType::HazardRate: return "HazardRate";
+
+        // Equity
+        case FactorType::EquitySpot: return "EquitySpot";
+
+        // FX
+        case FactorType::FXSpot: return "FXSpot";
+
+        // Generic
+        case FactorType::Custom: return "Custom";
+        case FactorType::Volatility: return "Volatility";
+
+        // Rates
+        case FactorType::BasisSpread: return "BasisSpread";
         case FactorType::RateForward: return "RateForward";
         case FactorType::RateZero: return "RateZero";
-        case FactorType::Volatility: return "Volatility";
     }
     return "Custom";
 }
 
+/**
+ * @brief Converts a shock measure to its canonical string.
+ */
 inline std::string to_string(ShockMeasure shock_measure) {
     switch (shock_measure) {
         case ShockMeasure::Absolute: return "Absolute";
@@ -88,6 +134,9 @@ inline std::string to_string(ShockMeasure shock_measure) {
 
 namespace factor_id_detail {
 
+/**
+ * @brief Splits a canonical factor id into colon-delimited fields.
+ */
 inline std::vector<std::string> split(const std::string& value) {
     std::vector<std::string> parts;
     std::size_t begin = 0;
@@ -100,6 +149,9 @@ inline std::vector<std::string> split(const std::string& value) {
     return parts;
 }
 
+/**
+ * @brief Validates and returns one token in a canonical factor id.
+ */
 inline std::string token(const std::string& value, const std::string& field_name) {
     if (value.empty()) {
         throw std::invalid_argument("Risk factor " + field_name + " must not be empty");
@@ -110,6 +162,9 @@ inline std::string token(const std::string& value, const std::string& field_name
     return value;
 }
 
+/**
+ * @brief Converts a currency to a factor-id token and rejects UNKNOWN.
+ */
 inline std::string currency_token(Currency currency) {
     if (currency == Currency::UNKNOWN) {
         throw std::invalid_argument("Risk factor currency must not be UNKNOWN");
@@ -117,6 +172,9 @@ inline std::string currency_token(Currency currency) {
     return to_string(currency);
 }
 
+/**
+ * @brief Joins factor-id fields with colon separators.
+ */
 inline std::string join(std::initializer_list<std::string> parts) {
     std::string result;
     for (const auto& part : parts) {
@@ -128,6 +186,9 @@ inline std::string join(std::initializer_list<std::string> parts) {
 
 } // namespace factor_id_detail
 
+/**
+ * @brief Checks whether a factor id follows the platform canonical taxonomy.
+ */
 inline bool is_canonical_factor_id(const std::string& factor_id) {
     const auto parts = factor_id_detail::split(factor_id);
     if (parts.size() < 2 || parts[0] != "RF") return false;
@@ -149,6 +210,9 @@ inline bool is_canonical_factor_id(const std::string& factor_id) {
     return false;
 }
 
+/**
+ * @brief Builds a canonical commodity forward factor id.
+ */
 inline std::string make_commodity_forward_factor_id(const std::string& underlier, const std::string& tenor) {
     return factor_id_detail::join({
         "RF", "COM",
@@ -158,6 +222,9 @@ inline std::string make_commodity_forward_factor_id(const std::string& underlier
     });
 }
 
+/**
+ * @brief Builds a canonical commodity volatility factor id.
+ */
 inline std::string make_commodity_vol_factor_id(
     const std::string& underlier,
     const std::string& expiry,
@@ -170,6 +237,9 @@ inline std::string make_commodity_vol_factor_id(
     });
 }
 
+/**
+ * @brief Builds a canonical credit spread factor id.
+ */
 inline std::string make_credit_spread_factor_id(const std::string& issuer_or_index, const std::string& tenor) {
     return factor_id_detail::join({
         "RF", "CREDIT",
@@ -179,6 +249,9 @@ inline std::string make_credit_spread_factor_id(const std::string& issuer_or_ind
     });
 }
 
+/**
+ * @brief Builds a canonical credit volatility factor id.
+ */
 inline std::string make_credit_vol_factor_id(
     const std::string& issuer_or_index,
     const std::string& expiry,
@@ -191,6 +264,9 @@ inline std::string make_credit_vol_factor_id(
     });
 }
 
+/**
+ * @brief Builds a canonical equity spot factor id.
+ */
 inline std::string make_equity_spot_factor_id(const std::string& underlier) {
     return factor_id_detail::join({
         "RF", "EQ",
@@ -199,6 +275,9 @@ inline std::string make_equity_spot_factor_id(const std::string& underlier) {
     });
 }
 
+/**
+ * @brief Builds a canonical equity volatility factor id.
+ */
 inline std::string make_equity_vol_factor_id(
     const std::string& underlier,
     const std::string& expiry,
@@ -211,6 +290,9 @@ inline std::string make_equity_vol_factor_id(
     });
 }
 
+/**
+ * @brief Builds a canonical FX spot factor id.
+ */
 inline std::string make_fx_spot_factor_id(const std::string& pair) {
     return factor_id_detail::join({
         "RF", "FX",
@@ -219,6 +301,9 @@ inline std::string make_fx_spot_factor_id(const std::string& pair) {
     });
 }
 
+/**
+ * @brief Builds a canonical FX volatility factor id.
+ */
 inline std::string make_fx_vol_factor_id(
     const std::string& pair,
     const std::string& expiry,
@@ -231,6 +316,9 @@ inline std::string make_fx_vol_factor_id(
     });
 }
 
+/**
+ * @brief Builds a canonical rates curve factor id.
+ */
 inline std::string make_rates_factor_id(Currency currency, const std::string& curve, const std::string& tenor) {
     return factor_id_detail::join({
         "RF", "RATES",
@@ -240,6 +328,9 @@ inline std::string make_rates_factor_id(Currency currency, const std::string& cu
     });
 }
 
+/**
+ * @brief Builds a canonical rates volatility factor id.
+ */
 inline std::string make_rates_vol_factor_id(
     Currency currency,
     const std::string& surface,
