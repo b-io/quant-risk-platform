@@ -1,7 +1,7 @@
-﻿#include <qrp/persistence/sqlite_storage_backend.hpp>
-#include <fmt/format.h>
+// Implements SQLite connection ownership and direct SQL execution helpers.
 
-// Owns the raw sqlite3 handle and centralizes error reporting for direct SQL execution.
+#include <qrp/persistence/sqlite_storage_backend.hpp>
+#include <fmt/format.h>
 
 namespace qrp::persistence {
 

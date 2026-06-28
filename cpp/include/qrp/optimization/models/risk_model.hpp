@@ -2,9 +2,9 @@
 
 // Declares covariance and factor risk-model interfaces for optimization workflows.
 
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
 namespace qrp::optimization {
 
@@ -13,7 +13,14 @@ namespace qrp::optimization {
  */
 class RiskModel {
 public:
+    /**
+     * @brief Allows deletion through the risk-model base type.
+     */
     virtual ~RiskModel() = default;
+
+    /**
+     * @brief Returns the stable risk-model type name used by solver adapters.
+     */
     virtual std::string type() const = 0;
 };
 
@@ -23,6 +30,9 @@ public:
  */
 class FullCovarianceModel : public RiskModel {
 public:
+    /**
+     * @brief Returns the solver-facing risk-model type identifier.
+     */
     std::string type() const override { return "FullCovariance"; }
     
     std::vector<std::string> asset_ids;
@@ -34,6 +44,9 @@ public:
  */
 class FactorRiskModel : public RiskModel {
 public:
+    /**
+     * @brief Returns the solver-facing risk-model type identifier.
+     */
     std::string type() const override { return "FactorRisk"; }
     
     std::vector<std::string> asset_ids;

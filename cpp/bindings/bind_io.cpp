@@ -1,4 +1,6 @@
-﻿#include "bindings.hpp"
+// Registers JSON loading helpers with the Python extension module.
+
+#include "bindings.hpp"
 #include <qrp/io/json_loader.hpp>
 
 // Exposes JSON loading helpers used by Python workflows and notebooks.

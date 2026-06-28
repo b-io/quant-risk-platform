@@ -1,4 +1,6 @@
-﻿#include "bindings.hpp"
+// Defines the Python extension module and installs all domain binding groups.
+
+#include "bindings.hpp"
 
 #include <pybind11/pybind11.h>
 

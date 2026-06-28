@@ -7,17 +7,25 @@
 #include <qrp/market/market_state.hpp>
 #include <map>
 #include <string>
+#include <vector>
 
 namespace qrp::market {
 
 class MarketState; // Forward declaration
 
+/**
+ * @brief Named scenario containing canonical factor shocks.
+ */
 struct ScenarioDefinition {
     std::string name;
-    // Generic Factor Shocks
+
+    // Generic factor shocks
     std::map<std::string, double> factor_shocks; // factor_id -> shock value
 };
 
+/**
+ * @brief Applies factor-shock scenarios to mutable market states.
+ */
 class ScenarioEngine {
 public:
     /**

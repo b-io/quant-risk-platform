@@ -1,4 +1,6 @@
-﻿#include "bindings.hpp"
+// Registers domain enums, trade DTOs, market DTOs, and factor DTOs with Python.
+
+#include "bindings.hpp"
 #include <pybind11/stl.h>
 #include <qrp/domain/factors.hpp>
 #include <qrp/domain/market_data.hpp>

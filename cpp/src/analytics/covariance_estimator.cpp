@@ -57,8 +57,8 @@ QuantLib::Matrix CovarianceEstimator::estimate_covariance(
         }
     }
 
-    // 2. Compute Mean μ and Covariance Σ
-    // μ = 1/M * sum(x_k)
+    // 2. Compute Mean mu and Covariance Sigma
+    // mu = 1/M * sum(x_k)
     std::vector<double> means(num_factors, 0.0);
     if (config.demean) {
         for (size_t i = 0; i < num_factors; ++i) {
@@ -71,7 +71,7 @@ QuantLib::Matrix CovarianceEstimator::estimate_covariance(
     QuantLib::Matrix cov(num_factors, num_factors, 0.0);
     
     if (config.use_ewma) {
-        // EWMA: Σ_k = λ * Σ_{k-1} + (1-λ) * (x_k - μ)(x_k - μ)^T
+        // EWMA: Sigma_k = lambda * Sigma_{k-1} + (1-lambda) * (x_k - mu)(x_k - mu)^T
         double lambda = config.ewma_lambda;
         for (size_t k = 0; k < num_obs; ++k) {
             for (size_t i = 0; i < num_factors; ++i) {
@@ -84,7 +84,7 @@ QuantLib::Matrix CovarianceEstimator::estimate_covariance(
             }
         }
     } else {
-        // Standard sample covariance: Σ = 1/(M-1) * sum((x_k - μ)(x_k - μ)^T)
+        // Standard sample covariance: Sigma = 1/(M-1) * sum((x_k - mu)(x_k - mu)^T)
         for (size_t i = 0; i < num_factors; ++i) {
             for (size_t j = 0; j <= i; ++j) {
                 double sum = 0.0;
@@ -98,7 +98,7 @@ QuantLib::Matrix CovarianceEstimator::estimate_covariance(
     }
 
     // 3. Scale to target horizon
-    // Formula: Σ_target = (h_target / h_obs) * Σ_obs
+    // Formula: Sigma_target = (h_target / h_obs) * Sigma_obs
     if (config.return_horizon_scaled_covariance) {
         double h_obs = config.observation_interval_years;
         double h_target = config.target_horizon_years;
@@ -119,19 +119,19 @@ QuantLib::Matrix CovarianceEstimator::repair_psd(const QuantLib::Matrix& raw, do
     if (n == 0) return raw;
 
     // Eigenvalue Decomposition of the Raw Covariance Matrix
-    // Σ = Q * Λ * Q^T
+    // Sigma = Q * Lambda * Q^T
     QuantLib::SymmetricSchurDecomposition schur(raw);
     QuantLib::Array eigenvalues = schur.eigenvalues();
     QuantLib::Matrix Q = schur.eigenvectors();
 
-    // Repair Step: Clip eigenvalues to a floor ε > 0.
-    // Λ_repaired = max(λ, ε)
+    // Repair Step: Clip eigenvalues to a floor epsilon > 0.
+    // Lambda_repaired = max(lambda, epsilon)
     QuantLib::Matrix Lambda_plus(n, n, 0.0);
     for (size_t i = 0; i < n; ++i) {
         Lambda_plus[i][i] = std::max(eigenvalues[i], floor);
     }
 
-    // Reconstruct the repaired matrix: Σ_repaired = Q * Λ_plus * Q^T
+    // Reconstruct the repaired matrix: Sigma_repaired = Q * Lambda_plus * Q^T
     // This ensures the matrix is symmetric positive definite and safe for Cholesky.
     QuantLib::Matrix temp = Q * Lambda_plus;
     QuantLib::Matrix repaired = temp * transpose(Q);

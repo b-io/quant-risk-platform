@@ -8,6 +8,9 @@
 
 namespace qrp::analytics {
 
+/**
+ * @brief Realized cashflow extraction status and diagnostics for one trade.
+ */
 struct CashflowExtractionResult {
     double realized_cash_pnl = 0.0;
     bool extraction_supported = false;
@@ -17,11 +20,17 @@ struct CashflowExtractionResult {
     std::map<std::string, std::string> tags;
 };
 
+/**
+ * @brief Product-specific adjustment applied around an instrument NPV.
+ */
 struct InstrumentPricingProfile {
     double additive_npv = 0.0;
     double multiplier = 1.0;
 };
 
+/**
+ * @brief Declares whether a product can be priced and why.
+ */
 struct ProductSupportProfile {
     domain::AssetClass asset_class = domain::AssetClass::Unknown;
     std::string model_name;
@@ -30,6 +39,9 @@ struct ProductSupportProfile {
     domain::SupportStatus status = domain::SupportStatus::Unsupported;
 };
 
+/**
+ * @brief Normalized valuation output for one trade.
+ */
 struct ValuationResult {
     domain::AssetClass asset_class = domain::AssetClass::Unknown;
     std::string currency;

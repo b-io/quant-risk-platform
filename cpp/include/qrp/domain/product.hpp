@@ -8,6 +8,9 @@
 
 namespace qrp::domain {
 
+/**
+ * @brief Business asset-class taxonomy used for grouping trades and market data.
+ */
 enum class AssetClass {
     Commodity,
     Credit,
@@ -18,6 +21,9 @@ enum class AssetClass {
     Unknown
 };
 
+/**
+ * @brief Product taxonomy used by support checks and pricing registry dispatch.
+ */
 enum class ProductType {
     CallableBond,
     CapFloor,
@@ -42,6 +48,9 @@ enum class ProductType {
     Unknown
 };
 
+/**
+ * @brief Product support status returned by pricing and diagnostics workflows.
+ */
 enum class SupportStatus {
     Failed,
     PartiallySupported,
@@ -49,6 +58,9 @@ enum class SupportStatus {
     Unsupported,
 };
 
+/**
+ * @brief Parses an asset-class string from JSON or storage fields.
+ */
 inline AssetClass parse_asset_class(const std::string& value) {
     if (value == "commodity" || value == "commodities" || value == "Commodity") return AssetClass::Commodity;
     if (value == "credit" || value == "Credit") return AssetClass::Credit;
@@ -59,6 +71,9 @@ inline AssetClass parse_asset_class(const std::string& value) {
     return AssetClass::Unknown;
 }
 
+/**
+ * @brief Converts an asset class to its canonical lowercase string.
+ */
 inline std::string to_string(AssetClass asset_class) {
     switch (asset_class) {
         case AssetClass::Commodity: return "commodity";
@@ -72,6 +87,9 @@ inline std::string to_string(AssetClass asset_class) {
     return "unknown";
 }
 
+/**
+ * @brief Parses a product type from its canonical snake_case string.
+ */
 inline ProductType parse_product_type(const std::string& value) {
     if (value == "callable_bond") return ProductType::CallableBond;
     if (value == "cap_floor") return ProductType::CapFloor;
@@ -96,6 +114,9 @@ inline ProductType parse_product_type(const std::string& value) {
     return ProductType::Unknown;
 }
 
+/**
+ * @brief Returns every product type declared by the platform taxonomy.
+ */
 inline std::vector<ProductType> all_product_types() {
     return {
         ProductType::CallableBond,
@@ -122,6 +143,9 @@ inline std::vector<ProductType> all_product_types() {
     };
 }
 
+/**
+ * @brief Resolves the owning asset class for a product type.
+ */
 inline AssetClass asset_class_from_product_type(ProductType product_type) {
     switch (product_type) {
         case ProductType::CallableBond: return AssetClass::Rates;
@@ -149,6 +173,9 @@ inline AssetClass asset_class_from_product_type(ProductType product_type) {
     return AssetClass::Unknown;
 }
 
+/**
+ * @brief Converts a product type to its canonical snake_case string.
+ */
 inline std::string to_string(ProductType product_type) {
     switch (product_type) {
         case ProductType::CallableBond: return "callable_bond";
@@ -176,6 +203,9 @@ inline std::string to_string(ProductType product_type) {
     return "unknown";
 }
 
+/**
+ * @brief Converts a support status to its canonical storage/reporting string.
+ */
 inline std::string to_string(SupportStatus status) {
     switch (status) {
         case SupportStatus::Failed: return "failed";

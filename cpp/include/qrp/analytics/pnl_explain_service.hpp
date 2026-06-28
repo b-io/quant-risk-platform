@@ -10,6 +10,9 @@
 
 namespace qrp::analytics {
 
+/**
+ * @brief Business component categories used in trade-level PnL explain.
+ */
 enum class PnlExplainComponentType {
     Carry,
     Cash,
@@ -17,6 +20,9 @@ enum class PnlExplainComponentType {
     Residual
 };
 
+/**
+ * @brief One named PnL component with factor/model diagnostics.
+ */
 struct PnlExplainComponent {
     std::string component_id;
     PnlExplainComponentType component_type = PnlExplainComponentType::Residual;
@@ -29,6 +35,9 @@ struct PnlExplainComponent {
     std::map<std::string, std::string> tags;
 };
 
+/**
+ * @brief Full PnL explain result for one trade across two market snapshots.
+ */
 struct PnlExplainResult {
     std::string trade_id;
     double prev_npv = 0.0;
@@ -51,8 +60,14 @@ struct PnlExplainResult {
     std::map<std::string, std::string> diagnostics;
 };
 
+/**
+ * @brief Builds PnL explain by comparing previous, rolled, and current valuations.
+ */
 class PnlExplainService {
 public:
+    /**
+     * @brief Explains trade PnL between two market snapshots for a portfolio.
+     */
     static std::vector<PnlExplainResult> explain_pnl(
         const domain::Portfolio& portfolio,
         const domain::MarketSnapshot& prev_market_dto,

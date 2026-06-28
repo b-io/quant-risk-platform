@@ -7,21 +7,44 @@
 
 namespace qrp::analytics::regression {
 
+/**
+ * @brief Fitted regression coefficients and goodness-of-fit diagnostics.
+ */
 struct RegressionResult {
     Eigen::VectorXd coefficients;
     double r_squared;
     double residual_sum_of_squares;
 };
 
+/**
+ * @brief Interface for continuation-value regression models.
+ */
 class RegressionModel {
 public:
+    /**
+     * @brief Allows deletion through the regression-model base type.
+     */
     virtual ~RegressionModel() = default;
+
+    /**
+     * @brief Fits a regression model to design matrix X and target y.
+     */
     virtual RegressionResult fit(const Eigen::MatrixXd& X, const Eigen::VectorXd& y) const = 0;
+
+    /**
+     * @brief Predicts target values from X and fitted coefficients.
+     */
     virtual Eigen::VectorXd predict(const Eigen::MatrixXd& X, const Eigen::VectorXd& coefficients) const = 0;
 };
 
+/**
+ * @brief Ordinary least-squares model solved with Eigen's QR decomposition.
+ */
 class OrdinaryLeastSquares : public RegressionModel {
 public:
+    /**
+     * @brief Fits ordinary least squares coefficients and diagnostics.
+     */
     RegressionResult fit(const Eigen::MatrixXd& X, const Eigen::VectorXd& y) const override {
         // Solve (X^T * X) * beta = X^T * y
         // Using ColPivHouseholderQR for stability
@@ -46,6 +69,9 @@ public:
         return result;
     }
 
+    /**
+     * @brief Predicts values using a linear model.
+     */
     Eigen::VectorXd predict(const Eigen::MatrixXd& X, const Eigen::VectorXd& coefficients) const override {
         return X * coefficients;
     }

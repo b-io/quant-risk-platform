@@ -1,4 +1,6 @@
-﻿#include <qrp/domain/factors.hpp>
+// Implements SQLite persistence for factor definitions, factor history, and quote bindings.
+
+#include <qrp/domain/factors.hpp>
 #include <qrp/persistence/sqlite_storage_backend.hpp>
 #include <fmt/format.h>
 #include <nlohmann/json.hpp>

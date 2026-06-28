@@ -28,7 +28,7 @@
 Design note (see docs/design/ANALYTICS_SERVICES.md and docs/risk/MONTE_CARLO.md):
 - We implement a one-step, factor-based Monte Carlo to generate coherent shocks across currencies.
 - The factor covariance is represented by a symmetric positive-definite matrix and sampled via
-  Cholesky decomposition (L·Z). This produces correlated Gaussian shocks consistent with the covariance.
+  Cholesky decomposition (L*Z). This produces correlated Gaussian shocks consistent with the covariance.
 - We do not rebuild curves for each path; instead we bump quote handles and rely on QuantLib's Observer pattern
   to lazily reprice cached instruments. This drastically improves throughput.
 */
@@ -218,7 +218,7 @@ SimulationResult MonteCarloEngine::run_simulation(
     // Ensure the matrix is symmetric positive definite before Cholesky.
     QuantLib::Matrix repaired_cov = CovarianceEstimator::repair_psd(scaled_cov, 1e-10);
 
-    // Cholesky Decomposition: Find lower triangular matrix L such that Σ = L * L^T.
+    // Cholesky Decomposition: Find lower triangular matrix L such that Sigma = L * L^T.
     QuantLib::Matrix L = QuantLib::CholeskyDecomposition(repaired_cov);
 
     // 3. Setup Random Number Generator

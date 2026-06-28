@@ -8,6 +8,9 @@
 
 namespace qrp::analytics {
 
+/**
+ * @brief Trade-level deterministic risk result.
+ */
 struct RiskResult {
     std::string trade_id;
     double pv01; // Parallel rate shock

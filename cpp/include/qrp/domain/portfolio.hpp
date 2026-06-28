@@ -12,6 +12,9 @@
 
 namespace qrp::domain {
 
+/**
+ * @brief Trade implementation types currently supported by the canonical portfolio DTO.
+ */
 enum class TradeType {
     EquitySpot,
     FixedRateBond,
@@ -20,6 +23,9 @@ enum class TradeType {
     Unknown
 };
 
+/**
+ * @brief Parses a canonical trade type string from JSON or storage.
+ */
 inline TradeType parse_trade_type(const std::string& value) {
     if (value == "equity_spot") return TradeType::EquitySpot;
     if (value == "fixed_rate_bond") return TradeType::FixedRateBond;
@@ -28,6 +34,9 @@ inline TradeType parse_trade_type(const std::string& value) {
     throw std::runtime_error("Unknown trade type: " + value);
 }
 
+/**
+ * @brief Converts a trade type to its canonical snake_case string.
+ */
 inline std::string to_string(TradeType type) {
     switch (type) {
         case TradeType::EquitySpot: return "equity_spot";
@@ -39,6 +48,9 @@ inline std::string to_string(TradeType type) {
     return "unknown";
 }
 
+/**
+ * @brief Maps a concrete trade type to the broader product taxonomy.
+ */
 inline ProductType product_type_from_trade_type(TradeType type) {
     switch (type) {
         case TradeType::EquitySpot: return ProductType::EquitySpot;
@@ -50,6 +62,9 @@ inline ProductType product_type_from_trade_type(TradeType type) {
     return ProductType::Unknown;
 }
 
+/**
+ * @brief Base trade DTO shared by all concrete trade economics.
+ */
 struct Trade {
     std::string id;
     std::string asset_class;
@@ -62,8 +77,14 @@ struct Trade {
     std::string book;
     std::string strategy;
 
+    /**
+     * @brief Allows derived trade DTOs to be deleted through base pointers.
+     */
     virtual ~Trade() = default;
 
+    /**
+     * @brief Reads fields common to every trade from JSON.
+     */
     virtual void from_json(const nlohmann::json& j) {
         j.at("id").get_to(id);
         j.at("asset_class").get_to(asset_class);
@@ -78,7 +99,13 @@ struct Trade {
     }
 };
 
+/**
+ * @brief Fixed-float vanilla interest-rate swap trade DTO.
+ */
 struct VanillaSwapTrade : public Trade {
+    /**
+     * @brief Initializes taxonomy fields for vanilla swaps.
+     */
     VanillaSwapTrade() {
         trade_type = TradeType::VanillaSwap;
         product_type = product_type_from_trade_type(trade_type);
@@ -91,6 +118,9 @@ struct VanillaSwapTrade : public Trade {
     double fixed_rate = 0.0;
     std::string floating_index;
 
+    /**
+     * @brief Reads swap economics and shared trade fields from JSON.
+     */
     void from_json(const nlohmann::json& j) override {
         Trade::from_json(j);
         j.at("notional").get_to(notional);
@@ -103,7 +133,13 @@ struct VanillaSwapTrade : public Trade {
     }
 };
 
+/**
+ * @brief Fixed-rate bullet bond trade DTO.
+ */
 struct FixedRateBondTrade : public Trade {
+    /**
+     * @brief Initializes taxonomy fields for fixed-rate bonds.
+     */
     FixedRateBondTrade() {
         trade_type = TradeType::FixedRateBond;
         product_type = product_type_from_trade_type(trade_type);
@@ -116,6 +152,9 @@ struct FixedRateBondTrade : public Trade {
     double coupon_rate = 0.0;
     std::string frequency;
 
+    /**
+     * @brief Reads fixed-rate bond economics and shared trade fields from JSON.
+     */
     void from_json(const nlohmann::json& j) override {
         Trade::from_json(j);
         j.at("notional").get_to(notional);
@@ -128,7 +167,13 @@ struct FixedRateBondTrade : public Trade {
     }
 };
 
+/**
+ * @brief Equity spot exposure trade DTO.
+ */
 struct EquitySpotTrade : public Trade {
+    /**
+     * @brief Initializes taxonomy fields for equity spot trades.
+     */
     EquitySpotTrade() {
         trade_type = TradeType::EquitySpot;
         product_type = product_type_from_trade_type(trade_type);
@@ -139,6 +184,9 @@ struct EquitySpotTrade : public Trade {
     double reference_price = 0.0;
     std::string underlier;
 
+    /**
+     * @brief Reads equity spot economics and shared trade fields from JSON.
+     */
     void from_json(const nlohmann::json& j) override {
         Trade::from_json(j);
         j.at("quantity").get_to(quantity);
@@ -149,7 +197,13 @@ struct EquitySpotTrade : public Trade {
     }
 };
 
+/**
+ * @brief FX forward exposure trade DTO.
+ */
 struct FxForwardTrade : public Trade {
+    /**
+     * @brief Initializes taxonomy fields for FX forwards.
+     */
     FxForwardTrade() {
         trade_type = TradeType::FxForward;
         product_type = product_type_from_trade_type(trade_type);
@@ -163,6 +217,9 @@ struct FxForwardTrade : public Trade {
     std::string quote_currency;
     double forward_rate = 0.0;
 
+    /**
+     * @brief Reads FX forward economics and shared trade fields from JSON.
+     */
     void from_json(const nlohmann::json& j) override {
         Trade::from_json(j);
         j.at("notional").get_to(notional);
@@ -176,11 +233,17 @@ struct FxForwardTrade : public Trade {
     }
 };
 
+/**
+ * @brief Portfolio DTO containing a stable id and owned trade collection.
+ */
 struct Portfolio {
     std::string portfolio_id;
     std::vector<std::shared_ptr<Trade>> trades;
 };
 
+/**
+ * @brief Constructs the concrete trade DTO for a parsed trade type.
+ */
 inline std::shared_ptr<Trade> make_trade(TradeType type) {
     switch (type) {
         case TradeType::EquitySpot: return std::make_shared<EquitySpotTrade>();
@@ -192,10 +255,16 @@ inline std::shared_ptr<Trade> make_trade(TradeType type) {
     throw std::runtime_error("Cannot construct unknown trade type");
 }
 
+/**
+ * @brief Constructs the concrete trade DTO for a canonical trade type string.
+ */
 inline std::shared_ptr<Trade> make_trade(const std::string& type) {
     return make_trade(parse_trade_type(type));
 }
 
+/**
+ * @brief Deserializes a portfolio and its concrete trade DTOs from JSON.
+ */
 inline void from_json(const nlohmann::json& j, Portfolio& p) {
     j.at("portfolio_id").get_to(p.portfolio_id);
     p.trades.clear();

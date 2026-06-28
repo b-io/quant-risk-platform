@@ -4,8 +4,9 @@
 
 #include <qrp/optimization/optimization_types.hpp>
 #include <map>
-#include <vector>
+#include <optional>
 #include <string>
+#include <vector>
 
 namespace qrp::optimization {
 
@@ -14,6 +15,9 @@ namespace qrp::optimization {
  */
 class MeanVarianceObjective : public OptimizationObjective {
 public:
+    /**
+     * @brief Returns the solver-facing objective type identifier.
+     */
     std::string type() const override { return "MeanVariance"; }
     
     std::map<std::string, double> expected_returns; // Asset ID -> Expected Return
@@ -25,6 +29,9 @@ public:
  */
 class MinimumVarianceObjective : public OptimizationObjective {
 public:
+    /**
+     * @brief Returns the solver-facing objective type identifier.
+     */
     std::string type() const override { return "MinimumVariance"; }
 };
 
@@ -33,6 +40,9 @@ public:
  */
 class MaximizeReturnObjective : public OptimizationObjective {
 public:
+    /**
+     * @brief Returns the solver-facing objective type identifier.
+     */
     std::string type() const override { return "MaximizeReturn"; }
     
     std::map<std::string, double> expected_returns;
@@ -43,6 +53,9 @@ public:
  */
 class TrackingErrorObjective : public OptimizationObjective {
 public:
+    /**
+     * @brief Returns the solver-facing objective type identifier.
+     */
     std::string type() const override { return "TrackingError"; }
     
     std::map<std::string, double> benchmark_weights;
@@ -53,6 +66,9 @@ public:
  */
 class LinearEqualityConstraint : public OptimizationConstraint {
 public:
+    /**
+     * @brief Returns the solver-facing constraint type identifier.
+     */
     std::string type() const override { return "LinearEquality"; }
     
     std::map<std::string, double> coefficients;
@@ -64,6 +80,9 @@ public:
  */
 class LinearInequalityConstraint : public OptimizationConstraint {
 public:
+    /**
+     * @brief Returns the solver-facing constraint type identifier.
+     */
     std::string type() const override { return "LinearInequality"; }
     
     std::map<std::string, double> coefficients;
@@ -76,6 +95,9 @@ public:
  */
 class TurnoverConstraint : public OptimizationConstraint {
 public:
+    /**
+     * @brief Returns the solver-facing constraint type identifier.
+     */
     std::string type() const override { return "Turnover"; }
     
     std::map<std::string, double> current_weights;

@@ -8,6 +8,9 @@
 
 namespace qrp::conventions {
 
+/**
+ * @brief Rates-market conventions used for curve helpers, swaps, and schedules.
+ */
 struct RatesConvention {
     domain::Currency currency;
     std::string index_family; // OIS, IBOR_3M, IBOR_6M, etc.
@@ -30,15 +33,35 @@ struct RatesConvention {
     domain::DateGeneration date_generation = domain::DateGeneration::Forward;
 };
 
+/**
+ * @brief In-memory registry for default and user-provided market conventions.
+ */
 class MarketConventionRegistry {
 public:
+    /**
+     * @brief Returns the process-wide convention registry.
+     */
     static MarketConventionRegistry& instance();
 
+    /**
+     * @brief Adds or replaces a rates convention keyed by currency and index family.
+     */
     void register_rates_convention(const RatesConvention& conv);
+
+    /**
+     * @brief Resolves a rates convention, falling back to sensible defaults when absent.
+     */
     RatesConvention get_rates_convention(domain::Currency currency, const std::string& index_family) const;
 
 private:
+    /**
+     * @brief Creates a registry seeded with platform defaults.
+     */
     MarketConventionRegistry();
+
+    /**
+     * @brief Registers the built-in rates conventions.
+     */
     void load_defaults();
 
     std::map<std::pair<domain::Currency, std::string>, RatesConvention> rates_conventions_;

@@ -3,13 +3,20 @@
 // Defines a compact power-plant dispatch example for dynamic-programming workflows.
 
 #include <qrp/analytics/dynamic_programming/decision_problem.hpp>
-#include <cmath>
 #include <algorithm>
+#include <cmath>
+#include <utility>
 
 namespace qrp::analytics::examples {
 
+/**
+ * @brief Simplified thermal power-plant dispatch problem for dynamic programming.
+ */
 class PowerPlantProblem : public dynamic_programming::DecisionProblem {
 public:
+    /**
+     * @brief Plant economics and operating constraints.
+     */
     struct Params {
         double capacity = 100.0; // MW
         double heat_rate = 2.0;  // Efficiency factor (fuel to power)
@@ -18,8 +25,14 @@ public:
         double co2_intensity = 0.5; // tons/MWh
     };
 
+    /**
+     * @brief Creates a dispatch problem from fixed plant parameters.
+     */
     PowerPlantProblem(Params params) : params_(std::move(params)) {}
 
+    /**
+     * @brief Returns off and on dispatch actions.
+     */
     std::vector<dynamic_programming::Action> feasibleActions(
         const dynamic_programming::State& state,
         std::size_t timeIndex
@@ -31,6 +44,9 @@ public:
         };
     }
 
+    /**
+     * @brief Returns spark-spread cashflow net of startup and variable costs.
+     */
     double immediateCashflow(
         const dynamic_programming::State& state,
         const dynamic_programming::Action& action,
@@ -53,6 +69,9 @@ public:
         return flow;
     }
 
+    /**
+     * @brief Updates the on/off operational state.
+     */
     dynamic_programming::State nextState(
         const dynamic_programming::State& state,
         const dynamic_programming::Action& action,
@@ -63,6 +82,9 @@ public:
         return {market_variables_next, {is_on}};
     }
 
+    /**
+     * @brief Returns polynomial features of power, fuel, carbon, and state.
+     */
     std::vector<double> regressionFeatures(
         const dynamic_programming::State& state,
         std::size_t timeIndex

@@ -1,4 +1,6 @@
-﻿#include <qrp/persistence/sqlite_storage_backend.hpp>
+// Implements SQLite persistence for portfolios, books, trades, and basic run listings.
+
+#include <qrp/persistence/sqlite_storage_backend.hpp>
 #include <fmt/format.h>
 #include <nlohmann/json.hpp>
 

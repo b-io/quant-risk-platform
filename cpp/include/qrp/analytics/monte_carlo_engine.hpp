@@ -2,21 +2,30 @@
 
 // Declares factor-based Monte Carlo configuration, path diagnostics, and simulation results.
 
+#include <qrp/domain/factors.hpp>
 #include <qrp/domain/market_data.hpp>
 #include <qrp/domain/portfolio.hpp>
-#include <qrp/domain/factors.hpp>
 #include <qrp/market/scenario_engine.hpp>
 #include <ql/math/matrix.hpp>
+#include <cstdint>
+#include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace qrp::analytics {
 
+/**
+ * @brief Controls whether paths revalue only shocked markets or age to a horizon date.
+ */
 enum class MonteCarloMode {
     AgedHorizonRevaluation,
     HorizonShockOnly
 };
 
+/**
+ * @brief Runtime configuration for factor-based Monte Carlo simulation.
+ */
 struct MonteCarloConfig {
     int num_paths = 1000;
     std::uint64_t seed = 42;
@@ -26,6 +35,9 @@ struct MonteCarloConfig {
     bool require_bindings = true;
 };
 
+/**
+ * @brief Optional per-path diagnostics for shocked factors, quote moves, and PnL.
+ */
 struct PathTrace {
     int path_index;
     std::map<std::string, double> factor_shocks;
@@ -49,6 +61,9 @@ struct PathTrace {
     int num_unsupported = 0;
 };
 
+/**
+ * @brief Aggregated Monte Carlo output including VaR, ES, paths, and diagnostics.
+ */
 struct SimulationResult {
     std::vector<double> portfolio_values;
     std::vector<double> portfolio_pnls;
@@ -74,6 +89,9 @@ struct SimulationResult {
     std::map<std::string, std::string> construction_errors;
 };
 
+/**
+ * @brief Runs factor-shock Monte Carlo simulations with valuation-based PnL.
+ */
 class MonteCarloEngine {
 public:
     /**

@@ -5,10 +5,10 @@
 #include <qrp/optimization/optimization_types.hpp>
 #include <qrp/optimization/portfolio_optimization.hpp>
 #include <qrp/optimization/models/risk_model.hpp>
+#include <memory>
 #include <map>
 #include <string>
 #include <vector>
-#include <memory>
 
 namespace qrp::optimization {
 
@@ -18,6 +18,9 @@ namespace qrp::optimization {
  */
 class PortfolioOptimizationEngine {
 public:
+    /**
+     * @brief Creates an engine around an injected optimization solver.
+     */
     PortfolioOptimizationEngine(std::shared_ptr<OptimizationSolver> solver);
 
     /**

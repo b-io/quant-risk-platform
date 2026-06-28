@@ -7,13 +7,25 @@
 
 namespace qrp::analytics::simulation {
 
+/**
+ * @brief One-dimensional geometric Brownian motion process.
+ */
 class GeometricBrownianMotion : public StochasticProcess {
 public:
+    /**
+     * @brief Creates a GBM process from initial value, drift, and volatility.
+     */
     GeometricBrownianMotion(double initial_value, double drift, double volatility)
         : initial_value_(initial_value), drift_(drift), volatility_(volatility) {}
 
+    /**
+     * @brief Returns the single simulated state dimension.
+     */
     std::size_t dimension() const override { return 1; }
 
+    /**
+     * @brief Simulates one GBM path on the supplied time grid.
+     */
     void simulatePath(
         const TimeGrid& timeGrid,
         std::mt19937& gen,

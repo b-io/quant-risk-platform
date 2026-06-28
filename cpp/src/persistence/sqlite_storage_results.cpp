@@ -1,4 +1,6 @@
-﻿#include <qrp/persistence/sqlite_storage_backend.hpp>
+// Implements SQLite persistence for valuation, risk, scenario, and VaR results.
+
+#include <qrp/persistence/sqlite_storage_backend.hpp>
 #include <fmt/format.h>
 
 #include <stdexcept>
@@ -9,8 +11,14 @@
 namespace qrp::persistence {
 namespace {
 
+/**
+ * @brief RAII wrapper around sqlite3_stmt for result persistence queries.
+ */
 class Statement {
 public:
+    /**
+     * @brief Prepares a SQL statement and throws on preparation failure.
+     */
     Statement(sqlite3* db, const char* sql)
         : db_(db) {
         if (sqlite3_prepare_v2(db_, sql, -1, &stmt_, nullptr) != SQLITE_OK) {
@@ -18,34 +26,62 @@ public:
         }
     }
 
+    /**
+     * @brief Finalizes the prepared statement.
+     */
     ~Statement() {
         sqlite3_finalize(stmt_);
     }
 
+    /**
+     * @brief Statement wrappers own sqlite3_stmt and are not copyable.
+     */
     Statement(const Statement&) = delete;
+
+    /**
+     * @brief Statement wrappers own sqlite3_stmt and are not assignable.
+     */
     Statement& operator=(const Statement&) = delete;
 
+    /**
+     * @brief Binds a double parameter by 1-based SQLite index.
+     */
     void bind_double(int index, double value) {
         sqlite3_bind_double(stmt_, index, value);
     }
 
+    /**
+     * @brief Binds an integer parameter by 1-based SQLite index.
+     */
     void bind_int(int index, int value) {
         sqlite3_bind_int(stmt_, index, value);
     }
 
+    /**
+     * @brief Binds a text parameter by 1-based SQLite index.
+     */
     void bind_text(int index, const std::string& value) {
         sqlite3_bind_text(stmt_, index, value.c_str(), -1, SQLITE_TRANSIENT);
     }
 
+    /**
+     * @brief Reads a text column from the current row.
+     */
     std::string column_text(int index) const {
         const auto* text = reinterpret_cast<const char*>(sqlite3_column_text(stmt_, index));
         return text ? text : "";
     }
 
+    /**
+     * @brief Reads a double column from the current row.
+     */
     double column_double(int index) const {
         return sqlite3_column_double(stmt_, index);
     }
 
+    /**
+     * @brief Steps to the next row and returns false at the end of the result set.
+     */
     bool step_row() {
         const int rc = sqlite3_step(stmt_);
         if (rc == SQLITE_ROW) return true;
@@ -53,6 +89,9 @@ public:
         throw std::runtime_error(fmt::format("Failed to execute statement: {}", sqlite3_errmsg(db_)));
     }
 
+    /**
+     * @brief Executes a non-row statement and requires SQLITE_DONE.
+     */
     void step_done() {
         const int rc = sqlite3_step(stmt_);
         if (rc != SQLITE_DONE) {

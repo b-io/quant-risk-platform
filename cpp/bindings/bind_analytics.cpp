@@ -1,4 +1,6 @@
-﻿#include "bindings.hpp"
+// Registers analytics services and result DTOs with the Python extension module.
+
+#include "bindings.hpp"
 #include <pybind11/stl.h>
 #include <qrp/analytics/covariance_estimator.hpp>
 #include <qrp/analytics/monte_carlo_engine.hpp>

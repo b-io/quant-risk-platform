@@ -2,11 +2,11 @@
 
 // Defines solver-neutral optimization problem, result, capability, and adapter interfaces.
 
-#include <string>
-#include <vector>
 #include <map>
 #include <memory>
 #include <optional>
+#include <string>
+#include <vector>
 
 #include <nlohmann/json.hpp>
 
@@ -82,7 +82,14 @@ struct OptimizationVariable {
  */
 class OptimizationObjective {
 public:
+    /**
+     * @brief Allows deletion through the objective base type.
+     */
     virtual ~OptimizationObjective() = default;
+
+    /**
+     * @brief Returns the stable objective type name used by solver adapters.
+     */
     virtual std::string type() const = 0;
 };
 
@@ -91,7 +98,14 @@ public:
  */
 class OptimizationConstraint {
 public:
+    /**
+     * @brief Allows deletion through the constraint base type.
+     */
     virtual ~OptimizationConstraint() = default;
+
+    /**
+     * @brief Returns the stable constraint type name used by solver adapters.
+     */
     virtual std::string type() const = 0;
 };
 
@@ -112,11 +126,29 @@ struct OptimizationProblem {
  */
 class OptimizationSolver {
 public:
+    /**
+     * @brief Allows deletion through the solver base type.
+     */
     virtual ~OptimizationSolver() = default;
-    
+
+    /**
+     * @brief Solves a solver-independent optimization problem.
+     */
     virtual OptimizationResult solve(const OptimizationProblem& problem, const SolverConfig& config) = 0;
+
+    /**
+     * @brief Returns declared solver capabilities.
+     */
     virtual SolverCapabilities get_capabilities() const = 0;
+
+    /**
+     * @brief Returns whether the solver can handle a specific problem.
+     */
     virtual bool supports(const OptimizationProblem& problem) const = 0;
+
+    /**
+     * @brief Returns the stable solver name used in diagnostics.
+     */
     virtual std::string name() const = 0;
 };
 

@@ -1,4 +1,6 @@
-﻿#include "bindings.hpp"
+// Registers market builders and market-state helpers with Python.
+
+#include "bindings.hpp"
 #include <pybind11/stl.h>
 #include <qrp/market/factor_shock_resolver.hpp>
 #include <qrp/market/market_snapshot.hpp>

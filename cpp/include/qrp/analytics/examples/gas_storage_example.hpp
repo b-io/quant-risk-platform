@@ -3,13 +3,20 @@
 // Defines a gas-storage control example for dynamic-programming workflows.
 
 #include <qrp/analytics/dynamic_programming/decision_problem.hpp>
-#include <cmath>
 #include <algorithm>
+#include <cmath>
+#include <utility>
 
 namespace qrp::analytics::examples {
 
+/**
+ * @brief Simplified gas-storage exercise problem for dynamic-programming tests.
+ */
 class GasStorageProblem : public dynamic_programming::DecisionProblem {
 public:
+    /**
+     * @brief Operational constraints and exercise costs for storage.
+     */
     struct Params {
         double min_inventory = 0.0;
         double max_inventory = 100.0;
@@ -19,8 +26,14 @@ public:
         double withdrawal_cost = 0.5;
     };
 
+    /**
+     * @brief Creates a gas-storage problem from fixed operational parameters.
+     */
     GasStorageProblem(Params params) : params_(std::move(params)) {}
 
+    /**
+     * @brief Returns idle, inject, and withdraw actions.
+     */
     std::vector<dynamic_programming::Action> feasibleActions(
         const dynamic_programming::State& state,
         std::size_t timeIndex
@@ -35,6 +48,9 @@ public:
         };
     }
 
+    /**
+     * @brief Returns the cashflow from injection or withdrawal at the current price.
+     */
     double immediateCashflow(
         const dynamic_programming::State& state,
         const dynamic_programming::Action& action,
@@ -53,6 +69,9 @@ public:
         return 0.0;
     }
 
+    /**
+     * @brief Updates inventory after the selected storage action.
+     */
     dynamic_programming::State nextState(
         const dynamic_programming::State& state,
         const dynamic_programming::Action& action,
@@ -71,6 +90,9 @@ public:
         return {market_variables_next, {next_inventory}};
     }
 
+    /**
+     * @brief Returns polynomial features of price and inventory.
+     */
     std::vector<double> regressionFeatures(
         const dynamic_programming::State& state,
         std::size_t timeIndex

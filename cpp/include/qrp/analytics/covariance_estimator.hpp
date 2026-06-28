@@ -33,13 +33,13 @@ struct CovarianceEstimationConfig {
 class CovarianceEstimator {
 public:
     /**
-     * @brief Estimates the covariance matrix Σ for a set of factors.
-     * 
-     * Formula: Σ_base = 1/(M-1) * sum((x_k - μ)(x_k - μ)^T)
-     * 
-     * If the input moves are daily and the requested horizon is H days, 
-     * the returned matrix is horizon-scaled:
-     * Σ_H = H * Σ_base
+ * @brief Estimates the covariance matrix Sigma for a set of factors.
+ *
+ * Formula: Sigma_base = 1/(M-1) * sum((x_k - mu)(x_k - mu)^T)
+ *
+ * If the input moves are daily and the requested horizon is H days,
+ * the returned matrix is horizon-scaled:
+ * Sigma_H = H * Sigma_base
      * 
      * @param factors The factor definitions defining the units/types.
      * @param history The historical observations of those factors.
@@ -54,8 +54,8 @@ public:
     /**
      * @brief Repairs a symmetric matrix to ensure it is Positive Semi-Definite (PSD).
      * 
-     * Uses eigenvalue decomposition: Σ_repaired = Q * Λ+ * Q^T
-     * where Λ+ = max(λ, floor).
+ * Uses eigenvalue decomposition: Sigma_repaired = Q * Lambda+ * Q^T
+ * where Lambda+ = max(lambda, floor).
      */
     static QuantLib::Matrix repair_psd(const QuantLib::Matrix& raw, double floor);
 };
