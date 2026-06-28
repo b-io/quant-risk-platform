@@ -1,4 +1,7 @@
 #pragma once
+
+// Defines canonical risk-factor taxonomy, shock measures, histories, and bindings.
+
 #include <qrp/domain/types.hpp>
 #include <initializer_list>
 #include <stdexcept>

@@ -1,3 +1,5 @@
+// Benchmarks end-to-end portfolio valuation throughput over a representative market and trade set.
+
 #include <qrp/analytics/valuation_service.hpp>
 #include <qrp/domain/factors.hpp>
 #include <qrp/analytics/risk_service.hpp>

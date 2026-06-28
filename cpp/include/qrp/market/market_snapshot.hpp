@@ -1,4 +1,7 @@
 #pragma once
+
+// Declares market snapshot validation and QuantLib market-object construction services.
+
 #include <ql/time/date.hpp>
 #include <ql/time/period.hpp>
 #include <ql/termstructures/yieldtermstructure.hpp>

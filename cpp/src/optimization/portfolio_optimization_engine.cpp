@@ -1,3 +1,5 @@
+// Implements solver orchestration for portfolio optimization problems.
+
 #include <qrp/optimization/portfolio_optimization_engine.hpp>
 #include <set>
 #include <stdexcept>

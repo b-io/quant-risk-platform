@@ -4,6 +4,8 @@
 #include <qrp/market/market_snapshot.hpp>
 #include <qrp/market/scenario_engine.hpp>
 
+// Exposes market state, market snapshot build reports, and scenario shock helpers.
+
 namespace py = pybind11;
 using namespace qrp;
 

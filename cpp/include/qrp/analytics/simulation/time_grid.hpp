@@ -1,4 +1,7 @@
 #pragma once
+
+// Declares simulation time-grid helpers with cached time-step lengths.
+
 #include <vector>
 #include <cstddef>
 

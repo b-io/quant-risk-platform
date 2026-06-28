@@ -13,6 +13,8 @@
 #include <qrp/market/market_snapshot.hpp>
 #include <qrp/market/scenario_engine.hpp>
 
+// Exposes valuation, stress, risk, Monte Carlo, and product-support analytics.
+
 namespace py = pybind11;
 using namespace qrp;
 

@@ -1,4 +1,7 @@
 #pragma once
+
+// Declares factor-based Monte Carlo configuration, path diagnostics, and simulation results.
+
 #include <qrp/domain/market_data.hpp>
 #include <qrp/domain/portfolio.hpp>
 #include <qrp/domain/factors.hpp>

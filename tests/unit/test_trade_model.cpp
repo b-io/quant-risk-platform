@@ -1,3 +1,5 @@
+// Verifies canonical trade, product, asset-class, and factor-taxonomy conversions.
+
 #include <gtest/gtest.h>
 #include <qrp/domain/factors.hpp>
 #include <qrp/domain/portfolio.hpp>

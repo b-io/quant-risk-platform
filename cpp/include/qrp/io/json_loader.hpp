@@ -1,4 +1,7 @@
 #pragma once
+
+// Declares JSON file loading helpers for canonical market and portfolio DTOs.
+
 #include <qrp/domain/market_data.hpp>
 #include <qrp/domain/portfolio.hpp>
 #include <string>

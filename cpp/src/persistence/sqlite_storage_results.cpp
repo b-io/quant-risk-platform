@@ -4,6 +4,8 @@
 #include <stdexcept>
 #include <string>
 
+// Stores and retrieves analytics result sets with stable run identifiers.
+
 namespace qrp::persistence {
 namespace {
 

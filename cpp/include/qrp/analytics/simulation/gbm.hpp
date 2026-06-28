@@ -1,4 +1,7 @@
 #pragma once
+
+// Declares geometric Brownian motion process dynamics for simulation examples and tests.
+
 #include <qrp/analytics/simulation/stochastic_process.hpp>
 #include <cmath>
 

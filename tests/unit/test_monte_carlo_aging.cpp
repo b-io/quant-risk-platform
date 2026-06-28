@@ -1,3 +1,5 @@
+// Verifies aged-horizon Monte Carlo behavior, including frozen aging and scenario repricing.
+
 #include <gtest/gtest.h>
 #include <qrp/analytics/monte_carlo_engine.hpp>
 #include <qrp/domain/portfolio.hpp>

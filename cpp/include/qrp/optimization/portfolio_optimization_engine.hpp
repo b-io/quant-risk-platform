@@ -1,5 +1,7 @@
 #pragma once
 
+// Declares the high-level portfolio optimization engine and solver injection point.
+
 #include <qrp/optimization/optimization_types.hpp>
 #include <qrp/optimization/portfolio_optimization.hpp>
 #include <qrp/optimization/models/risk_model.hpp>

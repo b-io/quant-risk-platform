@@ -1,3 +1,5 @@
+// Verifies regression helpers used by least-squares Monte Carlo continuation fitting.
+
 #include <gtest/gtest.h>
 #include <qrp/analytics/regression/regression_model.hpp>
 #include <Eigen/Dense>

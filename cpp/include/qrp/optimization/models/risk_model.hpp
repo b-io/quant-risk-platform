@@ -1,5 +1,7 @@
 #pragma once
 
+// Declares covariance and factor risk-model interfaces for optimization workflows.
+
 #include <string>
 #include <vector>
 #include <map>

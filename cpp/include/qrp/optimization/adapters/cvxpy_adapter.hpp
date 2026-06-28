@@ -1,5 +1,7 @@
 #pragma once
 
+// Declares the CVXPY-backed solver adapter and worker-process configuration.
+
 #include <qrp/optimization/optimization_types.hpp>
 #include <memory>
 

@@ -1,6 +1,8 @@
 ﻿#include <qrp/persistence/sqlite_storage_backend.hpp>
 #include <fmt/format.h>
 
+// Owns the raw sqlite3 handle and centralizes error reporting for direct SQL execution.
+
 namespace qrp::persistence {
 
 SQLiteStorageBackend::SQLiteStorageBackend(const std::string& db_path)

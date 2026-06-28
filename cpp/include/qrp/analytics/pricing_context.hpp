@@ -1,4 +1,7 @@
 #pragma once
+
+// Declares the market-state wrapper passed into pricing and instrument construction.
+
 #include <qrp/market/market_state.hpp>
 #include <qrp/domain/types.hpp>
 #include <memory>

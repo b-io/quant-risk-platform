@@ -1,3 +1,5 @@
+// Verifies simulation primitives for time grids, market paths, and stochastic-process stepping.
+
 #include <gtest/gtest.h>
 #include <qrp/analytics/simulation/gbm.hpp>
 #include <qrp/analytics/simulation/stochastic_process.hpp>

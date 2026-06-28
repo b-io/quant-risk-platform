@@ -1,5 +1,7 @@
 #pragma once
 
+// Declares the high-level application facade that coordinates storage, analytics, and reporting workflows.
+
 #include <memory>
 #include <qrp/persistence/storage_backend.hpp>
 #include <qrp/analytics/valuation_service.hpp>

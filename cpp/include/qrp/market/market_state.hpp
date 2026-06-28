@@ -1,4 +1,7 @@
 #pragma once
+
+// Declares the mutable runtime market state shared by valuation, risk, and simulation workflows.
+
 #include <qrp/domain/market_data.hpp>
 #include <qrp/domain/types.hpp>
 #include <ql/time/date.hpp>

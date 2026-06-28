@@ -1,3 +1,5 @@
+// Verifies Monte Carlo reset semantics and path-level risk result calculations.
+
 #include <gtest/gtest.h>
 #include <qrp/analytics/monte_carlo_engine.hpp>
 #include <qrp/domain/portfolio.hpp>

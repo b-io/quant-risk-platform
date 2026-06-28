@@ -1,4 +1,7 @@
 #pragma once
+
+// Defines bitemporal market quote events used for as-of market reconstruction.
+
 #include <qrp/domain/types.hpp>
 #include <string>
 

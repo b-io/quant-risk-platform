@@ -1,5 +1,7 @@
 #pragma once
 
+// Declares the SQLite implementation of the platform storage backend.
+
 #include <qrp/persistence/storage_backend.hpp>
 #include <sqlite3.h>
 #include <string>

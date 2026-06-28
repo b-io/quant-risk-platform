@@ -1,6 +1,8 @@
 ﻿#include <qrp/persistence/sqlite_storage_backend.hpp>
 #include <fmt/format.h>
 
+// Creates the normalized SQLite schema used by reference data, market data, and analytics results.
+
 namespace qrp::persistence {
 
 /**

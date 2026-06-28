@@ -1,3 +1,5 @@
+// Verifies market-data parsing, validation gates, market-state reset, and rates-curve construction.
+
 #include <gtest/gtest.h>
 #include <qrp/market/market_snapshot.hpp>
 #include <ql/termstructures/yield/piecewiseyieldcurve.hpp>

@@ -1,3 +1,5 @@
+// Implements backward induction for least-squares Monte Carlo exercise decisions.
+
 #include <qrp/analytics/lsmc/lsmc_engine.hpp>
 #include <algorithm>
 #include <cmath>

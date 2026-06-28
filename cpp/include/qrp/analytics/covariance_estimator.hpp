@@ -1,4 +1,7 @@
 #pragma once
+
+// Declares covariance estimation utilities for historical factor moves and simulation inputs.
+
 #include <qrp/domain/factors.hpp>
 #include <ql/math/matrix.hpp>
 #include <vector>

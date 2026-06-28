@@ -1,3 +1,5 @@
+// Implements the CVXPY/OSQP optimization adapter and its JSON worker protocol.
+
 #include <qrp/optimization/adapters/cvxpy_adapter.hpp>
 #include <qrp/optimization/portfolio_optimization.hpp>
 #include <qrp/optimization/models/risk_model.hpp>

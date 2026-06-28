@@ -1,5 +1,7 @@
 #pragma once
 
+// Defines product taxonomy, asset-class mapping, support statuses, and canonical string helpers.
+
 #include <stdexcept>
 #include <string>
 #include <vector>

@@ -1,3 +1,5 @@
+// Implements the high-level application facade used by CLI, tests, and Python bindings.
+
 #include <qrp/app/quant_risk_platform.hpp>
 #include <qrp/domain/factors.hpp>
 #include <qrp/market/market_snapshot.hpp>

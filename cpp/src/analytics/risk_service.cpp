@@ -1,3 +1,5 @@
+// Implements deterministic sensitivity-style risk measures over the valuation service.
+
 #include <qrp/analytics/risk_service.hpp>
 #include <qrp/analytics/pricing_context.hpp>
 #include <qrp/analytics/valuation_service.hpp>

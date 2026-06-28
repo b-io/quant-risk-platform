@@ -1,4 +1,7 @@
 #pragma once
+
+// Defines shared domain enums, canonical strings, quote metadata, and curve identifiers.
+
 #include <string>
 #include <vector>
 

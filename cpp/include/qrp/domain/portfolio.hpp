@@ -1,4 +1,7 @@
 #pragma once
+
+// Defines canonical trade and portfolio DTOs used by persistence, JSON, analytics, and bindings.
+
 #include <qrp/domain/product.hpp>
 #include <string>
 #include <vector>

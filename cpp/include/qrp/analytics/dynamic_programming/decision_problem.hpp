@@ -1,4 +1,7 @@
 #pragma once
+
+// Declares generic dynamic-programming contracts for state, action, transition, and reward models.
+
 #include <vector>
 #include <string>
 #include <variant>

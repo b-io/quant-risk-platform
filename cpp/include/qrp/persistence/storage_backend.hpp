@@ -1,5 +1,7 @@
 #pragma once
 
+// Declares the storage abstraction used by application services and concrete persistence backends.
+
 #include <string>
 #include <vector>
 #include <map>

@@ -1,0 +1,180 @@
+# C++ Style Guide
+
+This project uses modern C++20 for quantitative analytics, market construction,
+persistence, and Python bindings. Code should be fast enough for production risk
+workflows and still easy for another engineer to read months later.
+
+## Core Principles
+
+- Prefer clarity first, then optimize the parts that profiling or domain knowledge
+  shows are hot.
+- Keep business concepts explicit: trades, factors, scenarios, curves, snapshots,
+  and valuation results should be named in domain language.
+- Make code locally readable. A reader should understand a file's purpose from the
+  top comment and a public API's purpose from its declaration.
+- Preserve consistency over personal style. Match nearby naming, ordering, and
+  abstraction level before introducing a new pattern.
+- Avoid clever code in financial calculations unless it is measured, documented,
+  and covered by tests.
+
+## File Organization
+
+Use this order for headers:
+
+1. `#pragma once`
+2. One short file-purpose comment.
+3. Includes.
+4. Forward declarations, when they materially reduce dependencies.
+5. `namespace qrp::...`.
+6. Constants and enums.
+7. DTO structs.
+8. Public service classes.
+9. Inline helpers.
+
+Use this order for implementation files:
+
+1. One short file-purpose comment.
+2. The matching project header first.
+3. Other project headers.
+4. Third-party library headers.
+5. Standard library headers.
+6. Design note, when the file contains non-obvious architecture or performance
+   tradeoffs.
+7. `namespace qrp::...`.
+8. Local helpers in an anonymous namespace.
+9. Public function implementations in the same order as the header.
+
+Sort includes alphabetically inside each group when there is no stronger reason.
+Use business order when it helps comprehension, such as lifecycle order,
+valuation-before-risk, or DTO-before-service.
+
+## Naming
+
+- Namespaces: `qrp::<domain>` in lowercase.
+- Types, classes, and enums: `PascalCase`.
+- Functions and variables: `snake_case`.
+- Private data members: trailing underscore, for example `db_`.
+- Constants: prefer descriptive `snake_case` or existing local convention.
+- Enum values: `PascalCase`.
+- JSON fields and persisted identifiers: keep canonical external strings stable.
+
+Prefer names that describe meaning, not mechanics. For example, use
+`base_market_dto`, `horizon_state`, or `factor_bindings` instead of `data`,
+`state2`, or `vec`.
+
+## Comments
+
+Comments should explain intent, invariants, business rules, and performance
+choices. Do not restate obvious code.
+
+- Every `.hpp` and `.cpp` file should start with a short purpose comment.
+- Public classes, structs, and non-trivial public functions should use Doxygen:
+
+```cpp
+/**
+ * @brief Prices trades and portfolios while preserving product-support diagnostics.
+ */
+class ValuationService {
+public:
+    /**
+     * @brief Builds and prices each supported trade in the portfolio.
+     */
+    static std::vector<ValuationResult> price_portfolio(...);
+};
+```
+
+- Use `//` comments for local sections and non-obvious implementation details.
+- Use a `Design note` block for architectural choices, numerical assumptions, or
+  performance-sensitive strategies.
+- Keep comments current with the code. A stale comment is worse than no comment.
+- Comment financial assumptions explicitly: shock measure, unit, day-count,
+  compounding, valuation date, aging policy, and fallback behavior.
+
+## Formatting
+
+- Indent with 4 spaces. Do not use tabs.
+- Put opening braces on the same line for functions, classes, control flow, and
+  namespaces.
+- Keep lines readable; prefer breaking long expressions around function arguments
+  or logical clauses.
+- Use blank lines to separate conceptual blocks, not every statement.
+- Keep namespace close comments, for example `} // namespace qrp::analytics`.
+- Prefer early validation and clear guard clauses over deeply nested control flow.
+
+## Types And Ownership
+
+- Prefer values for small DTOs and cheap domain objects.
+- Pass large objects by `const&`.
+- Use `std::unique_ptr` for exclusive ownership.
+- Use `std::shared_ptr` only when ownership is genuinely shared or required by
+  QuantLib interfaces.
+- Prefer `std::optional` over sentinel values when absence is meaningful.
+- Avoid raw owning pointers. Raw pointers may be used only as non-owning views
+  when the lifetime is obvious.
+
+## Performance
+
+- Reserve vector or map capacity when sizes are known.
+- Keep hot loops allocation-light.
+- Avoid rebuilding QuantLib instruments, curves, or handles inside path loops
+  unless the model requires it.
+- Prefer immutable inputs and mutable quote handles for scenario and Monte Carlo
+  repricing.
+- Validate dimensions before numerical routines such as covariance repair,
+  Cholesky decomposition, regression, and optimization.
+- Measure before replacing clear code with complex micro-optimizations.
+
+## Error Handling
+
+- Validate public inputs at API boundaries.
+- Throw exceptions with domain context, such as trade id, factor id, curve id, or
+  quote id.
+- Preserve diagnostics in result DTOs when workflows should continue after a
+  recoverable trade-level failure.
+- Keep fatal market-data gates explicit. Blocking diagnostics should stop
+  valuation, risk, and reporting workflows.
+
+## Ordering
+
+Use alphabetical ordering for neutral sets:
+
+- Include files within a group.
+- Enum values when no business lifecycle exists.
+- Bindings for independent DTO fields.
+- Test helper declarations.
+
+Use business ordering when it reads better:
+
+- Market loading before market building.
+- Valuation before risk, stress, Monte Carlo, and reporting.
+- Base valuation before horizon valuation.
+- Input validation before transformation and persistence.
+- DTO fields in the order users see them in JSON or reports.
+
+When business order is chosen, make it clear from section names or nearby code.
+
+## Tests
+
+- Test names should describe behavior, not implementation.
+- Keep fixtures focused on the domain concept under test.
+- Cover both successful workflows and validation failures.
+- Prefer deterministic seeds for simulation tests.
+- Add regression tests for pricing, persistence, and market-data behavior before
+  changing established numerical semantics.
+
+## Python Bindings
+
+- Keep binding files grouped by domain: domain, market, analytics, and IO.
+- Bind enums and DTOs before services that consume them.
+- Preserve canonical names exposed to Python unless a breaking API change is
+  intentional and documented.
+
+## Dependencies
+
+- Prefer the standard library for general-purpose utilities.
+- Use QuantLib for financial instruments, calendars, schedules, and term
+  structures.
+- Use Eigen for linear algebra where already present in optimization or
+  regression code.
+- Avoid introducing new dependencies unless they replace substantial complexity
+  or provide a proven domain capability.

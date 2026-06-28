@@ -1,3 +1,5 @@
+// Implements portfolio and trade valuation orchestration over QuantLib instruments.
+
 #include <qrp/analytics/valuation_service.hpp>
 #include <qrp/analytics/product_pricing_registry.hpp>
 

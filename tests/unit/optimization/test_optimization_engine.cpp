@@ -1,3 +1,5 @@
+// Verifies solver-independent portfolio-optimization model construction and CVXPY adapter guards.
+
 #include <gtest/gtest.h>
 #include <qrp/optimization/adapters/cvxpy_adapter.hpp>
 #include <qrp/optimization/models/risk_model.hpp>

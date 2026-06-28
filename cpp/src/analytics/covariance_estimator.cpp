@@ -1,3 +1,5 @@
+// Implements historical factor covariance estimation, scaling, and PSD repair utilities.
+
 #include <qrp/analytics/covariance_estimator.hpp>
 #include <ql/math/matrix.hpp>
 #include <ql/math/matrixutilities/choleskydecomposition.hpp>

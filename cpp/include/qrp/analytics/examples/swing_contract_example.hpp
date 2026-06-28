@@ -1,4 +1,7 @@
 #pragma once
+
+// Defines a swing-contract exercise example for dynamic-programming workflows.
+
 #include <qrp/analytics/dynamic_programming/decision_problem.hpp>
 #include <cmath>
 #include <algorithm>

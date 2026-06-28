@@ -1,4 +1,7 @@
 #pragma once
+
+// Declares PnL explain APIs that separate base value, aging, market move, and residual components.
+
 #include <qrp/analytics/valuation_service.hpp>
 #include <qrp/domain/market_data.hpp>
 #include <map>

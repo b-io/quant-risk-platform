@@ -1,6 +1,8 @@
 ﻿#include "bindings.hpp"
 #include <qrp/io/json_loader.hpp>
 
+// Exposes JSON loading helpers used by Python workflows and notebooks.
+
 namespace py = pybind11;
 using namespace qrp;
 

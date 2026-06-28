@@ -1,5 +1,7 @@
 #pragma once
 
+// Declares the shared logging facade and initialization entry point.
+
 #include <spdlog/spdlog.h>
 #include <string>
 

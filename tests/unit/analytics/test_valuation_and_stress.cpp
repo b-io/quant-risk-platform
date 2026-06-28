@@ -1,3 +1,5 @@
+// Verifies valuation diagnostics, product support metadata, stress results, and PnL explain output.
+
 #include <gtest/gtest.h>
 #include <qrp/analytics/pnl_explain_service.hpp>
 #include <qrp/analytics/pricing_context.hpp>

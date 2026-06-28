@@ -1,3 +1,5 @@
+// Verifies least-squares Monte Carlo valuation against an American put smoke benchmark.
+
 #include <gtest/gtest.h>
 #include <qrp/analytics/lsmc/lsmc_engine.hpp>
 #include <qrp/analytics/simulation/gbm.hpp>

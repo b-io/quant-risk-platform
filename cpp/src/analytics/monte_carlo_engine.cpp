@@ -1,3 +1,5 @@
+// Implements factor-based Monte Carlo simulation and horizon revaluation workflows.
+
 #include <qrp/analytics/monte_carlo_engine.hpp>
 #include <qrp/analytics/covariance_estimator.hpp>
 #include <qrp/analytics/pricing_context.hpp>

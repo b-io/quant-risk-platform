@@ -2,6 +2,8 @@
 #include <fmt/format.h>
 #include <nlohmann/json.hpp>
 
+// Stores portfolios and canonical trade JSON while preserving idempotent upsert behavior.
+
 namespace qrp::persistence {
 
 void SQLiteStorageBackend::store_portfolio(const std::string& portfolio_id, const std::string& name, const std::string& base_ccy) {

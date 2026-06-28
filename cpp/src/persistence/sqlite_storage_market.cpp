@@ -1,3 +1,5 @@
+// Implements SQLite persistence for market snapshots, quotes, curve specs, and quote events.
+
 #include <qrp/persistence/sqlite_storage_backend.hpp>
 #include <fmt/format.h>
 #include <nlohmann/json.hpp>

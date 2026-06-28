@@ -1,4 +1,7 @@
 #pragma once
+
+// Declares convention lookup and override APIs for market construction and pricing.
+
 #include <qrp/domain/types.hpp>
 #include <map>
 #include <string>

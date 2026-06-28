@@ -1,3 +1,5 @@
+// Verifies covariance estimation, horizon scaling, PSD repair, and historical-data validation.
+
 #include <gtest/gtest.h>
 #include <qrp/analytics/covariance_estimator.hpp>
 #include <ql/math/matrix.hpp>

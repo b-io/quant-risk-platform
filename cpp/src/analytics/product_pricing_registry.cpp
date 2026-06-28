@@ -1,3 +1,5 @@
+// Implements the product-pricing registry that declares supported models and market requirements.
+
 #include <qrp/analytics/product_pricing_registry.hpp>
 #include <qrp/instruments/instrument_factory.hpp>
 #include <map>

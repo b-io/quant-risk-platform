@@ -1,5 +1,7 @@
 #pragma once
 
+// Defines solver-neutral optimization problem, result, capability, and adapter interfaces.
+
 #include <string>
 #include <vector>
 #include <map>

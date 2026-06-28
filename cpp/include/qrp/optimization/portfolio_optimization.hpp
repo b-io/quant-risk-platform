@@ -1,5 +1,7 @@
 #pragma once
 
+// Defines solver-independent portfolio optimization objectives and constraints.
+
 #include <qrp/optimization/optimization_types.hpp>
 #include <map>
 #include <vector>

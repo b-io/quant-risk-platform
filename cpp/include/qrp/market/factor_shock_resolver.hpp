@@ -1,4 +1,7 @@
 #pragma once
+
+// Declares helpers that resolve canonical factor shocks into concrete quote-level changes.
+
 #include <qrp/domain/market_data.hpp>
 #include <qrp/domain/factors.hpp>
 #include <qrp/market/scenario_engine.hpp>

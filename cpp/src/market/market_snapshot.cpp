@@ -1,3 +1,5 @@
+// Implements market snapshot validation and QuantLib market-state construction.
+
 #include <qrp/market/market_snapshot.hpp>
 #include <qrp/conventions/market_convention_registry.hpp>
 #include <ql/currencies/america.hpp>

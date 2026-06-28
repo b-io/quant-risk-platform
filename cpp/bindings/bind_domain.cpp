@@ -4,6 +4,8 @@
 #include <qrp/domain/market_data.hpp>
 #include <qrp/domain/portfolio.hpp>
 
+// Exposes canonical domain DTOs, enums, and conversion helpers.
+
 namespace py = pybind11;
 using namespace qrp;
 

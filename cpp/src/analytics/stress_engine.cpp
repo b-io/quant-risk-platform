@@ -1,3 +1,5 @@
+// Implements deterministic scenario stress revaluation and trade-level PnL aggregation.
+
 #include <qrp/analytics/stress_engine.hpp>
 #include <qrp/analytics/pricing_context.hpp>
 #include <qrp/instruments/instrument_factory.hpp>

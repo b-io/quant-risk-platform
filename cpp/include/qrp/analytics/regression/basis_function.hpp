@@ -1,4 +1,7 @@
 #pragma once
+
+// Declares basis functions used to expand state variables for regression fitting.
+
 #include <vector>
 #include <cmath>
 

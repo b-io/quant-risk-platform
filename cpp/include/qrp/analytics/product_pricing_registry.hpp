@@ -1,5 +1,7 @@
 #pragma once
 
+// Declares the registry of product support, pricing models, and required market inputs.
+
 #include <ql/instrument.hpp>
 #include <ql/shared_ptr.hpp>
 #include <qrp/analytics/pricing_context.hpp>

@@ -1,3 +1,5 @@
+// Implements translation from domain trades into QuantLib instruments and pricing engines.
+
 #include <qrp/instruments/instrument_factory.hpp>
 #include <qrp/analytics/product_pricing_registry.hpp>
 #include <qrp/conventions/market_convention_registry.hpp>

@@ -1,3 +1,5 @@
+// Exercises sample-data valuation through the public loading and analytics services.
+
 #include <gtest/gtest.h>
 #include <qrp/io/json_loader.hpp>
 #include <qrp/market/market_snapshot.hpp>

@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+// Declares Python binding registration functions grouped by platform domain.
+
 #include <pybind11/pybind11.h>
 
 namespace qrp::bindings {

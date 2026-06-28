@@ -1,3 +1,5 @@
+// Implements scenario application by resolving factor shocks to concrete quote updates.
+
 #include <qrp/market/scenario_engine.hpp>
 #include <qrp/market/market_snapshot.hpp>
 #include <qrp/market/factor_shock_resolver.hpp>

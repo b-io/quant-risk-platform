@@ -1,3 +1,5 @@
+// Implements default market conventions and lookup fallbacks by currency and curve family.
+
 #include <qrp/conventions/market_convention_registry.hpp>
 
 namespace qrp::conventions {

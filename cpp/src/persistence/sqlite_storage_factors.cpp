@@ -3,6 +3,8 @@
 #include <fmt/format.h>
 #include <nlohmann/json.hpp>
 
+// Stores factor definitions, bindings, and scenario shocks with taxonomy validation.
+
 namespace qrp::persistence {
 
 void SQLiteStorageBackend::store_factor_definition(const domain::FactorDefinition& factor) {

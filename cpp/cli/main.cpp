@@ -1,3 +1,5 @@
+// Provides the command-line entry point for loading data and running platform workflows.
+
 #include <fmt/format.h>
 #include <qrp/app/quant_risk_platform.hpp>
 #include <qrp/persistence/sqlite_storage_backend.hpp>

@@ -1,4 +1,7 @@
 #pragma once
+
+// Defines market snapshot DTOs, JSON conversion, validation diagnostics, and readiness gates.
+
 #include <qrp/domain/types.hpp>
 #include <algorithm>
 #include <chrono>

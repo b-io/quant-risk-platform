@@ -1,4 +1,7 @@
 #pragma once
+
+// Declares least-squares Monte Carlo interfaces for exercise policies and continuation fitting.
+
 #include <qrp/analytics/simulation/stochastic_process.hpp>
 #include <qrp/analytics/dynamic_programming/decision_problem.hpp>
 #include <qrp/analytics/regression/regression_model.hpp>

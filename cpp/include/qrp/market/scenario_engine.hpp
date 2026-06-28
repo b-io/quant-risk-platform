@@ -1,4 +1,7 @@
 #pragma once
+
+// Declares scenario application APIs that map factor shocks onto market-state quote handles.
+
 #include <qrp/domain/market_data.hpp>
 #include <qrp/domain/factors.hpp>
 #include <qrp/market/market_state.hpp>

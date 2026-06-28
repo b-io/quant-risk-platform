@@ -1,4 +1,7 @@
 #pragma once
+
+// Declares regression models used to fit continuation values in simulation algorithms.
+
 #include <Eigen/Dense>
 #include <vector>
 

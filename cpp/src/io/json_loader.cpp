@@ -1,3 +1,5 @@
+// Implements JSON loading helpers for portfolio and market snapshot inputs.
+
 #include <qrp/io/json_loader.hpp>
 #include <fstream>
 #include <nlohmann/json.hpp>

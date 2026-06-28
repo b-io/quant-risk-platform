@@ -1,3 +1,5 @@
+// Verifies SQLite persistence round trips for portfolios, market data, factors, scenarios, and results.
+
 #include <gtest/gtest.h>
 #include <qrp/app/quant_risk_platform.hpp>
 #include <qrp/persistence/sqlite_storage_backend.hpp>
