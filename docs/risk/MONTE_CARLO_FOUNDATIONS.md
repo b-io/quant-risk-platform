@@ -16,7 +16,7 @@ Unless stated otherwise:
 - $\xrightarrow{d}$ denotes convergence in distribution.
 - $\mathcal{N}(a,b)$ denotes a normal distribution with mean $a$ and variance $b$.
 
-## 1. Why Monte Carlo works at all
+## 1. Convergence Basis Of Monte Carlo
 
 Suppose the quantity of interest is an expectation:
 
@@ -72,7 +72,7 @@ Where:
 
 - $S_T$ is the asset price at maturity $T$.
 - $X_i$ is the $i$-th sampled observation or simulated payoff.
-- $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
+- $0$ denotes the valuation date, or "today," when it appears in term-structure notation.
 
 Monte Carlo estimates the price as:
 
@@ -104,7 +104,7 @@ Interpretation:
 - LLN says it stabilizes as $N$ gets large,
 - CLT says the uncertainty around 4.40 shrinks at rate $1/\sqrt{N}$.
 
-Good practice:
+Implementation controls:
 
 - always report both the price and its standard error,
 - do not present a Monte Carlo number without path count, seed policy, and confidence interval.
@@ -207,7 +207,7 @@ Where:
 - $\mu$ is the true mean, drift, or expected value depending on context.
 - $\mathcal{N}(a,b)$ denotes a normal distribution with mean $a$ and variance $b$.
 - $N$ is the number of simulated paths or observations.
-- $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
+- $0$ denotes the valuation date, or "today," when it appears in term-structure notation.
 
 Equivalently, for large $N$:
 
@@ -233,7 +233,7 @@ $$
 
 This is one of the most important practical facts in quant finance.
 
-### 3.2 Why this rate matters so much
+### 3.2 Role Of The Convergence Rate
 
 Dividing the standard error by 2 requires about 4 times more paths.
 
@@ -351,7 +351,7 @@ So the practical workflow is:
 4. compute standard error and confidence interval
 5. decide whether more paths are needed
 
-## 6. Why independence matters
+## 6. Role Of Independence
 
 Classical LLN and CLT are easiest under i.i.d. assumptions. In Monte Carlo we usually design simulations so that random
 draws are independent or nearly independent.
@@ -371,7 +371,7 @@ This matters for:
 
 For standard option pricing Monte Carlo, the clean assumption is i.i.d. paths.
 
-## 7. Why weak LLN is still useful for Monte Carlo
+## 7. Use Of The Weak LLN In Monte Carlo
 
 The strong law is stronger, but the weak law remains useful because:
 
@@ -410,7 +410,7 @@ Where:
 
 - $\mathcal{N}(a,b)$ denotes a normal distribution with mean $a$ and variance $b$.
 - $N$ is the number of simulated paths or observations.
-- $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
+- $0$ denotes the valuation date, or "today," when it appears in term-structure notation.
 
 That is the statement behind error bars and confidence bands.
 
@@ -442,7 +442,7 @@ This matters because Greek estimation has a bias-variance trade-off:
 
 That is exactly the kind of implementation detail that matters in production analytics.
 
-## 10. Nested Monte Carlo and why CLT matters operationally
+## 10. Nested Monte Carlo And Operational Role Of The CLT
 
 In XVA, exposure simulation, capital, and stress calculations, one often has nested expectations:
 
@@ -502,7 +502,7 @@ $$
 \text{same } \frac{1}{\sqrt{N}} \text{ rate, smaller constant} \Rightarrow \text{tighter confidence interval for same } N.
 $$
 
-#### Example for 11.1 — control variates
+#### Example for 11.1 - control variates
 
 Suppose you know $\mathbb{E}[Y]$ exactly and define:
 
@@ -555,7 +555,7 @@ moderate-dimensional problems.
 
 ## 14. Practical production guidance
 
-A strong implementation should:
+A robust implementation should:
 
 - report the Monte Carlo estimate
 - report sample variance and standard error
@@ -573,7 +573,7 @@ Where:
 - expose diagnostics for effective sample size, variance reduction, and path reuse
 - make the estimator and error decomposition reproducible
 
-For a front-office or risk platform, this is not optional. Users need to know not only the estimate but also its
+For a pricing or risk platform, this is not optional. Users need to know not only the estimate but also its
 reliability.
 
 ## 15. Concise summaries
@@ -586,7 +586,7 @@ reliability.
 > standard deviation proportional to $1/\sqrt{N}$. That lets us compute standard errors, confidence intervals, and
 > stopping rules.
 
-### 15.2 Why variance reduction matters
+### 15.2 Role Of Variance Reduction
 
 > The asymptotic Monte Carlo rate is usually still $1/\sqrt{N}$, so variance reduction is about shrinking the variance
 > constant, not changing the rate. In practice that means tighter error bars for the same computational budget.
@@ -595,7 +595,7 @@ reliability.
 
 > The weak law is enough to show that the estimator becomes accurate in probability. The strong law gives the stronger
 > statement that the running average converges almost surely along a realized simulation stream. For practical Monte
-> Carlo consistency arguments, weak convergence is often sufficient; for pathwise intuition, the strong law is stronger.
+> Carlo consistency arguments, weak convergence is often sufficient; for pathwise interpretation, the strong law is stronger.
 
 ## 16. One-line summary
 
@@ -623,7 +623,7 @@ Where:
 - $\sigma$ is the volatility or standard deviation parameter.
 - $\mathcal{N}(a,b)$ denotes a normal distribution with mean $a$ and variance $b$.
 - $N$ is the number of simulated paths or observations.
-- $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
+- $0$ denotes the valuation date, or "today," when it appears in term-structure notation.
 
 Divide both sides by $\sigma$:
 
@@ -679,7 +679,7 @@ $$
 
 For Monte Carlo pricing, $\mu$ is the true price or expectation we are estimating.
 
-#### Example for 17.2 — CLT confidence interval for a Monte Carlo price
+#### Example for 17.2 - CLT confidence interval for a Monte Carlo price
 
 Suppose a Monte Carlo engine gives:
 
@@ -709,7 +709,7 @@ Interpretation:
 
 - the point estimate is 10.24
 - the CLT says the finite-sample Monte Carlo noise is about 8.8 cents at 95% confidence
-- front office can decide whether this precision is sufficient for pricing or hedging
+- the valuation user can decide whether this precision is sufficient for pricing or hedging
 
 ## 18. What confidence intervals are useful for in general
 
@@ -723,7 +723,7 @@ They are used to:
 - set stopping rules
 - report statistical reliability to model users or validators
 
-A very useful summary is:
+A compact summary is:
 
 $$
 \text{point estimate} + \text{standard error} + \text{confidence interval}
@@ -790,7 +790,7 @@ This is useful, for example, for:
 - conservative exposure or loss metrics
 - testing whether a parameter exceeds a threshold
 
-#### Example for 19.3 — confidence interval for a probability
+#### Example for 19.3 - confidence interval for a probability
 
 Suppose 80 defaults are observed in 2,000 obligors. Then:
 
@@ -800,14 +800,12 @@ $$
 
 Where:
 
-- $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
+- $0$ denotes the valuation date, or "today," when it appears in term-structure notation.
 
 For a Bernoulli variable, the asymptotic standard error is:
 
 $$
-\widehat{\mathrm{SE}}(\hat p) = \sqrt{\frac{\hat p(1-\hat p)}{n}}
-= \sqrt{\frac{0.04\times 0.96}{2000}}
-\approx 0.00438.
+\widehat{\mathrm{SE}}(\hat p) = \sqrt{\frac{\hat p(1-\hat p)}{n}} = \sqrt{\frac{0.04\times 0.96}{2000}} \approx 0.00438.
 $$
 
 Where:
@@ -817,8 +815,7 @@ Where:
 A 95% interval is approximately:
 
 $$
-0.04 \pm 1.96\times 0.00438
-= 0.04 \pm 0.0086
+0.04 \pm 1.96\times 0.00438 = 0.04 \pm 0.0086
 $$
 
 so:
@@ -864,7 +861,7 @@ Where:
 - $\theta$ is a generic unknown parameter or target quantity.
 - $\mathcal{N}(a,b)$ denotes a normal distribution with mean $a$ and variance $b$.
 - $N$ is the number of simulated paths or observations.
-- $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
+- $0$ denotes the valuation date, or "today," when it appears in term-structure notation.
 
 for an appropriate asymptotic variance $\tau^2$.
 
@@ -883,9 +880,9 @@ $$
 \text{CLT} \Rightarrow \text{finite-sample uncertainty and confidence intervals}
 $$
 
-## 21. Realistic front-office and risk usage
+## 21. Pricing and Risk Usage
 
-Modern front-office and risk teams do not stop at “the estimator converges eventually.”
+Modern pricing and risk workflows do not stop at "the estimator converges eventually."
 
 They ask:
 
@@ -916,7 +913,7 @@ where:
 
 This is often more meaningful to traders than a purely absolute error threshold.
 
-## 22. Caveats and good practice
+## 22. Caveats and Implementation Controls
 
 The CLT interval is asymptotic, so it works best when:
 
@@ -925,7 +922,7 @@ The CLT interval is asymptotic, so it works best when:
 - observations are independent or weakly dependent with the correct variance formula
 - the payoff distribution is not too pathological
 
-Good practice:
+Implementation controls:
 
 - report the path count
 - report sample variance and standard error

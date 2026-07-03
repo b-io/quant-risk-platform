@@ -1,145 +1,104 @@
 # Quant Risk Platform Documentation
 
-This `docs/` tree is the canonical documentation root for the repository.
+This `docs/` tree is the canonical public documentation root for the repository.
+It is organized as a compact quant-finance and implementation handbook: theory
+first where needed, then market state, asset-class conventions, reusable models,
+risk analytics, controls, and implementation sequencing.
 
-The documentation is split into two layers:
-
-- the **canonical platform documentation** in `docs/design/`, `docs/pricing/`, `docs/risk/`, `docs/theory/`, and `docs/roadmap/`,
-- the **temporary study workspace** in `docs/temp/`, which is intentionally separated from the canonical platform notes.
-
-The canonical layer should read like a coherent technical handbook for the platform and for the quantitative concepts that the platform implements.
-
-## How to use this tree
-
-There are two sensible ways to read the documentation.
-
-### Path A — understand the platform end to end
-
-Read in this order:
-
-1. `docs/design/ARCHITECTURE.md`
-2. `docs/design/MARKET_AND_CURVES.md`
-3. `docs/design/CURVE_BOOTSTRAP_DESIGN.md`
-4. `docs/pricing/market-data/MULTI_ASSET_MARKET_DATA_AND_CURVES.md`
-5. `docs/pricing/rates/YIELD_CURVE_AND_OIS_CONSTRUCTION.md`
-6. `docs/pricing/credit/CREDIT_CURVE_CONSTRUCTION.md`
-7. `docs/pricing/volatility/VOLATILITY_SURFACES.md`
-8. `docs/risk/RISK_FACTORS_AND_ATTRIBUTION.md`
-9. `docs/risk/PNL_EXPLAIN_IN_PRACTICE.md`
-10. `docs/risk/VAR_STRESS_BACKTESTING_AND_AGGREGATION.md`
-11. `docs/design/DATA_STORAGE_LINEAGE_AND_RECONCILIATION.md`
-12. `docs/roadmap/MASTER_ROADMAP_AND_NEXT_STEPS.md`
-
-This path starts from architecture, moves through market state and pricing objects, then finishes with risk, storage, and implementation sequencing.
-
-### Path B — build the mathematical foundations first
-
-Read in this order:
-
-1. `docs/theory/RANDOM_VARIABLES_EXPECTATION_VARIANCE.md`
-2. `docs/theory/STATISTICAL_DISTRIBUTIONS_AND_MLE.md`
-3. `docs/theory/PROBABILITY_LIMIT_THEOREMS.md`
-4. `docs/theory/BROWNIAN_MOTION_AND_ITO.md`
-5. `docs/theory/MEAN_REVERSION_AND_SHORT_RATE_MODELS.md`
-6. `docs/theory/ASSET_PRICING_FOUNDATIONS.md`
-7. `docs/pricing/INDEX.md`
-8. `docs/risk/INDEX.md`
-9. `docs/design/INDEX.md`
-
-This path is better when the reader wants to move from probability and stochastic processes toward pricing, risk, and implementation.
+Private preparation notes, company-specific research, local notes, and simplified
+scratch examples belong under the ignored `temp/docs/` workspace.
 
 ## Structure
 
-- `docs/design/` — architecture, service boundaries, observer semantics, persistence, lineage, implementation choices, and platform build guidance.
-- `docs/pricing/` — market-state design and pricing notes, organized into market data, rates, credit, and volatility.
-- `docs/risk/` — explain, factor attribution, scenario design, stress testing, VaR, Expected Shortfall, Monte Carlo, and macro workflow notes.
-- `docs/theory/` — probability, statistics, stochastic processes, term-structure models, transform methods, portfolio theory, and asset-pricing foundations.
-- `docs/roadmap/` — current implementation plan, historical review notes, and status tracking.
-- `docs/temp/` — temporary study workspace kept separate from the canonical platform notes.
+The top-level folders have distinct roles.
 
-## Documentation principles
+- `docs/foundations/` - probability, statistics, stochastic processes, asset
+  pricing, portfolio theory, and transform methods.
+- `docs/architecture/` - platform layering, market objects, curve construction,
+  analytics services, persistence, lineage, bindings, and implementation
+  rationale.
+- `docs/market-data/` - normalized quote identity, market snapshots, curves,
+  surfaces, conventions, provenance, and validation.
+- `docs/asset-classes/` - rates, credit, FX, equity, and commodity product
+  families and market conventions.
+- `docs/models/` - reusable model families, currently focused on volatility and
+  nonlinear option pricing.
+- `docs/risk/` - risk factors, sensitivities, PnL explain, stress testing, VaR,
+  Expected Shortfall, Monte Carlo, backtesting, and attribution.
+- `docs/reference/` - shared lexis, formula notation, and public source lists.
+- `docs/implementation/` - phased platform build plan and delivery standards.
 
-The documentation should consistently do the following:
+## Reading Paths
 
-- define the object before describing the algorithm,
-- separate market state, product state, and analytics outputs,
-- place formulas next to implementation meaning,
-- explain what is shocked, calibrated, stored, or repriced,
-- prefer stable notation over chapter-specific notation drift,
-- keep temporary study-oriented material outside the canonical documentation layer.
+### Platform Path
 
-## Notation and formula style
+1. `docs/architecture/ARCHITECTURE.md`
+2. `docs/architecture/MARKET_AND_CURVES.md`
+3. `docs/market-data/MULTI_ASSET_MARKET_DATA_AND_CURVES.md`
+4. `docs/asset-classes/INDEX.md`
+5. `docs/models/INDEX.md`
+6. `docs/risk/INDEX.md`
+7. `docs/architecture/DATA_STORAGE_LINEAGE_AND_RECONCILIATION.md`
+8. `docs/implementation/PHASED_BUILD_PLAN.md`
 
-Use inline math for short expressions such as $PV$, $D(t,T)$, $F(t;T_1,T_2)$, or $\sigma$.
+### Mathematical Path
 
-Use unindented display math for equations that deserve their own line:
+1. `docs/foundations/RANDOM_VARIABLES_EXPECTATION_VARIANCE.md`
+2. `docs/foundations/STATISTICAL_DISTRIBUTIONS_AND_MLE.md`
+3. `docs/foundations/PROBABILITY_LIMIT_THEOREMS.md`
+4. `docs/foundations/BROWNIAN_MOTION_AND_ITO.md`
+5. `docs/foundations/ASSET_PRICING_FOUNDATIONS.md`
+6. `docs/market-data/INDEX.md`
+7. `docs/asset-classes/rates/INDEX.md`
+8. `docs/models/volatility/INDEX.md`
+9. `docs/risk/INDEX.md`
+
+### Asset-Class Path
+
+1. `docs/market-data/INDEX.md`
+2. `docs/asset-classes/rates/INDEX.md`
+3. `docs/asset-classes/credit/INDEX.md`
+4. `docs/asset-classes/fx/INDEX.md`
+5. `docs/asset-classes/commodities/INDEX.md`
+6. `docs/asset-classes/equity/INDEX.md`
+7. `docs/models/volatility/INDEX.md`
+
+## Reference Policy
+
+Shared definitions belong in `docs/reference/`.
+
+- `docs/reference/LEXIS.md` defines project-wide terms and canonical domain
+  language.
+- `docs/reference/FORMULAS.md` gives common notation and formulas used across
+  chapters.
+- `docs/reference/SOURCES.md` lists public references and source classes.
+
+Asset-class chapters should link to these files instead of carrying duplicate
+glossaries, formula sheets, or bibliographies.
+
+## Formula Style
+
+Use dollar-delimited LaTeX because it renders in most Markdown environments.
+
+Inline formulas use single dollar signs, for example `$PV$`, `$D(t,T)$`, or
+`$\sigma$`.
+
+Displayed formulas use double dollar signs on their own lines:
 
 $$
-PV = \sum_{i=1}^{n} CF_i \, D(t,T_i)
+PV = \sum_{i=1}^{n} CF_i D(t,T_i)
 $$
 
-$$
-\mathrm{PnL}_{\text{explained}} \approx \sum_k \Delta x_k \, \frac{\partial PV}{\partial x_k}
-$$
+Each displayed formula should define its symbols, units, convention, and
+implementation meaning in the surrounding prose.
 
-When a formula is shown, the surrounding text should explain:
+## Documentation Principles
 
-- what each symbol means,
-- whether the quantity is observed, calibrated, simulated, or derived,
-- how the formula maps to implementation objects.
+The documentation should consistently:
 
-## Section map
-
-### Design
-
-Start with `docs/design/INDEX.md`.
-
-Key files:
-
-- `docs/design/ARCHITECTURE.md`
-- `docs/design/MARKET_AND_CURVES.md`
-- `docs/design/CURVE_BOOTSTRAP_DESIGN.md`
-- `docs/design/ANALYTICS_SERVICES.md`
-- `docs/design/IMPLEMENTATION_CHOICES.md`
-- `docs/design/DATA_STORAGE_LINEAGE_AND_RECONCILIATION.md`
-
-### Pricing
-
-Start with `docs/pricing/INDEX.md`.
-
-Pricing is organized from market state to asset-class specifics:
-
-- `docs/pricing/market-data/`
-- `docs/pricing/rates/`
-- `docs/pricing/credit/`
-- `docs/pricing/volatility/`
-
-### Risk
-
-Start with `docs/risk/INDEX.md`.
-
-Risk notes should be read as the continuation of pricing notes, because factor design, explain logic, and scenario semantics only make sense once the pricing objects are clear.
-
-### Theory
-
-Start with `docs/theory/INDEX.md`.
-
-Theory notes are not meant to be detached mathematics. They exist to support the pricing and risk documents.
-
-### Roadmap
-
-Start with `docs/roadmap/INDEX.md`.
-
-Roadmap notes should be read after the architectural and pricing/risk notes, because they are implementation planning documents rather than conceptual primers.
-
-## Repository-wide study order
-
-A practical full pass through the documentation is:
-
-1. `docs/README.md`
-2. `docs/theory/INDEX.md`
-3. `docs/design/INDEX.md`
-4. `docs/pricing/INDEX.md`
-5. `docs/risk/INDEX.md`
-6. `docs/roadmap/INDEX.md`
-7. `docs/temp/README.md` only after the canonical material is clear
+- define the object before describing the algorithm;
+- separate market state, product state, model state, and analytics outputs;
+- explain what is observed, calibrated, simulated, shocked, stored, or repriced;
+- place formulas near their implementation meaning;
+- use stable notation across chapters;
+- keep publishable documentation independent from private preparation material.

@@ -2,11 +2,11 @@
 
 This chapter is the canonical home for explicit factor-risk design.
 
-## 1. Why explicit factors matter
+## 1. Role Of Explicit Factors
 
 A production risk engine should not rely on undocumented implicit bumps. It should identify exactly which market object moved, how the move was represented, and how the result should aggregate.
 
-A factor definition should answer:
+A factor definition should specify:
 
 - what moved,
 - by how much,
@@ -22,7 +22,7 @@ A useful factor definition includes at least:
 - currency or underlier,
 - pillar or bucket label,
 - shock rule,
-- aggregation tags such as desk, book, strategy, issuer, or sector.
+- aggregation tags such as book, strategy, issuer, sector, or reporting group.
 
 ## 3. Factor-to-trade mapping
 
@@ -51,7 +51,8 @@ Where:
 
 - $P\&L_{portfolio}^{scenario}$ is the scenario P&L after aggregation.
 
-Scenario aggregation is mathematically easy and operationally hard: every trade must be shocked and repriced under the same scenario semantics.
+Scenario aggregation is mathematically direct but operationally demanding: every trade must be shocked and repriced under
+the same scenario semantics.
 
 ## 5. Typical factor families
 
@@ -68,13 +69,13 @@ Useful attribution views include:
 
 - by trade,
 - by book,
-- by desk,
+- by reporting group,
 - by currency,
 - by factor family,
 - by tenor bucket,
 - by issuer or sector for credit.
 
-A strong design keeps the same raw factor definitions while allowing multiple aggregation views on top.
+A robust design keeps the same raw factor definitions while allowing multiple aggregation views on top.
 
 ## 7. Relationship to explain and VaR
 

@@ -70,4 +70,4 @@ A coherent reporting stack usually contains:
 3. historical stress for known adverse episodes,
 4. VaR and ES for distribution-based risk,
 5. backtesting for ongoing model validation,
-6. contribution reports with drill-down by desk, book, factor family, tenor, or issuer.
+6. contribution reports with drill-down by reporting group, book, factor family, tenor, or issuer.

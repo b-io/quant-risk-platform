@@ -1,10 +1,13 @@
 # Risk Documentation Index
 
-This section contains risk, explain, scenario, and simulation documentation.
+This section contains risk, explain, scenario, stress, simulation, and
+attribution documentation.
 
-The risk notes should be read after the design and pricing layers. Risk depends on explicit pricing objects, explicit market factors, and clear scenario semantics.
+Risk should be read after architecture, market data, and asset-class valuation
+chapters. Factor design, scenario semantics, and explain logic depend on
+explicit pricing objects and reproducible market state.
 
-## Core risk topics
+## Canonical Files
 
 - `docs/risk/RISK_MEASURES_AND_EXPLAIN.md`
 - `docs/risk/RISK_FACTORS_AND_ATTRIBUTION.md`
@@ -19,73 +22,69 @@ The risk notes should be read after the design and pricing layers. Risk depends 
 - `docs/risk/GLOBAL_MACRO_AND_TRADER_WORKFLOW.md`
 - `docs/risk/MACRO_INDICATORS_AND_INDEX_CONSTRUCTION.md`
 - `docs/risk/MACRO_REGIMES_AND_EVENT_FLOWS.md`
-- `docs/risk/FRONT_OFFICE_AND_RISK_WORKING_PRACTICES.md`
+- `docs/risk/VALUATION_RISK_CONTROL_WORKFLOWS.md`
+- `docs/asset-classes/commodities/RISK_BACKTESTING_GOVERNANCE.md`
 
-## Recommended study order
+## Recommended Reading Order
 
-### Phase 1 — risk vocabulary and explain
+### Part 1: Risk Vocabulary And Explain
 
 1. `docs/risk/RISK_MEASURES_AND_EXPLAIN.md`
 2. `docs/risk/RISK_FACTORS_AND_ATTRIBUTION.md`
 3. `docs/risk/PNL_EXPLAIN_IN_PRACTICE.md`
 
-### Phase 2 — scenarios, stress, and historical replay
+### Part 2: Scenarios, Stress, And Historical Replay
 
 4. `docs/risk/TIME_SERIES_AND_SCENARIOS.md`
 5. `docs/risk/HISTORICAL_STRESS.md`
 
-### Phase 3 — VaR and aggregation
+### Part 3: VaR, Expected Shortfall, And Aggregation
 
 6. `docs/risk/VAR.md`
 7. `docs/risk/VAR_STRESS_BACKTESTING_AND_AGGREGATION.md`
 
-### Phase 4 — simulation-based risk
+### Part 4: Simulation-Based Risk
 
 8. `docs/risk/MONTE_CARLO.md`
 9. `docs/risk/MONTE_CARLO_FOUNDATIONS.md`
 10. `docs/risk/MONTE_CARLO_IMPLEMENTATION.md`
 
-### Phase 5 — workflow and macro context
+### Part 5: Macro And Workflow Context
 
 11. `docs/risk/GLOBAL_MACRO_AND_TRADER_WORKFLOW.md`
 12. `docs/risk/MACRO_INDICATORS_AND_INDEX_CONSTRUCTION.md`
 13. `docs/risk/MACRO_REGIMES_AND_EVENT_FLOWS.md`
-14. `docs/risk/FRONT_OFFICE_AND_RISK_WORKING_PRACTICES.md`
+14. `docs/risk/VALUATION_RISK_CONTROL_WORKFLOWS.md`
 
-## Core risk formulas
+### Part 6: Commodity Risk Application
 
-A first-order explain approximation is
+15. `docs/asset-classes/commodities/RISK_BACKTESTING_GOVERNANCE.md`  
+   Application of the generic risk framework to power, gas, carbon, flexible
+   assets, and commodity-specific validation.
 
-$$
-\Delta PV \approx \sum_k \frac{\partial PV}{\partial x_k}\Delta x_k
-$$
+## Implementation Sequence
 
-A historical VaR estimator at confidence level $\alpha$ can be expressed informally as the negative lower empirical quantile of the scenario PnL distribution:
+Risk expansion should follow the later phases in
+`docs/implementation/PHASED_BUILD_PLAN.md`:
 
-$$
-\mathrm{VaR}_{\alpha} = - q_{1-\alpha}(\mathrm{PnL})
-$$
+- PnL explain with realized cashflows, sequential revaluation, persistence, and
+  reconciliation;
+- VaR and Expected Shortfall contributions by trade, book, strategy, currency,
+  asset class, and risk factor;
+- LSMC integration where early exercise and physical flexibility affect risk;
+- production controls for run manifests, lineage, benchmark portfolios,
+  performance gates, coverage gates, and validation reports.
 
-A Monte Carlo estimator of an expectation is
+## Shared References
 
-$$
-\hat{\mu}_N = \frac{1}{N}\sum_{i=1}^{N} X_i
-$$
+- `docs/reference/LEXIS.md` defines risk factor, `RiskFactorId`, sensitivity,
+  PnL explain, VaR, and Expected Shortfall.
+- `docs/reference/FORMULAS.md` contains shared risk expansion, PnL explain, VaR,
+  Expected Shortfall, and Monte Carlo notation.
+- `docs/reference/SOURCES.md` lists public risk and modeling references.
 
-with standard error that shrinks at order
+## Maintenance Rule
 
-$$
-O\left(\frac{1}{\sqrt{N}}\right)
-$$
-
-This is why simulation accuracy improves slowly and why variance reduction matters in production.
-
-## What this section should clarify
-
-By the end of this section, the reader should be able to explain:
-
-- how sensitivities differ from full revaluation,
-- why explained and unexplained PnL are control concepts rather than just reporting labels,
-- how scenarios map from factor moves to repricing inputs,
-- how historical stress differs from statistical VaR,
-- why Monte Carlo requires both statistical discipline and systems engineering discipline.
+Risk chapters should state factor identity, shock unit, bump size, revaluation
+policy, aggregation key, sign convention, horizon, confidence level, and
+reconciliation rule explicitly.

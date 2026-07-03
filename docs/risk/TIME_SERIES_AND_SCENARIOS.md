@@ -1,6 +1,6 @@
 # Time Series Analysis and Scenario Construction
 
-## Why this matters
+## Practical Relevance
 
 Risk systems rely on time series for:
 
@@ -61,7 +61,7 @@ For implementation, the scenario library should contain both:
 - famous rates-specific episodes such as 1994, the 2013 taper tantrum, the 2022 inflation repricing, and the 2022 UK
   gilt / LDI stress.
 
-That distinction matters because a rates desk can suffer large losses even when the main stress is not an equity-style
+That distinction matters because a rates portfolio can suffer large losses even when the main stress is not an equity-style
 crisis but a violent curve repricing or a long-end dislocation.
 
 ## Scenario construction choices
@@ -96,7 +96,7 @@ A historical stress engine usually works as:
 
 1. choose current portfolio and current market state
 2. take historical factor shocks from a prior date or interval
-3. map them onto today’s factor set
+3. map them onto today's factor set
 4. apply shocked market state
 5. reprice and aggregate losses
 

@@ -1,6 +1,6 @@
 # Monte Carlo Simulation in a Risk Engine
 
-## 1. Why Monte Carlo is useful
+## 1. Use Of Monte Carlo
 
 Monte Carlo simulation is used when closed-form formulas are unavailable, when the portfolio contains nonlinear
 instruments, or when the quantity of interest depends on the full distribution of outcomes rather than only on local
@@ -219,7 +219,7 @@ a coherent factor Monte Carlo around the deterministic pricing engine.
 - reprice the portfolio under each scenario,
 - compute portfolio P&L, VaR, and Expected Shortfall.
 
-This gives a realistic first Monte Carlo layer for a front-office rates and macro risk platform.
+This gives a first Monte Carlo layer for a rates and macro risk platform.
 
 ### Second milestone
 
@@ -244,7 +244,7 @@ Only after the deterministic risk and market architecture are solid, extend towa
 
 ### Reproducibility
 
-Monte Carlo must support deterministic seeds. Otherwise results are hard to test and explain.
+Monte Carlo must support deterministic seeds. Without deterministic seeds, results are difficult to test and explain.
 
 ### Separation of responsibilities
 

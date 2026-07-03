@@ -35,7 +35,7 @@ a book is often tied to one of these dimensions:
 
 - trader or portfolio manager
 - strategy
-- desk
+- reporting group
 - legal entity
 - accounting bucket
 - asset class
@@ -44,13 +44,13 @@ a book is often tied to one of these dimensions:
 So the hierarchy is often:
 
 $$
-\text{firm} \rightarrow \text{desk} \rightarrow \text{book} \rightarrow \text{portfolio} \rightarrow \text{positions}
+\text{firm} \rightarrow \text{reporting group} \rightarrow \text{book} \rightarrow \text{portfolio} \rightarrow \text{positions}
 $$
 
 or, in some firms, portfolio sits above book. The naming varies, but the core idea is the same: a book is a manageable
 subset of exposures used for pricing, P\&L, limits, and risk reporting.
 
-> A book is the set of trades a desk wants to risk-manage and report together. A portfolio is the economic collection of
+> A book is the set of trades managed and reported together. A portfolio is the economic collection of
 > positions whose value and risk we aggregate under a common market state.
 
 ## 2. How risk is calculated in practice
@@ -70,7 +70,7 @@ Typical steps:
 3. Map positions to pricing models.
 4. Compute base valuation.
 5. Compute sensitivities and scenario revaluations.
-6. Aggregate by book, desk, strategy, legal entity, and portfolio.
+6. Aggregate by book, reporting group, strategy, legal entity, and portfolio.
 7. Store results for P\&L explain, risk limits, stress, and audit.
 
 Common risk outputs:
@@ -89,7 +89,7 @@ become much more important.
 
 ## 2A. Practical fast-risk approximation: modified duration
 
-Before doing a full revaluation, front office and risk often want a quick first-order estimate of a rates move.
+Before doing a full revaluation, pricing and risk workflows often need a first-order estimate of a rates move.
 
 For a bond with price $P$, modified duration $D_{\text{mod}}$, and small yield change $\Delta y$:
 
@@ -97,7 +97,7 @@ $$
 \Delta P \approx -D_{\text{mod}} \, P \, \Delta y
 $$
 
-#### Example for 2 — GBM path generation for one risk factor
+#### Example for 2 - GBM path generation for one risk factor
 
 Suppose:
 
@@ -113,27 +113,27 @@ $$
 
 Where:
 
-- $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
+- $0$ denotes the valuation date, or "today," when it appears in term-structure notation.
 
 Interpretation:
 
 - the bond would lose about 1.06 price points for a +25bp parallel shock.
 
-What front office realistically looks at:
+Pricing workflow diagnostics:
 
-- quick duration-based estimate immediately after a data release,
+- duration-based estimate immediately after a data release,
 - then full curve revaluation,
 - then bucketed DV01 / key-rate DV01,
 - then P\&L explain versus actual move.
 
-What independent risk realistically looks at:
+Risk-control diagnostics:
 
 - whether the fast approximation and full revaluation are directionally consistent,
 - concentration by key tenor,
 - nonlinear residual from convexity,
 - whether stress losses are still acceptable after the move.
 
-Good practice:
+Implementation controls:
 
 - use modified duration only as a fast linear approximation,
 - use full revaluation for large curve moves or nonlinear trades,
@@ -172,7 +172,7 @@ Where:
 
 - $N$ is the number of simulated paths or observations.
 - $T$ is a maturity or future time, typically measured in years from today.
-- $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
+- $0$ denotes the valuation date, or "today," when it appears in term-structure notation.
 
 This is why the Law of Large Numbers and CLT matter.
 
@@ -286,9 +286,9 @@ Where:
 
 with independent $Z_k \sim \mathcal N(0,1)$.
 
-## 6. Worked GBM example with a realistic book
+## 6. Worked GBM Example With an Equity-Options Book
 
-Take a simple equity-options book on one stock index. This is a realistic teaching example for Monte Carlo, even though
+Take a simple equity-options book on one stock index. This is a compact example for Monte Carlo, even though
 rates/credit books would use richer factor models.
 
 Assume:
@@ -318,7 +318,7 @@ $$
 Where:
 
 - $S_T$ is the asset price at maturity $T$.
-- $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
+- $0$ denotes the valuation date, or "today," when it appears in term-structure notation.
 
 $$
 S_T = 100\exp(0.02-0.02+0.10)=100e^{0.10}\approx 110.52
@@ -401,7 +401,7 @@ Where:
 
 - $\mathbb{E}[\cdot]$ denotes expectation.
 - $T$ is a maturity or future time, typically measured in years from today.
-- $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
+- $0$ denotes the valuation date, or "today," when it appears in term-structure notation.
 
 ### Risk Monte Carlo
 
@@ -434,7 +434,7 @@ For a nonlinear book, a common process is:
 6. Aggregate book P\&L.
 7. Compute VaR, expected shortfall, stress losses, and factor contributions.
 
-#### Example for 8 — book-level risk metrics from simulated P&L
+#### Example for 8 - book-level risk metrics from simulated P&L
 
 #### Monte Carlo VaR
 
@@ -626,7 +626,7 @@ Pathwise and LR estimators can be much cheaper if the payoff and model allow the
 
 ### Reproducibility vs. speed
 
-A front-office or risk engine usually needs deterministic reproducibility. That means:
+A pricing or risk engine usually needs deterministic reproducibility. That means:
 
 - explicit seed control
 - explicit stream partitioning
@@ -635,7 +635,7 @@ A front-office or risk engine usually needs deterministic reproducibility. That 
 
 ### Throughput vs. latency
 
-Intraday desk analytics may prefer lower-latency approximations or proxy models. End-of-day risk may run heavier Monte
+Intraday analytics may prefer lower-latency approximations or proxy models. End-of-day risk may run heavier Monte
 Carlo with more paths and richer scenarios.
 
 ### Full revaluation vs. proxy risk
@@ -646,7 +646,7 @@ For large books, a common production compromise is:
 - sensitivity-based approximations on simpler positions
 - aggregation in one reporting layer
 
-A strong concise answer is:
+The concise implementation rule is:
 
 > A robust Monte Carlo implementation uses embarrassingly parallel path blocks with thread-local random streams and
 > thread-local statistics, then reduces partial sums at the end. It avoids storing full paths unless the payoff is path
@@ -662,7 +662,7 @@ A strong concise answer is:
 
 ## 14. Important caveat for rates and credit platforms
 
-GBM is a good teaching model, but for a rates / credit front-office platform you would usually need richer models:
+GBM is a good teaching model, but rates and credit platforms usually need richer models:
 
 - multiple curves
 - spread dynamics

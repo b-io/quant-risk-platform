@@ -17,16 +17,10 @@ Unless stated otherwise:
 The regime diagram basically describes an **inflationary expansion / overheating loop**:
 
 $$
-\text{strong demand}
-\rightarrow \text{higher output and hiring}
-\rightarrow \text{capacity pressure}
-\rightarrow \text{wages / input costs up}
-\rightarrow \text{inflation up}
-\rightarrow \text{central bank tightens}
-\rightarrow \text{growth slows}
+\text{strong demand} \rightarrow \text{higher output and hiring} \rightarrow \text{capacity pressure} \rightarrow \text{wages / input costs up} \rightarrow \text{inflation up} \rightarrow \text{central bank tightens} \rightarrow \text{growth slows}
 $$
 
-That is a good intuition, but it is clearer if we make two corrections.
+That interpretation becomes clearer after two corrections.
 
 First, GDP and PMI do **not** sit at the same level of abstraction.
 
@@ -59,12 +53,7 @@ Examples:
 Typical flow:
 
 $$
-\text{demand shock}
-\rightarrow \text{orders}
-\rightarrow \text{output}
-\rightarrow \text{employment}
-\rightarrow \text{wages / prices}
-\rightarrow \text{CB reaction}
+\text{demand shock} \rightarrow \text{orders} \rightarrow \text{output} \rightarrow \text{employment} \rightarrow \text{wages / prices} \rightarrow \text{CB reaction}
 $$
 
 ### 2.2 Supply shock
@@ -81,10 +70,7 @@ Examples:
 Typical flow:
 
 $$
-\text{supply shock}
-\rightarrow \text{PPI / import costs up}
-\rightarrow \text{CPI up and real income squeezed}
-\rightarrow \text{growth slows}
+\text{supply shock} \rightarrow \text{PPI / import costs up} \rightarrow \text{CPI up and real income squeezed} \rightarrow \text{growth slows}
 $$
 
 This is the classic **stagflation** mechanism.
@@ -101,10 +87,7 @@ Examples:
 Typical flow:
 
 $$
-\text{policy shock}
-\rightarrow \text{rates / funding / credit conditions}
-\rightarrow \text{investment / housing / demand}
-\rightarrow \text{growth and inflation}
+\text{policy shock} \rightarrow \text{rates / funding / credit conditions} \rightarrow \text{investment / housing / demand} \rightarrow \text{growth and inflation}
 $$
 
 ### 2.4 Credit / funding shock
@@ -119,10 +102,7 @@ Examples:
 Typical flow:
 
 $$
-\text{credit shock}
-\rightarrow \text{financing harder}
-\rightarrow \text{capex, housing, consumption down}
-\rightarrow \text{growth slows}
+\text{credit shock} \rightarrow \text{financing harder} \rightarrow \text{capex, housing, consumption down} \rightarrow \text{growth slows}
 $$
 
 ### 2.5 External shock
@@ -137,14 +117,12 @@ Examples:
 Typical flow:
 
 $$
-\text{external shock}
-\rightarrow \text{trade / commodity / FX effects}
-\rightarrow \text{growth and inflation repricing}
+\text{external shock} \rightarrow \text{trade / commodity / FX effects} \rightarrow \text{growth and inflation repricing}
 $$
 
 ---
 
-## 3. GDP: what it is, how it is calculated, why it matters
+## 3. GDP: Definition, Calculation, And Market Relevance
 
 ### 3.1 GDP definition
 
@@ -185,7 +163,7 @@ GDP is useful because it is:
 - comprehensive
 - conceptually close to total output / income
 
-But GDP is not enough on its own because it is:
+GDP is insufficient on its own because it is:
 
 - lagged
 - revised
@@ -199,7 +177,7 @@ housing.
 
 ---
 
-## 4. PMI: what it is, how it is calculated, why it matters
+## 4. PMI: Definition, Calculation, And Market Relevance
 
 ### 4.1 PMI definition
 
@@ -236,7 +214,7 @@ The exact methodology varies by provider, but in practice macro people think of 
 - backlogs
 - input prices / output prices in sub-surveys
 
-### 4.3 Why PMI matters so much
+### 4.3 Market Relevance Of PMI
 
 PMI is:
 
@@ -277,17 +255,12 @@ Here is a stylized picture of the relationship:
 The cleanest causal chain is:
 
 $$
-\text{policy / credit / external shock}
-\rightarrow \text{orders and sentiment}
-\rightarrow \text{output and hiring}
-\rightarrow \text{wages and prices}
-\rightarrow \text{CB reaction}
-\rightarrow \text{markets}
+\text{policy / credit / external shock} \rightarrow \text{orders and sentiment} \rightarrow \text{output and hiring} \rightarrow \text{wages and prices} \rightarrow \text{CB reaction} \rightarrow \text{markets}
 $$
 
 A very practical market map is:
 
-This is the practical answer:
+The practical implication is:
 
 - **PMI / orders / surveys** tell you where activity is turning.
 - **GDP / retail sales / industrial production** tell you realized growth.
@@ -313,7 +286,7 @@ Typical pattern:
 
 A good sentence:
 
-> In overheating, the economy is still strong enough to generate inflation pressure faster than supply can absorb it, so
+> In overheating, the economy is still sufficiently strong to generate inflation pressure faster than supply can absorb it, so
 > the central bank tightens into strength.
 
 ---
@@ -365,7 +338,7 @@ Typical pattern:
 
 A good sentence:
 
-> Stagflation is the hardest regime because the market cannot price a simple 'weak growth means easy policy' story when
+> Stagflation is difficult because the market cannot price a simple 'weak growth implies policy easing' story when
 > inflation is still too high.
 
 ---

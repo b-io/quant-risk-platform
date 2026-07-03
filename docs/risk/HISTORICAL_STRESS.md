@@ -34,7 +34,7 @@ Where:
 
 - $\Pi^{(h)}$ is the stressed P&L for historical episode $h$.
 
-## 2. Why it is useful
+## 2. Analytical Use
 
 Historical stress is useful because it preserves real cross-factor co-movements that occurred during an actual market regime. It naturally captures:
 

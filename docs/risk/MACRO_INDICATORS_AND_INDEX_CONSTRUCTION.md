@@ -16,7 +16,7 @@ Unless stated otherwise:
 
 ## What a trader or quant is really trying to infer
 
-A macro desk is rarely interested in a data point for its own sake. The goal is to infer:
+A macro risk process is rarely interested in a data point for its own sake. The goal is to infer:
 
 $$
 \text{growth},\quad \text{inflation},
@@ -28,10 +28,7 @@ $$
 The practical chain is:
 
 $$
-\text{data surprise}
-\rightarrow \text{updated macro view}
-\rightarrow \text{updated central-bank path}
-\rightarrow \text{repricing of rates, FX, credit, equities}
+\text{data surprise} \rightarrow \text{updated macro view} \rightarrow \text{updated central-bank path} \rightarrow \text{repricing of rates, FX, credit, equities}
 $$
 
 ## First distinction: not every indicator is an index
@@ -82,9 +79,9 @@ where:
 - $p_{i,t}$ is the price of item $i$ at time $t$
 - $q_{i,0}$ is the base-period quantity or expenditure weight
 
-This is the core fixed-basket intuition behind consumer inflation measurement.
+This is the core fixed-basket interpretation behind consumer inflation measurement.
 
-#### Example — fixed-basket price index with concrete weights
+#### Example - fixed-basket price index with concrete weights
 
 Take a tiny basket with three items:
 
@@ -100,7 +97,7 @@ $$
 
 Where:
 
-- $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
+- $0$ denotes the valuation date, or "today," when it appears in term-structure notation.
 
 Current basket value:
 
@@ -194,14 +191,12 @@ Excludes food and energy.
 
 Used because it is often a better signal of underlying persistence.
 
-### Why CPI matters to markets
+### Market Relevance Of CPI
 
 If CPI comes in above expectations, markets usually infer:
 
 $$
-\text{higher inflation persistence}
-\rightarrow \text{higher expected policy path}
-\rightarrow \text{front-end yields up}
+\text{higher inflation persistence} \rightarrow \text{higher expected policy path} \rightarrow \text{front-end yields up}
 $$
 
 But interpretation depends on the composition:
@@ -222,7 +217,7 @@ Summary:
 > CPI is a weighted consumer basket. A 1% move in a heavily weighted component matters much more for headline inflation
 > than the same move in a tiny component.
 
-#### Example — CPI basket weighting with practical numbers
+#### Example - CPI basket weighting with practical numbers
 
 If last year CPI was 102.0 and this year CPI is 105.21, then year-on-year CPI inflation is:
 
@@ -233,12 +228,12 @@ $$
 Where:
 
 - $\pi$ denotes inflation.
-- $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
+- $0$ denotes the valuation date, or "today," when it appears in term-structure notation.
 
 Meaning:
 
 - consumer prices are 3.15% higher than a year ago,
-- but a macro desk would still ask whether the move came from energy, shelter, or broader underlying inflation.
+- but a macro analysis should still identify whether the move came from energy, shelter, or broader underlying inflation.
 
 ### 4.2 PCE price index
 
@@ -247,7 +242,7 @@ their behalf, and notes that it reflects changes in consumer behavior. BEA also 
 are aggregated using a **Fisher chain-weighted formula**, with many underlying detailed prices derived from CPI and PPI
 components.
 
-### Why central banks often care a lot about PCE
+### Policy Relevance Of PCE
 
 Because PCE:
 
@@ -356,7 +351,7 @@ $$
 
 This is the official unemployment rate.
 
-### Why it matters
+### Practical Relevance
 
 - low unemployment usually means strong labor demand
 - very low unemployment can signal a tight labor market
@@ -441,7 +436,7 @@ Where:
 - $X$ is exports in the GDP identity or a generic random variable depending on context.
 - $M$ is imports in the GDP identity.
 
-#### Example — CPI basket weighting with practical numbers
+#### Example - CPI basket weighting with practical numbers
 
 Suppose:
 
@@ -483,13 +478,13 @@ $$
 \text{Real GDP growth} \approx \text{Nominal GDP growth} - \text{inflation}
 $$
 
-### Why GDP matters
+### Market Relevance Of GDP
 
 - broad growth signal
 - benchmark for whether the economy is overheating or slowing
 - input into central-bank assessment of slack / output gap
 
-### Why GDP is not enough on its own
+### Limitations of GDP as a Standalone Indicator
 
 - lagged
 - revised
@@ -552,9 +547,9 @@ Why they matter:
 - forward-looking
 - often move rates because they affect growth expectations before GDP is released
 
-#### Example — GDP and PMI side-by-side interpretation
+#### Example - GDP and PMI side-by-side interpretation
 
-Suppose 100 firms answer a PMI-style survey:
+Suppose 100 firms respond to a PMI-style survey:
 
 - 40 say activity is better,
 - 35 say activity is unchanged,
@@ -568,7 +563,7 @@ $$
 
 Where:
 
-- $0$ denotes the valuation date, or “today,” when it appears in term-structure notation.
+- $0$ denotes the valuation date, or "today," when it appears in term-structure notation.
 
 So:
 
@@ -634,11 +629,11 @@ $$
 > sales, PMIs, industrial production, housing, and financial conditions as well. The key point for markets is not one
 > indicator in isolation but how the full dashboard changes the expected central-bank path.
 
-## 9. Quick contrasts
+## 9. Comparative Summary
 
 ### 9.1 CPI vs. PCE
 
-- CPI: consumer basket, fixed-basket intuition, very market-moving
+- CPI: consumer basket, fixed-basket interpretation, very market-moving
 - PCE: broader, chain-weighted, captures substitution better
 
 ### 9.2 CPI vs. PPI

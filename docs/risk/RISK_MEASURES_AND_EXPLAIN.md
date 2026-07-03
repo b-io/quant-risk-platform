@@ -6,7 +6,7 @@ end.
 
 ## Deterministic risk measures
 
-A front-office risk engine should support at least the following deterministic measures.
+A risk engine should support at least the following deterministic measures.
 
 ### PV01 / DV01
 
@@ -71,7 +71,7 @@ Typical components are:
 - new trades, amendments, or unwinds,
 - residual unexplained P&L.
 
-Residual should be small if the explain is well specified and aligned with front-office valuation conventions.
+Residual should be small if the explain is well specified and aligned with valuation conventions.
 
 ## Risk attribution
 
@@ -82,7 +82,7 @@ Examples include:
 - DV01 by currency,
 - DV01 by curve,
 - DV01 by tenor bucket,
-- DV01 by book, strategy, or desk,
+- DV01 by book, strategy, or reporting group,
 - CS01 by issuer family or credit bucket,
 - vega by surface bucket.
 
@@ -105,6 +105,6 @@ P&L did not move dramatically.
   P&L.
 - `docs/risk/VAR_STRESS_BACKTESTING_AND_AGGREGATION.md` explains where deterministic measures sit relative to VaR,
   stress, backtesting, and aggregation across books.
-- `docs/pricing/credit/BOND_SPREADS_AND_DEFAULT_RISK.md` explains the underlying credit spread measures used by CS01.
-- `docs/pricing/volatility/GREEKS_AND_NONLINEAR_RISK.md` explains option Greeks and the limits of local
+- `docs/asset-classes/credit/BOND_SPREADS_AND_DEFAULT_RISK.md` explains the underlying credit spread measures used by CS01.
+- `docs/models/volatility/GREEKS_AND_NONLINEAR_RISK.md` explains option Greeks and the limits of local
   sensitivity-based approximations.

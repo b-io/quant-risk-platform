@@ -9,11 +9,7 @@ The starting point is the state of the economy, policy, liquidity, and geopoliti
 The basic chain is:
 
 $$
-\text{economy}
-\rightarrow \text{policy expectations}
-\rightarrow \text{market pricing}
-\rightarrow \text{trade expression}
-\rightarrow \text{risk / P\&L}
+\text{economy} \rightarrow \text{policy expectations} \rightarrow \text{market pricing} \rightarrow \text{trade expression} \rightarrow \text{risk / P\&L}
 $$
 
 A global macro trader asks questions such as:
@@ -66,9 +62,7 @@ In simple terms:
 A simple macro mental model is:
 
 $$
-\text{stronger growth}
-\Rightarrow \text{higher expected real activity}
-\Rightarrow \text{higher policy path / higher yields, all else equal}
+\text{stronger growth} \Rightarrow \text{higher expected real activity} \Rightarrow \text{higher policy path / higher yields, all else equal}
 $$
 
 ### 2.2 Inflation
@@ -130,7 +124,7 @@ liquid vs. stressed markets.
 
 ### 2.5 Positioning and consensus
 
-A view is not enough.
+A view is insufficient without a position, risk representation, and validation path.
 The trader must ask:
 
 - Is this already fully priced?
@@ -178,7 +172,7 @@ Common macro consequences:
 - stronger demand for safe assets
 
 But the exact effect depends on whether inflation is also falling.
-If inflation remains too high, the usual “bad growth = lower yields” relationship can be weaker or delayed.
+If inflation remains too high, the usual "weak growth = lower yields" relationship can be weaker or delayed.
 
 ## 3.3 Curves matter, not only levels
 
@@ -216,7 +210,7 @@ Credit spreads reflect:
 A weak macro outlook often widens spreads.
 A benign macro outlook often tightens spreads.
 
-A good one-line intuition is:
+A compact interpretation is:
 
 $$
 \text{credit spread} \approx \text{compensation for default risk} + \text{liquidity premium} + \text{risk premium}
@@ -229,15 +223,10 @@ $$
 You remembered something important: traders often **wait for new data**, then analyze the deviation from expectation.
 That is exactly part of the workflow.
 
-A realistic simplified daily process is:
+A simplified daily process is:
 
 $$
-\text{monitor}
-\rightarrow \text{form / update view}
-\rightarrow \text{choose trade expression}
-\rightarrow \text{size risk}
-\rightarrow \text{monitor P\&L and exposures}
-\rightarrow \text{revise after new data}
+\text{monitor} \rightarrow \text{form / update view} \rightarrow \text{choose trade expression} \rightarrow \text{size risk} \rightarrow \text{monitor P\&L and exposures} \rightarrow \text{revise after new data}
 $$
 
 ## 4.1 Before the data release
@@ -368,7 +357,7 @@ They want to know:
 
 ### 5.4 Scenarios and stress
 
-They need to answer:
+The workflow must identify:
 
 - what happens if the front-end reprices by 25bp?
 - what happens if spreads widen by 20bp?
@@ -407,7 +396,7 @@ The system should map macro ideas into tradable and risk-manageable factors:
 - inflation curves
 - scenario factor groups
 
-For example, a “hawkish surprise” should be expressible as a structured scenario, not only a verbal statement.
+For example, a "hawkish surprise" should be expressible as a structured scenario, not only a verbal statement.
 
 ## 6.2 Build consistent market states
 
@@ -427,7 +416,7 @@ $$
 
 ## 6.3 Provide fast recalculation
 
-Macro desks care about speed because the data-release window is time-sensitive.
+Macro workflows require low latency because the data-release window is time-sensitive.
 The developer helps by:
 
 - updating handles instead of rebuilding everything,
@@ -443,28 +432,28 @@ A macro trader needs to trust attribution.
 A good explain framework separates:
 
 $$
-\Delta V = \Delta V_{\text{carry/roll}}
-+ \Delta V_{\text{market moves}}
-+ \Delta V_{\text{fixings/cash}}
-+ \Delta V_{\text{new trades}}
-+ \Delta V_{\text{residual}}
+\Delta V = \Delta V_{\text{carry/roll}} +
+\Delta V_{\text{market moves}} +
+\Delta V_{\text{fixings/cash}} +
+\Delta V_{\text{new trades}} +
+\Delta V_{\text{residual}}
 $$
 
-This is essential because the desk wants to distinguish:
+This is essential because the workflow must distinguish:
 
-- “loss came from a genuine market move”
-- versus “loss came from a bad curve build or bad market data”
+- "loss came from a genuine market move"
+- versus "loss came from an erroneous curve build or erroneous market data"
 
 ## 6.5 Support how traders actually consume analytics
 
 Typical delivery channels are:
 
 - Python API for ad hoc analysis,
-- Excel API for rapid desk workflows,
+- spreadsheet API for rapid analysis workflows,
 - GUI / dashboards for monitoring,
 - persisted outputs for audit and comparison.
 
-These access patterns matter because desk and control users consume analytics in different ways.
+These access patterns matter because valuation, risk, and control users consume analytics in different ways.
 
 ---
 
@@ -512,7 +501,7 @@ $$
 
 ## 7.5 Financial conditions
 
-Financial conditions summarize how easy or hard it is to finance risk-taking.
+Financial conditions summarize the cost and availability of financing for risk-taking.
 Higher rates, wider spreads, stronger currency, and lower equity prices usually mean tighter financial conditions.
 
 A good line:
