@@ -2,15 +2,17 @@
 
 // Declares market snapshot validation and QuantLib market-object construction services.
 
-#include <ql/time/date.hpp>
-#include <ql/time/period.hpp>
-#include <ql/termstructures/yieldtermstructure.hpp>
-#include <ql/time/dategenerationrule.hpp>
-#include <ql/indexes/iborindex.hpp>
-#include <ql/time/daycounter.hpp>
-#include <ql/time/calendar.hpp>
 #include <qrp/domain/market_data.hpp>
 #include <qrp/market/market_state.hpp>
+
+#include <ql/indexes/iborindex.hpp>
+#include <ql/termstructures/yieldtermstructure.hpp>
+#include <ql/time/calendar.hpp>
+#include <ql/time/date.hpp>
+#include <ql/time/dategenerationrule.hpp>
+#include <ql/time/daycounter.hpp>
+#include <ql/time/period.hpp>
+
 #include <map>
 #include <memory>
 #include <string>
@@ -102,7 +104,7 @@ public:
      * @brief Creates the standard overnight index for a currency.
      */
     static QuantLib::ext::shared_ptr<QuantLib::OvernightIndex> create_overnight_index(
-        domain::Currency currency, 
+        domain::Currency currency,
         const QuantLib::Handle<QuantLib::YieldTermStructure>& h);
 
     /**

@@ -1,9 +1,11 @@
 // Implements PnL explain by combining valuation diagnostics with aging and market-move components.
 
 #include <qrp/analytics/pnl_explain_service.hpp>
+
 #include <qrp/analytics/cashflow_extractor.hpp>
 #include <qrp/analytics/valuation_service.hpp>
 #include <qrp/market/market_snapshot.hpp>
+
 #include <map>
 #include <memory>
 #include <string>

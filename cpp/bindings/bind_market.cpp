@@ -1,10 +1,11 @@
 // Registers market builders and market-state helpers with Python.
 
 #include "bindings.hpp"
-#include <pybind11/stl.h>
 #include <qrp/market/factor_shock_resolver.hpp>
 #include <qrp/market/market_snapshot.hpp>
 #include <qrp/market/scenario_engine.hpp>
+
+#include <pybind11/stl.h>
 
 // Exposes market state, market snapshot build reports, and scenario shock helpers.
 
@@ -31,8 +32,8 @@ void bind_market(py::module_& m) {
 
         py::class_<market::ScenarioDefinition>(m, "ScenarioDefinition")
             .def(py::init<>())
-            .def_readwrite("name", &market::ScenarioDefinition::name)
-            .def_readwrite("factor_shocks", &market::ScenarioDefinition::factor_shocks);
+            .def_readwrite("factor_shocks", &market::ScenarioDefinition::factor_shocks)
+            .def_readwrite("name", &market::ScenarioDefinition::name);
 
         m.def("build_rates_market_report", [](const domain::MarketSnapshot& dto) {
             return market::RatesMarketBuilder::build(dto).curve_results;

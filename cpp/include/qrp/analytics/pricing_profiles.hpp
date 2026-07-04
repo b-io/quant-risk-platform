@@ -3,6 +3,7 @@
 // Defines per-product pricing adjustments and support metadata used by valuation services.
 
 #include <qrp/domain/product.hpp>
+
 #include <map>
 #include <string>
 

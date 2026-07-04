@@ -2,12 +2,14 @@
 
 // Declares deterministic stress revaluation APIs and result DTOs.
 
-#include <qrp/market/scenario_engine.hpp>
+#include <qrp/analytics/valuation_service.hpp>
 #include <qrp/domain/market_data.hpp>
 #include <qrp/domain/portfolio.hpp>
-#include <qrp/analytics/valuation_service.hpp>
-#include <vector>
+#include <qrp/market/scenario_engine.hpp>
+
+#include <map>
 #include <string>
+#include <vector>
 
 namespace qrp::analytics {
 

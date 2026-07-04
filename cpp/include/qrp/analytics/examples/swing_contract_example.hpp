@@ -3,8 +3,8 @@
 // Defines a swing-contract exercise example for dynamic-programming workflows.
 
 #include <qrp/analytics/dynamic_programming/decision_problem.hpp>
+
 #include <algorithm>
-#include <cmath>
 #include <utility>
 
 namespace qrp::analytics::examples {
@@ -37,7 +37,6 @@ public:
         const dynamic_programming::State& state,
         std::size_t timeIndex
     ) const override {
-        // Actions: 0 = Min, 1 = Max
         return {
             {0, "Min", {}},
             {1, "Max", {}}
@@ -89,7 +88,6 @@ public:
     double terminalValue(const dynamic_programming::State& state) const override {
         double total_v = state.operational_variables[0];
         if (total_v < params_.min_total_volume) {
-            // Penalty for not reaching minimum
             return -1000.0 * (params_.min_total_volume - total_v);
         }
         return 0.0;

@@ -2,13 +2,13 @@
 
 // Defines solver-neutral optimization problem, result, capability, and adapter interfaces.
 
+#include <nlohmann/json.hpp>
+
 #include <map>
 #include <memory>
 #include <optional>
 #include <string>
 #include <vector>
-
-#include <nlohmann/json.hpp>
 
 namespace qrp::optimization {
 
@@ -34,7 +34,7 @@ struct OptimizationResult {
     std::string message;
     double objective_value = 0.0;
     std::map<std::string, double> optimal_values; // Variable ID -> Value
-    
+
     // Diagnostics
     double solve_time_ms = 0.0;
     std::map<std::string, double> dual_values;

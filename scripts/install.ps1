@@ -65,11 +65,14 @@ if ($vcpkgPython) {
 }
 
 Write-Host "--- Installing Python dependencies ---" -ForegroundColor Cyan
-if (Test-Path "requirements.txt") {
-    & $pythonExec -m pip install -r requirements.txt
+$pythonProjectDir = Join-Path $projectRoot "python"
+$pythonRequirements = Join-Path $pythonProjectDir "requirements.txt"
+$pythonProjectFile = Join-Path $pythonProjectDir "pyproject.toml"
+if (Test-Path -LiteralPath $pythonRequirements) {
+    & $pythonExec -m pip install -r $pythonRequirements
 }
-if (Test-Path "pyproject.toml") {
-    & $pythonExec -m pip install -e .
+if (Test-Path -LiteralPath $pythonProjectFile) {
+    & $pythonExec -m pip install -e $pythonProjectDir
 }
 
 # 2. Ensure C++ dependencies via vcpkg

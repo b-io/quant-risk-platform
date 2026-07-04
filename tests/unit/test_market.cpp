@@ -1,15 +1,17 @@
 // Verifies market-data parsing, validation gates, market-state reset, and rates-curve construction.
 
-#include <gtest/gtest.h>
-#include <qrp/market/market_snapshot.hpp>
-#include <ql/termstructures/yield/piecewiseyieldcurve.hpp>
-#include <ql/termstructures/yield/oisratehelper.hpp>
-#include <ql/indexes/ibor/sofr.hpp>
 #include <qrp/domain/market_data.hpp>
+#include <qrp/market/market_snapshot.hpp>
 #include <qrp/market/market_state.hpp>
+
+#include <gtest/gtest.h>
+#include <nlohmann/json.hpp>
+#include <ql/indexes/ibor/sofr.hpp>
+#include <ql/termstructures/yield/oisratehelper.hpp>
+#include <ql/termstructures/yield/piecewiseyieldcurve.hpp>
+
 #include <algorithm>
 #include <iostream>
-#include <nlohmann/json.hpp>
 #include <stdexcept>
 
 using namespace qrp::market;
@@ -22,7 +24,7 @@ TEST(MarketTest, TestOISBootstrap) {
     spec.quote_ids = {"USD_OIS_1M", "USD_OIS_3M"};
 
     std::map<std::string, domain::MarketQuote> quotes;
-    
+
     domain::MarketQuote q1;
     q1.id = "USD_OIS_1M";
     q1.instrument_type = domain::QuoteInstrumentType::OIS;
@@ -40,7 +42,7 @@ TEST(MarketTest, TestOISBootstrap) {
     quotes["USD_OIS_3M"] = q2;
 
     QuantLib::Date valuation_date(24, QuantLib::March, 2024);
-    
+
     try {
         auto curve = CurveBuilder::build_rate_curve(spec, quotes, valuation_date, nullptr);
         ASSERT_NE(curve, nullptr);

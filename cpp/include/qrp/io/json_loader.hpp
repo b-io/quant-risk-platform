@@ -4,6 +4,7 @@
 
 #include <qrp/domain/market_data.hpp>
 #include <qrp/domain/portfolio.hpp>
+
 #include <string>
 
 namespace qrp::io {

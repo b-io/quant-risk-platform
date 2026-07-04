@@ -4,10 +4,12 @@
 
 #include <qrp/domain/market_data.hpp>
 #include <qrp/domain/types.hpp>
-#include <ql/time/date.hpp>
-#include <ql/termstructures/yieldtermstructure.hpp>
+
 #include <ql/handle.hpp>
 #include <ql/quotes/simplequote.hpp>
+#include <ql/termstructures/yieldtermstructure.hpp>
+#include <ql/time/date.hpp>
+
 #include <map>
 #include <memory>
 #include <string>

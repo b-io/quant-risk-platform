@@ -1,10 +1,13 @@
 // Implements deterministic scenario stress revaluation and trade-level PnL aggregation.
 
 #include <qrp/analytics/stress_engine.hpp>
+
 #include <qrp/analytics/pricing_context.hpp>
 #include <qrp/instruments/instrument_factory.hpp>
 #include <qrp/market/market_snapshot.hpp>
+
 #include <ql/instrument.hpp>
+
 #include <map>
 #include <memory>
 #include <stdexcept>
@@ -30,8 +33,8 @@ std::vector<StressResult> StressEngine::run_historical_stress(
     const std::vector<domain::FactorBinding>& bindings) {
 
     std::vector<StressResult> results;
-    
-    // 1. Setup Base Market and Instrument Cache
+
+    // Build the base market and reusable instrument cache.
     qrp::market::MarketSnapshot base_market(base_market_dto);
     auto state = base_market.built_state();
     PricingContext context(state);
@@ -57,9 +60,9 @@ std::vector<StressResult> StressEngine::run_historical_stress(
     for (const auto& scenario : historical_scenarios) {
         StressResult res;
         res.scenario_name = scenario.name;
-        
+
         market::ScenarioEngine::apply_scenario_to_state(*state, base_market_dto, scenario, factors, bindings);
-        
+
         double shocked_total = 0.0;
         for (const auto& priced : instruments) {
             const auto& trade = *priced.trade;
@@ -73,7 +76,7 @@ std::vector<StressResult> StressEngine::run_historical_stress(
         // Reset state for next scenario
         state->reset_to_snapshot(base_market_dto);
     }
-    
+
     return results;
 }
 

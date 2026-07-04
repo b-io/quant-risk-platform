@@ -1,10 +1,12 @@
 // Verifies binding-aware scenario application from canonical factors to mutable quote handles.
 
-#include <gtest/gtest.h>
-#include <qrp/market/scenario_engine.hpp>
-#include <qrp/domain/market_data.hpp>
 #include <qrp/domain/factors.hpp>
+#include <qrp/domain/market_data.hpp>
 #include <qrp/market/market_snapshot.hpp>
+#include <qrp/market/scenario_engine.hpp>
+
+#include <gtest/gtest.h>
+
 #include <cmath>
 #include <stdexcept>
 

@@ -1,6 +1,7 @@
 // Implements SQLite persistence for valuation, risk, scenario, and VaR results.
 
 #include <qrp/persistence/sqlite_storage_backend.hpp>
+
 #include <fmt/format.h>
 
 #include <stdexcept>

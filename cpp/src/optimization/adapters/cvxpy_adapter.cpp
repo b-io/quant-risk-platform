@@ -1,8 +1,10 @@
 // Implements the CVXPY/OSQP optimization adapter and its JSON worker protocol.
 
 #include <qrp/optimization/adapters/cvxpy_adapter.hpp>
-#include <qrp/optimization/portfolio_optimization.hpp>
+
 #include <qrp/optimization/models/risk_model.hpp>
+#include <qrp/optimization/portfolio_optimization.hpp>
+
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -48,11 +50,29 @@ std::optional<std::string> custom_param(const SolverConfig& config, const std::s
 }
 
 std::optional<std::string> env_value(const char* name) {
+#ifdef _MSC_VER
+    char* raw_value = nullptr;
+    std::size_t value_size = 0;
+    if (_dupenv_s(&raw_value, &value_size, name) != 0) {
+        std::free(raw_value);
+        return std::nullopt;
+    }
+
+    if (raw_value == nullptr || *raw_value == '\0') {
+        std::free(raw_value);
+        return std::nullopt;
+    }
+
+    std::string value(raw_value);
+    std::free(raw_value);
+    return value;
+#else
     const char* value = std::getenv(name);
     if (value == nullptr || *value == '\0') {
         return std::nullopt;
     }
     return std::string(value);
+#endif
 }
 
 std::optional<fs::path> find_worker_from(fs::path start) {
@@ -576,7 +596,7 @@ OptimizationResult CvxpyAdapter::solve(const OptimizationProblem& problem, const
         fs::temp_directory_path() / ("qrp_opt_request_" + suffix + ".json"),
         fs::temp_directory_path() / ("qrp_opt_response_" + suffix + ".json")
     };
-    
+
     {
         std::ofstream ofs(temp_files.request);
         if (!ofs.is_open()) {
@@ -596,7 +616,7 @@ OptimizationResult CvxpyAdapter::solve(const OptimizationProblem& problem, const
     if (config.verbose) {
         std::cout << "Running CVXPY worker: " << python_executable << " " << worker_path.string() << std::endl;
     }
-    
+
     int ret = 0;
     try {
         ret = run_process(args);
@@ -607,27 +627,27 @@ OptimizationResult CvxpyAdapter::solve(const OptimizationProblem& problem, const
     if (ret != 0) {
         return error_result("CVXPY worker failed with exit code " + std::to_string(ret));
     }
-    
+
     // Read response
     std::ifstream ifs(temp_files.response);
     if (!ifs.is_open()) {
         return error_result("Failed to open response file from CVXPY worker: " + temp_files.response.string());
     }
-    
+
     nlohmann::json response;
     try {
         ifs >> response;
     } catch (const std::exception& e) {
         return error_result("Failed to parse JSON response: " + std::string(e.what()));
     }
-    
+
     return parse_result(response);
 }
 
 nlohmann::json CvxpyAdapter::serialize_problem(const OptimizationProblem& problem, const SolverConfig& config) {
     nlohmann::json j;
     j["name"] = problem.name;
-    
+
     // Variables
     nlohmann::json vars = nlohmann::json::array();
     for (const auto& var : problem.variables) {
@@ -639,7 +659,7 @@ nlohmann::json CvxpyAdapter::serialize_problem(const OptimizationProblem& proble
         vars.push_back(v);
     }
     j["variables"] = vars;
-    
+
     // Objectives
     nlohmann::json objs = nlohmann::json::array();
     for (const auto& obj : problem.objectives) {
@@ -656,7 +676,7 @@ nlohmann::json CvxpyAdapter::serialize_problem(const OptimizationProblem& proble
         objs.push_back(o);
     }
     j["objectives"] = objs;
-    
+
     // Constraints
     nlohmann::json cons = nlohmann::json::array();
     for (const auto& con : problem.constraints) {
@@ -676,7 +696,7 @@ nlohmann::json CvxpyAdapter::serialize_problem(const OptimizationProblem& proble
         cons.push_back(c);
     }
     j["constraints"] = cons;
-    
+
     // Risk Model
     if (problem.risk_model) {
         nlohmann::json rm;
@@ -693,14 +713,14 @@ nlohmann::json CvxpyAdapter::serialize_problem(const OptimizationProblem& proble
         }
         j["risk_model"] = rm;
     }
-    
+
     // Solver Config
     j["config"]["tolerance"] = config.tolerance;
     j["config"]["max_iterations"] = config.max_iterations;
     if (config.time_limit_sec) j["config"]["time_limit"] = *config.time_limit_sec;
     j["config"]["verbose"] = config.verbose;
     j["config"]["solver"] = config.solver_name.empty() ? "OSQP" : config.solver_name;
-    
+
     return j;
 }
 
@@ -712,13 +732,13 @@ OptimizationResult CvxpyAdapter::parse_result(const nlohmann::json& j) {
     else if (status == "unbounded" || status == "unbounded_inaccurate") res.status = SolverStatus::Unbounded;
     else if (status == "user_limit") res.status = SolverStatus::LimitReached;
     else res.status = SolverStatus::Error;
-    
+
     if (j.contains("message")) res.message = j.at("message").get<std::string>();
     if (j.contains("objective_value")) res.objective_value = j.at("objective_value").get<double>();
     if (j.contains("optimal_values")) res.optimal_values = j.at("optimal_values").get<std::map<std::string, double>>();
-    
+
     if (j.contains("solve_time_ms")) res.solve_time_ms = j.at("solve_time_ms").get<double>();
-    
+
     return res;
 }
 

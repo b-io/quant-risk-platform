@@ -1,6 +1,7 @@
 // Implements cashflow extraction hooks for supported instrument diagnostics.
 
 #include <qrp/analytics/cashflow_extractor.hpp>
+
 #include <qrp/analytics/product_pricing_registry.hpp>
 
 namespace qrp::analytics {

@@ -3,8 +3,8 @@
 // Defines a compact power-plant dispatch example for dynamic-programming workflows.
 
 #include <qrp/analytics/dynamic_programming/decision_problem.hpp>
+
 #include <algorithm>
-#include <cmath>
 #include <utility>
 
 namespace qrp::analytics::examples {
@@ -19,7 +19,7 @@ public:
      */
     struct Params {
         double capacity = 100.0; // MW
-        double heat_rate = 2.0;  // Efficiency factor (fuel to power)
+        double heat_rate = 2.0;  // Fuel units per MWh
         double startup_cost = 500.0;
         double variable_opex = 2.0;
         double co2_intensity = 0.5; // tons/MWh
@@ -37,7 +37,6 @@ public:
         const dynamic_programming::State& state,
         std::size_t timeIndex
     ) const override {
-        // Actions: 0 = Off, 1 = On
         return {
             {0, "Off", {}},
             {1, "On", {}}

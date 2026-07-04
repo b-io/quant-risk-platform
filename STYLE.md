@@ -136,22 +136,26 @@ public:
 
 ## Ordering
 
-Use alphabetical ordering for neutral sets:
+Default to alphanumerical ordering for lists of independent items. Use a
+business or dependency order only when the order itself carries domain meaning,
+or when registration/construction requires it, and make that reason clear from
+section names or nearby code.
+
+Use alphanumerical ordering for common neutral sets:
 
 - Include files within a group.
-- Enum values when no business lifecycle exists.
-- Bindings for independent DTO fields.
+- Enum values.
+- Binding groups, `m.def(...)` entries, enum `.value(...)` entries, and
+  independent DTO fields in Python bindings.
 - Test helper declarations.
 
-Use business ordering when it reads better:
+Use business ordering only when it reads better and has domain meaning:
 
 - Market loading before market building.
 - Valuation before risk, stress, Monte Carlo, and reporting.
 - Base valuation before horizon valuation.
 - Input validation before transformation and persistence.
-- DTO fields in the order users see them in JSON or reports.
-
-When business order is chosen, make it clear from section names or nearby code.
+- DTO fields only when the field order is part of a documented external format.
 
 ## Tests
 
@@ -166,6 +170,9 @@ When business order is chosen, make it clear from section names or nearby code.
 
 - Keep binding files grouped by domain: domain, market, analytics, and IO.
 - Bind enums and DTOs before services that consume them.
+- Sort binding declarations and bound member lists alphanumerically unless a
+  pybind registration dependency, such as a base class before derived classes,
+  requires otherwise.
 - Preserve canonical names exposed to Python unless a breaking API change is
   intentional and documented.
 
@@ -178,3 +185,88 @@ When business order is chosen, make it clear from section names or nearby code.
   regression code.
 - Avoid introducing new dependencies unless they replace substantial complexity
   or provide a proven domain capability.
+
+## Documentation Style
+
+The public Markdown files should read like a quant-finance and implementation
+handbook. They should explain theory, algorithms, architecture, model choices,
+and implementation trade-offs in a reusable way.
+
+- Keep `docs/` publishable and project-centered.
+- Put private preparation notes, company-specific research, local context, and
+  scratch examples under the ignored `temp/docs/` workspace.
+- Avoid question-and-answer prose, personal positioning, application-oriented
+  wording, or claims that only make sense for a private preparation context.
+- Keep examples only when they teach a reusable method, convention, model, or
+  implementation pattern.
+- Make location-specific material generic unless the location is essential to a
+  public market convention being documented.
+- Prefer "pricing", "valuation", "risk", "control", "portfolio", and "market
+  state" language over informal stakeholder slogans.
+
+### Documentation Architecture
+
+Keep the public `docs/` tree organized by orthogonal roles.
+
+- `docs/foundations/` contains mathematical prerequisites.
+- `docs/architecture/` contains platform design, service boundaries, storage,
+  lineage, and implementation rationale.
+- `docs/market-data/` contains market-state normalization, quote identity,
+  conventions, and snapshot construction.
+- `docs/asset-classes/` contains rates, credit, FX, equity, and commodity
+  conventions and product families.
+- `docs/models/` contains model families that are reused across asset classes,
+  such as volatility models and exercise-policy methods.
+- `docs/risk/` contains PnL explain, sensitivities, stress, VaR, Expected
+  Shortfall, Monte Carlo, and attribution.
+- `docs/reference/` is the single home for shared lexis, formula notation, and
+  public source lists.
+- `docs/implementation/` contains phased build plans, validation standards, and
+  platform delivery sequencing.
+
+Do not duplicate a shared glossary, formula sheet, or bibliography inside an
+asset-class folder. Asset-class chapters may introduce local notation when
+needed, but reusable definitions should be moved into `docs/reference/` and
+linked from the chapter.
+
+### Book And Research Prose
+
+Use neutral, durable chapter language.
+
+- Prefer noun-phrase headings such as "Power Curve Construction Constraints",
+  "Model Selection Criteria", "Implementation Considerations", and
+  "Limitations".
+- Avoid conversational headings such as "why this is hard", "what users look
+  at", "the right answer", "good enough", or "quick summary".
+- Avoid evaluative adjectives when a precise criterion is available. Prefer
+  "binding constraint", "low-dimensional approximation", "computationally
+  inexpensive", "statistically unstable", or "model-incomplete" to vague labels
+  such as "hard", "easy", "bad", "good", or "strong".
+- State claims as reproducible technical statements. If a claim depends on a
+  market convention, model assumption, or implementation context, name that
+  context.
+- Use "intuition" sparingly. Prefer "interpretation", "economic meaning",
+  "model implication", or "implementation implication" when those are more
+  precise.
+- Do not write as if preparing an oral answer. Public documents should not
+  contain answer templates, personal framing, or rhetorical contrasts.
+- Each substantial chapter should make its structure explicit: definition,
+  notation, assumptions, method, implementation mapping, validation, and
+  limitations where applicable.
+
+### Markdown Math
+
+Use dollar-delimited LaTeX so formulas render in common Markdown environments.
+
+- Inline formulas use single dollar signs: `$PV$`, `$D(t,T)$`,
+  `$F(t;T_1,T_2)$`.
+- Display formulas use double dollar signs on their own lines:
+
+```markdown
+$$
+PV = \sum_i CF_i D(t,T_i)
+$$
+```
+
+Every displayed formula should be followed or preceded by enough text to define
+the symbols, units, convention, and implementation meaning.

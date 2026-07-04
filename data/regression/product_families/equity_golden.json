@@ -10,17 +10,25 @@
     "equity_spot_aapl_001": {
       "pnl_explain": {
         "carry_pnl": 0.0,
+        "cash_pnl": 0.0,
         "market_move_pnl": -9275.0,
+        "residual_pnl": 0.0,
         "total_pnl": -9275.0
       },
       "product_type": "equity_spot",
       "risk": {
+        "bucketed_risk": {},
         "cs01": 0.0,
+        "fx_delta": 0.0,
+        "fx_vega": 0.0,
         "pv01": 0.0
       },
       "stress": {
         "CROSS_ASSET_REPRICING": -27825.0,
-        "GLOBAL_RISK_OFF": -74200.0
+        "EQUITY_CRASH_VOL_SPIKE": -185500.0,
+        "EQUITY_RALLY_VOL_CRUSH": 111300.0,
+        "GLOBAL_RISK_OFF": -74200.0,
+        "GLOBAL_RISK_ON": 74200.0
       },
       "support_status": "partially_supported",
       "valuation": {

@@ -3,8 +3,8 @@
 // Defines a gas-storage control example for dynamic-programming workflows.
 
 #include <qrp/analytics/dynamic_programming/decision_problem.hpp>
+
 #include <algorithm>
-#include <cmath>
 #include <utility>
 
 namespace qrp::analytics::examples {
@@ -38,9 +38,7 @@ public:
         const dynamic_programming::State& state,
         std::size_t timeIndex
     ) const override {
-        // Actions: 0 = Idle, 1 = Inject Max, 2 = Withdraw Max
-        // Simplified: assuming we either do max or nothing. 
-        // In a real model, we would search over a grid or use continuous optimization.
+        // The example uses a compact action set; production storage models can use finer volume grids.
         return {
             {0, "Idle", {}},
             {1, "Inject", {}},

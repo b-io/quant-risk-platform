@@ -1,11 +1,26 @@
 // Implements backward induction for least-squares Monte Carlo exercise decisions.
 
 #include <qrp/analytics/lsmc/lsmc_engine.hpp>
+
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <limits>
+#include <random>
 
 namespace qrp::analytics::lsmc {
+
+namespace {
+
+std::mt19937 make_generator(std::uint64_t seed) {
+    std::seed_seq sequence{
+        static_cast<std::uint32_t>(seed & 0xffffffffULL),
+        static_cast<std::uint32_t>((seed >> 32U) & 0xffffffffULL),
+    };
+    return std::mt19937(sequence);
+}
+
+} // namespace
 
 LsmcResult LsmcEngine::run(
     const simulation::TimeGrid& time_grid,
@@ -13,7 +28,7 @@ LsmcResult LsmcEngine::run(
     const dynamic_programming::DecisionProblem& problem,
     const dynamic_programming::State& initial_state
 ) const {
-    std::mt19937 gen(config_.seed);
+    std::mt19937 gen = make_generator(config_.seed);
     std::size_t N = config_.num_paths;
     std::size_t T = time_grid.size();
 
@@ -26,7 +41,7 @@ LsmcResult LsmcEngine::run(
     // 2. Backward induction over simulated market paths.
     // The decision problem owns the mapping from market variables to problem-specific state features.
     std::vector<double> path_values(N);
-    
+
     // Terminal value
     for (std::size_t i = 0; i < N; ++i) {
         dynamic_programming::State final_state = initial_state;
@@ -49,20 +64,20 @@ LsmcResult LsmcEngine::run(
         // Regression features at time t
         std::vector<std::vector<double>> features_list;
         std::vector<std::size_t> in_the_money_indices;
-        
+
         for (std::size_t i = 0; i < N; ++i) {
             dynamic_programming::State s = initial_state;
             s.market_variables = market_paths[i].at(t);
             auto f = problem.regressionFeatures(s, t);
             features_list.push_back(f);
-            in_the_money_indices.push_back(i); 
+            in_the_money_indices.push_back(i);
         }
 
         if (!in_the_money_indices.empty()) {
             std::size_t num_f = features_list[0].size();
             Eigen::MatrixXd X(in_the_money_indices.size(), num_f);
             Eigen::VectorXd y_sub(in_the_money_indices.size());
-            
+
             for (std::size_t j = 0; j < in_the_money_indices.size(); ++j) {
                 std::size_t path_idx = in_the_money_indices[j];
                 for (std::size_t k = 0; k < num_f; ++k) {
@@ -78,7 +93,7 @@ LsmcResult LsmcEngine::run(
                 std::size_t i = in_the_money_indices[j];
                 dynamic_programming::State s = initial_state;
                 s.market_variables = market_paths[i].at(t);
-                
+
                 auto actions = problem.feasibleActions(s, t);
                 if (actions.empty()) {
                     path_values[i] = Y(i);
@@ -86,7 +101,7 @@ LsmcResult LsmcEngine::run(
                 }
 
                 double best_val = -std::numeric_limits<double>::infinity();
-                
+
                 for (const auto& action : actions) {
                     double immediate = problem.immediateCashflow(s, action, t);
                     double continuation = problem.isTerminalAction(s, action, t) ? 0.0 : continuation_values(j);
@@ -107,13 +122,13 @@ LsmcResult LsmcEngine::run(
         sum += v;
         sum2 += v * v;
     }
-    
+
     double mean = sum / N;
     double variance = (sum2 / N) - (mean * mean);
-    
+
     std::sort(path_values.begin(), path_values.end());
     double var_95 = path_values[static_cast<std::size_t>(0.05 * N)];
-    
+
     double es_sum = 0;
     std::size_t es_count = 0;
     for (std::size_t i = 0; i < static_cast<std::size_t>(0.05 * N); ++i) {
@@ -123,12 +138,12 @@ LsmcResult LsmcEngine::run(
     double es_95 = (es_count > 0) ? es_sum / es_count : var_95;
 
     LsmcResult result;
-    result.value = mean; 
+    result.value = mean;
     result.standard_error = std::sqrt(variance / N);
     result.path_values = path_values;
     result.var_95 = var_95;
     result.expected_shortfall_95 = es_95;
-    
+
     return result;
 }
 

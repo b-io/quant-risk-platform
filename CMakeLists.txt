@@ -183,6 +183,25 @@ function(qrp_apply_project_warnings target_name)
   endif()
 endfunction()
 
+function(qrp_apply_msvc_debug_symbols target_name)
+  if(NOT MSVC)
+    return()
+  endif()
+
+  get_target_property(_QRP_TARGET_TYPE ${target_name} TYPE)
+  target_compile_options(${target_name} PRIVATE /Zi)
+  set_target_properties(${target_name} PROPERTIES
+    COMPILE_PDB_NAME "${target_name}_compile"
+  )
+
+  if(NOT _QRP_TARGET_TYPE STREQUAL "STATIC_LIBRARY")
+    target_link_options(${target_name} PRIVATE /DEBUG)
+    set_target_properties(${target_name} PROPERTIES
+      PDB_NAME "${target_name}"
+    )
+  endif()
+endfunction()
+
 function(qrp_apply_coverage target_name)
   if(NOT QRP_ENABLE_COVERAGE)
     return()
@@ -200,6 +219,7 @@ endfunction()
 
 qrp_apply_coverage(qrp_core)
 qrp_apply_project_warnings(qrp_core)
+qrp_apply_msvc_debug_symbols(qrp_core)
 
 function(qrp_copy_core_runtime target_name)
   if(WIN32 AND QRP_BUILD_SHARED)
@@ -221,6 +241,7 @@ if(QRP_BUILD_CLI)
   target_link_libraries(qrp_cli PRIVATE qrp_core fmt::fmt)
   qrp_apply_coverage(qrp_cli)
   qrp_apply_project_warnings(qrp_cli)
+  qrp_apply_msvc_debug_symbols(qrp_cli)
   qrp_copy_core_runtime(qrp_cli)
 else()
   message(STATUS "QRP_BUILD_CLI=OFF — CLI target is skipped")
@@ -262,6 +283,7 @@ if(QRP_BUILD_PYTHON)
   )
   qrp_apply_coverage(quant_risk_platform)
   qrp_apply_project_warnings(quant_risk_platform)
+  qrp_apply_msvc_debug_symbols(quant_risk_platform)
 
   # Windows Debug safety
   if(MSVC)
@@ -318,17 +340,27 @@ endif()
 if(QRP_ENABLE_COVERAGE AND BUILD_TESTING AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
   find_program(GCOVR_EXECUTABLE gcovr)
   if(GCOVR_EXECUTABLE)
+    if(NOT Python3_Interpreter_FOUND)
+      find_package(Python3 COMPONENTS Interpreter REQUIRED)
+    endif()
     add_custom_target(coverage
       COMMAND ${CMAKE_CTEST_COMMAND} --test-dir ${CMAKE_BINARY_DIR} --output-on-failure
-      COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/coverage
+      COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/coverage/cpp
       COMMAND ${GCOVR_EXECUTABLE}
         --exclude ${CMAKE_SOURCE_DIR}/tests
-        --fail-under-line ${QRP_COVERAGE_MIN_LINE}
         --filter ${CMAKE_SOURCE_DIR}/cpp
-        --html-details ${CMAKE_BINARY_DIR}/coverage/index.html
+        --html-details ${CMAKE_BINARY_DIR}/coverage/cpp/index.html
         --print-summary
         --root ${CMAKE_SOURCE_DIR}
-        --xml ${CMAKE_BINARY_DIR}/coverage/coverage.xml
+        --xml ${CMAKE_BINARY_DIR}/coverage/cpp/coverage.xml
+      COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts/coverage/cpp/coverage_metric.py
+        --fail-under-threshold
+        --html-report ${CMAKE_BINARY_DIR}/coverage/cpp/index.html
+        --json ${CMAKE_BINARY_DIR}/coverage/cpp/coverage_metric.json
+        --markdown ${CMAKE_BINARY_DIR}/coverage/cpp/coverage_metric.md
+        --threshold ${QRP_COVERAGE_MIN_LINE}
+        --xml ${CMAKE_BINARY_DIR}/coverage/cpp/coverage.xml
       COMMENT "Running tests and generating coverage report"
       DEPENDS integration_tests unit_tests
       VERBATIM
@@ -348,6 +380,7 @@ if(QRP_BUILD_BENCHMARKS)
     target_link_libraries(benchmark_portfolio PRIVATE qrp_core)
     qrp_apply_coverage(benchmark_portfolio)
     qrp_apply_project_warnings(benchmark_portfolio)
+    qrp_apply_msvc_debug_symbols(benchmark_portfolio)
     qrp_copy_core_runtime(benchmark_portfolio)
   else()
     message(STATUS "QRP_BUILD_BENCHMARKS=ON but benchmark sources not found; skipping benchmarks")

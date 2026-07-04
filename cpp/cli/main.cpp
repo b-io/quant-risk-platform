@@ -1,12 +1,14 @@
 // Provides the command-line entry point for loading data and running platform workflows.
 
-#include <fmt/format.h>
 #include <qrp/app/quant_risk_platform.hpp>
 #include <qrp/persistence/sqlite_storage_backend.hpp>
 #include <qrp/util/logger.hpp>
+
+#include <fmt/format.h>
+
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 void print_help() {
     fmt::print("Usage: qrp_cli <command> [options]\n");
@@ -32,7 +34,7 @@ int main(int argc, char** argv) {
     }
 
     std::string cmd = argv[1];
-    
+
     // Initialize storage and platform
     auto storage = std::make_shared<qrp::persistence::SQLiteStorageBackend>("var/quant_risk_platform.sqlite");
     qrp::app::QuantRiskPlatform platform(storage);

@@ -34,7 +34,7 @@ public:
      * @brief Returns the solver-facing risk-model type identifier.
      */
     std::string type() const override { return "FullCovariance"; }
-    
+
     std::vector<std::string> asset_ids;
     std::vector<std::vector<double>> covariance_matrix; // Asset-by-asset
 };
@@ -48,18 +48,18 @@ public:
      * @brief Returns the solver-facing risk-model type identifier.
      */
     std::string type() const override { return "FactorRisk"; }
-    
+
     std::vector<std::string> asset_ids;
     std::vector<std::string> factor_ids;
-    
+
     // B: Asset-by-Factor exposure matrix (N assets x K factors)
-    std::vector<std::vector<double>> exposures; 
-    
+    std::vector<std::vector<double>> exposures;
+
     // F: Factor covariance matrix (K factors x K factors)
     std::vector<std::vector<double>> factor_covariance;
-    
+
     // D: Specific/Idiosyncratic risk (N assets)
-    std::map<std::string, double> specific_risk; 
+    std::map<std::string, double> specific_risk;
 };
 
 } // namespace qrp::optimization

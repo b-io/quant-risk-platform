@@ -1,9 +1,11 @@
 // Implements historical factor covariance estimation, scaling, and PSD repair utilities.
 
 #include <qrp/analytics/covariance_estimator.hpp>
+
 #include <ql/math/matrix.hpp>
 #include <ql/math/matrixutilities/choleskydecomposition.hpp>
 #include <ql/math/matrixutilities/symmetricschurdecomposition.hpp>
+
 #include <algorithm>
 #include <cmath>
 #include <map>
@@ -22,7 +24,7 @@ QuantLib::Matrix CovarianceEstimator::estimate_covariance(
     // 1. Organize history into a matrix: factors (rows) x dates (cols)
     std::map<std::string, std::vector<double>> moves_per_factor;
     std::vector<std::string> dates;
-    
+
     // Find common dates if possible, or use all
     std::map<std::string, std::map<std::string, double>> factor_date_map;
     for (const auto& obs : history) {
@@ -51,7 +53,7 @@ QuantLib::Matrix CovarianceEstimator::estimate_covariance(
                 // Missing observations are rejected rather than silently filled.
                 // Covariance estimation requires synchronized factor history unless
                 // a caller supplies an explicit missing-data policy upstream.
-                throw std::runtime_error("CovarianceEstimator: Missing observation for factor " 
+                throw std::runtime_error("CovarianceEstimator: Missing observation for factor "
                     + factors[i].factor_id + " on date " + dates[k]);
             }
         }
@@ -69,7 +71,7 @@ QuantLib::Matrix CovarianceEstimator::estimate_covariance(
     }
 
     QuantLib::Matrix cov(num_factors, num_factors, 0.0);
-    
+
     if (config.use_ewma) {
         // EWMA: Sigma_k = lambda * Sigma_{k-1} + (1-lambda) * (x_k - mu)(x_k - mu)^T
         double lambda = config.ewma_lambda;

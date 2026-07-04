@@ -1,10 +1,12 @@
 // Exercises sample-data valuation through the public loading and analytics services.
 
-#include <gtest/gtest.h>
+#include <qrp/analytics/pricing_context.hpp>
+#include <qrp/analytics/valuation_service.hpp>
 #include <qrp/io/json_loader.hpp>
 #include <qrp/market/market_snapshot.hpp>
-#include <qrp/analytics/valuation_service.hpp>
-#include <qrp/analytics/pricing_context.hpp>
+
+#include <gtest/gtest.h>
+
 #include <filesystem>
 
 TEST(ValuationIntegrationTest, PriceSamplePortfolio) {
@@ -28,7 +30,7 @@ TEST(ValuationIntegrationTest, PriceSamplePortfolio) {
     EXPECT_FALSE(results.empty());
     for (const auto& res : results) {
         EXPECT_FALSE(res.trade_id.empty());
-        
+
         // Failed valuations are reported per trade so one bad instrument does not hide all results.
         if (res.tags.contains("status") && res.tags.at("status") == "failed") {
             continue;

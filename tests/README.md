@@ -17,7 +17,7 @@ To build and run all tests, use the provided `test.ps1` or `test.sh` scripts:
 ```
 ```bash
 # Bash
-./scripts/test.sh build/Release-Python Release
+./scripts/test.sh -BuildDir build/Release-Python -Config Release
 ```
 
 Tests use the GoogleTest (gtest) framework. Individual tests or filters can be specified when running the test executables manually from the build directory.
@@ -32,6 +32,8 @@ cmake --preset Coverage
 cmake --build --preset Coverage --target coverage
 ```
 
-The coverage target runs CTest, writes HTML to `build/Coverage/coverage/index.html`, writes XML to
-`build/Coverage/coverage/coverage.xml`, and fails if line coverage is below `QRP_COVERAGE_MIN_LINE` percent.
+The coverage target runs CTest, writes HTML to `build/Coverage/coverage/cpp/index.html`, writes XML to
+`build/Coverage/coverage/cpp/coverage.xml`, and fails if line coverage is below `QRP_COVERAGE_MIN_LINE` percent.
 The default threshold is `85`; override it with `-DQRP_COVERAGE_MIN_LINE=90` if you want a stricter gate.
+It also writes `build/Coverage/coverage/cpp/coverage_metric.json` for dashboards or CI ingestion and
+`build/Coverage/coverage/cpp/coverage_metric.md` for quick review.

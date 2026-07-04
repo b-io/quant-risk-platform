@@ -3,6 +3,7 @@
 // Declares stochastic-process abstractions and sampled market paths.
 
 #include <qrp/analytics/simulation/time_grid.hpp>
+
 #include <random>
 #include <vector>
 

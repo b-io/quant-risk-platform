@@ -3,6 +3,7 @@
 // Defines solver-independent portfolio optimization objectives and constraints.
 
 #include <qrp/optimization/optimization_types.hpp>
+
 #include <map>
 #include <optional>
 #include <string>
@@ -19,7 +20,7 @@ public:
      * @brief Returns the solver-facing objective type identifier.
      */
     std::string type() const override { return "MeanVariance"; }
-    
+
     std::map<std::string, double> expected_returns; // Asset ID -> Expected Return
     double risk_aversion = 1.0;                      // gamma
 };
@@ -44,7 +45,7 @@ public:
      * @brief Returns the solver-facing objective type identifier.
      */
     std::string type() const override { return "MaximizeReturn"; }
-    
+
     std::map<std::string, double> expected_returns;
 };
 
@@ -57,7 +58,7 @@ public:
      * @brief Returns the solver-facing objective type identifier.
      */
     std::string type() const override { return "TrackingError"; }
-    
+
     std::map<std::string, double> benchmark_weights;
 };
 
@@ -70,7 +71,7 @@ public:
      * @brief Returns the solver-facing constraint type identifier.
      */
     std::string type() const override { return "LinearEquality"; }
-    
+
     std::map<std::string, double> coefficients;
     double target_value = 0.0;
 };
@@ -84,7 +85,7 @@ public:
      * @brief Returns the solver-facing constraint type identifier.
      */
     std::string type() const override { return "LinearInequality"; }
-    
+
     std::map<std::string, double> coefficients;
     std::optional<double> lower_bound;
     std::optional<double> upper_bound;
@@ -99,7 +100,7 @@ public:
      * @brief Returns the solver-facing constraint type identifier.
      */
     std::string type() const override { return "Turnover"; }
-    
+
     std::map<std::string, double> current_weights;
     double max_turnover = 1.0;
 };

@@ -126,9 +126,9 @@ def optional_plotly_modules():
     except ImportError as exc:
         print(f"Skipped: Plotly dashboard dependencies are not available in this Python environment ({exc}).")
         print("Install the optional dashboard dependencies with:")
-        print("  uv sync --extra dashboard")
+        print("  uv sync --project python --extra dashboard")
         print("Then run the demo with the uv-managed interpreter:")
-        print("  uv run python python/examples/demo_platform.py")
+        print("  uv run --project python python python/examples/demo_platform.py")
         return None
     return go, make_subplots, pio
 

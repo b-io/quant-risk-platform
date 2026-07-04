@@ -9,7 +9,7 @@ This directory contains the Python-based API, examples, and notebooks for the Qu
 
 #### Key Components
 
-The platform's core logic is implemented in C++ and exposed to Python using Pybind11. Python-side dependencies are managed via `requirements.txt` and `pyproject.toml` in the project root.
+The platform's core logic is implemented in C++ and exposed to Python using Pybind11. Python-side dependencies are managed by the `requirements.txt`, `pyproject.toml`, and `uv.lock` files in this directory.
 
 #### Getting Started
 
@@ -20,14 +20,14 @@ The platform's core logic is implemented in C++ and exposed to Python using Pybi
 2. Run the end-to-end demo/smoke test with the pinned Python 3.12 environment:
    ```powershell
    powershell -ExecutionPolicy ByPass -c {$env:UV_INSTALL_DIR = "D:\BIN"; irm https://astral.sh/uv/install.ps1 | iex}
-   uv sync --extra dashboard --extra optimization
-   uv run python python\examples\demo_platform.py
+   uv sync --project python --extra dashboard --extra optimization
+   uv run --project python python python\examples\demo_platform.py
    ```
    The optional CVXPY worker section is skipped automatically if its optional dependencies are not installed in the
    Python environment used to run the script.
    To generate and open the interactive Plotly risk dashboard, including finance themes, light/dark mode, support
    coverage, stress/risk/Monte Carlo panels, and market-as-of/generated timestamps:
    ```powershell
-   uv run python python\examples\demo_platform.py --dashboard
+   uv run --project python python python\examples\demo_platform.py --dashboard
    ```
 3. Or launch a notebook to explore the API interactively.

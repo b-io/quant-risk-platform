@@ -6,6 +6,7 @@
 #include <qrp/domain/market_data.hpp>
 #include <qrp/domain/market_event.hpp>
 #include <qrp/domain/portfolio.hpp>
+
 #include <map>
 #include <memory>
 #include <string>
@@ -15,7 +16,7 @@ namespace qrp::persistence {
 
 /**
  * @brief Abstract interface for the platform's storage layer.
- * 
+ *
  * Why this interface?
  * To decouple the analytics services and the application facade from a specific database implementation.
  * While SQLite is the default, this allows future backends (PostgreSQL, DuckDB) without service changes.

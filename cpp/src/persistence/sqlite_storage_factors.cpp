@@ -2,6 +2,7 @@
 
 #include <qrp/domain/factors.hpp>
 #include <qrp/persistence/sqlite_storage_backend.hpp>
+
 #include <fmt/format.h>
 #include <nlohmann/json.hpp>
 
@@ -19,13 +20,13 @@ void SQLiteStorageBackend::store_factor_definition(const domain::FactorDefinitio
     sqlite3_bind_text(stmt, 1, factor.factor_id.c_str(), -1, SQLITE_TRANSIENT);
     const std::string type_str = domain::to_string(factor.factor_type);
     sqlite3_bind_text(stmt, 2, type_str.c_str(), -1, SQLITE_TRANSIENT);
-    
+
     const std::string measure_str = domain::to_string(factor.shock_measure);
     sqlite3_bind_text(stmt, 3, measure_str.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 4, domain::to_string(factor.currency).c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 5, factor.curve_id.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 6, factor.tenor.c_str(), -1, SQLITE_TRANSIENT);
-    
+
     std::string quotes_json = nlohmann::json(factor.quote_ids).dump();
     sqlite3_bind_text(stmt, 7, quotes_json.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 8, factor.description.c_str(), -1, SQLITE_TRANSIENT);
@@ -63,16 +64,16 @@ std::vector<domain::FactorDefinition> SQLiteStorageBackend::load_factor_definiti
     if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) {
         throw std::runtime_error(fmt::format("Failed to prepare statement: {}", sqlite3_errmsg(db_)));
     }
-    
+
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         domain::FactorDefinition f;
         f.factor_id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
         std::string type_s = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
         f.factor_type = domain::parse_factor_type(type_s);
-        
+
         std::string measure_s = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
         f.shock_measure = domain::parse_shock_measure(measure_s);
-        
+
         f.currency = domain::from_string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3)));
         f.curve_id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
         f.tenor = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
@@ -89,7 +90,7 @@ std::vector<domain::FactorObservation> SQLiteStorageBackend::load_factor_history
     const std::vector<std::string>& factor_ids,
     const std::string& start_date,
     const std::string& end_date) {
-    
+
     std::vector<domain::FactorObservation> history;
     // Simple IN clause construction
     std::string in_clause = "(";
@@ -100,7 +101,7 @@ std::vector<domain::FactorObservation> SQLiteStorageBackend::load_factor_history
 
     std::string sql = fmt::format("SELECT factor_id, market_date, level, move, move_unit FROM factor_observations "
                                   "WHERE factor_id IN {} AND market_date BETWEEN ? AND ? ORDER BY market_date ASC;", in_clause);
-    
+
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db_, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
         throw std::runtime_error(fmt::format("Failed to prepare statement: {}", sqlite3_errmsg(db_)));
@@ -130,7 +131,7 @@ void SQLiteStorageBackend::store_factor_binding(const domain::FactorBinding& bin
     }
     sqlite3_bind_text(stmt, 1, binding.factor_id.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 2, binding.quote_id.c_str(), -1, SQLITE_TRANSIENT);
-    
+
     const std::string measure_str = domain::to_string(binding.shock_measure);
     sqlite3_bind_text(stmt, 3, measure_str.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_double(stmt, 4, binding.weight);
@@ -156,7 +157,7 @@ std::vector<domain::FactorBinding> SQLiteStorageBackend::load_factor_bindings(co
 
     std::string sql = fmt::format("SELECT factor_id, quote_id, shock_measure, weight, transform, selector_json FROM factor_quote_bindings "
                                   "WHERE factor_id IN {};", in_clause);
-    
+
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db_, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
         throw std::runtime_error(fmt::format("Failed to prepare statement: {}", sqlite3_errmsg(db_)));
@@ -166,7 +167,7 @@ std::vector<domain::FactorBinding> SQLiteStorageBackend::load_factor_bindings(co
         domain::FactorBinding b;
         b.factor_id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
         b.quote_id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-        
+
         std::string measure_s = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
         b.shock_measure = domain::parse_shock_measure(measure_s);
 
@@ -175,7 +176,7 @@ std::vector<domain::FactorBinding> SQLiteStorageBackend::load_factor_bindings(co
         if (trans) b.transform = trans;
         const char* select = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
         if (select) b.selector_json = select;
-        
+
         bindings.push_back(b);
     }
     sqlite3_finalize(stmt);

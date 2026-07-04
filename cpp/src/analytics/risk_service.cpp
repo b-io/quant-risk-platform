@@ -1,11 +1,14 @@
 // Implements deterministic sensitivity-style risk measures over the valuation service.
 
 #include <qrp/analytics/risk_service.hpp>
+
 #include <qrp/analytics/pricing_context.hpp>
 #include <qrp/analytics/valuation_service.hpp>
 #include <qrp/instruments/instrument_factory.hpp>
 #include <qrp/market/market_snapshot.hpp>
+
 #include <ql/instrument.hpp>
+
 #include <map>
 #include <memory>
 #include <set>
@@ -38,6 +41,23 @@ struct RiskInstrument {
     QuantLib::ext::shared_ptr<QuantLib::Instrument> instrument;
 };
 
+bool applies_to_trade_currency(const domain::FactorDefinition& factor, const std::string& currency) {
+    return factor.currency == domain::Currency::UNKNOWN || domain::to_string(factor.currency) == currency;
+}
+
+bool is_rates_factor(domain::FactorType factor_type) {
+    return factor_type == domain::FactorType::RateZero || factor_type == domain::FactorType::RateForward;
+}
+
+bool is_fx_vol_factor(const domain::FactorDefinition& factor) {
+    return factor.factor_type == domain::FactorType::Volatility &&
+           factor.factor_id.rfind("RF:FXVOL:", 0) == 0;
+}
+
+std::string factor_bucket_label(const domain::FactorDefinition& factor) {
+    return factor.tenor.empty() ? factor.factor_id : factor.tenor;
+}
+
 } // namespace
 
 /**
@@ -53,7 +73,9 @@ std::vector<RiskResult> RiskService::compute_risk(
     const std::vector<domain::FactorBinding>& bindings) {
 
     // 1bp shift is the industry standard for PV01/DV01 calculations.
-    const double bump_size = 0.0001; 
+    const double bump_size = 0.0001;
+    const double fx_spot_bump = 0.0001;
+    const double fx_vol_bump = 1.0;
     std::vector<RiskResult> results;
 
     qrp::market::MarketSnapshot base_market(base_market_dto);
@@ -82,19 +104,16 @@ std::vector<RiskResult> RiskService::compute_risk(
         const auto base_npv = base_map.at(id);
         RiskResult res;
         res.trade_id = id;
-        res.pv01 = 0.0;
-        res.cs01 = 0.0;
 
         std::string cc = trade.currency;
 
         // --- Factor-based Risk ---
-        
+
         // 1. PV01: Shock all rate factors for the trade currency
         market::ScenarioDefinition pv01_scenario;
         pv01_scenario.name = "PV01";
         for (const auto& f : factors) {
-            if (domain::to_string(f.currency) == cc && 
-                (f.factor_type == domain::FactorType::RateZero || f.factor_type == domain::FactorType::RateForward)) {
+            if (applies_to_trade_currency(f, cc) && is_rates_factor(f.factor_type)) {
                 pv01_scenario.factor_shocks[f.factor_id] = bump_size;
             }
         }
@@ -105,7 +124,7 @@ std::vector<RiskResult> RiskService::compute_risk(
             state->reset_to_snapshot(base_market_dto);
         }
 
-        // 2. CS01: Shock all credit factors
+        // 2. CS01: Shock all credit factors.
         market::ScenarioDefinition cs01_scenario;
         cs01_scenario.name = "CS01";
         for (const auto& f : factors) {
@@ -120,19 +139,46 @@ std::vector<RiskResult> RiskService::compute_risk(
             state->reset_to_snapshot(base_market_dto);
         }
 
-        // 3. Bucketed Risk: Shock each factor individually
+        // 3. FX delta: Shock configured FX spot factors.
+        market::ScenarioDefinition fx_delta_scenario;
+        fx_delta_scenario.name = "FX_DELTA";
         for (const auto& f : factors) {
-            if (domain::to_string(f.currency) == cc && 
-                (f.factor_type == domain::FactorType::RateZero || f.factor_type == domain::FactorType::RateForward)) {
-                
+            if (applies_to_trade_currency(f, cc) && f.factor_type == domain::FactorType::FXSpot) {
+                fx_delta_scenario.factor_shocks[f.factor_id] = fx_spot_bump;
+            }
+        }
+        if (!fx_delta_scenario.factor_shocks.empty()) {
+            market::ScenarioEngine::apply_scenario_to_state(*state, base_market_dto, fx_delta_scenario, factors, bindings);
+            double bumped_npv = ValuationService::price_instrument(trade, *priced.instrument);
+            res.fx_delta = bumped_npv - base_npv;
+            state->reset_to_snapshot(base_market_dto);
+        }
+
+        // 4. FX vega: Shock configured FX volatility surface factors by one vol point.
+        market::ScenarioDefinition fx_vega_scenario;
+        fx_vega_scenario.name = "FX_VEGA";
+        for (const auto& f : factors) {
+            if (applies_to_trade_currency(f, cc) && is_fx_vol_factor(f)) {
+                fx_vega_scenario.factor_shocks[f.factor_id] = fx_vol_bump;
+            }
+        }
+        if (!fx_vega_scenario.factor_shocks.empty()) {
+            market::ScenarioEngine::apply_scenario_to_state(*state, base_market_dto, fx_vega_scenario, factors, bindings);
+            double bumped_npv = ValuationService::price_instrument(trade, *priced.instrument);
+            res.fx_vega = bumped_npv - base_npv;
+            state->reset_to_snapshot(base_market_dto);
+        }
+
+        // 5. Bucketed Risk: Shock each supported factor individually.
+        for (const auto& f : factors) {
+            if (applies_to_trade_currency(f, cc) && (is_rates_factor(f.factor_type) || f.factor_type == domain::FactorType::FXSpot || is_fx_vol_factor(f))) {
                 market::ScenarioDefinition bucket_scenario;
                 bucket_scenario.name = "Bucket_" + f.factor_id;
-                bucket_scenario.factor_shocks[f.factor_id] = bump_size;
+                bucket_scenario.factor_shocks[f.factor_id] = is_fx_vol_factor(f) ? fx_vol_bump : bump_size;
 
                 market::ScenarioEngine::apply_scenario_to_state(*state, base_market_dto, bucket_scenario, factors, bindings);
                 double bumped_npv = ValuationService::price_instrument(trade, *priced.instrument);
-                std::string label = f.tenor.empty() ? f.factor_id : f.tenor;
-                res.bucketed_risk[label] += bumped_npv - base_npv;
+                res.bucketed_risk[factor_bucket_label(f)] += bumped_npv - base_npv;
                 state->reset_to_snapshot(base_market_dto);
             }
         }

@@ -1,6 +1,7 @@
 // Implements SQLite persistence for portfolios, books, trades, and basic run listings.
 
 #include <qrp/persistence/sqlite_storage_backend.hpp>
+
 #include <fmt/format.h>
 #include <nlohmann/json.hpp>
 
@@ -17,7 +18,7 @@ void SQLiteStorageBackend::store_portfolio(const std::string& portfolio_id, cons
     sqlite3_bind_text(stmt, 1, portfolio_id.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 2, name.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 3, base_ccy.c_str(), -1, SQLITE_TRANSIENT);
-    
+
     if (sqlite3_step(stmt) != SQLITE_DONE) {
         sqlite3_finalize(stmt);
         throw std::runtime_error(fmt::format("Failed to execute statement: {}", sqlite3_errmsg(db_)));
@@ -34,7 +35,7 @@ void SQLiteStorageBackend::store_book(const std::string& book_id, const std::str
     sqlite3_bind_text(stmt, 1, book_id.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 2, portfolio_id.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 3, name.c_str(), -1, SQLITE_TRANSIENT);
-    
+
     if (sqlite3_step(stmt) != SQLITE_DONE) {
         sqlite3_finalize(stmt);
         throw std::runtime_error(fmt::format("Failed to execute statement: {}", sqlite3_errmsg(db_)));
@@ -63,7 +64,7 @@ void SQLiteStorageBackend::store_trade(const std::string& trade_id, const std::s
     sqlite3_bind_text(stmt, 9, maturity_date.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 10, direction.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 11, economics_json.c_str(), -1, SQLITE_TRANSIENT);
-    
+
     if (sqlite3_step(stmt) != SQLITE_DONE) {
         sqlite3_finalize(stmt);
         throw std::runtime_error(fmt::format("Failed to execute statement: {}", sqlite3_errmsg(db_)));
@@ -74,13 +75,13 @@ void SQLiteStorageBackend::store_trade(const std::string& trade_id, const std::s
 std::vector<std::shared_ptr<domain::Trade>> SQLiteStorageBackend::load_trades(const std::string& portfolio_id) {
     std::vector<std::shared_ptr<domain::Trade>> trades;
     const char* sql = "SELECT trade_id, asset_class, trade_type, currency, notional, start_date, maturity_date, direction, economics_json FROM trades WHERE portfolio_id = ?;";
-    
+
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) {
         throw std::runtime_error(fmt::format("Failed to prepare statement: {}", sqlite3_errmsg(db_)));
     }
     sqlite3_bind_text(stmt, 1, portfolio_id.c_str(), -1, SQLITE_TRANSIENT);
-    
+
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         std::string type = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
         std::shared_ptr<domain::Trade> t;
@@ -112,7 +113,7 @@ std::vector<std::shared_ptr<domain::Trade>> SQLiteStorageBackend::load_trades(co
             full_j["direction"] = t->direction;
             full_j["book"] = t->book;
             full_j["strategy"] = t->strategy;
-            
+
             // Map flat columns if missing in econ
             if (!econ.contains("notional")) {
                 double notional = sqlite3_column_double(stmt, 4);

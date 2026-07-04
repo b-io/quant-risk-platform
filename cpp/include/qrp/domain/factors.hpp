@@ -3,6 +3,7 @@
 // Defines canonical risk-factor taxonomy, shock measures, histories, and bindings.
 
 #include <qrp/domain/types.hpp>
+
 #include <initializer_list>
 #include <stdexcept>
 #include <string>
@@ -12,7 +13,7 @@ namespace qrp::domain {
 
 /**
  * @brief Categorizes risk factors for modeling and simulation.
- * 
+ *
  * Each type implies a specific mapping to market quotes and curve nodes.
  */
 enum class FactorType {
@@ -366,7 +367,7 @@ struct FactorDefinition {
 
 /**
  * @brief Represents a historical observation of a factor move.
- * 
+ *
  * Used for covariance estimation and historical simulation.
  */
 struct FactorObservation {

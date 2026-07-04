@@ -28,19 +28,22 @@ The canonical project documentation lives under [`docs/`](docs/README.md).
 
 Recommended starting points:
 
-- [`docs/design/ARCHITECTURE.md`](docs/design/ARCHITECTURE.md)
-- [`docs/design/MARKET_AND_CURVES.md`](docs/design/MARKET_AND_CURVES.md)
-- [`docs/design/ANALYTICS_SERVICES.md`](docs/design/ANALYTICS_SERVICES.md)
-- [`docs/pricing/INDEX.md`](docs/pricing/INDEX.md)
+- [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
+- [`docs/architecture/MARKET_AND_CURVES.md`](docs/architecture/MARKET_AND_CURVES.md)
+- [`docs/architecture/ANALYTICS_SERVICES.md`](docs/architecture/ANALYTICS_SERVICES.md)
+- [`docs/market-data/INDEX.md`](docs/market-data/INDEX.md)
+- [`docs/asset-classes/INDEX.md`](docs/asset-classes/INDEX.md)
+- [`docs/models/INDEX.md`](docs/models/INDEX.md)
+- [`docs/asset-classes/commodities/INDEX.md`](docs/asset-classes/commodities/INDEX.md)
 - [`docs/risk/INDEX.md`](docs/risk/INDEX.md)
-- [`docs/theory/INDEX.md`](docs/theory/INDEX.md)
-- [`docs/roadmap/STATUS.md`](docs/roadmap/STATUS.md)
+- [`docs/foundations/INDEX.md`](docs/foundations/INDEX.md)
+- [`docs/reference/INDEX.md`](docs/reference/INDEX.md)
+- [`docs/implementation/PHASED_BUILD_PLAN.md`](docs/implementation/PHASED_BUILD_PLAN.md)
 
 ## Overview
 
-Quant Risk Platform is a compact but production-shaped analytics platform designed to demonstrate how front-office
-pricing, risk, and P&L workflows can be implemented with reusable market state, reusable instruments, and clear service
-boundaries.
+Quant Risk Platform is a compact but production-shaped analytics platform designed to demonstrate how pricing, risk,
+and P&L workflows can be implemented with reusable market state, reusable instruments, and clear service boundaries.
 
 The project combines a high-performance C++ core with thin Python-facing bindings, with a focus on:
 
@@ -61,7 +64,7 @@ The project combines a high-performance C++ core with thin Python-facing binding
   stress, explain, and simulation.
 - **Wrap QuantLib behind platform abstractions**: use QuantLib as the implementation engine, but keep repository-level
   interfaces stable and platform-shaped.
-- **Keep `docs/` canonical**: documentation should track the code and roadmap as the project evolves.
+- **Keep `docs/` canonical**: documentation should track the code and public design rationale as the project evolves.
 
 ## Current repository status
 
@@ -76,7 +79,7 @@ The repository is beyond scaffold stage and already contains:
 
 Current implementation maturity is best described as a
 **rates-focused platform with persistent storage and reactive risk foundation**. The next architecture milestones are
-broader asset-class coverage (FX, Equity), refined risk factor taxonomy, and advanced Monte Carlo simulation.
+core trade/result hardening, market-data normalization, refined risk-factor taxonomy, and staged asset-class expansion.
 
 ## Implemented today
 
@@ -103,63 +106,69 @@ The current codebase already includes:
 
 ```text
 docs/
-├── design/      # architecture, layering, market and service design
-├── pricing/     # pricing and market-construction notes by subdomain
-│   ├── market-data/
-│   ├── rates/
-│   ├── credit/
-│   └── volatility/
-├── risk/        # risk measures, scenarios, stress, VaR, and Monte Carlo
-├── roadmap/     # status, review notes, and implementation handoff documents
-└── theory/      # mathematical and statistical foundations
+|-- design/      # architecture, layering, market and service design
+|-- pricing/     # pricing and market-construction notes by subdomain
+|   |-- market-data/
+|   |-- rates/
+|   |-- credit/
+|   `-- volatility/
+|-- energy/      # power, gas, carbon, flexibility, and energy-market risk notes
+|-- risk/        # risk measures, scenarios, stress, VaR, and Monte Carlo
+`-- theory/      # mathematical and statistical foundations
 ```
 
 ## Repository structure
 
 ```text
 quant-risk-platform/
-├── CMakeLists.txt
-├── CMakePresets.json
-├── QUICKSTART.md
-├── README.md
-├── LICENSE
-├── requirements.txt
-├── vcpkg.json
-├── cmake/
-├── cpp/
-│   ├── include/qrp/
-│   │   ├── analytics/
-│   │   ├── conventions/
-│   │   ├── domain/
-│   │   ├── instruments/
-│   │   ├── io/
-│   │   ├── market/
-│   │   └── util/
-│   ├── bindings/
-│   ├── cli/
-│   └── src/
-├── data/
-│   ├── market/
-│   ├── portfolios/
-│   └── scenarios/
-├── docs/
-│   ├── design/
-│   ├── pricing/
-│   │   ├── market-data/
-│   │   ├── rates/
-│   │   ├── credit/
-│   │   └── volatility/
-│   ├── risk/
-│   ├── roadmap/
-│   └── theory/
-├── python/
-│   ├── examples/
-│   └── notebooks/
-├── scripts/
-├── tests/
-│   ├── integration/
-│   ├── regression/
-│   └── unit/
+|-- CMakeLists.txt
+|-- CMakePresets.json
+|-- QUICKSTART.md
+|-- README.md
+|-- LICENSE
+|-- vcpkg.json
+|-- cmake/
+|-- cpp/
+|   |-- include/qrp/
+|   |   |-- analytics/
+|   |   |-- conventions/
+|   |   |-- domain/
+|   |   |-- instruments/
+|   |   |-- io/
+|   |   |-- market/
+|   |   `-- util/
+|   |-- bindings/
+|   |-- cli/
+|   `-- src/
+|-- data/
+|   |-- market/
+|   |-- portfolios/
+|   `-- scenarios/
+|-- docs/
+|   |-- design/
+|   |-- pricing/
+|   |   |-- market-data/
+|   |   |-- rates/
+|   |   |-- credit/
+|   |   `-- volatility/
+|   |-- energy/
+|   |-- risk/
+|   `-- theory/
+|-- python/
+|   |-- examples/
+|   |-- notebooks/
+|   |-- pyproject.toml
+|   |-- requirements.txt
+|   |-- uv.lock
+|   `-- qrp/
+|-- scripts/
+|   `-- coverage/
+|       |-- cpp/
+|       `-- python/
+`-- tests/
+    |-- integration/
+    |-- regression/
+    `-- unit/
 ```
 
 ## Example workflows
@@ -189,7 +198,7 @@ quant-risk-platform/
 - **Transparent** in valuation and risk decomposition,
 - **Testable** with deterministic samples and regression coverage,
 - **Scalable** toward larger portfolios, repeated scenarios, and future parallelization,
-- **Pragmatic** about the workflows desks and risk teams actually use.
+- **Pragmatic** about valuation, risk, and reporting workflows.
 
 ## Disclaimer
 

@@ -2,9 +2,10 @@
 
 // Declares scenario application APIs that map factor shocks onto market-state quote handles.
 
-#include <qrp/domain/market_data.hpp>
 #include <qrp/domain/factors.hpp>
+#include <qrp/domain/market_data.hpp>
 #include <qrp/market/market_state.hpp>
+
 #include <map>
 #include <string>
 #include <vector>

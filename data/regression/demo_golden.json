@@ -1,76 +1,149 @@
 {
   "monte_carlo": {
     "AgedHorizonRevaluation": {
-      "expected_shortfall_95": 835550.59,
-      "mean_pnl": -2388.89,
+      "base_portfolio_value": 5244729.3,
+      "expected_shortfall_95": 829088.4,
+      "mean_pnl": -9995.17,
       "tolerance": 50.0,
-      "var_95": 618695.59
+      "var_95": 617229.43
     },
     "HorizonShockOnly": {
-      "expected_shortfall_95": 274604.96,
-      "mean_pnl": -6777.14,
+      "base_portfolio_value": 5244729.3,
+      "expected_shortfall_95": 269491.43,
+      "mean_pnl": -6586.76,
       "tolerance": 50.0,
-      "var_95": 203220.57
+      "var_95": 199908.78
     }
   },
   "pnl_explain": {
     "bond_usd_001": {
       "carry_pnl": 739.47,
+      "cash_pnl": 0.0,
       "market_move_pnl": -6313.34,
+      "residual_pnl": 0.0,
       "total_pnl": -5573.87
     },
     "equity_spot_aapl_001": {
       "carry_pnl": 0.0,
+      "cash_pnl": 0.0,
       "market_move_pnl": -9275.0,
+      "residual_pnl": 0.0,
       "total_pnl": -9275.0
     },
     "fx_fwd_eurusd_001": {
-      "carry_pnl": 0.0,
-      "market_move_pnl": 130200.0,
-      "total_pnl": 130200.0
+      "carry_pnl": -522.8,
+      "cash_pnl": 0.0,
+      "market_move_pnl": 130827.61,
+      "residual_pnl": 0.0,
+      "total_pnl": 130304.81
     },
     "swap_usd_001": {
       "carry_pnl": 54.77,
+      "cash_pnl": 0.0,
       "market_move_pnl": 19930.26,
+      "residual_pnl": 0.0,
       "total_pnl": 19985.03
     },
     "tolerance": 1.0
   },
   "risk": {
     "bond_usd_001": {
+      "bucketed_risk": {
+        "1Y": 7.43,
+        "2Y": -675.48,
+        "5Y": -591.19,
+        "6M": -5.59
+      },
       "cs01": 0.0,
+      "fx_delta": 0.0,
+      "fx_vega": 0.0,
       "pv01": -1264.65
     },
     "equity_spot_aapl_001": {
+      "bucketed_risk": {},
       "cs01": 0.0,
+      "fx_delta": 0.0,
+      "fx_vega": 0.0,
       "pv01": 0.0
     },
     "fx_fwd_eurusd_001": {
+      "bucketed_risk": {
+        "1Y": 13.7,
+        "6M": 639.69,
+        "SPOT": 1275.7
+      },
       "cs01": 0.0,
-      "pv01": 0.0
+      "fx_delta": 1275.7,
+      "fx_vega": 0.0,
+      "pv01": 653.39
     },
     "swap_usd_001": {
+      "bucketed_risk": {
+        "1Y": -3.4,
+        "2Y": -26.83,
+        "3M": -3.49,
+        "5Y": 4277.02,
+        "6M": 1.58
+      },
       "cs01": 0.0,
+      "fx_delta": 0.0,
+      "fx_vega": 0.0,
       "pv01": 4243.4
     },
     "tolerance": 1.0
   },
   "stress": {
     "CROSS_ASSET_REPRICING": {
-      "total_pnl": -99084.91,
+      "total_pnl": -115679.1,
       "trade_pnls": {
         "bond_usd_001": -67767.37,
         "equity_spot_aapl_001": -27825.0,
+        "fx_fwd_eurusd_001": -16594.19,
         "swap_usd_001": -3492.55
       }
     },
+    "EQUITY_CRASH_VOL_SPIKE": {
+      "total_pnl": -185500.0,
+      "trade_pnls": {
+        "equity_spot_aapl_001": -185500.0
+      }
+    },
+    "EQUITY_RALLY_VOL_CRUSH": {
+      "total_pnl": 111300.0,
+      "trade_pnls": {
+        "equity_spot_aapl_001": 111300.0
+      }
+    },
+    "EUR_RATES_UP_50BP": {
+      "total_pnl": -28981.38,
+      "trade_pnls": {
+        "fx_fwd_eurusd_001": -28981.38
+      }
+    },
     "GLOBAL_RISK_OFF": {
-      "total_pnl": -357452.65,
+      "total_pnl": -351343.28,
       "trade_pnls": {
         "bond_usd_001": 40176.55,
         "equity_spot_aapl_001": -74200.0,
-        "fx_fwd_eurusd_001": -325500.0,
+        "fx_fwd_eurusd_001": -319390.63,
         "swap_usd_001": 2070.8
+      }
+    },
+    "GLOBAL_RISK_ON": {
+      "total_pnl": 219867.21,
+      "trade_pnls": {
+        "bond_usd_001": -45331.88,
+        "equity_spot_aapl_001": 74200.0,
+        "fx_fwd_eurusd_001": 193335.42,
+        "swap_usd_001": -2336.33
+      }
+    },
+    "USD_CURVE_BEAR_FLATTENER": {
+      "total_pnl": 7892.25,
+      "trade_pnls": {
+        "bond_usd_001": -38550.52,
+        "fx_fwd_eurusd_001": 48616.47,
+        "swap_usd_001": -2173.69
       }
     },
     "USD_CURVE_BEAR_STEEPENER": {
@@ -80,32 +153,87 @@
         "swap_usd_001": 147479.56
       }
     },
+    "USD_CURVE_BULL_STEEPENER": {
+      "total_pnl": -7695.63,
+      "trade_pnls": {
+        "bond_usd_001": 39089.97,
+        "fx_fwd_eurusd_001": -48987.26,
+        "swap_usd_001": 2201.67
+      }
+    },
+    "USD_LIBOR_OIS_WIDENING": {
+      "total_pnl": 333174.49,
+      "trade_pnls": {
+        "bond_usd_001": 5912.28,
+        "swap_usd_001": 327262.21
+      }
+    },
+    "USD_RATES_PARALLEL_DOWN_100BP": {
+      "total_pnl": 120688.91,
+      "trade_pnls": {
+        "bond_usd_001": 116082.06,
+        "fx_fwd_eurusd_001": -1376.81,
+        "swap_usd_001": 5983.65
+      }
+    },
+    "USD_RATES_PARALLEL_UP_100BP": {
+      "total_pnl": -116602.12,
+      "trade_pnls": {
+        "bond_usd_001": -112184.08,
+        "fx_fwd_eurusd_001": 1363.39,
+        "swap_usd_001": -5781.43
+      }
+    },
+    "USD_STRENGTH": {
+      "total_pnl": -622137.53,
+      "trade_pnls": {
+        "fx_fwd_eurusd_001": -622137.53
+      }
+    },
+    "USD_WEAKNESS": {
+      "total_pnl": 654035.2,
+      "trade_pnls": {
+        "fx_fwd_eurusd_001": 654035.2
+      }
+    },
+    "VOL_CRUSH": {
+      "total_pnl": 0.0,
+      "trade_pnls": {}
+    },
+    "VOL_SPIKE": {
+      "total_pnl": 0.0,
+      "trade_pnls": {}
+    },
     "tolerance": 1.0
   },
   "valuation": {
-    "total_npv": 5144302.94,
+    "tolerance": 1.0,
+    "total_npv": 5244729.3,
     "trades": {
       "bond_usd_001": {
+        "asset_class": "rates",
         "npv": 4995290.38,
         "product_type": "fixed_rate_bond",
         "support_status": "supported"
       },
       "equity_spot_aapl_001": {
+        "asset_class": "equity",
         "npv": -8500.0,
         "product_type": "equity_spot",
         "support_status": "partially_supported"
       },
       "fx_fwd_eurusd_001": {
-        "npv": -210000.0,
+        "asset_class": "fx",
+        "npv": -109573.65,
         "product_type": "fx_forward",
-        "support_status": "partially_supported"
+        "support_status": "supported"
       },
       "swap_usd_001": {
+        "asset_class": "rates",
         "npv": 367512.57,
         "product_type": "vanilla_swap",
         "support_status": "supported"
       }
-    },
-    "tolerance": 1.0
+    }
   }
 }

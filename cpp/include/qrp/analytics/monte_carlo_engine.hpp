@@ -6,7 +6,9 @@
 #include <qrp/domain/market_data.hpp>
 #include <qrp/domain/portfolio.hpp>
 #include <qrp/market/scenario_engine.hpp>
+
 #include <ql/math/matrix.hpp>
+
 #include <cstdint>
 #include <map>
 #include <string>

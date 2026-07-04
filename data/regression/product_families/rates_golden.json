@@ -10,18 +10,34 @@
     "bond_usd_001": {
       "pnl_explain": {
         "carry_pnl": 739.47,
+        "cash_pnl": 0.0,
         "market_move_pnl": -6313.34,
+        "residual_pnl": 0.0,
         "total_pnl": -5573.87
       },
       "product_type": "fixed_rate_bond",
       "risk": {
+        "bucketed_risk": {
+          "1Y": 7.43,
+          "2Y": -675.48,
+          "5Y": -591.19,
+          "6M": -5.59
+        },
         "cs01": 0.0,
+        "fx_delta": 0.0,
+        "fx_vega": 0.0,
         "pv01": -1264.65
       },
       "stress": {
         "CROSS_ASSET_REPRICING": -67767.37,
         "GLOBAL_RISK_OFF": 40176.55,
-        "USD_CURVE_BEAR_STEEPENER": -40367.45
+        "GLOBAL_RISK_ON": -45331.88,
+        "USD_CURVE_BEAR_FLATTENER": -38550.52,
+        "USD_CURVE_BEAR_STEEPENER": -40367.45,
+        "USD_CURVE_BULL_STEEPENER": 39089.97,
+        "USD_LIBOR_OIS_WIDENING": 5912.28,
+        "USD_RATES_PARALLEL_DOWN_100BP": 116082.06,
+        "USD_RATES_PARALLEL_UP_100BP": -112184.08
       },
       "support_status": "supported",
       "valuation": {
@@ -31,18 +47,35 @@
     "swap_usd_001": {
       "pnl_explain": {
         "carry_pnl": 54.77,
+        "cash_pnl": 0.0,
         "market_move_pnl": 19930.26,
+        "residual_pnl": 0.0,
         "total_pnl": 19985.03
       },
       "product_type": "vanilla_swap",
       "risk": {
+        "bucketed_risk": {
+          "1Y": -3.4,
+          "2Y": -26.83,
+          "3M": -3.49,
+          "5Y": 4277.02,
+          "6M": 1.58
+        },
         "cs01": 0.0,
+        "fx_delta": 0.0,
+        "fx_vega": 0.0,
         "pv01": 4243.4
       },
       "stress": {
         "CROSS_ASSET_REPRICING": -3492.55,
         "GLOBAL_RISK_OFF": 2070.8,
-        "USD_CURVE_BEAR_STEEPENER": 147479.56
+        "GLOBAL_RISK_ON": -2336.33,
+        "USD_CURVE_BEAR_FLATTENER": -2173.69,
+        "USD_CURVE_BEAR_STEEPENER": 147479.56,
+        "USD_CURVE_BULL_STEEPENER": 2201.67,
+        "USD_LIBOR_OIS_WIDENING": 327262.21,
+        "USD_RATES_PARALLEL_DOWN_100BP": 5983.65,
+        "USD_RATES_PARALLEL_UP_100BP": -5781.43
       },
       "support_status": "supported",
       "valuation": {

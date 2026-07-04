@@ -5,13 +5,14 @@
 #include <qrp/analytics/risk_service.hpp>
 #include <qrp/analytics/valuation_service.hpp>
 #include <qrp/persistence/storage_backend.hpp>
+
 #include <memory>
 
 namespace qrp::app {
 
 /**
  * @brief Application facade for the Quant Risk Platform.
- * 
+ *
  * Responsibilities:
  * - Load config and resolve storage backend.
  * - Import market data and portfolios.

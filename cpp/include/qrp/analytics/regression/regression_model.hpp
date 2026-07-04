@@ -3,6 +3,7 @@
 // Declares regression models used to fit continuation values in simulation algorithms.
 
 #include <Eigen/Dense>
+
 #include <vector>
 
 namespace qrp::analytics::regression {
@@ -49,23 +50,23 @@ public:
         // Solve (X^T * X) * beta = X^T * y
         // Using ColPivHouseholderQR for stability
         Eigen::VectorXd beta = X.colPivHouseholderQr().solve(y);
-        
+
         RegressionResult result;
         result.coefficients = beta;
-        
+
         Eigen::VectorXd y_pred = X * beta;
         Eigen::VectorXd residuals = y - y_pred;
         result.residual_sum_of_squares = residuals.squaredNorm();
-        
+
         double y_mean = y.mean();
         double total_sum_of_squares = (y.array() - y_mean).square().sum();
-        
+
         if (total_sum_of_squares > 1e-14) {
             result.r_squared = 1.0 - (result.residual_sum_of_squares / total_sum_of_squares);
         } else {
             result.r_squared = 1.0;
         }
-        
+
         return result;
     }
 

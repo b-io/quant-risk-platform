@@ -1,40 +1,64 @@
 // Implements the platform logger bootstrap and shared sink configuration.
 
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
-#endif
 #include <qrp/util/logger.hpp>
-#include <spdlog/sinks/stdout_color_sinks.h>
+
 #include <spdlog/common.h>
-#include <cstdlib>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 #include <algorithm>
 #include <cctype>
+#include <cstdlib>
+#include <memory>
+#include <optional>
+#include <string>
 
 namespace qrp::util {
 
 namespace {
-    std::shared_ptr<spdlog::logger> g_logger;
+
+std::shared_ptr<spdlog::logger> g_logger;
+
+std::optional<std::string> env_value(const char* name) {
+#ifdef _MSC_VER
+    char* raw_value = nullptr;
+    std::size_t value_size = 0;
+    if (_dupenv_s(&raw_value, &value_size, name) != 0) {
+        std::free(raw_value);
+        return std::nullopt;
+    }
+
+    if (raw_value == nullptr || *raw_value == '\0') {
+        std::free(raw_value);
+        return std::nullopt;
+    }
+
+    std::string value(raw_value);
+    std::free(raw_value);
+    return value;
+#else
+    const char* raw_value = std::getenv(name);
+    if (raw_value == nullptr || *raw_value == '\0') {
+        return std::nullopt;
+    }
+    return std::string(raw_value);
+#endif
 }
+
+} // namespace
 
 void Logger::initialize() {
     if (g_logger) return;
 
-    // Create the default console sink with color support
     auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-    
-    // Pattern: [Timestamp] [Level] [Thread ID] %v (message)
-    // %^ and %$ mark the colored part of the log
     console_sink->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%^%l%$] [tid %t] %v");
 
     g_logger = std::make_shared<spdlog::logger>("qrp", console_sink);
-    
-    // Default log level
+
     spdlog::level::level_enum level = spdlog::level::info;
 
-    // Check for environment variable
-    const char* env_level = std::getenv("QRP_LOG_LEVEL");
+    const auto env_level = env_value("QRP_LOG_LEVEL");
     if (env_level) {
-        std::string s_level(env_level);
+        std::string s_level = *env_level;
         std::transform(s_level.begin(), s_level.end(), s_level.begin(),
                        [](unsigned char c){ return std::tolower(c); });
 
@@ -48,8 +72,6 @@ void Logger::initialize() {
     }
 
     g_logger->set_level(level);
-    
-    // Register as the global default logger so spdlog::info(...) works directly
     spdlog::set_default_logger(g_logger);
 }
 

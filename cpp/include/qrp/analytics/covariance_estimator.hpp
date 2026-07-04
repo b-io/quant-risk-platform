@@ -3,9 +3,11 @@
 // Declares covariance estimation utilities for historical factor moves and simulation inputs.
 
 #include <qrp/domain/factors.hpp>
+
 #include <ql/math/matrix.hpp>
-#include <vector>
+
 #include <string>
+#include <vector>
 
 namespace qrp::analytics {
 
@@ -26,8 +28,8 @@ struct CovarianceEstimationConfig {
 
 /**
  * @brief Service to estimate factor covariance from historical moves.
- * 
- * Includes robust estimation techniques like EWMA and PSD repair via 
+ *
+ * Includes robust estimation techniques like EWMA and PSD repair via
  * eigenvalue clipping.
  */
 class CovarianceEstimator {
@@ -40,7 +42,7 @@ public:
  * If the input moves are daily and the requested horizon is H days,
  * the returned matrix is horizon-scaled:
  * Sigma_H = H * Sigma_base
-     * 
+     *
      * @param factors The factor definitions defining the units/types.
      * @param history The historical observations of those factors.
      * @param config Estimation parameters.
@@ -53,7 +55,7 @@ public:
 
     /**
      * @brief Repairs a symmetric matrix to ensure it is Positive Semi-Definite (PSD).
-     * 
+     *
  * Uses eigenvalue decomposition: Sigma_repaired = Q * Lambda+ * Q^T
  * where Lambda+ = max(lambda, floor).
      */

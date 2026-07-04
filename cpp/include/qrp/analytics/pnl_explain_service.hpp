@@ -4,6 +4,7 @@
 
 #include <qrp/analytics/valuation_service.hpp>
 #include <qrp/domain/market_data.hpp>
+
 #include <map>
 #include <string>
 #include <vector>

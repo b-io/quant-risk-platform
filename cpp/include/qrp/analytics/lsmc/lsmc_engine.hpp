@@ -5,6 +5,7 @@
 #include <qrp/analytics/dynamic_programming/decision_problem.hpp>
 #include <qrp/analytics/regression/regression_model.hpp>
 #include <qrp/analytics/simulation/stochastic_process.hpp>
+
 #include <cstdint>
 #include <memory>
 #include <utility>

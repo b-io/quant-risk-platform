@@ -25,7 +25,7 @@ This guide explains supported build workflows on Windows using CMake and how to 
     - Smoke test: `ctest --preset Release-Python -R python_import`
 - Or via CLion "Release" profile by setting `QRP_BUILD_PYTHON=ON` in CMake options.
 
-## 3. Quick Build and Test (automation scripts)
+## 3. Build and Test With Automation Scripts
 
 The easiest way to build and verify the platform is to use the canonical scripts.
 
@@ -66,6 +66,9 @@ cmake --build --preset Coverage --target coverage
 The coverage target runs tests and fails below `QRP_COVERAGE_MIN_LINE`, which defaults to `85`.
 Use `-DQRP_COVERAGE_MIN_LINE=90` if you want to enforce a 90% line-coverage gate.
 
+It also writes a machine-readable metric to `build/Coverage/coverage/cpp/coverage_metric.json`
+and a compact human summary to `build/Coverage/coverage/cpp/coverage_metric.md`.
+
 ## 5. Run a Demo
 
 After building, you can run a Python demo or use the C++ CLI.
@@ -76,8 +79,8 @@ After building, you can run a Python demo or use the C++ CLI.
 # Build the extension first, then run the pinned Python 3.12 demo environment.
 cmake --preset Release-Python
 cmake --build --preset Release-Python --target quant_risk_platform
-uv sync --extra dashboard --extra optimization
-uv run python python\examples\demo_platform.py
+uv sync --project python --extra dashboard --extra optimization
+uv run --project python python python\examples\demo_platform.py
 ```
 
 ### C++ CLI

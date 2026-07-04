@@ -267,7 +267,7 @@ struct MarketQuote {
     Currency currency = Currency::UNKNOWN;
     std::string tenor;
     double value = 0.0;
-    
+
     // Enriching schema
     std::string risk_factor_id;
     QuoteType quote_type = QuoteType::UNKNOWN;
@@ -293,7 +293,7 @@ struct MarketQuote {
 struct CurveId {
     Currency currency;
     std::string family; // e.g., "OIS", "IBOR_3M"
-    
+
     /**
      * @brief Orders curve ids for use as keys in standard ordered containers.
      */

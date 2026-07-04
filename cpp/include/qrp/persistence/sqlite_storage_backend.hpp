@@ -3,7 +3,9 @@
 // Declares the SQLite implementation of the platform storage backend.
 
 #include <qrp/persistence/storage_backend.hpp>
+
 #include <sqlite3.h>
+
 #include <stdexcept>
 #include <string>
 
@@ -11,7 +13,7 @@ namespace qrp::persistence {
 
 /**
  * @brief SQLite-backed implementation of the StorageBackend.
- * 
+ *
  * Why SQLite?
  * Zero configuration, file-based, deterministic, and supports standard SQL.
  * It is the ideal default for local development and historical run persistence.
@@ -198,7 +200,7 @@ private:
      * @brief Executes SQL that does not return rows and throws on failure.
      */
     void execute_sql(const std::string& sql);
-    
+
     sqlite3* db_ = nullptr;
     std::string db_path_;
 };

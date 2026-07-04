@@ -1,6 +1,7 @@
 // Implements solver orchestration for portfolio optimization problems.
 
 #include <qrp/optimization/portfolio_optimization_engine.hpp>
+
 #include <set>
 #include <stdexcept>
 #include <utility>
@@ -29,7 +30,7 @@ OptimizationResult PortfolioOptimizationEngine::optimize(
     std::set<std::string> all_assets;
     for (const auto& entry : expected_returns) all_assets.insert(entry.first);
     for (const auto& entry : current_weights) all_assets.insert(entry.first);
-    
+
     if (auto full_risk = std::dynamic_pointer_cast<FullCovarianceModel>(risk_model)) {
         for (const auto& asset_id : full_risk->asset_ids) all_assets.insert(asset_id);
     } else if (auto factor_risk = std::dynamic_pointer_cast<FactorRiskModel>(risk_model)) {
@@ -63,7 +64,7 @@ OptimizationResult PortfolioOptimizationEngine::optimize(
 
     // 4. Add risk model
     problem.risk_model = risk_model;
-    
+
     // 5. Add constraints
     problem.constraints = constraints;
 

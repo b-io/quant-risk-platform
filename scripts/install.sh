@@ -68,11 +68,14 @@ else
 fi
 
 echo -e "\033[0;36m--- Installing Python dependencies ---\033[0m"
-if [[ -f "requirements.txt" ]]; then
-    "$PYTHON_EXEC" -m pip install -r requirements.txt
+PYTHON_PROJECT_DIR="$PROJECT_ROOT/python"
+PYTHON_REQUIREMENTS="$PYTHON_PROJECT_DIR/requirements.txt"
+PYTHON_PROJECT_FILE="$PYTHON_PROJECT_DIR/pyproject.toml"
+if [[ -f "$PYTHON_REQUIREMENTS" ]]; then
+    "$PYTHON_EXEC" -m pip install -r "$PYTHON_REQUIREMENTS"
 fi
-if [[ -f "pyproject.toml" ]]; then
-    "$PYTHON_EXEC" -m pip install -e .
+if [[ -f "$PYTHON_PROJECT_FILE" ]]; then
+    "$PYTHON_EXEC" -m pip install -e "$PYTHON_PROJECT_DIR"
 fi
 
 # 2. Ensure C++ dependencies via vcpkg

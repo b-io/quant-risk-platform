@@ -160,6 +160,34 @@ def assert_close(label, actual, expected, tolerance=1e-10):
         raise AssertionError(f"{label}: expected {expected:.12f}, got {actual:.12f}")
 
 
+def assert_key_sets_match(label, actual_keys, expected_keys):
+    actual = set(actual_keys)
+    expected = set(expected_keys)
+    if actual == expected:
+        return
+
+    messages = []
+    missing = sorted(expected - actual)
+    extra = sorted(actual - expected)
+    if missing:
+        messages.append(f"missing {missing}")
+    if extra:
+        messages.append(f"extra {extra}")
+    raise AssertionError(f"{label}: key set drifted ({'; '.join(messages)})")
+
+
+def expected_regression_keys(section):
+    return [key for key in section if key != "tolerance"]
+
+
+def material_value_map(values, tolerance):
+    return {
+        str(key): float(value)
+        for key, value in dict(values).items()
+        if abs(float(value)) > tolerance
+    }
+
+
 def enum_name(value):
     return getattr(value, "name", str(value).rsplit(".", 1)[-1])
 
@@ -470,9 +498,12 @@ def validate_golden_outputs(golden, valuation_results, total_npv, stress_results
     valuation_tolerance = valuation.get("tolerance", 1.0)
     assert_close("valuation.total_npv", total_npv, valuation["total_npv"], valuation_tolerance)
     valuation_by_trade = {result.trade_id: result for result in valuation_results}
+    assert_key_sets_match("valuation.trades", valuation_by_trade, valuation["trades"])
     for trade_id, expected in valuation["trades"].items():
         actual = valuation_by_trade[trade_id]
         assert_close(f"valuation.{trade_id}.npv", actual.npv, expected["npv"], valuation_tolerance)
+        if actual.tags.get("asset_class") != expected["asset_class"]:
+            raise AssertionError(f"valuation.{trade_id}.asset_class drifted")
         if actual.tags.get("product_type") != expected["product_type"]:
             raise AssertionError(f"valuation.{trade_id}.product_type drifted")
         if actual.tags.get("status") != expected["support_status"]:
@@ -481,44 +512,68 @@ def validate_golden_outputs(golden, valuation_results, total_npv, stress_results
     stress = golden["stress"]
     stress_tolerance = stress.get("tolerance", 1.0)
     stress_by_name = {result.scenario_name: result for result in stress_results}
-    for scenario_name, expected in stress.items():
-        if scenario_name == "tolerance":
-            continue
+    assert_key_sets_match("stress.scenarios", stress_by_name, expected_regression_keys(stress))
+    for scenario_name in expected_regression_keys(stress):
+        expected = stress[scenario_name]
         actual = stress_by_name[scenario_name]
         assert_close(f"stress.{scenario_name}.total_pnl", actual.total_pnl, expected["total_pnl"], stress_tolerance)
+        actual_trade_pnls = material_value_map(actual.trade_pnls, stress_tolerance)
+        assert_key_sets_match(
+            f"stress.{scenario_name}.trade_pnls",
+            actual_trade_pnls,
+            expected["trade_pnls"])
         for trade_id, expected_pnl in expected["trade_pnls"].items():
             assert_close(
                 f"stress.{scenario_name}.{trade_id}",
-                actual.trade_pnls[trade_id],
+                dict(actual.trade_pnls).get(trade_id, 0.0),
                 expected_pnl,
                 stress_tolerance)
 
     risk = golden["risk"]
     risk_tolerance = risk.get("tolerance", 1.0)
     risk_by_trade = {result.trade_id: result for result in risk_results}
-    for trade_id, expected in risk.items():
-        if trade_id == "tolerance":
-            continue
+    assert_key_sets_match("risk.trades", risk_by_trade, expected_regression_keys(risk))
+    for trade_id in expected_regression_keys(risk):
+        expected = risk[trade_id]
         actual = risk_by_trade[trade_id]
-        assert_close(f"risk.{trade_id}.pv01", actual.pv01, expected["pv01"], risk_tolerance)
-        assert_close(f"risk.{trade_id}.cs01", actual.cs01, expected["cs01"], risk_tolerance)
+        for component in ["bucketed_risk", "cs01", "fx_delta", "fx_vega", "pv01"]:
+            if component == "bucketed_risk":
+                actual_buckets = material_value_map(actual.bucketed_risk, risk_tolerance)
+                assert_key_sets_match(f"risk.{trade_id}.bucketed_risk", actual_buckets, expected[component])
+                for node, expected_value in expected[component].items():
+                    assert_close(
+                        f"risk.{trade_id}.bucketed_risk.{node}",
+                        dict(actual.bucketed_risk).get(node, 0.0),
+                        expected_value,
+                        risk_tolerance)
+            else:
+                assert_close(
+                    f"risk.{trade_id}.{component}",
+                    getattr(actual, component),
+                    expected[component],
+                    risk_tolerance)
 
     pnl = golden["pnl_explain"]
     pnl_tolerance = pnl.get("tolerance", 1.0)
     pnl_by_trade = {result.trade_id: result for result in pnl_results}
-    for trade_id, expected in pnl.items():
-        if trade_id == "tolerance":
-            continue
+    assert_key_sets_match("pnl.trades", pnl_by_trade, expected_regression_keys(pnl))
+    for trade_id in expected_regression_keys(pnl):
+        expected = pnl[trade_id]
         actual = pnl_by_trade[trade_id]
-        assert_close(f"pnl.{trade_id}.carry_pnl", actual.carry_pnl, expected["carry_pnl"], pnl_tolerance)
-        assert_close(f"pnl.{trade_id}.market_move_pnl", actual.market_move_pnl, expected["market_move_pnl"], pnl_tolerance)
-        assert_close(f"pnl.{trade_id}.total_pnl", actual.total_pnl, expected["total_pnl"], pnl_tolerance)
+        for component in ["carry_pnl", "cash_pnl", "market_move_pnl", "residual_pnl", "total_pnl"]:
+            assert_close(
+                f"pnl.{trade_id}.{component}",
+                getattr(actual, component, 0.0),
+                expected[component],
+                pnl_tolerance)
 
     monte_carlo = golden["monte_carlo"]
     mc_by_label = {label: (result, mean_pnl) for label, result, mean_pnl in mc_results}
+    assert_key_sets_match("mc.cases", mc_by_label, monte_carlo)
     for label, expected in monte_carlo.items():
         actual, mean_pnl = mc_by_label[label]
         tolerance = expected.get("tolerance", 50.0)
+        assert_close(f"mc.{label}.base_portfolio_value", actual.base_portfolio_value, expected["base_portfolio_value"], tolerance)
         assert_close(f"mc.{label}.expected_shortfall_95", actual.expected_shortfall_95, expected["expected_shortfall_95"], tolerance)
         assert_close(f"mc.{label}.mean_pnl", mean_pnl, expected["mean_pnl"], tolerance)
         assert_close(f"mc.{label}.var_95", actual.var_95, expected["var_95"], tolerance)
@@ -533,6 +588,15 @@ def validate_product_family_outputs(product_families, valuation_results, stress_
     risk_by_trade = {result.trade_id: result for result in risk_results}
     stress_by_name = {result.scenario_name: result for result in stress_results}
     valuation_by_trade = {result.trade_id: result for result in valuation_results}
+    fixture_by_trade = {}
+
+    for family in product_families:
+        for trade_id in family["trades"]:
+            if trade_id in fixture_by_trade:
+                raise AssertionError(f"Duplicate product-family golden coverage for {trade_id}")
+            fixture_by_trade[trade_id] = Path(family["fixture_path"]).name
+
+    assert_key_sets_match("product_families.trades", valuation_by_trade, fixture_by_trade)
 
     for family in product_families:
         asset_class = family["asset_class"]
@@ -562,19 +626,50 @@ def validate_product_family_outputs(product_families, valuation_results, stress_
                 expected["risk"]["cs01"],
                 tolerances.get("risk", 1.0))
             assert_close(
+                f"{fixture_name}.{trade_id}.risk.fx_delta",
+                risk_result.fx_delta,
+                expected["risk"]["fx_delta"],
+                tolerances.get("risk", 1.0))
+            assert_close(
+                f"{fixture_name}.{trade_id}.risk.fx_vega",
+                risk_result.fx_vega,
+                expected["risk"]["fx_vega"],
+                tolerances.get("risk", 1.0))
+            assert_close(
                 f"{fixture_name}.{trade_id}.risk.pv01",
                 risk_result.pv01,
                 expected["risk"]["pv01"],
                 tolerances.get("risk", 1.0))
+            actual_buckets = material_value_map(risk_result.bucketed_risk, tolerances.get("risk", 1.0))
+            assert_key_sets_match(
+                f"{fixture_name}.{trade_id}.risk.bucketed_risk",
+                actual_buckets,
+                expected["risk"]["bucketed_risk"])
+            for node, expected_value in expected["risk"]["bucketed_risk"].items():
+                assert_close(
+                    f"{fixture_name}.{trade_id}.risk.bucketed_risk.{node}",
+                    dict(risk_result.bucketed_risk).get(node, 0.0),
+                    expected_value,
+                    tolerances.get("risk", 1.0))
             assert_close(
                 f"{fixture_name}.{trade_id}.pnl.carry_pnl",
                 pnl_result.carry_pnl,
                 expected["pnl_explain"]["carry_pnl"],
                 tolerances.get("pnl_explain", 1.0))
             assert_close(
+                f"{fixture_name}.{trade_id}.pnl.cash_pnl",
+                getattr(pnl_result, "cash_pnl", 0.0),
+                expected["pnl_explain"]["cash_pnl"],
+                tolerances.get("pnl_explain", 1.0))
+            assert_close(
                 f"{fixture_name}.{trade_id}.pnl.market_move_pnl",
                 pnl_result.market_move_pnl,
                 expected["pnl_explain"]["market_move_pnl"],
+                tolerances.get("pnl_explain", 1.0))
+            assert_close(
+                f"{fixture_name}.{trade_id}.pnl.residual_pnl",
+                getattr(pnl_result, "residual_pnl", 0.0),
+                expected["pnl_explain"]["residual_pnl"],
                 tolerances.get("pnl_explain", 1.0))
             assert_close(
                 f"{fixture_name}.{trade_id}.pnl.total_pnl",
@@ -608,9 +703,9 @@ def run_optional_cvxpy_worker_check():
     except ImportError as exc:
         print(f"Skipped: CVXPY worker dependencies are not available in this Python environment ({exc}).")
         print("Install the optional optimization dependencies with:")
-        print("  uv sync --extra optimization")
+        print("  uv sync --project python --extra optimization")
         print("Then run the demo with the uv-managed interpreter:")
-        print("  uv run python python/examples/demo_platform.py")
+        print("  uv run --project python python python/examples/demo_platform.py")
         return None
 
     request = {

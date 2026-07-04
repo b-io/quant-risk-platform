@@ -1,9 +1,11 @@
 // Verifies market convention lookup, overrides, and pricing-context curve-family resolution.
 
-#include <gtest/gtest.h>
 #include <qrp/analytics/pricing_context.hpp>
 #include <qrp/conventions/market_convention_registry.hpp>
 #include <qrp/market/market_state.hpp>
+
+#include <gtest/gtest.h>
+
 #include <memory>
 
 using namespace qrp;

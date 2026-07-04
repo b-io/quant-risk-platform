@@ -9,21 +9,39 @@
   "trades": {
     "fx_fwd_eurusd_001": {
       "pnl_explain": {
-        "carry_pnl": 0.0,
-        "market_move_pnl": 130200.0,
-        "total_pnl": 130200.0
+        "carry_pnl": -522.8,
+        "cash_pnl": 0.0,
+        "market_move_pnl": 130827.61,
+        "residual_pnl": 0.0,
+        "total_pnl": 130304.81
       },
       "product_type": "fx_forward",
       "risk": {
+        "bucketed_risk": {
+          "1Y": 13.7,
+          "6M": 639.69,
+          "SPOT": 1275.7
+        },
         "cs01": 0.0,
-        "pv01": 0.0
+        "fx_delta": 1275.7,
+        "fx_vega": 0.0,
+        "pv01": 653.39
       },
       "stress": {
-        "GLOBAL_RISK_OFF": -325500.0
+        "CROSS_ASSET_REPRICING": -16594.19,
+        "EUR_RATES_UP_50BP": -28981.38,
+        "GLOBAL_RISK_OFF": -319390.63,
+        "GLOBAL_RISK_ON": 193335.42,
+        "USD_CURVE_BEAR_FLATTENER": 48616.47,
+        "USD_CURVE_BULL_STEEPENER": -48987.26,
+        "USD_RATES_PARALLEL_DOWN_100BP": -1376.81,
+        "USD_RATES_PARALLEL_UP_100BP": 1363.39,
+        "USD_STRENGTH": -622137.53,
+        "USD_WEAKNESS": 654035.2
       },
-      "support_status": "partially_supported",
+      "support_status": "supported",
       "valuation": {
-        "npv": -210000.0
+        "npv": -109573.65
       }
     }
   }

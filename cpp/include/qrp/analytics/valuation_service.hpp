@@ -5,6 +5,7 @@
 #include <qrp/analytics/pricing_context.hpp>
 #include <qrp/analytics/pricing_profiles.hpp>
 #include <qrp/domain/portfolio.hpp>
+
 #include <vector>
 
 namespace QuantLib {

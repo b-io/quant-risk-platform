@@ -22,7 +22,7 @@ RatesConvention MarketConventionRegistry::get_rates_convention(domain::Currency 
     if (it != rates_conventions_.end()) {
         return it->second;
     }
-    
+
     // Fallback to OIS if specific index not found
     it = rates_conventions_.find({currency, "OIS"});
     if (it != rates_conventions_.end()) {

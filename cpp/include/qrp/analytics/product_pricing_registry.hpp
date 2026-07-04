@@ -2,12 +2,14 @@
 
 // Declares the registry of product support, pricing models, and required market inputs.
 
-#include <ql/instrument.hpp>
-#include <ql/shared_ptr.hpp>
 #include <qrp/analytics/pricing_context.hpp>
 #include <qrp/analytics/pricing_profiles.hpp>
 #include <qrp/domain/market_data.hpp>
 #include <qrp/domain/portfolio.hpp>
+
+#include <ql/instrument.hpp>
+#include <ql/shared_ptr.hpp>
+
 #include <functional>
 
 namespace qrp::analytics {

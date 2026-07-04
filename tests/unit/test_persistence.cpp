@@ -1,12 +1,14 @@
 // Verifies SQLite persistence round trips for portfolios, market data, factors, scenarios, and results.
 
-#include <gtest/gtest.h>
 #include <qrp/app/quant_risk_platform.hpp>
 #include <qrp/persistence/sqlite_storage_backend.hpp>
+
+#include <gtest/gtest.h>
+#include <sqlite3.h>
+
 #include <filesystem>
 #include <fstream>
 #include <stdexcept>
-#include <sqlite3.h>
 
 namespace qrp::testing {
 
@@ -73,7 +75,8 @@ protected:
 
     void TearDown() override {
         storage.reset();
-        // Try to remove, but don't fail if it's locked or already gone
+
+        // Best-effort cleanup handles Windows file-lock timing.
         try {
             if (std::filesystem::exists(db_path)) {
                 std::filesystem::remove(db_path);
@@ -91,12 +94,12 @@ TEST_F(PersistenceTest, PortfolioIdempotency) {
     EXPECT_EQ(portfolios.size(), 1);
     EXPECT_EQ(portfolios[0], "P1");
 
-    // Idempotent call - same data
+    // Re-storing identical data should not duplicate the portfolio.
     storage->store_portfolio("P1", "Portfolio 1", "USD");
     portfolios = storage->list_portfolios();
     EXPECT_EQ(portfolios.size(), 1);
 
-    // Update existing portfolio
+    // Re-storing changed metadata should update the existing portfolio row.
     storage->store_portfolio("P1", "Portfolio 1 Updated", "EUR");
     portfolios = storage->list_portfolios();
     EXPECT_EQ(portfolios.size(), 1);
@@ -108,7 +111,7 @@ TEST_F(PersistenceTest, MarketSnapshotIdempotency) {
     EXPECT_EQ(snapshots.size(), 1);
     EXPECT_EQ(snapshots[0], "S1");
 
-    // Idempotent call
+    // Re-storing the same snapshot id should remain idempotent.
     storage->store_market_snapshot("S1", "2023-01-01", "USD", "[]");
     snapshots = storage->list_snapshots();
     EXPECT_EQ(snapshots.size(), 1);
@@ -139,7 +142,7 @@ TEST_F(PersistenceTest, MarketSnapshotQuotesRoundTrip) {
 
     auto s1 = storage->load_market_snapshot("S1");
     EXPECT_EQ(s1.quotes.size(), 2);
-    
+
     auto s2 = storage->load_market_snapshot("S2");
     EXPECT_EQ(s2.quotes.size(), 1);
     EXPECT_NEAR(s2.quotes[0].value, 0.036, 1e-10);

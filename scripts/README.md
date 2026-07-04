@@ -9,6 +9,7 @@ Most scripts are provided in both PowerShell (`.ps1`) and Bash (`.sh`) versions 
 |-------------|-------------------------------------------------------------------|
 | `build`     | Compiles the project using CMake presets.                         |
 | `compute`   | Orchestrates a full valuation, risk, and VaR computation flow.    |
+| `coverage/` | Contains language-specific coverage metric helpers.               |
 | `env`       | Imports the project-local `.env.cmd` or `.env.sh`.                |
 | `init`      | Initializes the SQLite database and loads sample data.            |
 | `inspect`   | Provides a quick way to inspect persisted database tables and run outputs. |

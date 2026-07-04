@@ -1,16 +1,30 @@
 // Verifies canonical trade, product, asset-class, and factor-taxonomy conversions.
 
-#include <gtest/gtest.h>
 #include <qrp/domain/factors.hpp>
 #include <qrp/domain/portfolio.hpp>
+
+#include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
+
 #include <stdexcept>
 
 TEST(TradeModelTest, ParsesKnownTradeTypes) {
+    EXPECT_EQ(qrp::domain::parse_trade_type("deposit"), qrp::domain::TradeType::Deposit);
+    EXPECT_EQ(qrp::domain::parse_trade_type("fra"), qrp::domain::TradeType::Fra);
+    EXPECT_EQ(qrp::domain::parse_trade_type("interest_rate_future"), qrp::domain::TradeType::InterestRateFuture);
     EXPECT_EQ(qrp::domain::parse_trade_type("vanilla_swap"), qrp::domain::TradeType::VanillaSwap);
+    EXPECT_EQ(qrp::domain::parse_trade_type("ois_swap"), qrp::domain::TradeType::OisSwap);
     EXPECT_EQ(qrp::domain::parse_trade_type("fixed_rate_bond"), qrp::domain::TradeType::FixedRateBond);
-    EXPECT_EQ(qrp::domain::parse_trade_type("equity_spot"), qrp::domain::TradeType::EquitySpot);
+    EXPECT_EQ(qrp::domain::parse_trade_type("floating_rate_note"), qrp::domain::TradeType::FloatingRateNote);
+    EXPECT_EQ(qrp::domain::parse_trade_type("cap_floor"), qrp::domain::TradeType::CapFloor);
+    EXPECT_EQ(qrp::domain::parse_trade_type("european_swaption"), qrp::domain::TradeType::EuropeanSwaption);
+    EXPECT_EQ(qrp::domain::parse_trade_type("bermudan_swaption"), qrp::domain::TradeType::BermudanSwaption);
+    EXPECT_EQ(qrp::domain::parse_trade_type("fx_spot"), qrp::domain::TradeType::FxSpot);
     EXPECT_EQ(qrp::domain::parse_trade_type("fx_forward"), qrp::domain::TradeType::FxForward);
+    EXPECT_EQ(qrp::domain::parse_trade_type("fx_swap"), qrp::domain::TradeType::FxSwap);
+    EXPECT_EQ(qrp::domain::parse_trade_type("ndf"), qrp::domain::TradeType::Ndf);
+    EXPECT_EQ(qrp::domain::parse_trade_type("fx_option"), qrp::domain::TradeType::FxOption);
+    EXPECT_EQ(qrp::domain::parse_trade_type("equity_spot"), qrp::domain::TradeType::EquitySpot);
 }
 
 TEST(TradeModelTest, ParsesCanonicalAssetClassesAndProductTypes) {
@@ -19,7 +33,15 @@ TEST(TradeModelTest, ParsesCanonicalAssetClassesAndProductTypes) {
     EXPECT_EQ(qrp::domain::parse_asset_class("commodities"), qrp::domain::AssetClass::Commodity);
     EXPECT_EQ(qrp::domain::parse_asset_class("unknown_asset_class"), qrp::domain::AssetClass::Unknown);
 
-    EXPECT_EQ(qrp::domain::parse_product_type("swaption"), qrp::domain::ProductType::Swaption);
+    EXPECT_EQ(qrp::domain::parse_product_type("european_swaption"), qrp::domain::ProductType::EuropeanSwaption);
+    EXPECT_EQ(qrp::domain::parse_product_type("bermudan_swaption"), qrp::domain::ProductType::BermudanSwaption);
+    EXPECT_EQ(qrp::domain::parse_product_type("interest_rate_future"), qrp::domain::ProductType::InterestRateFuture);
+    EXPECT_EQ(qrp::domain::parse_product_type("cds_index"), qrp::domain::ProductType::CdsIndex);
+    EXPECT_EQ(qrp::domain::parse_product_type("credit_index_option"), qrp::domain::ProductType::CreditIndexOption);
+    EXPECT_EQ(qrp::domain::parse_product_type("fx_spot"), qrp::domain::ProductType::FxSpot);
+    EXPECT_EQ(qrp::domain::parse_product_type("fx_forward"), qrp::domain::ProductType::FxForward);
+    EXPECT_EQ(qrp::domain::parse_product_type("fx_swap"), qrp::domain::ProductType::FxSwap);
+    EXPECT_EQ(qrp::domain::parse_product_type("ndf"), qrp::domain::ProductType::Ndf);
     EXPECT_EQ(qrp::domain::parse_product_type("fx_option"), qrp::domain::ProductType::FxOption);
     EXPECT_EQ(qrp::domain::parse_product_type("commodity_future_option"), qrp::domain::ProductType::CommodityFutureOption);
     EXPECT_EQ(qrp::domain::parse_product_type("unknown_product_type"), qrp::domain::ProductType::Unknown);
@@ -107,7 +129,11 @@ TEST(TradeModelTest, ValidatesCanonicalFactorIds) {
 }
 
 TEST(TradeModelTest, RejectsUnknownTradeTypes) {
+    EXPECT_EQ(qrp::domain::parse_product_type("future"), qrp::domain::ProductType::Unknown);
+    EXPECT_EQ(qrp::domain::parse_product_type("swaption"), qrp::domain::ProductType::Unknown);
     EXPECT_THROW(qrp::domain::parse_trade_type("unsupported_trade"), std::runtime_error);
+    EXPECT_THROW(qrp::domain::parse_trade_type("future"), std::runtime_error);
+    EXPECT_THROW(qrp::domain::parse_trade_type("swaption"), std::runtime_error);
     EXPECT_THROW(qrp::domain::make_trade("unsupported_trade"), std::runtime_error);
 }
 

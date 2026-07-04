@@ -3,9 +3,12 @@
 // Defines market snapshot DTOs, JSON conversion, validation diagnostics, and readiness gates.
 
 #include <qrp/domain/types.hpp>
+
+#include <nlohmann/json.hpp>
+
 #include <algorithm>
-#include <chrono>
 #include <cctype>
+#include <chrono>
 #include <iterator>
 #include <map>
 #include <optional>
@@ -14,7 +17,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include <nlohmann/json.hpp>
 
 namespace qrp::domain {
 

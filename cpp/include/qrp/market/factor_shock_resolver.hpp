@@ -2,29 +2,30 @@
 
 // Declares helpers that resolve canonical factor shocks into concrete quote-level changes.
 
-#include <qrp/domain/market_data.hpp>
 #include <qrp/domain/factors.hpp>
+#include <qrp/domain/market_data.hpp>
 #include <qrp/market/scenario_engine.hpp>
+
+#include <cmath>
+#include <stdexcept>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include <string>
-#include <cmath>
-#include <stdexcept>
 
 namespace qrp::market {
 
 /**
  * @brief Resolves generic factor shocks into specific absolute quote values.
- * 
- * This service implements the production mapping layer between modeled risk factors 
+ *
+ * This service implements the production mapping layer between modeled risk factors
  * and raw market quotes using FactorBindings.
  */
 class FactorShockResolver {
 public:
     /**
      * @brief Maps factor shocks to quote-level incremental values.
-     * 
+     *
      * @param scenario The input scenario containing factor shocks.
      * @param factors The definitions of active factors.
      * @param bindings The mapping rules from factors to quotes.
@@ -36,7 +37,7 @@ public:
         const std::vector<domain::FactorDefinition>& factors,
         const std::vector<domain::FactorBinding>& bindings,
         const domain::MarketSnapshot& base_market) {
-        
+
         std::unordered_map<std::string, double> base_quotes;
         for (const auto& q : base_market.quotes) {
             base_quotes[q.id] = q.value;
@@ -50,7 +51,7 @@ public:
 
         // 1. Initialize with base values
         std::unordered_map<std::string, double> shocked_values = base_quotes;
-        
+
         // 2. Map factor shocks to quote increments
         // We use an incremental approach to support multiple factors affecting one quote.
         std::unordered_map<std::string, double> quote_increments;
@@ -64,12 +65,12 @@ public:
             for (const auto& binding : bindings) {
                 if (binding.factor_id != factor_id) continue;
                 found_binding = true;
-                
+
                 if (!base_quotes.contains(binding.quote_id)) {
                     throw std::invalid_argument(
                         "Factor '" + factor_id + "' is bound to missing market quote: " + binding.quote_id);
                 }
-                
+
                 double q = base_quotes.at(binding.quote_id);
                 double increment = 0.0;
 

@@ -1,7 +1,10 @@
 // Implements market snapshot validation and QuantLib market-state construction.
 
 #include <qrp/market/market_snapshot.hpp>
+
 #include <qrp/conventions/market_convention_registry.hpp>
+
+#include <fmt/format.h>
 #include <ql/currencies/america.hpp>
 #include <ql/currencies/asia.hpp>
 #include <ql/currencies/europe.hpp>
@@ -17,14 +20,14 @@
 #include <ql/indexes/ibor/sonia.hpp>
 #include <ql/indexes/ibor/tonar.hpp>
 #include <ql/indexes/ibor/usdlibor.hpp>
+#include <ql/math/interpolations/loginterpolation.hpp>
 #include <ql/settings.hpp>
-#include <ql/termstructures/yield/piecewiseyieldcurve.hpp>
-#include <ql/termstructures/yield/ratehelpers.hpp>
-#include <ql/termstructures/yield/oisratehelper.hpp>
 #include <ql/termstructures/iterativebootstrap.hpp>
 #include <ql/termstructures/yield/discountcurve.hpp>
-#include <ql/math/interpolations/loginterpolation.hpp>
 #include <ql/termstructures/yield/flatforward.hpp>
+#include <ql/termstructures/yield/oisratehelper.hpp>
+#include <ql/termstructures/yield/piecewiseyieldcurve.hpp>
+#include <ql/termstructures/yield/ratehelpers.hpp>
 #include <ql/time/calendars/japan.hpp>
 #include <ql/time/calendars/switzerland.hpp>
 #include <ql/time/calendars/target.hpp>
@@ -34,7 +37,7 @@
 #include <ql/time/daycounters/actual365fixed.hpp>
 #include <ql/time/daycounters/actualactual.hpp>
 #include <ql/time/daycounters/thirty360.hpp>
-#include <fmt/format.h>
+
 #include <algorithm>
 #include <stdexcept>
 #include <string>
@@ -136,7 +139,7 @@ QuantLib::Period CurveBuilder::parse_tenor(const std::string& tenor) {
     if (tenor.size() < 2) {
         throw std::invalid_argument("Invalid tenor '" + tenor + "'; expected positive tenor like 3M or 5Y");
     }
-    
+
     try {
         char unit = tenor.back();
         std::string value_part = tenor.substr(0, tenor.size() - 1);
@@ -149,7 +152,7 @@ QuantLib::Period CurveBuilder::parse_tenor(const std::string& tenor) {
         if (value <= 0) {
             throw std::invalid_argument("tenor value must be positive");
         }
-        
+
         switch (unit) {
             case 'D': return QuantLib::Period(value, QuantLib::Days);
             case 'W': return QuantLib::Period(value, QuantLib::Weeks);
@@ -166,7 +169,7 @@ QuantLib::Period CurveBuilder::parse_tenor(const std::string& tenor) {
 QuantLib::DayCounter CurveBuilder::parse_day_count(domain::DayCount dc) {
     switch (dc) {
         case domain::DayCount::ACT360: return QuantLib::Actual360();
-        case domain::DayCount::ACT365: 
+        case domain::DayCount::ACT365:
         case domain::DayCount::ACT365F: return QuantLib::Actual365Fixed();
         case domain::DayCount::ACTACT:
         case domain::DayCount::ACTACT_AFB: return QuantLib::ActualActual(QuantLib::ActualActual::AFB);
@@ -247,9 +250,9 @@ QuantLib::DateGeneration::Rule CurveBuilder::parse_date_generation(domain::DateG
 }
 
 QuantLib::ext::shared_ptr<QuantLib::OvernightIndex> CurveBuilder::create_overnight_index(
-    domain::Currency currency, 
+    domain::Currency currency,
     const QuantLib::Handle<QuantLib::YieldTermStructure>& h) {
-    
+
     switch (currency) {
         case domain::Currency::CHF: return QuantLib::ext::make_shared<QuantLib::Saron>(h);
         case domain::Currency::EUR: return QuantLib::ext::make_shared<QuantLib::Estr>(h);
@@ -264,7 +267,7 @@ QuantLib::ext::shared_ptr<QuantLib::IborIndex> CurveBuilder::create_ibor_index(
     domain::Currency currency,
     const QuantLib::Period& tenor,
     const QuantLib::Handle<QuantLib::YieldTermStructure>& h) {
-    
+
     switch (currency) {
         case domain::Currency::CHF: return QuantLib::ext::make_shared<QuantLib::CHFLibor>(tenor, h);
         case domain::Currency::EUR: return QuantLib::ext::make_shared<QuantLib::Euribor>(tenor, h);
@@ -319,12 +322,12 @@ QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> CurveBuilder::build_rate
 
     std::vector<QuantLib::ext::shared_ptr<QuantLib::RateHelper>> helpers;
     QuantLib::Handle<QuantLib::YieldTermStructure> empty_term_structure;
-    
+
     for (const auto& q_id : spec.quote_ids) {
         if (!quotes.contains(q_id)) continue;
         const auto& q = quotes.at(q_id);
         if (!supports_rates_curve_quote(q.instrument_type)) continue;
-        
+
         QuantLib::ext::shared_ptr<QuantLib::SimpleQuote> simple_quote;
         if (state_ptr && state_ptr->get_quote_handle(q_id)) {
             simple_quote = state_ptr->get_quote_handle(q_id);
@@ -336,7 +339,7 @@ QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> CurveBuilder::build_rate
                 simple_quote = QuantLib::ext::make_shared<QuantLib::SimpleQuote>(q.value);
             }
         }
-        
+
         auto quote_handle = QuantLib::Handle<QuantLib::Quote>(simple_quote);
         auto tenor = parse_tenor(q.tenor);
 
@@ -351,7 +354,7 @@ QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> CurveBuilder::build_rate
         auto bdc = parse_business_day_convention(q.bdc != domain::BusinessDayConvention::UNKNOWN ? q.bdc : conv.business_day_convention);
         auto dc = parse_day_count(q.day_count != domain::DayCount::UNKNOWN ? q.day_count : spec.day_count);
         int settlement_days = q.settlement_days >= 0 ? q.settlement_days : conv.settlement_days;
-        
+
         if (q.instrument_type == domain::QuoteInstrumentType::Deposit) {
             helpers.push_back(QuantLib::ext::make_shared<QuantLib::DepositRateHelper>(
                 quote_handle, tenor, settlement_days, cal, bdc, false, dc));
@@ -464,7 +467,7 @@ MarketSnapshot::MarketSnapshot(const domain::MarketSnapshot& dto) {
 domain::MarketSnapshot MarketState::capture_snapshot() const {
     domain::MarketSnapshot snapshot;
     snapshot.valuation_date = fmt::format("{:4d}-{:02d}-{:02d}", (int)valuation_date_.year(), (int)valuation_date_.month(), (int)valuation_date_.dayOfMonth());
-    
+
     for (const auto& [id, handle] : quote_handles_) {
         domain::MarketQuote q;
         if (auto it = quote_metadata_.find(id); it != quote_metadata_.end()) {
@@ -475,14 +478,14 @@ domain::MarketSnapshot MarketState::capture_snapshot() const {
         q.value = handle->value();
         snapshot.quotes.push_back(std::move(q));
     }
-    
+
     for (const auto& [index_name, date_map] : fixings_) {
         for (const auto& [date, value] : date_map) {
             std::string date_str = fmt::format("{:4d}-{:02d}-{:02d}", (int)date.year(), (int)date.month(), (int)date.dayOfMonth());
             snapshot.fixings[index_name][date_str] = value;
         }
     }
-    
+
     return snapshot;
 }
 
