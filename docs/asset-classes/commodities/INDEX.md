@@ -66,8 +66,7 @@ linked risk factors such as power, gas, carbon, weather, and outages.
 
 ## Product Coverage Sequence
 
-The commodity phase in `docs/implementation/PHASED_BUILD_PLAN.md` should be
-implemented in this order:
+Commodity product support follows this implementation order:
 
 1. commodity spot and forward exposure;
 2. futures;
@@ -76,6 +75,19 @@ implemented in this order:
 5. calendar spread options;
 6. swing and storage contracts using LSMC;
 7. multi-commodity spread options after the core infrastructure is stable.
+
+Current platform coverage:
+
+- The canonical portfolio DTO supports commodity spot, forwards, futures,
+  futures strips, options on futures, calendar spread options, and swing
+  contracts.
+- Spot, forward, future, strip, future-option, and calendar-spread-option
+  valuation is wired into the pricing registry.
+- Swing valuation is available as an intrinsic exercise-envelope approximation
+  and remains marked partially supported until the full storage/LSMC engine is
+  promoted into product pricing.
+- The portfolio-backed golden fixtures under `data/portfolios/` link
+  commodity products to book-level structural coverage.
 
 ## Maintenance Rule
 

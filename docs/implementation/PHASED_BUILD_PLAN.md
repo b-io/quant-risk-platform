@@ -162,6 +162,23 @@ Validation standard:
   aggregation method must be part of the canonical product or market-data
   representation.
 
+Current implementation checkpoint:
+
+- `CommoditySpotTrade`, `CommodityForwardTrade`, `CommodityFutureTrade`,
+  `CommodityFutureStripTrade`, `CommodityFutureOptionTrade`,
+  `CommodityCalendarSpreadOptionTrade`, and `CommoditySwingTrade` are part of
+  the canonical portfolio DTO and product-pricing registry.
+- Spot, forwards, futures, strips, options on futures, and calendar spread
+  options have deterministic pricing support from quote handles and configured
+  discount curves.
+- Swing contracts are available through an intrinsic exercise-envelope
+  approximation and are reported as partially supported until the full storage
+  and LSMC exercise engine is promoted into the product path.
+- The portfolio-backed structural golden set includes commodity coverage through
+  the model ladder and thematic portfolios, notably Growth Global Macro and
+  Adventurous Commodity Volatility; numeric golden outputs should be regenerated
+  after the next build.
+
 ## Phase 7: Equity Products
 
 Equity support should combine clean linear products with dividend, borrow, and
@@ -180,6 +197,21 @@ Validation standard:
 
 - Dividend treatment, borrow or funding assumption, corporate-action handling,
   exercise policy, and volatility-surface convention must be explicit.
+
+Current implementation checkpoint:
+
+- `EquitySpotTrade`, `EquityForwardTrade`, `EquityFutureTrade`, and
+  `EquityOptionTrade` are part of the canonical portfolio DTO and
+  product-pricing registry.
+- Equity spot, forwards, futures, European options, and American options are
+  priced from spot, discount, dividend-yield, borrow, futures, and volatility
+  quotes where applicable.
+- European options use a Black-Scholes cost-of-carry formula. American options
+  use a recombining binomial exercise tree, which keeps early exercise explicit
+  while leaving LSMC or finite-difference replacement as a later model upgrade.
+- The portfolio-backed structural golden set includes equity coverage through
+  the model ladder and thematic portfolios, notably Growth Global Macro and High
+  Growth Equity Volatility.
 
 ## Phase 8: PnL Explain
 

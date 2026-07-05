@@ -1,8 +1,8 @@
 param(
     [string]$Table = "summary",
     [string]$Id = "",
-    [string]$BuildDir = "build\Release-Python",
-    [string]$Config = "Release",
+    [string]$BuildDir = "build\dev",
+    [string]$Config = "RelWithDebInfo",
     [string]$DbFile = "var\quant_risk_platform.sqlite",
     [switch]$SkipEnv
 )
@@ -11,6 +11,7 @@ param(
 
 $scriptPath = $MyInvocation.MyCommand.Path
 $projectRoot = Split-Path (Split-Path $scriptPath -Parent) -Parent
+Set-Location -LiteralPath $projectRoot
 
 if (-not $SkipEnv) {
     $envScript = Join-Path $projectRoot "scripts\env.ps1"
@@ -24,19 +25,26 @@ if (-not $SkipEnv) {
 
 # Helper to find executable
 function Find-Exe($ExeName) {
-    $Paths = @(
-        "$BuildDir\$ExeName",
-        "$BuildDir\$Config\$ExeName",
-        "$BuildDir\bin\$ExeName",
-        "$BuildDir\bin\$Config\$ExeName"
-    )
-    foreach ($Path in $Paths) {
-        if (Test-Path $Path) { return $Path }
+    $names = @($ExeName)
+    if (-not $ExeName.EndsWith(".exe", [System.StringComparison]::OrdinalIgnoreCase)) {
+        $names += "$ExeName.exe"
+    }
+
+    foreach ($name in $names) {
+        $Paths = @(
+            "$BuildDir\$name",
+            "$BuildDir\$Config\$name",
+            "$BuildDir\bin\$name",
+            "$BuildDir\bin\$Config\$name"
+        )
+        foreach ($Path in $Paths) {
+            if (Test-Path $Path) { return $Path }
+        }
     }
     return $null
 }
 
-$CliExe = Find-Exe "qrp_cli.exe"
+$CliExe = Find-Exe "qrp_cli"
 
 if (!(Test-Path $DbFile)) {
     Write-Host "Database file $DbFile not found." -ForegroundColor Red
@@ -52,7 +60,7 @@ function Run-Query($sql) {
         if ($null -ne $CliExe) {
             & $CliExe list
         } else {
-            Write-Host "Error: qrp_cli.exe not found to fallback." -ForegroundColor Red
+            Write-Host "Error: qrp_cli executable not found to fallback." -ForegroundColor Red
         }
     }
 }
@@ -92,7 +100,7 @@ switch ($Table) {
             Write-Host "Using qrp_cli report for $Id ..." -ForegroundColor Cyan
             & $CliExe report $Id
         } else {
-            Write-Host "Error: sqlite3 and qrp_cli.exe are not available." -ForegroundColor Red
+            Write-Host "Error: sqlite3 and qrp_cli executable are not available." -ForegroundColor Red
             exit 1
         }
     }

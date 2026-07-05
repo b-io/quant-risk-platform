@@ -166,6 +166,23 @@ Use business ordering only when it reads better and has domain meaning:
 - Add regression tests for pricing, persistence, and market-data behavior before
   changing established numerical semantics.
 
+## Git Commit Messages
+
+Use Conventional Commits for project history. Keep messages concise, searchable,
+and useful for release notes.
+
+- Format the subject as `type(scope): summary` or `type: summary`.
+- Use common types: `feat`, `fix`, `refactor`, `docs`, `test`, `build`, `ci`,
+  `perf`, and `chore`.
+- Use a short, lowercase scope when it clarifies ownership, for example
+  `feat(rates)`, `refactor(build)`, or `test(persistence)`.
+- Write the summary in the imperative mood and keep it under 72 characters.
+- Add a blank line before the body. Use the body to explain what changed and why,
+  not to repeat the diff.
+- Wrap body lines at roughly 72 characters.
+- Use footers for breaking changes and issue references, for example
+  `BREAKING CHANGE: ...`.
+
 ## Python Bindings
 
 - Keep binding files grouped by domain: domain, market, analytics, and IO.

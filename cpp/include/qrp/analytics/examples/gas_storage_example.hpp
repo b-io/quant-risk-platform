@@ -18,12 +18,12 @@ public:
      * @brief Operational constraints and exercise costs for storage.
      */
     struct Params {
-        double min_inventory = 0.0;
-        double max_inventory = 100.0;
-        double max_injection_rate = 10.0;
-        double max_withdrawal_rate = 10.0;
-        double injection_cost = 0.5;
-        double withdrawal_cost = 0.5;
+        double min_inventory = 0.0;       // Minimum allowed inventory.
+        double max_inventory = 100.0;     // Maximum storage capacity.
+        double max_injection_rate = 10.0; // Maximum volume injected per step.
+        double max_withdrawal_rate = 10.0; // Maximum volume withdrawn per step.
+        double injection_cost = 0.5;      // Variable cost per injected unit.
+        double withdrawal_cost = 0.5;     // Variable cost per withdrawn unit.
     };
 
     /**
@@ -101,7 +101,7 @@ public:
     }
 
 private:
-    Params params_;
+    Params params_; // Fixed operational parameters.
 };
 
 } // namespace qrp::analytics::examples

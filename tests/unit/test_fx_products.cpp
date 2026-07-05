@@ -1,9 +1,10 @@
-// Verifies Phase 4 FX product valuation and FX spot/volatility risk coverage.
+// Verifies FX product valuation and FX spot/volatility risk coverage.
 
 #include <qrp/analytics/pricing_context.hpp>
 #include <qrp/analytics/risk_service.hpp>
 #include <qrp/analytics/valuation_service.hpp>
 #include <qrp/domain/factors.hpp>
+#include <qrp/instruments/instrument_factory.hpp>
 #include <qrp/market/market_snapshot.hpp>
 
 #include <gtest/gtest.h>
@@ -55,7 +56,7 @@ qrp::domain::CurveSpec make_ois_curve(
 qrp::domain::MarketSnapshot make_fx_market() {
     qrp::domain::MarketSnapshot market;
     market.valuation_date = "2026-03-24";
-    market.snapshot_id = "UNIT_FX_PHASE4";
+    market.snapshot_id = "UNIT_FX_PRODUCTS";
     market.base_currency = qrp::domain::Currency::USD;
     market.default_stale_after_days = 10;
 
@@ -93,13 +94,13 @@ std::shared_ptr<TradeT> make_fx_trade(const std::string& id, const std::string& 
     trade->currency = "USD";
     trade->direction = direction;
     trade->book = "BOOK:FX";
-    trade->strategy = "PHASE4";
+    trade->strategy = "FX_PRODUCTS";
     return trade;
 }
 
-qrp::domain::Portfolio make_phase4_fx_portfolio() {
+qrp::domain::Portfolio make_fx_portfolio() {
     qrp::domain::Portfolio portfolio;
-    portfolio.portfolio_id = "phase4_fx";
+    portfolio.portfolio_id = "fx_products";
 
     auto spot = make_fx_trade<qrp::domain::FxSpotTrade>("fx_spot_eurusd", "buy_base");
     spot->notional = 1'000'000.0;
@@ -181,10 +182,10 @@ std::vector<qrp::domain::FactorBinding> make_fx_bindings(const std::vector<qrp::
 
 } // namespace
 
-TEST(FxProductsTest, PricesPhase4FxProducts) {
+TEST(FxProductsTest, PricesFxProducts) {
     qrp::market::MarketSnapshot market(make_fx_market());
     qrp::analytics::PricingContext context(market.built_state());
-    const auto portfolio = make_phase4_fx_portfolio();
+    const auto portfolio = make_fx_portfolio();
 
     const auto results = qrp::analytics::ValuationService::price_portfolio(portfolio, context);
 
@@ -212,7 +213,7 @@ TEST(FxProductsTest, PricesPhase4FxProducts) {
 
 TEST(FxProductsTest, ComputesFxSpotAndVolatilityRiskForOptions) {
     const auto market = make_fx_market();
-    const auto portfolio = make_phase4_fx_portfolio();
+    const auto portfolio = make_fx_portfolio();
     const auto factors = make_fx_factors();
     const auto bindings = make_fx_bindings(factors);
 
@@ -228,4 +229,109 @@ TEST(FxProductsTest, ComputesFxSpotAndVolatilityRiskForOptions) {
     EXPECT_GT(option.fx_vega, 0.0);
     EXPECT_NE(option.bucketed_risk.at(factors[0].factor_id), 0.0);
     EXPECT_NEAR(option.bucketed_risk.at(factors[1].factor_id), option.fx_vega, 1.0e-8);
+}
+
+TEST(FxProductsTest, PricesAlternativeDirectionsAndFallbackInputs) {
+    auto market_dto = make_fx_market();
+    market_dto.quotes.push_back(make_quote(
+        "EURUSD_FWD_6M",
+        qrp::domain::QuoteInstrumentType::FXForward,
+        qrp::domain::QuoteType::FXForward,
+        qrp::domain::Currency::USD,
+        "6M",
+        1.1040,
+        "EURUSD"));
+
+    qrp::market::MarketSnapshot market(market_dto);
+    qrp::analytics::PricingContext context(market.built_state());
+
+    qrp::domain::Portfolio portfolio;
+    portfolio.portfolio_id = "fx_edge_cases";
+
+    auto sell_spot = make_fx_trade<qrp::domain::FxSpotTrade>("fx_spot_sell_eurusd", "sell_base");
+    sell_spot->notional = 1'000'000.0;
+    sell_spot->base_currency = "EUR";
+    sell_spot->quote_currency = "USD";
+    sell_spot->reference_rate = 1.0900;
+    portfolio.trades.push_back(sell_spot);
+
+    auto direct_forward = make_fx_trade<qrp::domain::FxForwardTrade>("fx_forward_direct_quote_eurusd", "sell");
+    direct_forward->notional = 2'000'000.0;
+    direct_forward->start_date = "2026-03-24";
+    direct_forward->maturity_date = "2026-09-24";
+    direct_forward->base_currency = "EUR";
+    direct_forward->quote_currency = "USD";
+    direct_forward->forward_rate = 1.1050;
+    direct_forward->forward_quote_id = "EURUSD_FWD_6M";
+    portfolio.trades.push_back(direct_forward);
+
+    auto ndf_missing_forward = make_fx_trade<qrp::domain::NdfTrade>("ndf_missing_forward_quote_eurusd", "buy_base");
+    ndf_missing_forward->notional = 500'000.0;
+    ndf_missing_forward->maturity_date = "2026-09-24";
+    ndf_missing_forward->base_currency = "EUR";
+    ndf_missing_forward->quote_currency = "USD";
+    ndf_missing_forward->forward_rate = 1.1060;
+    ndf_missing_forward->forward_quote_id = "MISSING_EURUSD_FWD";
+    portfolio.trades.push_back(ndf_missing_forward);
+
+    auto fallback_option = make_fx_trade<qrp::domain::FxOptionTrade>("fx_option_zero_strike_eurusd", "short");
+    fallback_option->notional = 100'000.0;
+    fallback_option->expiry_date = "2026-09-24";
+    fallback_option->base_currency = "EUR";
+    fallback_option->quote_currency = "USD";
+    fallback_option->strike_rate = 0.0;
+    fallback_option->option_type = "put_base";
+    portfolio.trades.push_back(fallback_option);
+
+    auto missing_spot = make_fx_trade<qrp::domain::FxSpotTrade>("fx_spot_missing_quote", "buy_base");
+    missing_spot->notional = 1'000'000.0;
+    missing_spot->base_currency = "GBP";
+    missing_spot->quote_currency = "USD";
+    missing_spot->reference_rate = 1.25;
+    portfolio.trades.push_back(missing_spot);
+
+    const auto results = qrp::analytics::ValuationService::price_portfolio(portfolio, context);
+
+    ASSERT_EQ(results.size(), 5U);
+    std::map<std::string, qrp::analytics::ValuationResult> by_trade;
+    for (const auto& result : results) {
+        by_trade[result.trade_id] = result;
+    }
+
+    EXPECT_LT(by_trade.at("fx_spot_sell_eurusd").npv, 0.0);
+    EXPECT_TRUE(std::isfinite(by_trade.at("fx_forward_direct_quote_eurusd").npv));
+    EXPECT_TRUE(std::isfinite(by_trade.at("ndf_missing_forward_quote_eurusd").npv));
+    EXPECT_TRUE(std::isfinite(by_trade.at("fx_option_zero_strike_eurusd").npv));
+    EXPECT_EQ(by_trade.at("fx_spot_missing_quote").tags.at("status"), "failed");
+}
+
+TEST(FxProductsTest, FactoriesReturnNullWhenSpotQuoteIsMissing) {
+    qrp::domain::MarketSnapshot market_dto;
+    market_dto.valuation_date = "2026-03-24";
+    qrp::market::MarketSnapshot market(market_dto);
+    qrp::analytics::PricingContext context(market.built_state());
+
+    qrp::domain::FxForwardTrade forward;
+    forward.base_currency = "EUR";
+    forward.quote_currency = "USD";
+    forward.maturity_date = "2026-09-24";
+    EXPECT_FALSE(qrp::instruments::FxInstrumentFactory::create_fx_forward(forward, context));
+
+    qrp::domain::FxSwapTrade swap;
+    swap.base_currency = "EUR";
+    swap.quote_currency = "USD";
+    swap.maturity_date = "2026-09-24";
+    EXPECT_FALSE(qrp::instruments::FxInstrumentFactory::create_fx_swap(swap, context));
+
+    qrp::domain::NdfTrade ndf;
+    ndf.base_currency = "EUR";
+    ndf.quote_currency = "USD";
+    ndf.maturity_date = "2026-09-24";
+    EXPECT_FALSE(qrp::instruments::FxInstrumentFactory::create_ndf(ndf, context));
+
+    qrp::domain::FxOptionTrade option;
+    option.base_currency = "EUR";
+    option.quote_currency = "USD";
+    option.expiry_date = "2026-09-24";
+    EXPECT_FALSE(qrp::instruments::FxInstrumentFactory::create_fx_option(option, context));
 }

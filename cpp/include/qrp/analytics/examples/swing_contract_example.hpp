@@ -18,11 +18,11 @@ public:
      * @brief Volume constraints and fixed strike for the swing contract.
      */
     struct Params {
-        double min_daily_volume = 0.0;
-        double max_daily_volume = 10.0;
-        double min_total_volume = 100.0;
-        double max_total_volume = 500.0;
-        double strike = 30.0;
+        double min_daily_volume = 0.0;   // Minimum exercised volume per step.
+        double max_daily_volume = 10.0;  // Maximum exercised volume per step.
+        double min_total_volume = 100.0; // Minimum cumulative volume over the contract.
+        double max_total_volume = 500.0; // Maximum cumulative volume over the contract.
+        double strike = 30.0;            // Fixed delivery strike.
     };
 
     /**
@@ -94,7 +94,7 @@ public:
     }
 
 private:
-    Params params_;
+    Params params_; // Fixed swing contract parameters.
 };
 
 } // namespace qrp::analytics::examples

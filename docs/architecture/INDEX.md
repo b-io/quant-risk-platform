@@ -104,7 +104,7 @@ $f$. This is the central link between architecture, market data, and controls.
 - `docs/models/INDEX.md` defines reusable model families.
 - `docs/risk/INDEX.md` defines factor mapping, scenario semantics, and output
   controls.
-- `docs/implementation/INDEX.md` defines the phased platform build plan.
+- `docs/implementation/INDEX.md` defines the implementation roadmap.
 
 ## Maintenance Rule
 

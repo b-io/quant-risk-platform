@@ -13,11 +13,11 @@ This directory contains the project's test suite, organized by test type.
 To build and run all tests, use the provided `test.ps1` or `test.sh` scripts:
 ```powershell
 # PowerShell
-.\scripts\test.ps1 -BuildDir build\Release-Python -Config Release
+.\scripts\test.ps1 -BuildDir build\dev -Config RelWithDebInfo
 ```
 ```bash
 # Bash
-./scripts/test.sh -BuildDir build/Release-Python -Config Release
+./scripts/test.sh -BuildDir build/dev -Config RelWithDebInfo
 ```
 
 Tests use the GoogleTest (gtest) framework. Individual tests or filters can be specified when running the test executables manually from the build directory.
@@ -28,12 +28,12 @@ Coverage is opt-in and intended for GCC/Clang toolchains, for example Linux, WSL
 Install `gcovr`, configure with coverage enabled, then build the `coverage` target:
 
 ```bash
-cmake --preset Coverage
-cmake --build --preset Coverage --target coverage
+cmake --preset coverage
+cmake --build build/coverage --target coverage
 ```
 
-The coverage target runs CTest, writes HTML to `build/Coverage/coverage/cpp/index.html`, writes XML to
-`build/Coverage/coverage/cpp/coverage.xml`, and fails if line coverage is below `QRP_COVERAGE_MIN_LINE` percent.
+The coverage target runs CTest, writes HTML to `build/coverage/coverage/cpp/index.html`, writes XML to
+`build/coverage/coverage/cpp/coverage.xml`, and fails if line coverage is below `QRP_COVERAGE_MIN_LINE` percent.
 The default threshold is `85`; override it with `-DQRP_COVERAGE_MIN_LINE=90` if you want a stricter gate.
-It also writes `build/Coverage/coverage/cpp/coverage_metric.json` for dashboards or CI ingestion and
-`build/Coverage/coverage/cpp/coverage_metric.md` for quick review.
+It also writes `build/coverage/coverage/cpp/coverage_metric.json` for dashboards or CI ingestion and
+`build/coverage/coverage/cpp/coverage_metric.md` for quick review.

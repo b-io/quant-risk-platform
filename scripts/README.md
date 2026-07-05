@@ -1,7 +1,7 @@
 ### Scripts Directory
 
 This directory contains automation scripts for building, installing, initializing, and running the Quant Risk Platform.
-Most scripts are provided in both PowerShell (`.ps1`) and Bash (`.sh`) versions for cross-platform compatibility.
+Most scripts are provided in both PowerShell (`.ps1`) and Bash (`.sh`) versions for cross-platform parity.
 
 #### Core Scripts
 
@@ -20,15 +20,15 @@ Most scripts are provided in both PowerShell (`.ps1`) and Bash (`.sh`) versions 
 
 ##### 1. Building the Project
 
-Use a CMake preset (e.g., `Release-Python`) to build everything:
+Use a CMake preset (for example `dev`) to build everything:
 
 ```powershell
-# PowerShell (defaults to Release-Python)
+# PowerShell (defaults to dev)
 .\scripts\build.ps1
 ```
 
 ```bash
-# Bash (defaults to Release-Python)
+# Bash (defaults to dev)
 ./scripts/build.sh
 ```
 
@@ -37,7 +37,7 @@ commands from a normal PowerShell terminal, dot-source the same environment firs
 
 ```powershell
 . .\scripts\env.ps1
-cmake --build build\Release-Python --target unit_tests -j 10
+cmake --build build\dev --target unit_tests -j 10
 ```
 
 This is required for MSVC/Ninja builds because `cl.exe` needs the Visual Studio `INCLUDE` and `LIB` environment
@@ -47,7 +47,7 @@ On Linux/macOS, create `.env.sh` from either `gcc.env.sh.example` or `clang.env.
 
 ```bash
 . ./scripts/env.sh
-cmake --build build/Release-Python --target unit_tests -j 10
+cmake --build build/dev --target unit_tests -j 10
 ```
 
 The Bash wrapper scripts source `scripts/env.sh` automatically when `.env.sh` exists. Pass `-SkipEnv` to disable
@@ -108,15 +108,22 @@ List all portfolios or view results of a specific run:
 .\scripts\test.ps1
 ```
 
+```bash
+# Bash
+./scripts/test.sh
+```
+
 #### Note on Parameters
 
 Most scripts support `-BuildDir` and `-Config` (or `-Preset`) to allow working with different build environments. By
-default, they now target `build\Release-Python` and the `Release-Python` preset.
+default, they now target `build\dev` and the `dev` preset.
 
 The public option names are intentionally shared across PowerShell and Bash where applicable:
 
 - `-BuildDir`: select an existing build directory for CLI/test/database scripts.
 - `-Config`: select an existing build configuration for CLI/test/database scripts.
+- `-Coverage`: request C++ coverage generation in test scripts.
+- `-CppCoverageMinLine`: set the C++ coverage threshold used by test scripts.
 - `-DbFile`: select the SQLite database for inspection.
 - `-ExtraArgs`: pass remaining arguments to CMake configure in build scripts.
 - `-Force`: reinitialize existing local data during database initialization.
@@ -126,8 +133,12 @@ The public option names are intentionally shared across PowerShell and Bash wher
 - `-PortfolioFile`: select the portfolio input file for database initialization.
 - `-PortfolioId`: select the compute-flow portfolio.
 - `-Preset`: select a CMake preset for build/install scripts.
+- `-PythonCoverageMinLine`: set the Python coverage threshold used by test scripts.
+- `-PythonExecutable`: select the Python executable used by test and coverage scripts.
 - `-ScenarioFile`: select the scenario input file for database initialization.
 - `-ScenarioSetId`: select the compute-flow scenario set.
 - `-SkipEnv`: skip automatic project environment loading.
+- `-SkipCppCoverage`: skip C++ coverage generation in test scripts.
+- `-SkipPythonCoverage`: skip Python coverage generation in test scripts.
 - `-SnapshotId`: select the compute-flow market snapshot.
 - `-Table`: select the database table or result category for inspection.

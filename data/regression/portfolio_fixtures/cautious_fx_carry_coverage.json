@@ -1,0 +1,58 @@
+{
+  "fixture_id": "cautious_fx_carry_coverage",
+  "description": "Portfolio-backed structural golden coverage for Cautious FX Carry.",
+  "market_path": "market/demo_market.json",
+  "portfolio_id": "cautious_fx_carry",
+  "portfolio_path": "portfolios/cautious_fx_carry_portfolio.json",
+  "asset_mix": {
+    "defensive_assets_pct": 70,
+    "growth_assets_pct": 30
+  },
+  "expected_books": {
+    "BOOK:CAUTIOUS:FX_CARRY": [
+      "cfx_eurusd_forward_001",
+      "cfx_eurusd_swap_001"
+    ],
+    "BOOK:CAUTIOUS:FX_CASH": [
+      "cfx_eurusd_spot_001"
+    ],
+    "BOOK:CAUTIOUS:FX_RELATIVE_VALUE": [
+      "cfx_eurusd_ndf_001"
+    ],
+    "BOOK:CAUTIOUS:FX_VOLATILITY": [
+      "cfx_eurusd_option_001"
+    ]
+  },
+  "trades": {
+    "cfx_eurusd_forward_001": {
+      "asset_class": "fx",
+      "book": "BOOK:CAUTIOUS:FX_CARRY",
+      "product_type": "fx_forward",
+      "support_status": "supported"
+    },
+    "cfx_eurusd_ndf_001": {
+      "asset_class": "fx",
+      "book": "BOOK:CAUTIOUS:FX_RELATIVE_VALUE",
+      "product_type": "ndf",
+      "support_status": "supported"
+    },
+    "cfx_eurusd_option_001": {
+      "asset_class": "fx",
+      "book": "BOOK:CAUTIOUS:FX_VOLATILITY",
+      "product_type": "fx_option",
+      "support_status": "supported"
+    },
+    "cfx_eurusd_spot_001": {
+      "asset_class": "fx",
+      "book": "BOOK:CAUTIOUS:FX_CASH",
+      "product_type": "fx_spot",
+      "support_status": "supported"
+    },
+    "cfx_eurusd_swap_001": {
+      "asset_class": "fx",
+      "book": "BOOK:CAUTIOUS:FX_CARRY",
+      "product_type": "fx_swap",
+      "support_status": "supported"
+    }
+  }
+}

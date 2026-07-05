@@ -28,7 +28,7 @@
 #include <tuple>
 
 /*
-Design note (see docs/design/ANALYTICS_SERVICES.md and docs/risk/MONTE_CARLO.md):
+Design note (see docs/architecture/ANALYTICS_SERVICES.md and docs/risk/MONTE_CARLO.md):
 - We implement a one-step, factor-based Monte Carlo to generate coherent shocks across currencies.
 - The factor covariance is represented by a symmetric positive-definite matrix and sampled via
   Cholesky decomposition (L*Z). This produces correlated Gaussian shocks consistent with the covariance.

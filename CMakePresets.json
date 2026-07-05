@@ -4,23 +4,24 @@
     {
       "name": "base",
       "displayName": "Base (Ninja, vcpkg)",
+      "hidden": true,
       "binaryDir": "${sourceDir}/build/${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
         "VCPKG_INSTALLED_DIR": "$env{VCPKG_ROOT}/installed",
-        "VCPKG_INSTALL_OPTIONS": "--allow-unsupported;--binarysource=clear;--binarysource=files,$env{VCPKG_ROOT}/archives,readwrite;--downloads-root=$env{VCPKG_ROOT}/downloads;--x-buildtrees-root=$env{VCPKG_ROOT}/buildtrees;--x-packages-root=$env{VCPKG_ROOT}/packages",
+        "VCPKG_INSTALL_OPTIONS": "--allow-unsupported;--binarysource=clear;--binarysource=files,$env{VCPKG_ROOT}/archives,readwrite;--x-asset-sources=clear;--downloads-root=$env{VCPKG_ROOT}/downloads;--x-buildtrees-root=$env{VCPKG_ROOT}/buildtrees;--x-packages-root=$env{VCPKG_ROOT}/packages",
         "VCPKG_MANIFEST_INSTALL": "ON",
         "VCPKG_MANIFEST_MODE": "ON",
-        "VCPKG_TARGET_TRIPLET": "$env{VCPKG_TARGET_TRIPLET}",
-        "X_VCPKG_ASSET_SOURCES": "clear"
+        "VCPKG_TARGET_TRIPLET": "$env{VCPKG_TARGET_TRIPLET}"
       }
     },
     {
-      "name": "Coverage",
+      "name": "coverage",
       "inherits": "base",
-      "displayName": "C++ only - Coverage (GCC/Clang)",
+      "displayName": "Coverage - C++ only",
+      "description": "GCC/Clang coverage build for C++ tests.",
       "cacheVariables": {
         "BUILD_TESTING": "ON",
         "CMAKE_BUILD_TYPE": "Debug",
@@ -29,120 +30,67 @@
       }
     },
     {
-      "name": "Debug",
+      "name": "debug",
       "inherits": "base",
-      "displayName": "C++ only - Debug",
+      "displayName": "Debug - C++ only (static core)",
+      "description": "Native C++ debug build. Python bindings are disabled on Windows Debug by default.",
       "cacheVariables": {
         "BUILD_TESTING": "ON",
         "CMAKE_BUILD_TYPE": "Debug",
-        "QRP_BUILD_PYTHON": "OFF"
+        "QRP_BUILD_PYTHON": "OFF",
+        "QRP_BUILD_SHARED": "OFF"
       }
     },
     {
-      "name": "Debug-Shared",
-      "inherits": "Debug",
-      "displayName": "C++ only - Debug (shared qrp_core)",
+      "name": "debug-shared",
+      "inherits": "debug",
+      "displayName": "Debug - C++ only (shared core)",
+      "description": "Native C++ debug build with qrp_core as a shared library.",
       "cacheVariables": {
         "QRP_BUILD_SHARED": "ON"
       }
     },
     {
-      "name": "Release",
+      "name": "dev",
       "inherits": "base",
-      "displayName": "C++ only - Release",
-      "cacheVariables": {
-        "BUILD_TESTING": "ON",
-        "CMAKE_BUILD_TYPE": "Release",
-        "QRP_BUILD_PYTHON": "OFF"
-      }
-    },
-    {
-      "name": "Release-Shared",
-      "inherits": "Release",
-      "displayName": "C++ only - Release (shared qrp_core)",
-      "cacheVariables": {
-        "QRP_BUILD_SHARED": "ON"
-      }
-    },
-    {
-      "name": "Release-Python",
-      "inherits": "base",
-      "displayName": "Python bindings - Release",
-      "cacheVariables": {
-        "BUILD_TESTING": "ON",
-        "CMAKE_BUILD_TYPE": "Release",
-        "QRP_BUILD_PYTHON": "ON"
-      }
-    },
-    {
-      "name": "Release-Python-Shared",
-      "inherits": "Release-Python",
-      "displayName": "Python bindings - Release (shared qrp_core)",
-      "cacheVariables": {
-        "QRP_BUILD_SHARED": "ON"
-      }
-    },
-    {
-      "name": "RelWithDebInfo",
-      "inherits": "base",
-      "displayName": "C++ only - RelWithDebInfo",
+      "displayName": "Dev - C++ + Python (static core)",
+      "description": "Default development build: RelWithDebInfo, C++ tests, CLI, and Python bindings.",
       "cacheVariables": {
         "BUILD_TESTING": "ON",
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "QRP_BUILD_PYTHON": "OFF"
+        "QRP_BUILD_PYTHON": "ON",
+        "QRP_BUILD_SHARED": "OFF"
       }
     },
     {
-      "name": "RelWithDebInfo-Shared",
-      "inherits": "RelWithDebInfo",
-      "displayName": "C++ only - RelWithDebInfo (shared qrp_core)",
+      "name": "dev-shared",
+      "inherits": "dev",
+      "displayName": "Dev - C++ + Python (shared core)",
+      "description": "Development build with qrp_core as a shared library.",
       "cacheVariables": {
         "QRP_BUILD_SHARED": "ON"
       }
     },
     {
-      "name": "RelWithDebInfo-Python",
+      "name": "release",
       "inherits": "base",
-      "displayName": "Python bindings - RelWithDebInfo",
+      "displayName": "Release - C++ + Python (static core)",
+      "description": "Optimized production-style build with C++ tests, CLI, and Python bindings.",
       "cacheVariables": {
         "BUILD_TESTING": "ON",
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "QRP_BUILD_PYTHON": "ON"
+        "CMAKE_BUILD_TYPE": "Release",
+        "QRP_BUILD_PYTHON": "ON",
+        "QRP_BUILD_SHARED": "OFF"
       }
     },
     {
-      "name": "RelWithDebInfo-Python-Shared",
-      "inherits": "RelWithDebInfo-Python",
-      "displayName": "Python bindings - RelWithDebInfo (shared qrp_core)",
+      "name": "release-shared",
+      "inherits": "release",
+      "displayName": "Release - C++ + Python (shared core)",
+      "description": "Optimized production-style build with qrp_core as a shared library.",
       "cacheVariables": {
         "QRP_BUILD_SHARED": "ON"
       }
     }
-  ],
-  "buildPresets": [
-    { "name": "Coverage", "configurePreset": "Coverage", "configuration": "Debug" },
-    { "name": "Debug", "configurePreset": "Debug", "configuration": "Debug" },
-    { "name": "Debug-Shared", "configurePreset": "Debug-Shared", "configuration": "Debug" },
-    { "name": "Release", "configurePreset": "Release", "configuration": "Release" },
-    { "name": "Release-Shared", "configurePreset": "Release-Shared", "configuration": "Release" },
-    { "name": "Release-Python", "configurePreset": "Release-Python", "configuration": "Release" },
-    { "name": "Release-Python-Shared", "configurePreset": "Release-Python-Shared", "configuration": "Release" },
-    { "name": "RelWithDebInfo", "configurePreset": "RelWithDebInfo", "configuration": "RelWithDebInfo" },
-    { "name": "RelWithDebInfo-Shared", "configurePreset": "RelWithDebInfo-Shared", "configuration": "RelWithDebInfo" },
-    { "name": "RelWithDebInfo-Python", "configurePreset": "RelWithDebInfo-Python", "configuration": "RelWithDebInfo" },
-    { "name": "RelWithDebInfo-Python-Shared", "configurePreset": "RelWithDebInfo-Python-Shared", "configuration": "RelWithDebInfo" }
-  ],
-  "testPresets": [
-    { "name": "Coverage", "configurePreset": "Coverage", "configuration": "Debug", "output": { "outputOnFailure": true } },
-    { "name": "Debug", "configurePreset": "Debug", "configuration": "Debug", "output": { "outputOnFailure": true } },
-    { "name": "Debug-Shared", "configurePreset": "Debug-Shared", "configuration": "Debug", "output": { "outputOnFailure": true } },
-    { "name": "Release", "configurePreset": "Release", "configuration": "Release", "output": { "outputOnFailure": true } },
-    { "name": "Release-Shared", "configurePreset": "Release-Shared", "configuration": "Release", "output": { "outputOnFailure": true } },
-    { "name": "Release-Python", "configurePreset": "Release-Python", "configuration": "Release", "output": { "outputOnFailure": true } },
-    { "name": "Release-Python-Shared", "configurePreset": "Release-Python-Shared", "configuration": "Release", "output": { "outputOnFailure": true } },
-    { "name": "RelWithDebInfo", "configurePreset": "RelWithDebInfo", "configuration": "RelWithDebInfo", "output": { "outputOnFailure": true } },
-    { "name": "RelWithDebInfo-Shared", "configurePreset": "RelWithDebInfo-Shared", "configuration": "RelWithDebInfo", "output": { "outputOnFailure": true } },
-    { "name": "RelWithDebInfo-Python", "configurePreset": "RelWithDebInfo-Python", "configuration": "RelWithDebInfo", "output": { "outputOnFailure": true } },
-    { "name": "RelWithDebInfo-Python-Shared", "configurePreset": "RelWithDebInfo-Python-Shared", "configuration": "RelWithDebInfo", "output": { "outputOnFailure": true } }
   ]
 }

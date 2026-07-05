@@ -16,20 +16,20 @@ namespace qrp::analytics::lsmc {
  * @brief Runtime configuration for least-squares Monte Carlo valuation.
  */
 struct LsmcConfig {
-    std::size_t num_paths = 10000;
-    std::uint64_t seed = 42;
-    double discount_rate = 0.05;
+    std::size_t num_paths = 10000;   // Number of simulated paths.
+    std::uint64_t seed = 42;         // Random seed for reproducible paths.
+    double discount_rate = 0.05;     // Flat annual discount rate used by the example engine.
 };
 
 /**
  * @brief Valuation output and path diagnostics from an LSMC run.
  */
 struct LsmcResult {
-    double value;
-    double standard_error;
-    std::vector<double> path_values;
-    double var_95;
-    double expected_shortfall_95;
+    double value;                         // Estimated option or contract value.
+    double standard_error;                // Monte Carlo standard error of the estimate.
+    std::vector<double> path_values;      // Discounted value by simulated path.
+    double var_95;                        // 95% value-at-risk of path values.
+    double expected_shortfall_95;         // 95% expected shortfall of path values.
 };
 
 /**
@@ -53,7 +53,7 @@ public:
     ) const;
 
 private:
-    LsmcConfig config_;
+    LsmcConfig config_; // Immutable runtime configuration for each run.
 };
 
 } // namespace qrp::analytics::lsmc

@@ -1,0 +1,63 @@
+{
+  "fixture_id": "high_growth_equity_volatility_coverage",
+  "description": "Portfolio-backed structural golden coverage for High Growth Equity Volatility.",
+  "market_path": "market/demo_market.json",
+  "portfolio_id": "high_growth_equity_volatility",
+  "portfolio_path": "portfolios/high_growth_equity_volatility_portfolio.json",
+  "asset_mix": {
+    "defensive_assets_pct": 20,
+    "growth_assets_pct": 80
+  },
+  "expected_books": {
+    "BOOK:HIGH_GROWTH:EQUITY_DELTA": [
+      "hgev_aapl_spot_001"
+    ],
+    "BOOK:HIGH_GROWTH:EQUITY_DERIVATIVES": [
+      "hgev_aapl_forward_001",
+      "hgev_spx_future_001"
+    ],
+    "BOOK:HIGH_GROWTH:EQUITY_VOLATILITY": [
+      "hgev_aapl_american_put_001",
+      "hgev_aapl_call_001",
+      "hgev_aapl_euro_put_001"
+    ]
+  },
+  "trades": {
+    "hgev_aapl_american_put_001": {
+      "asset_class": "equity",
+      "book": "BOOK:HIGH_GROWTH:EQUITY_VOLATILITY",
+      "product_type": "equity_option",
+      "support_status": "supported"
+    },
+    "hgev_aapl_call_001": {
+      "asset_class": "equity",
+      "book": "BOOK:HIGH_GROWTH:EQUITY_VOLATILITY",
+      "product_type": "equity_option",
+      "support_status": "supported"
+    },
+    "hgev_aapl_euro_put_001": {
+      "asset_class": "equity",
+      "book": "BOOK:HIGH_GROWTH:EQUITY_VOLATILITY",
+      "product_type": "equity_option",
+      "support_status": "supported"
+    },
+    "hgev_aapl_forward_001": {
+      "asset_class": "equity",
+      "book": "BOOK:HIGH_GROWTH:EQUITY_DERIVATIVES",
+      "product_type": "equity_forward",
+      "support_status": "supported"
+    },
+    "hgev_aapl_spot_001": {
+      "asset_class": "equity",
+      "book": "BOOK:HIGH_GROWTH:EQUITY_DELTA",
+      "product_type": "equity_spot",
+      "support_status": "supported"
+    },
+    "hgev_spx_future_001": {
+      "asset_class": "equity",
+      "book": "BOOK:HIGH_GROWTH:EQUITY_DERIVATIVES",
+      "product_type": "equity_future",
+      "support_status": "supported"
+    }
+  }
+}

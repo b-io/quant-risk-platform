@@ -81,6 +81,7 @@ public:
     void list_data();
 
 private:
+    /** @brief Storage backend used for all persisted inputs and analytics outputs. */
     std::shared_ptr<persistence::StorageBackend> storage_;
 };
 

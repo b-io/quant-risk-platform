@@ -12,17 +12,17 @@ namespace qrp::analytics::dynamic_programming {
  * @brief Minimal state vector for dynamic-programming examples and LSMC exercise policies.
  */
 struct State {
-    std::vector<double> market_variables;
-    std::vector<double> operational_variables;
+    std::vector<double> market_variables;       // Simulated market state, such as prices or rates.
+    std::vector<double> operational_variables;  // Product state, such as inventory or exercise history.
 };
 
 /**
  * @brief Discrete action with optional numeric parameters.
  */
 struct Action {
-    int id;
-    std::string name;
-    std::map<std::string, double> parameters;
+    int id;                                      // Stable action identifier.
+    std::string name;                            // Human-readable action label.
+    std::map<std::string, double> parameters;    // Numeric action parameters.
 };
 
 /**

@@ -15,11 +15,11 @@ The platform's core logic is implemented in C++ and exposed to Python using Pybi
 
 1. Install the Python dependencies and the `qrp` module:
    ```powershell
-   .\scripts\install.ps1 -Preset Release-Python
+   .\scripts\install.ps1 -Preset dev
    ```
 2. Run the end-to-end demo/smoke test with the pinned Python 3.12 environment:
    ```powershell
-   powershell -ExecutionPolicy ByPass -c {$env:UV_INSTALL_DIR = "D:\BIN"; irm https://astral.sh/uv/install.ps1 | iex}
+   powershell -ExecutionPolicy ByPass -c {$env:UV_INSTALL_DIR = "<path-to-your-local-tools>"; irm https://astral.sh/uv/install.ps1 | iex}
    uv sync --project python --extra dashboard --extra optimization
    uv run --project python python python\examples\demo_platform.py
    ```

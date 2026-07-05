@@ -40,8 +40,7 @@ projection curves are platform-wide dependencies.
 
 ## Product Coverage Sequence
 
-The rates phase in `docs/implementation/PHASED_BUILD_PLAN.md` should be
-implemented in this order:
+Rates product support follows this implementation order:
 
 1. cash and deposits;
 2. FRAs;

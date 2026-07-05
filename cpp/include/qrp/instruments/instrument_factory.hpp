@@ -13,17 +13,181 @@
 namespace qrp::instruments {
 
 /**
- * @brief Builds QuantLib instruments from canonical domain trade DTOs.
+ * @brief Builds commodity instruments from canonical commodity trade DTOs.
  */
-class InstrumentFactory {
+class CommodityInstrumentFactory {
 public:
     /**
-     * @brief Dispatches to the product-specific creator for the trade type.
+     * @brief Creates a commodity spot mark-to-market instrument.
      */
-    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_instrument(
-        const domain::Trade& trade,
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_commodity_spot(
+        const domain::CommoditySpotTrade& trade,
         const analytics::PricingContext& context);
 
+    /**
+     * @brief Creates a commodity forward instrument from quoted forward or spot inputs.
+     */
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_commodity_forward(
+        const domain::CommodityForwardTrade& trade,
+        const analytics::PricingContext& context);
+
+    /**
+     * @brief Creates a listed commodity future mark-to-market instrument.
+     */
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_commodity_future(
+        const domain::CommodityFutureTrade& trade,
+        const analytics::PricingContext& context);
+
+    /**
+     * @brief Creates a weighted commodity futures strip mark-to-market instrument.
+     */
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_commodity_future_strip(
+        const domain::CommodityFutureStripTrade& trade,
+        const analytics::PricingContext& context);
+
+    /**
+     * @brief Creates a Black-76 option on a commodity future.
+     */
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_commodity_future_option(
+        const domain::CommodityFutureOptionTrade& trade,
+        const analytics::PricingContext& context);
+
+    /**
+     * @brief Creates a normal-model option on a commodity calendar spread.
+     */
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_commodity_calendar_spread_option(
+        const domain::CommodityCalendarSpreadOptionTrade& trade,
+        const analytics::PricingContext& context);
+
+    /**
+     * @brief Creates a commodity swing contract using an exercise-envelope approximation.
+     */
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_commodity_swing(
+        const domain::CommoditySwingTrade& trade,
+        const analytics::PricingContext& context);
+};
+
+/**
+ * @brief Builds credit instruments from canonical credit trade DTOs.
+ */
+class CreditInstrumentFactory {
+public:
+    /**
+     * @brief Creates a credit bond instrument discounted by risk-free and issuer spread curves.
+     */
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_credit_bond(
+        const domain::CreditBondTrade& trade,
+        const analytics::PricingContext& context);
+
+    /**
+     * @brief Creates a single-name CDS instrument from spread, recovery, and discount inputs.
+     */
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_cds(
+        const domain::CdsTrade& trade,
+        const analytics::PricingContext& context);
+
+    /**
+     * @brief Creates a CDS index instrument from index spread, recovery, and discount inputs.
+     */
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_cds_index(
+        const domain::CdsIndexTrade& trade,
+        const analytics::PricingContext& context);
+
+    /**
+     * @brief Creates a European option on a single-name CDS spread.
+     */
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_cds_option(
+        const domain::CdsOptionTrade& trade,
+        const analytics::PricingContext& context);
+
+    /**
+     * @brief Creates a European option on a CDS index spread.
+     */
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_credit_index_option(
+        const domain::CreditIndexOptionTrade& trade,
+        const analytics::PricingContext& context);
+};
+
+/**
+ * @brief Builds equity instruments from canonical equity trade DTOs.
+ */
+class EquityInstrumentFactory {
+public:
+    /**
+     * @brief Creates an equity spot instrument linked to the underlier market quote.
+     */
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_equity_spot(
+        const domain::EquitySpotTrade& trade,
+        const analytics::PricingContext& context);
+
+    /**
+     * @brief Creates an equity forward instrument with dividend and borrow inputs.
+     */
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_equity_forward(
+        const domain::EquityForwardTrade& trade,
+        const analytics::PricingContext& context);
+
+    /**
+     * @brief Creates a listed equity or index future instrument.
+     */
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_equity_future(
+        const domain::EquityFutureTrade& trade,
+        const analytics::PricingContext& context);
+
+    /**
+     * @brief Creates a European or American equity/index option instrument.
+     */
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_equity_option(
+        const domain::EquityOptionTrade& trade,
+        const analytics::PricingContext& context);
+};
+
+/**
+ * @brief Builds FX instruments from canonical FX trade DTOs.
+ */
+class FxInstrumentFactory {
+public:
+    /**
+     * @brief Creates an FX spot exposure instrument linked to the market spot quote.
+     */
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_fx_spot(
+        const domain::FxSpotTrade& trade,
+        const analytics::PricingContext& context);
+
+    /**
+     * @brief Creates an FX forward instrument from spot, forward, and notional inputs.
+     */
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_fx_forward(
+        const domain::FxForwardTrade& trade,
+        const analytics::PricingContext& context);
+
+    /**
+     * @brief Creates an FX swap instrument from near and far forward legs.
+     */
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_fx_swap(
+        const domain::FxSwapTrade& trade,
+        const analytics::PricingContext& context);
+
+    /**
+     * @brief Creates an NDF instrument settled in the quote currency.
+     */
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_ndf(
+        const domain::NdfTrade& trade,
+        const analytics::PricingContext& context);
+
+    /**
+     * @brief Creates a vanilla European FX option instrument.
+     */
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_fx_option(
+        const domain::FxOptionTrade& trade,
+        const analytics::PricingContext& context);
+};
+
+/**
+ * @brief Builds rates instruments from canonical rates trade DTOs.
+ */
+class RatesInstrumentFactory {
+public:
     /**
      * @brief Creates a cash deposit instrument discounted from configured rates curves.
      */
@@ -93,47 +257,18 @@ public:
     static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_bermudan_swaption(
         const domain::BermudanSwaptionTrade& trade,
         const analytics::PricingContext& context);
+};
 
+/**
+ * @brief Facade used by analytics services to dispatch through the product-pricing registry.
+ */
+class InstrumentFactory {
+public:
     /**
-     * @brief Creates an FX spot exposure instrument linked to the market spot quote.
+     * @brief Dispatches to the product-specific creator for the trade type.
      */
-    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_fx_spot(
-        const domain::FxSpotTrade& trade,
-        const analytics::PricingContext& context);
-
-    /**
-     * @brief Creates an FX forward instrument from spot, forward, and notional inputs.
-     */
-    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_fx_forward(
-        const domain::FxForwardTrade& trade,
-        const analytics::PricingContext& context);
-
-    /**
-     * @brief Creates an FX swap instrument from near and far forward legs.
-     */
-    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_fx_swap(
-        const domain::FxSwapTrade& trade,
-        const analytics::PricingContext& context);
-
-    /**
-     * @brief Creates an NDF instrument settled in the quote currency.
-     */
-    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_ndf(
-        const domain::NdfTrade& trade,
-        const analytics::PricingContext& context);
-
-    /**
-     * @brief Creates a vanilla European FX option instrument.
-     */
-    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_fx_option(
-        const domain::FxOptionTrade& trade,
-        const analytics::PricingContext& context);
-
-    /**
-     * @brief Creates an equity spot instrument linked to the underlier market quote.
-     */
-    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_equity_spot(
-        const domain::EquitySpotTrade& trade,
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_instrument(
+        const domain::Trade& trade,
         const analytics::PricingContext& context);
 };
 

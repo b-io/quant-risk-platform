@@ -193,7 +193,7 @@ Advantages:
 - compact parametric smile;
 - interpretable parameters;
 - effective fit for cap, floor, and swaption smiles;
-- compatibility with Black, shifted-Black, and normal quoting conventions.
+- alignment with Black, shifted-Black, and normal quoting conventions.
 
 Limitations:
 

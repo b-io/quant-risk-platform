@@ -19,8 +19,7 @@ FX documentation should cover:
 
 ## Product Coverage Sequence
 
-The FX phase in `docs/implementation/PHASED_BUILD_PLAN.md` should be
-implemented in this order:
+FX product support follows this implementation order:
 
 1. FX spot exposure;
 2. FX forwards;

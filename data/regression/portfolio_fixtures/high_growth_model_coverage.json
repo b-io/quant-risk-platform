@@ -1,0 +1,69 @@
+{
+  "fixture_id": "high_growth_model_coverage",
+  "description": "Portfolio-backed structural golden coverage for High Growth Model.",
+  "market_path": "market/demo_market.json",
+  "portfolio_id": "high_growth_model",
+  "portfolio_path": "portfolios/high_growth_model_portfolio.json",
+  "asset_mix": {
+    "defensive_assets_pct": 20,
+    "growth_assets_pct": 80
+  },
+  "expected_books": {
+    "BOOK:HIGH_GROWTH:COMMODITY_VOLATILITY": [
+      "hg_wti_calendar_001"
+    ],
+    "BOOK:HIGH_GROWTH:CREDIT_VOLATILITY": [
+      "hg_acme_cds_option_001"
+    ],
+    "BOOK:HIGH_GROWTH:EQUITY_DERIVATIVES": [
+      "hg_aapl_forward_001"
+    ],
+    "BOOK:HIGH_GROWTH:EQUITY_VOLATILITY": [
+      "hg_aapl_put_001"
+    ],
+    "BOOK:HIGH_GROWTH:FX_CARRY": [
+      "hg_eurusd_forward_001"
+    ],
+    "BOOK:HIGH_GROWTH:RATES_HEDGE": [
+      "hg_usd_ois_001"
+    ]
+  },
+  "trades": {
+    "hg_aapl_forward_001": {
+      "asset_class": "equity",
+      "book": "BOOK:HIGH_GROWTH:EQUITY_DERIVATIVES",
+      "product_type": "equity_forward",
+      "support_status": "supported"
+    },
+    "hg_aapl_put_001": {
+      "asset_class": "equity",
+      "book": "BOOK:HIGH_GROWTH:EQUITY_VOLATILITY",
+      "product_type": "equity_option",
+      "support_status": "supported"
+    },
+    "hg_acme_cds_option_001": {
+      "asset_class": "credit",
+      "book": "BOOK:HIGH_GROWTH:CREDIT_VOLATILITY",
+      "product_type": "cds_option",
+      "support_status": "supported"
+    },
+    "hg_eurusd_forward_001": {
+      "asset_class": "fx",
+      "book": "BOOK:HIGH_GROWTH:FX_CARRY",
+      "product_type": "fx_forward",
+      "support_status": "supported"
+    },
+    "hg_usd_ois_001": {
+      "asset_class": "rates",
+      "book": "BOOK:HIGH_GROWTH:RATES_HEDGE",
+      "product_type": "ois_swap",
+      "support_status": "supported"
+    },
+    "hg_wti_calendar_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:HIGH_GROWTH:COMMODITY_VOLATILITY",
+      "product_type": "commodity_calendar_spread_option",
+      "support_status": "supported"
+    }
+  }
+}

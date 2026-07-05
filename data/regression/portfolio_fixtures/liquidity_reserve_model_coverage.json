@@ -1,0 +1,31 @@
+{
+  "fixture_id": "liquidity_reserve_model_coverage",
+  "description": "Portfolio-backed structural golden coverage for Liquidity Reserve Model.",
+  "market_path": "market/demo_market.json",
+  "portfolio_id": "liquidity_reserve_model",
+  "portfolio_path": "portfolios/liquidity_reserve_model_portfolio.json",
+  "asset_mix": {
+    "defensive_assets_pct": 100,
+    "growth_assets_pct": 0
+  },
+  "expected_books": {
+    "BOOK:LIQUIDITY_RESERVE:CASH_AND_BILLS": [
+      "lr_usd_deposit_001",
+      "lr_usd_tbill_proxy_001"
+    ]
+  },
+  "trades": {
+    "lr_usd_deposit_001": {
+      "asset_class": "rates",
+      "book": "BOOK:LIQUIDITY_RESERVE:CASH_AND_BILLS",
+      "product_type": "deposit",
+      "support_status": "supported"
+    },
+    "lr_usd_tbill_proxy_001": {
+      "asset_class": "rates",
+      "book": "BOOK:LIQUIDITY_RESERVE:CASH_AND_BILLS",
+      "product_type": "fixed_rate_bond",
+      "support_status": "supported"
+    }
+  }
+}

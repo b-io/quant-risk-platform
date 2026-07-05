@@ -1,0 +1,167 @@
+{
+  "portfolio_id": "stable_balanced_model",
+  "portfolio_name": "Stable Balanced Model",
+  "portfolio_style": "basic_model",
+  "description": "Balanced defensive/growth allocation with hedged rates, credit index, FX, equity, and commodities.",
+  "base_currency": "USD",
+  "asset_mix": {
+    "defensive_assets_pct": 60,
+    "growth_assets_pct": 40
+  },
+  "books": [
+    {
+      "book_id": "BOOK:STABLE_BALANCED:CORE_INCOME",
+      "book_name": "Stable Balanced Core Income",
+      "trades": [
+        "sb_usd_bond_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:STABLE_BALANCED:CREDIT_BETA",
+      "book_name": "Stable Balanced Credit Beta",
+      "trades": [
+        "sb_cdx_index_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:STABLE_BALANCED:EQUITY_BETA",
+      "book_name": "Stable Balanced Equity Beta",
+      "trades": [
+        "sb_spx_future_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:STABLE_BALANCED:FX_HEDGE",
+      "book_name": "Stable Balanced Fx Hedge",
+      "trades": [
+        "sb_eurusd_swap_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:STABLE_BALANCED:RATES_HEDGE",
+      "book_name": "Stable Balanced Rates Hedge",
+      "trades": [
+        "sb_usd_ois_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:STABLE_BALANCED:REAL_ASSETS",
+      "book_name": "Stable Balanced Real Assets",
+      "trades": [
+        "sb_wti_forward_001"
+      ]
+    }
+  ],
+  "trades": [
+    {
+      "id": "sb_usd_ois_001",
+      "asset_class": "rates",
+      "type": "ois_swap",
+      "currency": "USD",
+      "direction": "receive_fixed",
+      "book": "BOOK:STABLE_BALANCED:RATES_HEDGE",
+      "strategy": "USD_OIS_HEDGE",
+      "notional": 2000000,
+      "start_date": "2026-03-26",
+      "maturity_date": "2031-03-26",
+      "details": {
+        "fixed_rate": 0.052,
+        "overnight_index": "SOFR",
+        "spread": 0.0
+      }
+    },
+    {
+      "id": "sb_usd_bond_001",
+      "asset_class": "rates",
+      "type": "fixed_rate_bond",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:STABLE_BALANCED:CORE_INCOME",
+      "strategy": "USD_CORE_BONDS",
+      "notional": 1500000,
+      "start_date": "2026-03-26",
+      "maturity_date": "2031-03-26",
+      "details": {
+        "coupon_rate": 0.055,
+        "frequency": "Annual"
+      }
+    },
+    {
+      "id": "sb_cdx_index_001",
+      "asset_class": "credit",
+      "type": "cds_index",
+      "currency": "USD",
+      "direction": "sell_protection",
+      "book": "BOOK:STABLE_BALANCED:CREDIT_BETA",
+      "strategy": "CDX_IG_OVERLAY",
+      "notional": 3000000,
+      "start_date": "2026-03-24",
+      "maturity_date": "2031-03-24",
+      "details": {
+        "coupon_rate": 0.009,
+        "frequency": "Quarterly",
+        "index_factor": 0.98,
+        "index_name": "CDX_IG",
+        "recovery_quote_id": "CDX_IG_RECOVERY",
+        "spread_quote_id": "CDX_IG_5Y"
+      }
+    },
+    {
+      "id": "sb_eurusd_swap_001",
+      "asset_class": "fx",
+      "type": "fx_swap",
+      "currency": "USD",
+      "direction": "sell_base",
+      "book": "BOOK:STABLE_BALANCED:FX_HEDGE",
+      "strategy": "EURUSD_ROLL",
+      "notional": 750000,
+      "start_date": "2026-06-24",
+      "maturity_date": "2027-03-24",
+      "details": {
+        "base_currency": "EUR",
+        "quote_currency": "USD",
+        "near_rate": 1.088,
+        "far_rate": 1.091,
+        "spot_quote_id": "EURUSD",
+        "near_forward_points_quote_id": "EURUSD_FWDPTS_3M",
+        "far_forward_points_quote_id": "EURUSD_FWDPTS_1Y"
+      }
+    },
+    {
+      "id": "sb_wti_forward_001",
+      "asset_class": "commodity",
+      "type": "commodity_forward",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:STABLE_BALANCED:REAL_ASSETS",
+      "strategy": "WTI_FORWARD",
+      "quantity": 700,
+      "maturity_date": "2026-09-24",
+      "details": {
+        "underlier": "WTI",
+        "contract_price": 78.1,
+        "forward_quote_id": "WTI_FUT_6M",
+        "tenor": "6M",
+        "unit": "bbl"
+      }
+    },
+    {
+      "id": "sb_spx_future_001",
+      "asset_class": "equity",
+      "type": "equity_future",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:STABLE_BALANCED:EQUITY_BETA",
+      "strategy": "SPX_BETA",
+      "quantity": 1,
+      "maturity_date": "2026-09-24",
+      "details": {
+        "underlier": "SPX",
+        "contract_size": 50,
+        "reference_price": 5350.0,
+        "future_quote_id": "ES_FUT_6M",
+        "spot_quote_id": "SPX"
+      }
+    }
+  ]
+}

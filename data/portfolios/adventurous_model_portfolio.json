@@ -1,0 +1,191 @@
+{
+  "portfolio_id": "adventurous_model",
+  "portfolio_name": "Adventurous Model",
+  "portfolio_style": "basic_model",
+  "description": "Adventurous allocation with maximum growth and alternative risk exposures.",
+  "base_currency": "USD",
+  "asset_mix": {
+    "defensive_assets_pct": 5,
+    "growth_assets_pct": 95,
+    "defensive_assets_pct_range": [
+      0,
+      5
+    ],
+    "growth_assets_pct_range": [
+      95,
+      100
+    ]
+  },
+  "books": [
+    {
+      "book_id": "BOOK:ADVENTUROUS:COMMODITY_FLEXIBILITY",
+      "book_name": "Adventurous Commodity Flexibility",
+      "trades": [
+        "ad_ttf_swing_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:ADVENTUROUS:COMMODITY_VOLATILITY",
+      "book_name": "Adventurous Commodity Volatility",
+      "trades": [
+        "ad_wti_option_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:ADVENTUROUS:CREDIT_VOLATILITY",
+      "book_name": "Adventurous Credit Volatility",
+      "trades": [
+        "ad_acme_cds_option_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:ADVENTUROUS:EQUITY_VOLATILITY",
+      "book_name": "Adventurous Equity Volatility",
+      "trades": [
+        "ad_aapl_american_put_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:ADVENTUROUS:FX_RELATIVE_VALUE",
+      "book_name": "Adventurous Fx Relative Value",
+      "trades": [
+        "ad_eurusd_ndf_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:ADVENTUROUS:RATES_RELATIVE_VALUE",
+      "book_name": "Adventurous Rates Relative Value",
+      "trades": [
+        "ad_usd_fra_001"
+      ]
+    }
+  ],
+  "trades": [
+    {
+      "id": "ad_usd_fra_001",
+      "asset_class": "rates",
+      "type": "fra",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:ADVENTUROUS:RATES_RELATIVE_VALUE",
+      "strategy": "USD_FRA_VIEW",
+      "notional": 2000000,
+      "start_date": "2026-06-24",
+      "maturity_date": "2026-09-24",
+      "details": {
+        "strike_rate": 0.0535,
+        "floating_index": "USD_LIBOR_3M"
+      }
+    },
+    {
+      "id": "ad_eurusd_ndf_001",
+      "asset_class": "fx",
+      "type": "ndf",
+      "currency": "USD",
+      "direction": "buy_base",
+      "book": "BOOK:ADVENTUROUS:FX_RELATIVE_VALUE",
+      "strategy": "EURUSD_NDF",
+      "notional": 1500000,
+      "maturity_date": "2026-09-24",
+      "details": {
+        "base_currency": "EUR",
+        "quote_currency": "USD",
+        "fixing_date": "2026-09-22",
+        "forward_rate": 1.103,
+        "spot_quote_id": "EURUSD",
+        "forward_points_quote_id": "EURUSD_FWDPTS_6M"
+      }
+    },
+    {
+      "id": "ad_acme_cds_option_001",
+      "asset_class": "credit",
+      "type": "cds_option",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:ADVENTUROUS:CREDIT_VOLATILITY",
+      "strategy": "ACME_CDS_CALL",
+      "notional": 3000000,
+      "maturity_date": "2031-03-24",
+      "details": {
+        "expiry_date": "2027-03-24",
+        "strike_spread": 0.015,
+        "frequency": "Quarterly",
+        "issuer": "ACME",
+        "option_type": "call",
+        "recovery_quote_id": "ACME_RECOVERY",
+        "spread_quote_id": "ACME_CDS_5Y",
+        "volatility_quote_id": "ACME_CDS_OPTION_VOL_1Y_5Y"
+      }
+    },
+    {
+      "id": "ad_ttf_swing_001",
+      "asset_class": "commodity",
+      "type": "commodity_swing",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:ADVENTUROUS:COMMODITY_FLEXIBILITY",
+      "strategy": "TTF_SWING_OPTIONALITY",
+      "start_date": "2026-04-01",
+      "maturity_date": "2026-12-24",
+      "details": {
+        "underlier": "TTF",
+        "min_quantity": 100,
+        "max_quantity": 250,
+        "strike_price": 31.0,
+        "forward_quote_ids": [
+          "TTF_FWD_Q1",
+          "TTF_FWD_Q2"
+        ],
+        "exercise_dates": [
+          "2026-06-24",
+          "2026-09-24"
+        ],
+        "volatility": 0.4,
+        "unit": "MWh"
+      }
+    },
+    {
+      "id": "ad_wti_option_001",
+      "asset_class": "commodity",
+      "type": "commodity_future_option",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:ADVENTUROUS:COMMODITY_VOLATILITY",
+      "strategy": "WTI_UPSIDE",
+      "quantity": 2,
+      "maturity_date": "2026-09-24",
+      "details": {
+        "underlier": "WTI",
+        "contract_size": 1000,
+        "strike_price": 80.0,
+        "expiry_date": "2026-09-24",
+        "future_quote_id": "WTI_FUT_6M",
+        "volatility_quote_id": "WTI_VOL_6M_ATM",
+        "option_type": "call",
+        "unit": "bbl"
+      }
+    },
+    {
+      "id": "ad_aapl_american_put_001",
+      "asset_class": "equity",
+      "type": "equity_option",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:ADVENTUROUS:EQUITY_VOLATILITY",
+      "strategy": "AAPL_AMERICAN_PUT",
+      "quantity": 250,
+      "details": {
+        "underlier": "AAPL",
+        "strike_price": 190.0,
+        "expiry_date": "2026-09-24",
+        "settlement_date": "2026-09-24",
+        "spot_quote_id": "AAPL",
+        "dividend_yield_quote_id": "AAPL_DIVYLD_1Y",
+        "borrow_rate_quote_id": "AAPL_BORROW_1Y",
+        "volatility_quote_id": "AAPL_VOL_6M_ATM",
+        "exercise_style": "american",
+        "option_type": "put"
+      }
+    }
+  ]
+}

@@ -87,7 +87,7 @@ Typical fields include:
 
 ### 3.2 Metadata Requirement
 
-Without metadata, the same number can be interpreted in incompatible ways.
+Without metadata, the same number can be interpreted in conflicting ways.
 
 Examples:
 

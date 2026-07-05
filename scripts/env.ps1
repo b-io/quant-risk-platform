@@ -18,6 +18,8 @@ if (-not $ProjectRoot) {
 
 if (-not $EnvFile) {
     $EnvFile = Join-Path $ProjectRoot ".env.cmd"
+} elseif (-not [System.IO.Path]::IsPathRooted($EnvFile)) {
+    $EnvFile = Join-Path $ProjectRoot $EnvFile
 }
 
 $isWindows = [System.Environment]::OSVersion.Platform -eq [System.PlatformID]::Win32NT
@@ -57,10 +59,16 @@ if (-not $Quiet) {
     Write-Host "Imported environment from $EnvFile" -ForegroundColor Green
     Write-Host "MSVC env ready       : $env:QRP_MSVC_ENV_READY"
     Write-Host "QRP env profile      : $env:QRP_ENV_PROFILE"
+    Write-Host "QRP env file         : $env:QRP_ENV_FILE"
+    Write-Host "DEV_TOOLS_ROOT       : $env:DEV_TOOLS_ROOT"
     Write-Host "VCPKG_ROOT           : $env:VCPKG_ROOT"
     Write-Host "VCPKG_TARGET_TRIPLET : $env:VCPKG_TARGET_TRIPLET"
 }
 
 if (-not $env:INCLUDE -or -not $env:LIB) {
     Write-Warning "MSVC INCLUDE/LIB were not detected. Ninja builds with cl.exe may fail to find standard headers such as <string> or <cstddef>."
+}
+
+if (-not $env:VCPKG_TARGET_TRIPLET) {
+    Write-Warning "VCPKG_TARGET_TRIPLET is not set. CMake presets may fail vcpkg manifest installation."
 }

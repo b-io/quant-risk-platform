@@ -1,0 +1,77 @@
+{
+  "fixture_id": "adventurous_model_coverage",
+  "description": "Portfolio-backed structural golden coverage for Adventurous Model.",
+  "market_path": "market/demo_market.json",
+  "portfolio_id": "adventurous_model",
+  "portfolio_path": "portfolios/adventurous_model_portfolio.json",
+  "asset_mix": {
+    "defensive_assets_pct": 5,
+    "growth_assets_pct": 95,
+    "defensive_assets_pct_range": [
+      0,
+      5
+    ],
+    "growth_assets_pct_range": [
+      95,
+      100
+    ]
+  },
+  "expected_books": {
+    "BOOK:ADVENTUROUS:COMMODITY_FLEXIBILITY": [
+      "ad_ttf_swing_001"
+    ],
+    "BOOK:ADVENTUROUS:COMMODITY_VOLATILITY": [
+      "ad_wti_option_001"
+    ],
+    "BOOK:ADVENTUROUS:CREDIT_VOLATILITY": [
+      "ad_acme_cds_option_001"
+    ],
+    "BOOK:ADVENTUROUS:EQUITY_VOLATILITY": [
+      "ad_aapl_american_put_001"
+    ],
+    "BOOK:ADVENTUROUS:FX_RELATIVE_VALUE": [
+      "ad_eurusd_ndf_001"
+    ],
+    "BOOK:ADVENTUROUS:RATES_RELATIVE_VALUE": [
+      "ad_usd_fra_001"
+    ]
+  },
+  "trades": {
+    "ad_aapl_american_put_001": {
+      "asset_class": "equity",
+      "book": "BOOK:ADVENTUROUS:EQUITY_VOLATILITY",
+      "product_type": "equity_option",
+      "support_status": "supported"
+    },
+    "ad_acme_cds_option_001": {
+      "asset_class": "credit",
+      "book": "BOOK:ADVENTUROUS:CREDIT_VOLATILITY",
+      "product_type": "cds_option",
+      "support_status": "supported"
+    },
+    "ad_eurusd_ndf_001": {
+      "asset_class": "fx",
+      "book": "BOOK:ADVENTUROUS:FX_RELATIVE_VALUE",
+      "product_type": "ndf",
+      "support_status": "supported"
+    },
+    "ad_ttf_swing_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:ADVENTUROUS:COMMODITY_FLEXIBILITY",
+      "product_type": "commodity_swing",
+      "support_status": "partially_supported"
+    },
+    "ad_usd_fra_001": {
+      "asset_class": "rates",
+      "book": "BOOK:ADVENTUROUS:RATES_RELATIVE_VALUE",
+      "product_type": "fra",
+      "support_status": "supported"
+    },
+    "ad_wti_option_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:ADVENTUROUS:COMMODITY_VOLATILITY",
+      "product_type": "commodity_future_option",
+      "support_status": "supported"
+    }
+  }
+}

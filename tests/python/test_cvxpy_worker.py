@@ -5,11 +5,15 @@ from __future__ import annotations
 import builtins
 import importlib
 import importlib.util
+import io
+import json
 import math
+import runpy
 import sys
 import types
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 def install_optional_dependency_stubs() -> None:
@@ -231,6 +235,8 @@ class FakeCvxpy:
 
 worker.np = FakeNumpy
 worker.cp = FakeCvxpy
+sys.modules["numpy"] = FakeNumpy
+sys.modules["cvxpy"] = FakeCvxpy
 
 
 def base_request() -> dict:
@@ -455,6 +461,56 @@ class CvxpyWorkerHelperTest(unittest.TestCase):
         result = worker.solve_optimization(request)
 
         self.assertEqual(result["status"], "optimal")
+
+    def test_solve_optimization_supports_constraint_forms_and_risk_objectives(self) -> None:
+        request = base_request()
+        request["constraints"] = [
+            {"type": "LinearEquality", "coefficients": {"A": 1.0}, "target": 1.0},
+            {"type": "LinearInequality", "coefficients": {"A": 1.0}, "lb": 0.0, "ub": 1.0},
+            {"type": "Turnover", "current_weights": {"A": 0.5}, "max_turnover": 0.75},
+        ]
+        request["objectives"] = [
+            {"type": "MinimumVariance"},
+            {"type": "TrackingError", "benchmark_weights": {"A": 1.0}},
+        ]
+        request["risk_model"] = {"type": "FullCovariance", "asset_ids": ["A"], "covariance": [[0.1]]}
+
+        result = worker.solve_optimization(request)
+
+        self.assertEqual(result["status"], "optimal")
+
+    def test_solve_optimization_rejects_unknown_solver(self) -> None:
+        request = base_request()
+        request["config"]["solver"] = "missing_solver"
+
+        self.assert_worker_error(request, "not available")
+
+    def test_command_line_entrypoint_writes_result_file(self) -> None:
+        temp_dir = PROJECT_ROOT / "temp"
+        temp_dir.mkdir(exist_ok=True)
+        request_path = temp_dir / "cvxpy_worker_request_test.json"
+        response_path = temp_dir / "cvxpy_worker_response_test.json"
+        request_path.write_text(json.dumps(base_request()), encoding="utf-8")
+
+        with mock.patch.object(sys, "argv", ["cvxpy_worker.py", str(request_path), str(response_path)]):
+            runpy.run_path(
+                str(PROJECT_ROOT / "python" / "qrp" / "optimization" / "cvxpy_worker.py"),
+                run_name="__main__",
+            )
+
+        response = json.loads(response_path.read_text(encoding="utf-8"))
+        self.assertEqual(response["status"], "optimal")
+
+    def test_command_line_entrypoint_reports_usage_without_paths(self) -> None:
+        with mock.patch.object(sys, "argv", ["cvxpy_worker.py"]), mock.patch("sys.stdout", new_callable=io.StringIO) as stdout:
+            with self.assertRaises(SystemExit) as exit_context:
+                runpy.run_path(
+                    str(PROJECT_ROOT / "python" / "qrp" / "optimization" / "cvxpy_worker.py"),
+                    run_name="__main__",
+                )
+
+        self.assertEqual(exit_context.exception.code, 1)
+        self.assertIn("Usage: cvxpy_worker.py", stdout.getvalue())
 
 
 if __name__ == "__main__":

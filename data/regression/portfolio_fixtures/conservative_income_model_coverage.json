@@ -1,0 +1,60 @@
+{
+  "fixture_id": "conservative_income_model_coverage",
+  "description": "Portfolio-backed structural golden coverage for Conservative Income Model.",
+  "market_path": "market/demo_market.json",
+  "portfolio_id": "conservative_income_model",
+  "portfolio_path": "portfolios/conservative_income_model_portfolio.json",
+  "asset_mix": {
+    "defensive_assets_pct": 80,
+    "growth_assets_pct": 20
+  },
+  "expected_books": {
+    "BOOK:CONSERVATIVE_INCOME:CORE_INCOME": [
+      "ci_usd_core_bond_001"
+    ],
+    "BOOK:CONSERVATIVE_INCOME:CREDIT_HEDGE": [
+      "ci_acme_cds_hedge_001"
+    ],
+    "BOOK:CONSERVATIVE_INCOME:CREDIT_INCOME": [
+      "ci_acme_credit_bond_001"
+    ],
+    "BOOK:CONSERVATIVE_INCOME:EQUITY_INCOME": [
+      "ci_aapl_income_equity_001"
+    ],
+    "BOOK:CONSERVATIVE_INCOME:FX_HEDGE": [
+      "ci_eurusd_income_hedge_001"
+    ]
+  },
+  "trades": {
+    "ci_aapl_income_equity_001": {
+      "asset_class": "equity",
+      "book": "BOOK:CONSERVATIVE_INCOME:EQUITY_INCOME",
+      "product_type": "equity_spot",
+      "support_status": "supported"
+    },
+    "ci_acme_cds_hedge_001": {
+      "asset_class": "credit",
+      "book": "BOOK:CONSERVATIVE_INCOME:CREDIT_HEDGE",
+      "product_type": "cds",
+      "support_status": "supported"
+    },
+    "ci_acme_credit_bond_001": {
+      "asset_class": "credit",
+      "book": "BOOK:CONSERVATIVE_INCOME:CREDIT_INCOME",
+      "product_type": "credit_bond",
+      "support_status": "supported"
+    },
+    "ci_eurusd_income_hedge_001": {
+      "asset_class": "fx",
+      "book": "BOOK:CONSERVATIVE_INCOME:FX_HEDGE",
+      "product_type": "fx_forward",
+      "support_status": "supported"
+    },
+    "ci_usd_core_bond_001": {
+      "asset_class": "rates",
+      "book": "BOOK:CONSERVATIVE_INCOME:CORE_INCOME",
+      "product_type": "fixed_rate_bond",
+      "support_status": "supported"
+    }
+  }
+}

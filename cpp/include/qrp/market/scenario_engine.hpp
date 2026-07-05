@@ -12,16 +12,20 @@
 
 namespace qrp::market {
 
-class MarketState; // Forward declaration
+/**
+ * @brief Forward declaration of mutable market-state quote and curve handles.
+ */
+class MarketState;
 
 /**
  * @brief Named scenario containing canonical factor shocks.
  */
 struct ScenarioDefinition {
+    /** @brief Stable scenario name used in reports and persisted run results. */
     std::string name;
 
-    // Generic factor shocks
-    std::map<std::string, double> factor_shocks; // factor_id -> shock value
+    /** @brief Canonical factor-id to shock-value map. */
+    std::map<std::string, double> factor_shocks;
 };
 
 /**

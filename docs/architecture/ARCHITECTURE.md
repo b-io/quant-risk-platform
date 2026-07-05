@@ -77,7 +77,10 @@ Format: `RF:<family>:<currency_or_market>:<object>:<bucket>`
 Examples:
 
 - `RF:RATES:USD:OIS:2Y`
-- `RF:FX:EURUSD:SPOT:ALL`
+- `RF:FX:EURUSD:SPOT`
+- `RF:FX:EURUSD:FWDPTS_6M`
+- `RF:CREDIT:CDX_IG:RECOVERY:SPOT`
+- `RF:COM:WTI:FWD:6M`
 
 These identifiers are shared across market state, shock definitions, and risk reports to enable seamless reconciliation
 and attribution.
@@ -227,8 +230,8 @@ Files:
 Current state:
 
 - valuation works for the current sample instruments,
-- risk is still brute-force bump-and-revalue,
-- P&L explain is still placeholder-level,
+- risk is deterministic bump-and-revalue over reactive quote handles,
+- P&L explain now reconciles previous, current, rolled, cash, market-move, and residual components,
 - Monte Carlo is currently a one-step Gaussian scenario engine rather than a true path engine,
 - historical stress is still scenario replay over generic shocked quotes.
 
@@ -248,27 +251,27 @@ The main gaps are:
 2. **Curve families are not yet modeled beyond simple yield curves.**
 3. **Instrument construction is not driven by conventions.**
 4. **The analytics services do not yet share a built-position cache.**
-5. **P&L explain, stress, and Monte Carlo require richer models.**
+5. **Stress and Monte Carlo require richer models, and P&L explain still needs realized event sources beyond the current deterministic reconciliation.**
 
 ## 9. Target architecture evolution
 
-### Phase 1: solid deterministic rates engine
+### Step 1: solid deterministic rates engine
 
 - central `MarketConventionRegistry`,
 - richer market schema,
 - OIS discount + projection curves,
 - reusable built-position cache,
 - deterministic PV01 / key-rate / scenario engines,
-- production-shaped P&L explain.
+- production-shaped P&L explain with event-source integration.
 
-### Phase 2: credit and volatility market objects
+### Step 2: credit and volatility market objects
 
 - hazard / survival curves,
 - credit spread factors,
 - vol surfaces and smile inputs,
 - richer factor mapping and risk attribution.
 
-### Phase 3: scalable simulation architecture
+### Step 3: scalable simulation architecture
 
 - Monte Carlo path engine,
 - historical scenario store,

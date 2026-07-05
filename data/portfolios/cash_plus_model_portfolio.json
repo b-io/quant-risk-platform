@@ -1,0 +1,108 @@
+{
+  "portfolio_id": "cash_plus_model",
+  "portfolio_name": "Cash Plus Model",
+  "portfolio_style": "basic_model",
+  "description": "Liquidity portfolio with a small liquid growth sleeve and simple FX hedge.",
+  "base_currency": "USD",
+  "asset_mix": {
+    "defensive_assets_pct": 95,
+    "growth_assets_pct": 5
+  },
+  "books": [
+    {
+      "book_id": "BOOK:CASH_PLUS:CASH",
+      "book_name": "Cash Plus Cash",
+      "trades": [
+        "cp_usd_deposit_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:CASH_PLUS:FX_HEDGE",
+      "book_name": "Cash Plus Fx Hedge",
+      "trades": [
+        "cp_eurusd_hedge_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:CASH_PLUS:LIQUID_GROWTH",
+      "book_name": "Cash Plus Liquid Growth",
+      "trades": [
+        "cp_aapl_overlay_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:CASH_PLUS:SHORT_DURATION_INCOME",
+      "book_name": "Cash Plus Short Duration Income",
+      "trades": [
+        "cp_usd_frn_001"
+      ]
+    }
+  ],
+  "trades": [
+    {
+      "id": "cp_usd_deposit_001",
+      "asset_class": "rates",
+      "type": "deposit",
+      "currency": "USD",
+      "direction": "lend",
+      "book": "BOOK:CASH_PLUS:CASH",
+      "strategy": "CASH_LIQUIDITY",
+      "notional": 4000000,
+      "start_date": "2026-03-26",
+      "maturity_date": "2026-06-26",
+      "details": {
+        "deposit_rate": 0.052
+      }
+    },
+    {
+      "id": "cp_usd_frn_001",
+      "asset_class": "rates",
+      "type": "floating_rate_note",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:CASH_PLUS:SHORT_DURATION_INCOME",
+      "strategy": "FLOATING_RATE_INCOME",
+      "notional": 1500000,
+      "start_date": "2026-03-26",
+      "maturity_date": "2029-03-26",
+      "details": {
+        "floating_index": "USD_LIBOR_3M",
+        "frequency": "Quarterly",
+        "spread": 0.0008
+      }
+    },
+    {
+      "id": "cp_aapl_overlay_001",
+      "asset_class": "equity",
+      "type": "equity_spot",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:CASH_PLUS:LIQUID_GROWTH",
+      "strategy": "LOW_WEIGHT_EQUITY",
+      "quantity": 50,
+      "details": {
+        "underlier": "AAPL",
+        "reference_price": 184.0
+      }
+    },
+    {
+      "id": "cp_eurusd_hedge_001",
+      "asset_class": "fx",
+      "type": "fx_forward",
+      "currency": "USD",
+      "direction": "sell_base",
+      "book": "BOOK:CASH_PLUS:FX_HEDGE",
+      "strategy": "EURUSD_HEDGE",
+      "notional": 500000,
+      "start_date": "2026-03-24",
+      "maturity_date": "2026-09-24",
+      "details": {
+        "base_currency": "EUR",
+        "quote_currency": "USD",
+        "forward_rate": 1.101,
+        "spot_quote_id": "EURUSD",
+        "forward_points_quote_id": "EURUSD_FWDPTS_6M"
+      }
+    }
+  ]
+}

@@ -1,8 +1,11 @@
+"""Solves portfolio optimization requests sent by the C++ CVXPY adapter."""
+
 import json
 import sys
 import time
-import numpy as np
+
 import cvxpy as cp
+import numpy as np
 
 
 def _require_finite(value, label):

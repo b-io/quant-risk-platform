@@ -7,7 +7,7 @@ set -e
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 PROJECT_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
 
-PRESET="Release-Python"
+PRESET="dev"
 SKIP_ENV=0
 EXTRA_ARGS=()
 
@@ -32,7 +32,8 @@ echo "Configuring CMake with preset..."
 cmake --preset "${PRESET}" "${EXTRA_ARGS[@]}"
 
 # 2. Build the project
-echo "Building with preset..."
-cmake --build --preset "${PRESET}"
+BUILD_DIR="${PROJECT_ROOT}/build/${PRESET}"
+echo "Building ${BUILD_DIR}..."
+cmake --build "${BUILD_DIR}"
 
 echo "--- Build Successful! ---"

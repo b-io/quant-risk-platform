@@ -26,7 +26,7 @@ The top-level folders have distinct roles.
 - `docs/risk/` - risk factors, sensitivities, PnL explain, stress testing, VaR,
   Expected Shortfall, Monte Carlo, backtesting, and attribution.
 - `docs/reference/` - shared lexis, formula notation, and public source lists.
-- `docs/implementation/` - phased platform build plan and delivery standards.
+- `docs/implementation/` - implementation roadmap and delivery standards.
 
 ## Reading Paths
 

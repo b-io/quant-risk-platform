@@ -52,7 +52,7 @@ public:
     }
 
 private:
-    std::vector<double> times_;
+    std::vector<double> times_; // Ordered simulation times as year fractions.
 };
 
 } // namespace qrp::analytics::simulation

@@ -1,6 +1,6 @@
 param (
-    [string]$BuildDir = "build\Release-Python",
-    [string]$Config = "Release",
+    [string]$BuildDir = "build\dev",
+    [string]$Config = "RelWithDebInfo",
     [string]$LogLevel = "info",
     [string]$PortfolioId = "demo_portfolio",
     [string]$ScenarioSetId = "demo_factor_scenarios",
@@ -10,6 +10,7 @@ param (
 
 $scriptPath = $MyInvocation.MyCommand.Path
 $projectRoot = Split-Path (Split-Path $scriptPath -Parent) -Parent
+Set-Location -LiteralPath $projectRoot
 
 if (-not $SkipEnv) {
     $envScript = Join-Path $projectRoot "scripts\env.ps1"
@@ -23,22 +24,29 @@ if (-not $SkipEnv) {
 
 # Helper to find executable
 function Find-Exe($ExeName) {
-    $Paths = @(
-        "$BuildDir\$ExeName",
-        "$BuildDir\$Config\$ExeName",
-        "$BuildDir\bin\$ExeName",
-        "$BuildDir\bin\$Config\$ExeName"
-    )
-    foreach ($Path in $Paths) {
-        if (Test-Path $Path) { return $Path }
+    $names = @($ExeName)
+    if (-not $ExeName.EndsWith(".exe", [System.StringComparison]::OrdinalIgnoreCase)) {
+        $names += "$ExeName.exe"
+    }
+
+    foreach ($name in $names) {
+        $Paths = @(
+            "$BuildDir\$name",
+            "$BuildDir\$Config\$name",
+            "$BuildDir\bin\$name",
+            "$BuildDir\bin\$Config\$name"
+        )
+        foreach ($Path in $Paths) {
+            if (Test-Path $Path) { return $Path }
+        }
     }
     return $null
 }
 
-$CliExe = Find-Exe "qrp_cli.exe"
+$CliExe = Find-Exe "qrp_cli"
 
 if ($null -eq $CliExe) {
-    Write-Error "Could not find qrp_cli.exe in $BuildDir or nested directories. Please build the project first."
+    Write-Error "Could not find qrp_cli executable in $BuildDir or nested directories. Please build the project first."
     exit 1
 }
 

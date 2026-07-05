@@ -1,0 +1,143 @@
+{
+  "fixture_id": "growth_global_macro_coverage",
+  "description": "Portfolio-backed structural golden coverage for Growth Global Macro.",
+  "market_path": "market/demo_market.json",
+  "portfolio_id": "growth_global_macro",
+  "portfolio_path": "portfolios/growth_global_macro_portfolio.json",
+  "asset_mix": {
+    "defensive_assets_pct": 30,
+    "growth_assets_pct": 70
+  },
+  "expected_books": {
+    "BOOK:GROWTH:COMMODITY_FLEXIBILITY": [
+      "ggm_ttf_swing_001"
+    ],
+    "BOOK:GROWTH:COMMODITY_VOLATILITY": [
+      "ggm_wti_calendar_001",
+      "ggm_wti_option_001"
+    ],
+    "BOOK:GROWTH:EQUITY_DERIVATIVES": [
+      "ggm_aapl_forward_001",
+      "ggm_spx_future_001"
+    ],
+    "BOOK:GROWTH:EQUITY_VOLATILITY": [
+      "ggm_aapl_call_001",
+      "ggm_aapl_put_001"
+    ],
+    "BOOK:GROWTH:GLOBAL_MACRO_COMMODITY": [
+      "ggm_wti_forward_001",
+      "ggm_wti_future_001",
+      "ggm_wti_spot_001",
+      "ggm_wti_strip_001"
+    ],
+    "BOOK:GROWTH:GLOBAL_MACRO_CREDIT": [
+      "ggm_cdx_index_001"
+    ],
+    "BOOK:GROWTH:GLOBAL_MACRO_FX": [
+      "ggm_eurusd_forward_001",
+      "ggm_eurusd_option_001"
+    ],
+    "BOOK:GROWTH:GLOBAL_MACRO_RATES": [
+      "ggm_usd_swap_001",
+      "ggm_usd_swaption_001"
+    ]
+  },
+  "trades": {
+    "ggm_aapl_call_001": {
+      "asset_class": "equity",
+      "book": "BOOK:GROWTH:EQUITY_VOLATILITY",
+      "product_type": "equity_option",
+      "support_status": "supported"
+    },
+    "ggm_aapl_forward_001": {
+      "asset_class": "equity",
+      "book": "BOOK:GROWTH:EQUITY_DERIVATIVES",
+      "product_type": "equity_forward",
+      "support_status": "supported"
+    },
+    "ggm_aapl_put_001": {
+      "asset_class": "equity",
+      "book": "BOOK:GROWTH:EQUITY_VOLATILITY",
+      "product_type": "equity_option",
+      "support_status": "supported"
+    },
+    "ggm_cdx_index_001": {
+      "asset_class": "credit",
+      "book": "BOOK:GROWTH:GLOBAL_MACRO_CREDIT",
+      "product_type": "cds_index",
+      "support_status": "supported"
+    },
+    "ggm_eurusd_forward_001": {
+      "asset_class": "fx",
+      "book": "BOOK:GROWTH:GLOBAL_MACRO_FX",
+      "product_type": "fx_forward",
+      "support_status": "supported"
+    },
+    "ggm_eurusd_option_001": {
+      "asset_class": "fx",
+      "book": "BOOK:GROWTH:GLOBAL_MACRO_FX",
+      "product_type": "fx_option",
+      "support_status": "supported"
+    },
+    "ggm_spx_future_001": {
+      "asset_class": "equity",
+      "book": "BOOK:GROWTH:EQUITY_DERIVATIVES",
+      "product_type": "equity_future",
+      "support_status": "supported"
+    },
+    "ggm_ttf_swing_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:GROWTH:COMMODITY_FLEXIBILITY",
+      "product_type": "commodity_swing",
+      "support_status": "partially_supported"
+    },
+    "ggm_usd_swap_001": {
+      "asset_class": "rates",
+      "book": "BOOK:GROWTH:GLOBAL_MACRO_RATES",
+      "product_type": "vanilla_swap",
+      "support_status": "supported"
+    },
+    "ggm_usd_swaption_001": {
+      "asset_class": "rates",
+      "book": "BOOK:GROWTH:GLOBAL_MACRO_RATES",
+      "product_type": "european_swaption",
+      "support_status": "supported"
+    },
+    "ggm_wti_calendar_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:GROWTH:COMMODITY_VOLATILITY",
+      "product_type": "commodity_calendar_spread_option",
+      "support_status": "supported"
+    },
+    "ggm_wti_forward_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:GROWTH:GLOBAL_MACRO_COMMODITY",
+      "product_type": "commodity_forward",
+      "support_status": "supported"
+    },
+    "ggm_wti_future_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:GROWTH:GLOBAL_MACRO_COMMODITY",
+      "product_type": "commodity_future",
+      "support_status": "supported"
+    },
+    "ggm_wti_option_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:GROWTH:COMMODITY_VOLATILITY",
+      "product_type": "commodity_future_option",
+      "support_status": "supported"
+    },
+    "ggm_wti_spot_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:GROWTH:GLOBAL_MACRO_COMMODITY",
+      "product_type": "commodity_spot",
+      "support_status": "supported"
+    },
+    "ggm_wti_strip_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:GROWTH:GLOBAL_MACRO_COMMODITY",
+      "product_type": "commodity_future_strip",
+      "support_status": "supported"
+    }
+  }
+}

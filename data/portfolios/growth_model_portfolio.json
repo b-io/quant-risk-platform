@@ -1,0 +1,178 @@
+{
+  "portfolio_id": "growth_model",
+  "portfolio_name": "Growth Model",
+  "portfolio_style": "basic_model",
+  "description": "Growth allocation emphasizing equity beta, commodity convexity, FX optionality, and macro hedges.",
+  "base_currency": "USD",
+  "asset_mix": {
+    "defensive_assets_pct": 30,
+    "growth_assets_pct": 70
+  },
+  "books": [
+    {
+      "book_id": "BOOK:GROWTH:COMMODITY_VOLATILITY",
+      "book_name": "Growth Commodity Volatility",
+      "trades": [
+        "gr_wti_option_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:GROWTH:CREDIT_VOLATILITY",
+      "book_name": "Growth Credit Volatility",
+      "trades": [
+        "gr_cdx_option_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:GROWTH:EQUITY_BETA",
+      "book_name": "Growth Equity Beta",
+      "trades": [
+        "gr_spx_future_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:GROWTH:EQUITY_VOLATILITY",
+      "book_name": "Growth Equity Volatility",
+      "trades": [
+        "gr_aapl_call_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:GROWTH:FX_VOLATILITY",
+      "book_name": "Growth Fx Volatility",
+      "trades": [
+        "gr_eurusd_option_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:GROWTH:MACRO_HEDGE",
+      "book_name": "Growth Macro Hedge",
+      "trades": [
+        "gr_usd_swaption_001"
+      ]
+    }
+  ],
+  "trades": [
+    {
+      "id": "gr_usd_swaption_001",
+      "asset_class": "rates",
+      "type": "european_swaption",
+      "currency": "USD",
+      "direction": "payer",
+      "book": "BOOK:GROWTH:MACRO_HEDGE",
+      "strategy": "USD_PAYER_SWAPTION",
+      "notional": 2000000,
+      "start_date": "2027-03-24",
+      "maturity_date": "2031-03-24",
+      "details": {
+        "option_expiry_date": "2027-03-24",
+        "fixed_rate": 0.055,
+        "floating_index": "USD_LIBOR_3M",
+        "volatility_quote_id": "USD_SWAPTION_VOL_1Y_5Y"
+      }
+    },
+    {
+      "id": "gr_cdx_option_001",
+      "asset_class": "credit",
+      "type": "credit_index_option",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:GROWTH:CREDIT_VOLATILITY",
+      "strategy": "CDX_IG_CALL",
+      "notional": 3000000,
+      "maturity_date": "2031-03-24",
+      "details": {
+        "expiry_date": "2027-03-24",
+        "index_factor": 0.98,
+        "index_name": "CDX_IG",
+        "strike_spread": 0.009,
+        "frequency": "Quarterly",
+        "option_type": "call",
+        "recovery_quote_id": "CDX_IG_RECOVERY",
+        "spread_quote_id": "CDX_IG_5Y",
+        "volatility_quote_id": "CDX_IG_OPTION_VOL_1Y_5Y"
+      }
+    },
+    {
+      "id": "gr_eurusd_option_001",
+      "asset_class": "fx",
+      "type": "fx_option",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:GROWTH:FX_VOLATILITY",
+      "strategy": "EURUSD_CALL",
+      "notional": 1000000,
+      "details": {
+        "base_currency": "EUR",
+        "quote_currency": "USD",
+        "strike_rate": 1.1,
+        "expiry_date": "2026-09-24",
+        "settlement_date": "2026-09-28",
+        "option_type": "call",
+        "spot_quote_id": "EURUSD",
+        "volatility_quote_id": "EURUSD_VOL_6M_ATM"
+      }
+    },
+    {
+      "id": "gr_wti_option_001",
+      "asset_class": "commodity",
+      "type": "commodity_future_option",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:GROWTH:COMMODITY_VOLATILITY",
+      "strategy": "WTI_UPSIDE",
+      "quantity": 1,
+      "maturity_date": "2026-09-24",
+      "details": {
+        "underlier": "WTI",
+        "contract_size": 1000,
+        "strike_price": 80.0,
+        "expiry_date": "2026-09-24",
+        "future_quote_id": "WTI_FUT_6M",
+        "volatility_quote_id": "WTI_VOL_6M_ATM",
+        "option_type": "call",
+        "unit": "bbl"
+      }
+    },
+    {
+      "id": "gr_spx_future_001",
+      "asset_class": "equity",
+      "type": "equity_future",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:GROWTH:EQUITY_BETA",
+      "strategy": "SPX_BETA",
+      "quantity": 2,
+      "maturity_date": "2026-09-24",
+      "details": {
+        "underlier": "SPX",
+        "contract_size": 50,
+        "reference_price": 5350.0,
+        "future_quote_id": "ES_FUT_6M",
+        "spot_quote_id": "SPX"
+      }
+    },
+    {
+      "id": "gr_aapl_call_001",
+      "asset_class": "equity",
+      "type": "equity_option",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:GROWTH:EQUITY_VOLATILITY",
+      "strategy": "AAPL_CALL",
+      "quantity": 150,
+      "details": {
+        "underlier": "AAPL",
+        "strike_price": 185.0,
+        "expiry_date": "2026-09-24",
+        "settlement_date": "2026-09-24",
+        "spot_quote_id": "AAPL",
+        "dividend_yield_quote_id": "AAPL_DIVYLD_1Y",
+        "borrow_rate_quote_id": "AAPL_BORROW_1Y",
+        "volatility_quote_id": "AAPL_VOL_6M_ATM",
+        "exercise_style": "european",
+        "option_type": "call"
+      }
+    }
+  ]
+}

@@ -4,26 +4,29 @@ This guide explains supported build workflows on Windows using CMake and how to 
 
 ## Supported configurations
 
-- C++ only: Debug, Release, RelWithDebInfo
-- Python bindings on Windows: Release, RelWithDebInfo (Debug requires a matching debug CPython and is not supported by
-  default)
+- Recommended daily profile: `dev`, which builds C++ plus Python with a static `qrp_core`.
+- Shared-core validation profile: `dev-shared`, which builds C++ plus Python with a shared `qrp_core`.
+- Production-style profiles: `release` and `release-shared`.
+- Native C++ debugging profiles: `debug` and `debug-shared`.
+- Python bindings on Windows in Debug require a matching debug CPython and are not supported by default.
 
 ## 1. Build the C++ core (no Python)
 
 - Using CLion profiles (preferred in this repo):
-    - Profile "Debug" → C++ only Debug build
-    - Profile "Release" → C++ only Release build
+    - `Debug - C++ only (static core)` for native C++ debugging.
+    - `Debug - C++ only (shared core)` for native C++ debugging with a shared `qrp_core`.
 - From command line with presets:
-    - Configure: `cmake --preset Release`
-    - Build: `cmake --build --preset Release --target qrp_core`
+    - Configure: `cmake --preset debug`
+    - Build: `cmake --build build/debug --target qrp_core`
 
-## 2. Enable Python bindings (Windows Release/RelWithDebInfo)
+## 2. Build C++ plus Python
 
 - Recommended presets:
-    - `cmake --preset Release-Python`
-    - `cmake --build --preset Release-Python --target quant_risk_platform`
-    - Smoke test: `ctest --preset Release-Python -R python_import`
-- Or via CLion "Release" profile by setting `QRP_BUILD_PYTHON=ON` in CMake options.
+    - `cmake --preset dev`
+    - `cmake --build build/dev --target quant_risk_platform`
+    - Smoke test: `ctest --test-dir build/dev -R python_import`
+- In CLion, enable the `Dev - C++ + Python (static core)` profile for day-to-day work and
+  `Dev - C++ + Python (shared core)` when validating shared-core behavior.
 
 ## 3. Build and Test With Automation Scripts
 
@@ -59,15 +62,15 @@ chmod +x scripts/*.sh
 Coverage is supported for GCC/Clang-style toolchains via `gcovr`:
 
 ```bash
-cmake --preset Coverage
-cmake --build --preset Coverage --target coverage
+cmake --preset coverage
+cmake --build build/coverage --target coverage
 ```
 
 The coverage target runs tests and fails below `QRP_COVERAGE_MIN_LINE`, which defaults to `85`.
 Use `-DQRP_COVERAGE_MIN_LINE=90` if you want to enforce a 90% line-coverage gate.
 
-It also writes a machine-readable metric to `build/Coverage/coverage/cpp/coverage_metric.json`
-and a compact human summary to `build/Coverage/coverage/cpp/coverage_metric.md`.
+It also writes a machine-readable metric to `build/coverage/coverage/cpp/coverage_metric.json`
+and a compact human summary to `build/coverage/coverage/cpp/coverage_metric.md`.
 
 ## 5. Run a Demo
 
@@ -77,8 +80,8 @@ After building, you can run a Python demo or use the C++ CLI.
 
 ```powershell
 # Build the extension first, then run the pinned Python 3.12 demo environment.
-cmake --preset Release-Python
-cmake --build --preset Release-Python --target quant_risk_platform
+cmake --preset dev
+cmake --build build/dev --target quant_risk_platform
 uv sync --project python --extra dashboard --extra optimization
 uv run --project python python python\examples\demo_platform.py
 ```
@@ -86,8 +89,8 @@ uv run --project python python python\examples\demo_platform.py
 ### C++ CLI
 
 ```bash
-# Adjust the path to your build directory (e.g., build/Debug or build/Release)
-./build/Debug/qrp_cli price --market data/market/demo_market.json --portfolio data/portfolios/demo_portfolio.json
+# Adjust the path to your build directory (e.g., build/debug or build/dev)
+./build/debug/qrp_cli price --market data/market/demo_market.json --portfolio data/portfolios/demo_portfolio.json
 ```
 
 ## 6. Artifacts and Outputs
@@ -108,8 +111,8 @@ If you need to customize the build, you can use standard CMake commands.
 The platform depends on:
 
 - **C++ Compiler**: Supporting C++20 (MSVC 2022 recommended).
-- **vcpkg**: For managing C++ dependencies. Ensure the environment variable `VCPKG_ROOT` is set to your vcpkg
-  installation path (e.g., `D:\BIN\vcpkg`).
+- **vcpkg**: For managing C++ dependencies. Ensure the environment variable `VCPKG_ROOT` is set to your local vcpkg
+  installation path.
 
 ### Environment Setup
 
@@ -117,16 +120,18 @@ To ensure CMake finds vcpkg automatically via presets and you can use `vcpkg` fr
 `VCPKG_ROOT` environment variable and add it to your `PATH`:
 
 ```powershell
-# Set VCPKG_ROOT for current session
-$env:VCPKG_ROOT = "D:\BIN\vcpkg"
+# Set these for the current session
+$env:DEV_TOOLS_ROOT = "<path-to-your-dev-tools>"
+$env:VCPKG_ROOT = "$env:DEV_TOOLS_ROOT\vcpkg"
 # Add to PATH for current session
 $env:PATH = "$env:VCPKG_ROOT;$env:PATH"
 
 # Set permanently for user (recommended)
-[Environment]::SetEnvironmentVariable("VCPKG_ROOT", "D:\BIN\vcpkg", "User")
+[Environment]::SetEnvironmentVariable("DEV_TOOLS_ROOT", "<path-to-your-dev-tools>", "User")
+[Environment]::SetEnvironmentVariable("VCPKG_ROOT", "$env:DEV_TOOLS_ROOT\vcpkg", "User")
 $oldPath = [Environment]::GetEnvironmentVariable("Path", "User")
-if ($oldPath -notlike "*D:\BIN\vcpkg*") {
-    [Environment]::SetEnvironmentVariable("Path", "$oldPath;D:\BIN\vcpkg", "User")
+if ($oldPath -notlike "*$env:VCPKG_ROOT*") {
+    [Environment]::SetEnvironmentVariable("Path", "$oldPath;$env:VCPKG_ROOT", "User")
 }
 ```
 
@@ -142,7 +147,7 @@ If you use CLion with the MSVC toolchain from Visual Studio or Build Tools, CLio
 vcpkg instead of your regular vcpkg installation. In that case, use a local environment script:
 
 1. Create `.env.cmd` from `msvc.env.cmd.example`.
-2. Edit `DEV_TOOLS_ROOT` if your tools are not installed under `D:\BIN`.
+2. Edit `DEV_TOOLS_ROOT` for your machine-local tool directory.
 3. In CLion, open `Settings > Build, Execution, Deployment > Toolchains`.
 4. Select the MSVC/Visual Studio toolchain.
 5. Set `Environment file` to the project-local `.env.cmd`.
@@ -152,7 +157,7 @@ Example `.env.cmd`:
 
 ```cmd
 @echo off
-set "DEV_TOOLS_ROOT=D:\BIN"
+set "DEV_TOOLS_ROOT=%USERPROFILE%\dev-tools"
 set "QRP_VS_INSTALL_DIR=%VSINSTALLDIR%"
 set "VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
 
@@ -192,6 +197,8 @@ set "CC=cl"
 set "CXX=cl"
 set "QRP_ENV_FILE=%~f0"
 set "QRP_ENV_PROFILE=msvc"
+rem Optional: set this if Microsoft.CodeCoverage.Console.exe is not on PATH.
+rem set "QRP_VS_COVERAGE_TOOL=%QRP_VS_INSTALL_DIR%\Common7\IDE\Extensions\Microsoft\CodeCoverage.Console\Microsoft.CodeCoverage.Console.exe"
 set "VCPKG_ROOT=%DEV_TOOLS_ROOT%\vcpkg"
 set "VCPKG_TARGET_TRIPLET=x64-windows-static-md"
 set "PATH=%DEV_TOOLS_ROOT%;%DEV_TOOLS_ROOT%\ninja;%VCPKG_ROOT%;%PATH%"
@@ -208,7 +215,7 @@ PowerShell build, install, and test scripts do this automatically unless you pas
 
 ```powershell
 . .\scripts\env.ps1
-cmake --build build\Release-Python --target unit_tests -j 10
+cmake --build build\dev --target unit_tests -j 10
 ```
 
 Without this step, Ninja can still find `cl.exe` from the generated build files, but `cl.exe` may not find MSVC standard
@@ -230,8 +237,8 @@ Edit `DEV_TOOLS_ROOT` or `VCPKG_ROOT` inside `.env.sh` if needed, then source it
 
 ```bash
 . ./scripts/env.sh
-cmake --preset Release-Python
-cmake --build --preset Release-Python
+cmake --preset dev
+cmake --build build/dev
 ```
 
 The GCC template uses `gcc` and `g++`, and chooses `x64-linux` or `arm64-linux` based on `uname`.
@@ -248,8 +255,8 @@ Edit `DEV_TOOLS_ROOT` or `VCPKG_ROOT` inside `.env.sh` if needed, then source it
 
 ```bash
 . ./scripts/env.sh
-cmake --preset Release-Python
-cmake --build --preset Release-Python
+cmake --preset dev
+cmake --build build/dev
 ```
 
 The Clang template uses `clang` and `clang++`, and chooses `x64-linux`, `arm64-linux`, `x64-osx`, or `arm64-osx` based
@@ -262,10 +269,10 @@ The Bash build, install, and test scripts source `scripts/env.sh` automatically 
 
 ```powershell
 # Configure the project using presets (uses $env:VCPKG_ROOT automatically)
-cmake --preset Release-Python
+cmake --preset dev
 
 # Build
-cmake --build --preset Release-Python
+cmake --build build/dev
 ```
 
 ---

@@ -125,14 +125,20 @@ add_library(qrp_core ${_QRP_CORE_LIBRARY_TYPE}
     cpp/src/analytics/risk_service.cpp
     cpp/src/analytics/stress_engine.cpp
     cpp/src/analytics/valuation_service.cpp
-    cpp/src/optimization/portfolio_optimization_engine.cpp
-    cpp/src/optimization/adapters/cvxpy_adapter.cpp
     cpp/src/app/quant_risk_platform.cpp
     cpp/src/conventions/market_convention_registry.cpp
+    cpp/src/conventions/rates_market_conventions.cpp
+    cpp/src/instruments/commodity_instrument_factory.cpp
+    cpp/src/instruments/credit_instrument_factory.cpp
+    cpp/src/instruments/equity_instrument_factory.cpp
+    cpp/src/instruments/fx_instrument_factory.cpp
     cpp/src/instruments/instrument_factory.cpp
+    cpp/src/instruments/rates_instrument_factory.cpp
     cpp/src/io/json_loader.cpp
     cpp/src/market/market_snapshot.cpp
     cpp/src/market/scenario_engine.cpp
+    cpp/src/optimization/adapters/cvxpy_adapter.cpp
+    cpp/src/optimization/portfolio_optimization_engine.cpp
     cpp/src/persistence/repositories.cpp
     cpp/src/persistence/sqlite_storage_backend.cpp
     cpp/src/persistence/sqlite_storage_factors.cpp
@@ -244,7 +250,7 @@ if(QRP_BUILD_CLI)
   qrp_apply_msvc_debug_symbols(qrp_cli)
   qrp_copy_core_runtime(qrp_cli)
 else()
-  message(STATUS "QRP_BUILD_CLI=OFF — CLI target is skipped")
+  message(STATUS "QRP_BUILD_CLI=OFF - CLI target is skipped")
 endif()
 
 # -----------------------
@@ -273,7 +279,6 @@ if(QRP_BUILD_PYTHON)
     endif()
   endif()
 
-  find_package(pybind11 CONFIG REQUIRED)
   pybind11_add_module(quant_risk_platform
     cpp/bindings/bind_analytics.cpp
     cpp/bindings/bind_domain.cpp
@@ -322,7 +327,7 @@ if(QRP_BUILD_PYTHON)
     endif()
   endif()
 else()
-  message(STATUS "QRP_BUILD_PYTHON=OFF — Python bindings are disabled")
+  message(STATUS "QRP_BUILD_PYTHON=OFF - Python bindings are disabled")
 endif()
 
 # -----------------------
@@ -331,7 +336,7 @@ endif()
 if(BUILD_TESTING)
   add_subdirectory(tests)
 else()
-  message(STATUS "BUILD_TESTING=OFF — C++ tests are disabled")
+  message(STATUS "BUILD_TESTING=OFF - C++ tests are disabled")
 endif()
 
 # -----------------------
@@ -354,7 +359,7 @@ if(QRP_ENABLE_COVERAGE AND BUILD_TESTING AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|
         --root ${CMAKE_SOURCE_DIR}
         --xml ${CMAKE_BINARY_DIR}/coverage/cpp/coverage.xml
       COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts/coverage/cpp/coverage_metric.py
+        ${CMAKE_SOURCE_DIR}/coverage/cpp/coverage_metric.py
         --fail-under-threshold
         --html-report ${CMAKE_BINARY_DIR}/coverage/cpp/index.html
         --json ${CMAKE_BINARY_DIR}/coverage/cpp/coverage_metric.json

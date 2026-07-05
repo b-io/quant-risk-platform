@@ -8,6 +8,18 @@
   "default_stale_after_days": 2,
   "quotes": [
     {
+      "id": "WTI_SPOT",
+      "instrument_type": "CommoditySpot",
+      "quote_type": "Price",
+      "currency": "USD",
+      "tenor": "SPOT",
+      "underlier": "WTI",
+      "risk_factor_id": "RF:COM:WTI:SPOT",
+      "value": 77.5,
+      "source_name": "DemoComposite",
+      "source_ts": "2026-03-24T17:00:00Z"
+    },
+    {
       "id": "WTI_FUT_6M",
       "instrument_type": "CommodityFuture",
       "quote_type": "CommodityForward",
@@ -16,6 +28,18 @@
       "underlier": "WTI",
       "risk_factor_id": "RF:COM:WTI:FWD:6M",
       "value": 78.25,
+      "source_name": "DemoComposite",
+      "source_ts": "2026-03-24T17:00:00Z"
+    },
+    {
+      "id": "WTI_FUT_9M",
+      "instrument_type": "CommodityFuture",
+      "quote_type": "CommodityForward",
+      "currency": "USD",
+      "tenor": "9M",
+      "underlier": "WTI",
+      "risk_factor_id": "RF:COM:WTI:FWD:9M",
+      "value": 79.1,
       "source_name": "DemoComposite",
       "source_ts": "2026-03-24T17:00:00Z"
     },
@@ -34,6 +58,66 @@
       "source_ts": "2026-03-24T17:00:00Z"
     },
     {
+      "id": "TTF_FWD_Q1",
+      "instrument_type": "CommodityForward",
+      "quote_type": "CommodityForward",
+      "currency": "USD",
+      "tenor": "Q1",
+      "underlier": "TTF",
+      "risk_factor_id": "RF:COM:TTF:FWD:Q1",
+      "value": 32.0,
+      "source_name": "DemoComposite",
+      "source_ts": "2026-03-24T17:00:00Z"
+    },
+    {
+      "id": "TTF_FWD_Q2",
+      "instrument_type": "CommodityForward",
+      "quote_type": "CommodityForward",
+      "currency": "USD",
+      "tenor": "Q2",
+      "underlier": "TTF",
+      "risk_factor_id": "RF:COM:TTF:FWD:Q2",
+      "value": 34.0,
+      "source_name": "DemoComposite",
+      "source_ts": "2026-03-24T17:00:00Z"
+    },
+    {
+      "id": "ACME_BOND_SPREAD_5Y",
+      "instrument_type": "BondSpread",
+      "quote_type": "CreditSpread",
+      "currency": "USD",
+      "tenor": "5Y",
+      "underlier": "ACME",
+      "risk_factor_id": "RF:CREDIT:ACME:SPREAD:5Y",
+      "value": 0.016,
+      "source_name": "DemoComposite",
+      "source_ts": "2026-03-24T17:00:00Z"
+    },
+    {
+      "id": "ACME_CDS_1Y",
+      "instrument_type": "CDS",
+      "quote_type": "CreditSpread",
+      "currency": "USD",
+      "tenor": "1Y",
+      "underlier": "ACME",
+      "risk_factor_id": "RF:CREDIT:ACME:SPREAD:1Y",
+      "value": 0.012,
+      "source_name": "DemoComposite",
+      "source_ts": "2026-03-24T17:00:00Z"
+    },
+    {
+      "id": "ACME_CDS_3Y",
+      "instrument_type": "CDS",
+      "quote_type": "CreditSpread",
+      "currency": "USD",
+      "tenor": "3Y",
+      "underlier": "ACME",
+      "risk_factor_id": "RF:CREDIT:ACME:SPREAD:3Y",
+      "value": 0.015,
+      "source_name": "DemoComposite",
+      "source_ts": "2026-03-24T17:00:00Z"
+    },
+    {
       "id": "ACME_CDS_5Y",
       "instrument_type": "CDS",
       "quote_type": "CreditSpread",
@@ -46,6 +130,20 @@
       "source_ts": "2026-03-24T17:00:00Z"
     },
     {
+      "id": "ACME_CDS_OPTION_VOL_1Y_5Y",
+      "instrument_type": "CreditSpread",
+      "quote_type": "Volatility",
+      "currency": "USD",
+      "tenor": "5Y",
+      "underlier": "ACME",
+      "expiry": "1Y",
+      "strike": "5Y",
+      "risk_factor_id": "RF:CREDITVOL:ACME:1Y:5Y",
+      "value": 0.35,
+      "source_name": "DemoComposite",
+      "source_ts": "2026-03-24T17:00:00Z"
+    },
+    {
       "id": "ACME_RECOVERY",
       "instrument_type": "RecoveryRate",
       "quote_type": "RecoveryRate",
@@ -53,6 +151,44 @@
       "tenor": "SPOT",
       "underlier": "ACME",
       "risk_factor_id": "RF:CREDIT:ACME:RECOVERY:SPOT",
+      "value": 0.4,
+      "source_name": "DemoComposite",
+      "source_ts": "2026-03-24T17:00:00Z"
+    },
+    {
+      "id": "CDX_IG_5Y",
+      "instrument_type": "CreditIndex",
+      "quote_type": "CreditSpread",
+      "currency": "USD",
+      "tenor": "5Y",
+      "underlier": "CDX_IG",
+      "risk_factor_id": "RF:CREDIT:CDX_IG:SPREAD:5Y",
+      "value": 0.01,
+      "source_name": "DemoComposite",
+      "source_ts": "2026-03-24T17:00:00Z"
+    },
+    {
+      "id": "CDX_IG_OPTION_VOL_1Y_5Y",
+      "instrument_type": "CreditSpread",
+      "quote_type": "Volatility",
+      "currency": "USD",
+      "tenor": "5Y",
+      "underlier": "CDX_IG",
+      "expiry": "1Y",
+      "strike": "5Y",
+      "risk_factor_id": "RF:CREDITVOL:CDX_IG:1Y:5Y",
+      "value": 0.3,
+      "source_name": "DemoComposite",
+      "source_ts": "2026-03-24T17:00:00Z"
+    },
+    {
+      "id": "CDX_IG_RECOVERY",
+      "instrument_type": "RecoveryRate",
+      "quote_type": "RecoveryRate",
+      "currency": "USD",
+      "tenor": "RECOVERY",
+      "underlier": "CDX_IG",
+      "risk_factor_id": "RF:CREDIT:CDX_IG:RECOVERY:SPOT",
       "value": 0.4,
       "source_name": "DemoComposite",
       "source_ts": "2026-03-24T17:00:00Z"
@@ -82,6 +218,18 @@
       "source_ts": "2026-03-24T17:00:00Z"
     },
     {
+      "id": "AAPL_BORROW_1Y",
+      "instrument_type": "BorrowRate",
+      "quote_type": "BorrowRate",
+      "currency": "USD",
+      "tenor": "1Y",
+      "underlier": "AAPL",
+      "risk_factor_id": "RF:EQ:AAPL:BORROW:1Y",
+      "value": 0.002,
+      "source_name": "DemoComposite",
+      "source_ts": "2026-03-24T17:00:00Z"
+    },
+    {
       "id": "AAPL_VOL_6M_ATM",
       "instrument_type": "EquityVol",
       "quote_type": "Volatility",
@@ -92,6 +240,30 @@
       "strike": "ATM",
       "risk_factor_id": "RF:EQVOL:AAPL:6M:ATM",
       "value": 0.245,
+      "source_name": "DemoComposite",
+      "source_ts": "2026-03-24T17:00:00Z"
+    },
+    {
+      "id": "SPX",
+      "instrument_type": "EquitySpot",
+      "quote_type": "EquitySpot",
+      "currency": "USD",
+      "tenor": "SPOT",
+      "underlier": "SPX",
+      "risk_factor_id": "RF:EQ:SPX:SPOT",
+      "value": 5350.0,
+      "source_name": "DemoComposite",
+      "source_ts": "2026-03-24T17:00:00Z"
+    },
+    {
+      "id": "ES_FUT_6M",
+      "instrument_type": "Future",
+      "quote_type": "Future",
+      "currency": "USD",
+      "tenor": "6M",
+      "underlier": "SPX",
+      "risk_factor_id": "RF:EQ:SPX:FUT:6M",
+      "value": 5355.0,
       "source_name": "DemoComposite",
       "source_ts": "2026-03-24T17:00:00Z"
     },
@@ -108,6 +280,18 @@
       "source_ts": "2026-03-24T17:00:00Z"
     },
     {
+      "id": "EURUSD_FWDPTS_3M",
+      "instrument_type": "FXForwardPoint",
+      "quote_type": "FXForwardPoint",
+      "currency": "USD",
+      "tenor": "3M",
+      "underlier": "EURUSD",
+      "risk_factor_id": "RF:FX:EURUSD:FWDPTS_3M",
+      "value": 0.0015,
+      "source_name": "DemoComposite",
+      "source_ts": "2026-03-24T17:00:00Z"
+    },
+    {
       "id": "EURUSD_FWDPTS_6M",
       "instrument_type": "FXForwardPoint",
       "quote_type": "FXForwardPoint",
@@ -116,6 +300,18 @@
       "underlier": "EURUSD",
       "risk_factor_id": "RF:FX:EURUSD:FWDPTS_6M",
       "value": 0.0019,
+      "source_name": "DemoComposite",
+      "source_ts": "2026-03-24T17:00:00Z"
+    },
+    {
+      "id": "EURUSD_FWDPTS_1Y",
+      "instrument_type": "FXForwardPoint",
+      "quote_type": "FXForwardPoint",
+      "currency": "USD",
+      "tenor": "1Y",
+      "underlier": "EURUSD",
+      "risk_factor_id": "RF:FX:EURUSD:FWDPTS_1Y",
+      "value": 0.006,
       "source_name": "DemoComposite",
       "source_ts": "2026-03-24T17:00:00Z"
     },
@@ -156,6 +352,17 @@
       "source_ts": "2026-03-24T17:00:00Z"
     },
     {
+      "id": "EUR_OIS_6M",
+      "instrument_type": "OIS",
+      "quote_type": "OIS",
+      "currency": "EUR",
+      "tenor": "6M",
+      "risk_factor_id": "RF:RATES:EUR:OIS:6M",
+      "value": 0.0393,
+      "source_name": "DemoComposite",
+      "source_ts": "2026-03-24T17:00:00Z"
+    },
+    {
       "id": "EUR_OIS_1Y",
       "instrument_type": "OIS",
       "quote_type": "OIS",
@@ -186,6 +393,19 @@
       "expiry": "1Y",
       "risk_factor_id": "RF:RATESVOL:USD:CAP:1Y:ATM",
       "value": 0.205,
+      "source_name": "DemoComposite",
+      "source_ts": "2026-03-24T17:00:00Z"
+    },
+    {
+      "id": "USD_IR_FUT_JUN26",
+      "instrument_type": "InterestRateFuture",
+      "quote_type": "InterestRateFuture",
+      "currency": "USD",
+      "tenor": "3M",
+      "expiry": "2026-06-17",
+      "index_family": "IBOR_3M",
+      "risk_factor_id": "RF:RATES:USD:IBOR_3M:FUT_JUN26",
+      "value": 94.5,
       "source_name": "DemoComposite",
       "source_ts": "2026-03-24T17:00:00Z"
     },
@@ -222,6 +442,19 @@
       "index_family": "IBOR_3M",
       "risk_factor_id": "RF:RATES:USD:IBOR_3M:5Y",
       "value": 0.056,
+      "source_name": "DemoComposite",
+      "source_ts": "2026-03-24T17:00:00Z"
+    },
+    {
+      "id": "USD_SWAPTION_VOL_1Y_5Y",
+      "instrument_type": "SwaptionVol",
+      "quote_type": "Volatility",
+      "currency": "USD",
+      "tenor": "5Y",
+      "expiry": "1Y",
+      "strike": "5Y",
+      "risk_factor_id": "RF:RATESVOL:USD:SWAPTION:1Y:5Y",
+      "value": 0.18,
       "source_name": "DemoComposite",
       "source_ts": "2026-03-24T17:00:00Z"
     },

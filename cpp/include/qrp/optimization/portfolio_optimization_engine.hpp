@@ -36,7 +36,7 @@ public:
         const SolverConfig& config = SolverConfig());
 
 private:
-    std::shared_ptr<OptimizationSolver> solver_;
+    std::shared_ptr<OptimizationSolver> solver_; // Solver adapter used for all optimization requests.
 };
 
 } // namespace qrp::optimization

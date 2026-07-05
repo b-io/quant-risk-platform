@@ -1,5 +1,4 @@
 # Dependencies
-include(CTest)
 
 # Find Eigen3
 find_package(Eigen3 CONFIG REQUIRED)
@@ -14,7 +13,7 @@ if(BUILD_TESTING)
     find_package(GTest CONFIG REQUIRED)
     message(STATUS "Found GTest: ${GTest_DIR}")
 else()
-    message(STATUS "BUILD_TESTING=OFF — GTest lookup skipped")
+    message(STATUS "BUILD_TESTING=OFF - GTest lookup skipped")
 endif()
 
 # Find nlohmann_json

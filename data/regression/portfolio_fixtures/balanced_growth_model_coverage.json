@@ -1,0 +1,60 @@
+{
+  "fixture_id": "balanced_growth_model_coverage",
+  "description": "Portfolio-backed structural golden coverage for Balanced Growth Model.",
+  "market_path": "market/demo_market.json",
+  "portfolio_id": "balanced_growth_model",
+  "portfolio_path": "portfolios/balanced_growth_model_portfolio.json",
+  "asset_mix": {
+    "defensive_assets_pct": 40,
+    "growth_assets_pct": 60
+  },
+  "expected_books": {
+    "BOOK:BALANCED_GROWTH:CREDIT_HEDGE": [
+      "bg_acme_cds_001"
+    ],
+    "BOOK:BALANCED_GROWTH:EQUITY_DERIVATIVES": [
+      "bg_aapl_forward_001"
+    ],
+    "BOOK:BALANCED_GROWTH:FX_VOLATILITY": [
+      "bg_eurusd_option_001"
+    ],
+    "BOOK:BALANCED_GROWTH:RATES_OPTION_HEDGE": [
+      "bg_usd_cap_001"
+    ],
+    "BOOK:BALANCED_GROWTH:REAL_ASSETS": [
+      "bg_wti_strip_001"
+    ]
+  },
+  "trades": {
+    "bg_aapl_forward_001": {
+      "asset_class": "equity",
+      "book": "BOOK:BALANCED_GROWTH:EQUITY_DERIVATIVES",
+      "product_type": "equity_forward",
+      "support_status": "supported"
+    },
+    "bg_acme_cds_001": {
+      "asset_class": "credit",
+      "book": "BOOK:BALANCED_GROWTH:CREDIT_HEDGE",
+      "product_type": "cds",
+      "support_status": "supported"
+    },
+    "bg_eurusd_option_001": {
+      "asset_class": "fx",
+      "book": "BOOK:BALANCED_GROWTH:FX_VOLATILITY",
+      "product_type": "fx_option",
+      "support_status": "supported"
+    },
+    "bg_usd_cap_001": {
+      "asset_class": "rates",
+      "book": "BOOK:BALANCED_GROWTH:RATES_OPTION_HEDGE",
+      "product_type": "cap_floor",
+      "support_status": "supported"
+    },
+    "bg_wti_strip_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:BALANCED_GROWTH:REAL_ASSETS",
+      "product_type": "commodity_future_strip",
+      "support_status": "supported"
+    }
+  }
+}

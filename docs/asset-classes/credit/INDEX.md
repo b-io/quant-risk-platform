@@ -28,8 +28,7 @@ semantics.
 
 ## Product Coverage Sequence
 
-The credit phase in `docs/implementation/PHASED_BUILD_PLAN.md` should be
-implemented in this order:
+Credit product support follows this implementation order:
 
 1. credit bonds with spread discounting;
 2. single-name CDS;
@@ -38,6 +37,26 @@ implemented in this order:
 5. bond CS01 and spread duration;
 6. CDS options and credit index options;
 7. CDO and tranche products only after CDS and index infrastructure are stable.
+
+## Implementation Scope
+
+Product support is implemented for the initial credit stack:
+
+- `CreditBondTrade` prices fixed coupon cashflows with risk-free discounting and
+  issuer spread discounting.
+- `CdsTrade` and `CdsIndexTrade` price premium and protection legs from
+  spread-implied hazard curves and recovery quotes.
+- `CdsOptionTrade` and `CreditIndexOptionTrade` price European spread options
+  with Black-style spread volatility inputs.
+- `RiskResult` exposes CS01 and spread duration, with bucketed credit spread
+  risk driven by canonical credit factor bindings.
+
+The first implementation uses deterministic spread and recovery inputs from the
+market snapshot. When multiple same-underlier CDS or credit-spread quotes are
+available, the pricers interpolate live quote handles into a simple spread or
+hazard term structure. CDO, tranche, counterparty-risk, and detailed
+accrual-on-default production conventions remain outside the current product
+scope.
 
 ## Shared References
 

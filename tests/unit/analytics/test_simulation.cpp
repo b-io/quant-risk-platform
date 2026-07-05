@@ -46,3 +46,19 @@ TEST(SimulationTest, GeometricBrownianMotionIsDeterministicWithZeroVolatility) {
     EXPECT_NEAR(path(1, 0), 100.0 * std::exp(0.05), 1e-12);
     EXPECT_NEAR(path(2, 0), 100.0 * std::exp(0.10), 1e-12);
 }
+
+TEST(SimulationTest, TimeGridAndMarketPathExposeContainerAccessors) {
+    TimeGrid grid({0.0, 0.5, 1.0});
+
+    EXPECT_DOUBLE_EQ(grid[1], 0.5);
+    EXPECT_EQ(grid.times().size(), 3U);
+
+    MarketPath path(2, 2);
+    path(1, 1) = 7.0;
+    const MarketPath& const_path = path;
+    EXPECT_DOUBLE_EQ(const_path(1, 1), 7.0);
+
+    MarketPath empty_path(0, 2);
+    EXPECT_EQ(empty_path.num_steps(), 0U);
+    EXPECT_EQ(empty_path.dimension(), 0U);
+}

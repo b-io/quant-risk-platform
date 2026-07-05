@@ -21,12 +21,17 @@ and shocked market states describe what is priced.
 Factor identifiers use the `RF:` prefix and uppercase factor families. Examples:
 
 - `RF:COM:WTI:FWD:3M`
+- `RF:COM:WTI:SPOT`
 - `RF:COMVOL:TTF:1Y:ATM`
 - `RF:CREDIT:CDX_IG:SPREAD:5Y`
+- `RF:CREDIT:CDX_IG:RECOVERY:SPOT`
 - `RF:CREDITVOL:ITRAXX_MAIN:6M:100`
 - `RF:EQ:AAPL:SPOT`
+- `RF:EQ:AAPL:DIVYLD:1Y`
+- `RF:EQ:SPX:FUT:6M`
 - `RF:EQVOL:SPX:3M:ATM`
 - `RF:FX:EURUSD:SPOT`
+- `RF:FX:EURUSD:FWDPTS_6M`
 - `RF:FXVOL:EURUSD:1M:25D_RR`
 - `RF:RATES:USD:OIS:5Y`
 - `RF:RATESVOL:USD:SWAPTION:1Y:5Y`

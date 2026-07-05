@@ -262,36 +262,36 @@ enum class QuoteType {
  * @brief Raw market quote with normalized taxonomy, provenance, and convention metadata.
  */
 struct MarketQuote {
-    std::string id;
-    QuoteInstrumentType instrument_type = QuoteInstrumentType::UNKNOWN;
-    Currency currency = Currency::UNKNOWN;
-    std::string tenor;
-    double value = 0.0;
+    std::string id;                                      // Stable quote identifier.
+    QuoteInstrumentType instrument_type = QuoteInstrumentType::UNKNOWN; // Instrument family.
+    Currency currency = Currency::UNKNOWN;               // Quote currency.
+    std::string tenor;                                   // Quote tenor when applicable.
+    double value = 0.0;                                  // Numeric market quote value.
 
     // Enriching schema
-    std::string risk_factor_id;
-    QuoteType quote_type = QuoteType::UNKNOWN;
+    std::string risk_factor_id;                          // Linked risk factor id.
+    QuoteType quote_type = QuoteType::UNKNOWN;           // Economic quote type.
     std::string underlier;     // e.g., FX pair, equity ticker, issuer/index, commodity hub
     std::string expiry;        // option/future/surface expiry bucket where applicable
     std::string strike;        // strike, delta bucket, or moneyness label where applicable
     std::string instrument_family; // ois, ibor_swap, etc.
     std::string index_family;      // IBOR_3M, etc.
-    DayCount day_count = DayCount::UNKNOWN;
-    BusinessCalendar calendar = BusinessCalendar::UNKNOWN;
-    BusinessDayConvention bdc = BusinessDayConvention::UNKNOWN;
-    int settlement_days = -1;
-    std::string market_ts;
-    std::string recorded_ts;
-    std::string source_name;
-    std::string source_ts;
-    int stale_after_days = -1;
+    DayCount day_count = DayCount::UNKNOWN;              // Quote accrual day-count convention.
+    BusinessCalendar calendar = BusinessCalendar::UNKNOWN; // Quote business calendar.
+    BusinessDayConvention bdc = BusinessDayConvention::UNKNOWN; // Quote date-adjustment convention.
+    int settlement_days = -1;                            // Settlement lag in business days.
+    std::string market_ts;                               // Timestamp when the quote was valid in market time.
+    std::string recorded_ts;                             // Timestamp when the platform recorded the quote.
+    std::string source_name;                             // Source system or vendor name.
+    std::string source_ts;                               // Source-provided timestamp.
+    int stale_after_days = -1;                           // Quote-specific staleness threshold.
 };
 
 /**
  * @brief Stable identifier for a market curve family in a currency.
  */
 struct CurveId {
-    Currency currency;
+    Currency currency;     // Curve currency.
     std::string family; // e.g., "OIS", "IBOR_3M"
 
     /**
@@ -307,16 +307,16 @@ struct CurveId {
  * @brief Construction specification for a curve or future curve-like market object.
  */
 struct CurveSpec {
-    CurveId id;
-    CurvePurpose purpose = CurvePurpose::UNKNOWN;
-    std::vector<std::string> quote_ids;
-    DayCount day_count = DayCount::UNKNOWN;
-    BusinessCalendar calendar = BusinessCalendar::UNKNOWN;
-    InterpolationType interpolation = InterpolationType::UNKNOWN;
-    std::string construction_family;
-    std::string collateral_curve_id;
-    std::string discount_curve_id;
-    std::string metadata_json;
+    CurveId id;                                      // Curve identifier.
+    CurvePurpose purpose = CurvePurpose::UNKNOWN;    // Intended curve usage.
+    std::vector<std::string> quote_ids;              // Ordered input quote ids.
+    DayCount day_count = DayCount::UNKNOWN;          // Curve day-count convention.
+    BusinessCalendar calendar = BusinessCalendar::UNKNOWN; // Curve business calendar.
+    InterpolationType interpolation = InterpolationType::UNKNOWN; // Node interpolation method.
+    std::string construction_family;                 // Curve construction family or template.
+    std::string collateral_curve_id;                 // Collateral curve id for discounting dependencies.
+    std::string discount_curve_id;                   // Discount curve id for forwarding dependencies.
+    std::string metadata_json;                       // Structured construction metadata.
 };
 
 /**

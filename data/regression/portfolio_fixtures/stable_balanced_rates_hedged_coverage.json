@@ -1,0 +1,95 @@
+{
+  "fixture_id": "stable_balanced_rates_hedged_coverage",
+  "description": "Portfolio-backed structural golden coverage for Stable Balanced Rates Hedged.",
+  "market_path": "market/demo_market.json",
+  "portfolio_id": "stable_balanced_rates_hedged",
+  "portfolio_path": "portfolios/stable_balanced_rates_hedged_portfolio.json",
+  "asset_mix": {
+    "defensive_assets_pct": 60,
+    "growth_assets_pct": 40
+  },
+  "expected_books": {
+    "BOOK:STABLE_BALANCED:RATES_CASH": [
+      "sbrh_deposit_001"
+    ],
+    "BOOK:STABLE_BALANCED:RATES_HEDGE": [
+      "sbrh_ois_001",
+      "sbrh_swap_001"
+    ],
+    "BOOK:STABLE_BALANCED:RATES_INCOME": [
+      "sbrh_fixed_bond_001",
+      "sbrh_frn_001"
+    ],
+    "BOOK:STABLE_BALANCED:RATES_RELATIVE_VALUE": [
+      "sbrh_fra_001",
+      "sbrh_ir_future_001"
+    ],
+    "BOOK:STABLE_BALANCED:RATES_VOLATILITY": [
+      "sbrh_bermudan_swaption_001",
+      "sbrh_cap_001",
+      "sbrh_european_swaption_001"
+    ]
+  },
+  "trades": {
+    "sbrh_bermudan_swaption_001": {
+      "asset_class": "rates",
+      "book": "BOOK:STABLE_BALANCED:RATES_VOLATILITY",
+      "product_type": "bermudan_swaption",
+      "support_status": "supported"
+    },
+    "sbrh_cap_001": {
+      "asset_class": "rates",
+      "book": "BOOK:STABLE_BALANCED:RATES_VOLATILITY",
+      "product_type": "cap_floor",
+      "support_status": "supported"
+    },
+    "sbrh_deposit_001": {
+      "asset_class": "rates",
+      "book": "BOOK:STABLE_BALANCED:RATES_CASH",
+      "product_type": "deposit",
+      "support_status": "supported"
+    },
+    "sbrh_european_swaption_001": {
+      "asset_class": "rates",
+      "book": "BOOK:STABLE_BALANCED:RATES_VOLATILITY",
+      "product_type": "european_swaption",
+      "support_status": "supported"
+    },
+    "sbrh_fixed_bond_001": {
+      "asset_class": "rates",
+      "book": "BOOK:STABLE_BALANCED:RATES_INCOME",
+      "product_type": "fixed_rate_bond",
+      "support_status": "supported"
+    },
+    "sbrh_fra_001": {
+      "asset_class": "rates",
+      "book": "BOOK:STABLE_BALANCED:RATES_RELATIVE_VALUE",
+      "product_type": "fra",
+      "support_status": "supported"
+    },
+    "sbrh_frn_001": {
+      "asset_class": "rates",
+      "book": "BOOK:STABLE_BALANCED:RATES_INCOME",
+      "product_type": "floating_rate_note",
+      "support_status": "supported"
+    },
+    "sbrh_ir_future_001": {
+      "asset_class": "rates",
+      "book": "BOOK:STABLE_BALANCED:RATES_RELATIVE_VALUE",
+      "product_type": "interest_rate_future",
+      "support_status": "supported"
+    },
+    "sbrh_ois_001": {
+      "asset_class": "rates",
+      "book": "BOOK:STABLE_BALANCED:RATES_HEDGE",
+      "product_type": "ois_swap",
+      "support_status": "supported"
+    },
+    "sbrh_swap_001": {
+      "asset_class": "rates",
+      "book": "BOOK:STABLE_BALANCED:RATES_HEDGE",
+      "product_type": "vanilla_swap",
+      "support_status": "supported"
+    }
+  }
+}

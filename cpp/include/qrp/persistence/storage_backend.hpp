@@ -19,7 +19,7 @@ namespace qrp::persistence {
  *
  * Why this interface?
  * To decouple the analytics services and the application facade from a specific database implementation.
- * While SQLite is the default, this allows future backends (PostgreSQL, DuckDB) without service changes.
+ * SQLite is the default implementation; alternate backends can satisfy the same analytics contract.
  */
 class StorageBackend {
 public:
@@ -195,17 +195,17 @@ public:
      * @brief Result record for ad hoc valuation queries.
      */
     struct ValuationRecord {
-        std::string run_id;
-        std::string trade_id;
-        double npv;
-        std::string ccy;
-        std::string status;
-        std::string asset_class;
-        std::string product_type;
-        std::string support_status;
-        std::string model_name;
-        std::string status_message;
-        std::string error_message;
+        std::string run_id;          // Analysis run id.
+        std::string trade_id;        // Valued trade id.
+        double npv;                  // Stored net present value.
+        std::string ccy;             // Valuation currency.
+        std::string status;          // Storage or pricing status label.
+        std::string asset_class;     // Trade asset class label.
+        std::string product_type;    // Trade product type label.
+        std::string support_status;  // Product support status label.
+        std::string model_name;      // Pricing model or approximation name.
+        std::string status_message;  // Pricing diagnostic message.
+        std::string error_message;   // Error detail, when pricing failed.
     };
 
     /**

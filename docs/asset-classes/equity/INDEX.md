@@ -19,8 +19,7 @@ Equity documentation should cover:
 
 ## Product Coverage Sequence
 
-The equity phase in `docs/implementation/PHASED_BUILD_PLAN.md` should be
-implemented in this order:
+Equity product support follows this implementation order:
 
 1. equity spot exposure;
 2. equity forwards and futures;
@@ -28,6 +27,19 @@ implemented in this order:
 4. American equity options using LSMC or finite difference;
 5. dividend curve and borrow curve support;
 6. baskets, Asians, and barriers after the core infrastructure is stable.
+
+Current platform coverage:
+
+- The canonical portfolio DTO supports equity spot, equity forwards, equity
+  futures, and equity/index options.
+- Equity forwards and futures use spot or listed futures quotes with discount,
+  dividend-yield, and borrow inputs.
+- European options use a Black-Scholes cost-of-carry formula. American options
+  currently use a recombining binomial exercise tree; replacing that tree with
+  LSMC or finite differences remains a model upgrade rather than a DTO gap.
+- The portfolio-backed golden fixtures under `data/portfolios/` link equity
+  forwards, futures, and European/American options to book-level structural
+  coverage.
 
 ## Required Platform Objects
 

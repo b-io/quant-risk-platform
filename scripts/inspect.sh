@@ -3,10 +3,11 @@
 
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 PROJECT_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
+cd "$PROJECT_ROOT"
 
 # Default values
-BUILD_DIR="build/Release-Python"
-CONFIG="Release"
+BUILD_DIR="build/dev"
+CONFIG="RelWithDebInfo"
 DB_FILE="var/quant_risk_platform.sqlite"
 ID=""
 SKIP_ENV=0
@@ -39,17 +40,26 @@ fi
 # Helper to find executable
 find_exe() {
     local exe_name=$1
-    local paths=(
-        "$BUILD_DIR/$exe_name"
-        "$BUILD_DIR/$CONFIG/$exe_name"
-        "$BUILD_DIR/bin/$exe_name"
-        "$BUILD_DIR/bin/$CONFIG/$exe_name"
-    )
-    for path in "${paths[@]}"; do
-        if [ -f "$path" ]; then
-            echo "$path"
-            return 0
-        fi
+    local names=("$exe_name")
+    case "$exe_name" in
+        *.exe) ;;
+        *) names+=("$exe_name.exe") ;;
+    esac
+
+    local name
+    for name in "${names[@]}"; do
+        local paths=(
+            "$BUILD_DIR/$name"
+            "$BUILD_DIR/$CONFIG/$name"
+            "$BUILD_DIR/bin/$name"
+            "$BUILD_DIR/bin/$CONFIG/$name"
+        )
+        for path in "${paths[@]}"; do
+            if [ -f "$path" ]; then
+                echo "$path"
+                return 0
+            fi
+        done
     done
     return 1
 }

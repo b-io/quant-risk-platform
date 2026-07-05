@@ -1,25 +1,33 @@
 // Exercises sample-data risk calculation through the public loading and analytics services.
 
+#include "test_paths.hpp"
+
 #include <qrp/analytics/risk_service.hpp>
 #include <qrp/io/json_loader.hpp>
 #include <qrp/market/market_snapshot.hpp>
 
 #include <gtest/gtest.h>
+#include <nlohmann/json.hpp>
 
-#include <filesystem>
+#include <fstream>
+#include <set>
+#include <string>
 
 TEST(RiskIntegrationTest, ComputeRiskSamplePortfolio) {
-    std::string market_path = "data/market/demo_market.json";
-    std::string portfolio_path = "data/portfolios/demo_portfolio.json";
+    const auto market_path = qrp::test::data_file({"market", "demo_market.json"});
+    const auto portfolio_path = qrp::test::data_file({"portfolios", "demo_portfolio.json"});
+    const auto golden_path = qrp::test::data_file({"regression", "demo_golden.json"});
 
-    if (!std::filesystem::exists(market_path)) {
-        GTEST_SKIP() << "Sample data not found";
-    }
+    auto market_dto = qrp::io::load_market(market_path.string());
+    auto portfolio_dto = qrp::io::load_portfolio(portfolio_path.string());
 
-    auto market_dto = qrp::io::load_market(market_path);
-    auto portfolio_dto = qrp::io::load_portfolio(portfolio_path);
+    std::ifstream golden_stream(golden_path);
+    ASSERT_TRUE(golden_stream.is_open()) << "Unable to open " << golden_path.string();
 
-    // Create minimal factors and bindings for risk calculation
+    nlohmann::json golden;
+    golden_stream >> golden;
+
+    // Create rate-style factors for integration-level quote shock plumbing.
     std::vector<qrp::domain::FactorDefinition> factors;
     std::vector<qrp::domain::FactorBinding> bindings;
 
@@ -41,9 +49,18 @@ TEST(RiskIntegrationTest, ComputeRiskSamplePortfolio) {
 
     auto risk_results = qrp::analytics::RiskService::compute_risk(portfolio_dto, market_dto, factors, bindings);
 
-    EXPECT_FALSE(risk_results.empty());
+    const auto& expected_risk = golden.at("risk");
+    std::set<std::string> expected_trade_ids;
+    for (const auto& [trade_id, expected] : expected_risk.items()) {
+        if (trade_id != "tolerance") {
+            expected_trade_ids.insert(trade_id);
+        }
+    }
+
+    ASSERT_EQ(risk_results.size(), expected_trade_ids.size());
     for (const auto& res : risk_results) {
         EXPECT_FALSE(res.trade_id.empty());
+        EXPECT_TRUE(expected_trade_ids.contains(res.trade_id)) << "Unexpected risk result for " << res.trade_id;
 
         // Only rates-linked products are expected to carry PV01 in this sample factor setup.
         if (res.trade_id.find("swap") != std::string::npos || res.trade_id.find("bond") != std::string::npos) {

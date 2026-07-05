@@ -13,12 +13,13 @@ namespace qrp::analytics {
  * @brief Trade-level deterministic risk result.
  */
 struct RiskResult {
-    std::string trade_id;
-    double pv01 = 0.0; // Parallel rate shock
-    double cs01 = 0.0; // Parallel credit shock
-    double fx_delta = 0.0; // FX spot sensitivity from configured FX spot factors
-    double fx_vega = 0.0; // FX volatility sensitivity from configured FX vol factors
-    std::map<std::string, double> bucketed_risk; // Factor bucket -> shock result
+    std::string trade_id;                         // Risked trade id.
+    double pv01 = 0.0;                            // Parallel rate shock sensitivity.
+    double cs01 = 0.0;                            // Parallel credit spread shock sensitivity.
+    double fx_delta = 0.0;                        // FX spot sensitivity from configured FX spot factors.
+    double fx_vega = 0.0;                         // FX volatility sensitivity from configured FX vol factors.
+    double spread_duration = 0.0;                 // Normalized credit spread sensitivity.
+    std::map<std::string, double> bucketed_risk;  // Factor bucket to shocked PnL contribution.
 };
 
 /**

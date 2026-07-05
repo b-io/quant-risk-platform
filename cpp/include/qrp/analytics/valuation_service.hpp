@@ -9,6 +9,9 @@
 #include <vector>
 
 namespace QuantLib {
+/**
+ * @brief Forward declaration of QuantLib's pricing instrument base class.
+ */
 class Instrument;
 }
 

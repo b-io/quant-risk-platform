@@ -201,7 +201,9 @@ private:
      */
     void execute_sql(const std::string& sql);
 
+    /** @brief Owned SQLite database connection handle. */
     sqlite3* db_ = nullptr;
+    /** @brief Filesystem path used to open the SQLite database. */
     std::string db_path_;
 };
 

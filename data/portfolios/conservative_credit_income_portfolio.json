@@ -1,0 +1,144 @@
+{
+  "portfolio_id": "conservative_credit_income",
+  "portfolio_name": "Conservative Credit Income",
+  "portfolio_style": "thematic_variant",
+  "description": "Conservative credit portfolio covering bonds, CDS, indices, and spread options.",
+  "base_currency": "USD",
+  "asset_mix": {
+    "defensive_assets_pct": 80,
+    "growth_assets_pct": 20
+  },
+  "books": [
+    {
+      "book_id": "BOOK:CONSERVATIVE_INCOME:CREDIT_BETA",
+      "book_name": "Conservative Income Credit Beta",
+      "trades": [
+        "cci_cdx_index_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:CONSERVATIVE_INCOME:CREDIT_HEDGE",
+      "book_name": "Conservative Income Credit Hedge",
+      "trades": [
+        "cci_acme_cds_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:CONSERVATIVE_INCOME:CREDIT_INCOME",
+      "book_name": "Conservative Income Credit Income",
+      "trades": [
+        "cci_acme_credit_bond_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:CONSERVATIVE_INCOME:CREDIT_VOLATILITY",
+      "book_name": "Conservative Income Credit Volatility",
+      "trades": [
+        "cci_acme_cds_option_001",
+        "cci_cdx_option_001"
+      ]
+    }
+  ],
+  "trades": [
+    {
+      "id": "cci_acme_credit_bond_001",
+      "asset_class": "credit",
+      "type": "credit_bond",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:CONSERVATIVE_INCOME:CREDIT_INCOME",
+      "strategy": "INVESTMENT_GRADE_CREDIT",
+      "notional": 2000000,
+      "start_date": "2026-03-24",
+      "maturity_date": "2031-03-24",
+      "details": {
+        "coupon_rate": 0.055,
+        "frequency": "Annual",
+        "issuer": "ACME",
+        "spread_quote_id": "ACME_BOND_SPREAD_5Y"
+      }
+    },
+    {
+      "id": "cci_acme_cds_001",
+      "asset_class": "credit",
+      "type": "cds",
+      "currency": "USD",
+      "direction": "buy_protection",
+      "book": "BOOK:CONSERVATIVE_INCOME:CREDIT_HEDGE",
+      "strategy": "ACME_PROTECTION",
+      "notional": 5000000,
+      "start_date": "2026-03-24",
+      "maturity_date": "2031-03-24",
+      "details": {
+        "coupon_rate": 0.01,
+        "frequency": "Quarterly",
+        "issuer": "ACME",
+        "recovery_quote_id": "ACME_RECOVERY",
+        "spread_quote_id": "ACME_CDS_5Y"
+      }
+    },
+    {
+      "id": "cci_cdx_index_001",
+      "asset_class": "credit",
+      "type": "cds_index",
+      "currency": "USD",
+      "direction": "buy_protection",
+      "book": "BOOK:CONSERVATIVE_INCOME:CREDIT_BETA",
+      "strategy": "CDX_IG_OVERLAY",
+      "notional": 10000000,
+      "start_date": "2026-03-24",
+      "maturity_date": "2031-03-24",
+      "details": {
+        "coupon_rate": 0.009,
+        "frequency": "Quarterly",
+        "index_factor": 0.98,
+        "index_name": "CDX_IG",
+        "recovery_quote_id": "CDX_IG_RECOVERY",
+        "spread_quote_id": "CDX_IG_5Y"
+      }
+    },
+    {
+      "id": "cci_acme_cds_option_001",
+      "asset_class": "credit",
+      "type": "cds_option",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:CONSERVATIVE_INCOME:CREDIT_VOLATILITY",
+      "strategy": "ACME_CDS_CALL",
+      "notional": 5000000,
+      "maturity_date": "2031-03-24",
+      "details": {
+        "expiry_date": "2027-03-24",
+        "strike_spread": 0.015,
+        "frequency": "Quarterly",
+        "issuer": "ACME",
+        "option_type": "call",
+        "recovery_quote_id": "ACME_RECOVERY",
+        "spread_quote_id": "ACME_CDS_5Y",
+        "volatility_quote_id": "ACME_CDS_OPTION_VOL_1Y_5Y"
+      }
+    },
+    {
+      "id": "cci_cdx_option_001",
+      "asset_class": "credit",
+      "type": "credit_index_option",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:CONSERVATIVE_INCOME:CREDIT_VOLATILITY",
+      "strategy": "CDX_IG_CALL",
+      "notional": 10000000,
+      "maturity_date": "2031-03-24",
+      "details": {
+        "expiry_date": "2027-03-24",
+        "index_factor": 0.98,
+        "index_name": "CDX_IG",
+        "strike_spread": 0.009,
+        "frequency": "Quarterly",
+        "option_type": "call",
+        "recovery_quote_id": "CDX_IG_RECOVERY",
+        "spread_quote_id": "CDX_IG_5Y",
+        "volatility_quote_id": "CDX_IG_OPTION_VOL_1Y_5Y"
+      }
+    }
+  ]
+}

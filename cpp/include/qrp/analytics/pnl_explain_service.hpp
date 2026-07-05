@@ -25,40 +25,40 @@ enum class PnlExplainComponentType {
  * @brief One named PnL component with factor/model diagnostics.
  */
 struct PnlExplainComponent {
-    std::string component_id;
-    PnlExplainComponentType component_type = PnlExplainComponentType::Residual;
-    std::string label;
-    double amount = 0.0;
-    std::string factor_id;
-    std::string model_name;
-    domain::SupportStatus support_status = domain::SupportStatus::Supported;
-    std::string status_message;
-    std::map<std::string, std::string> tags;
+    std::string component_id;           // Stable component identifier.
+    PnlExplainComponentType component_type = PnlExplainComponentType::Residual; // Business component bucket.
+    std::string label;                  // Human-readable component label.
+    double amount = 0.0;                // Component PnL amount.
+    std::string factor_id;              // Market factor driving the component, when available.
+    std::string model_name;             // Model or approximation used.
+    domain::SupportStatus support_status = domain::SupportStatus::Supported; // Component support status.
+    std::string status_message;         // Diagnostic message.
+    std::map<std::string, std::string> tags; // Extra component metadata.
 };
 
 /**
  * @brief Full PnL explain result for one trade across two market snapshots.
  */
 struct PnlExplainResult {
-    std::string trade_id;
-    double prev_npv = 0.0;
-    double curr_npv = 0.0;
-    double total_pnl = 0.0;
+    std::string trade_id;               // Explained trade id.
+    double prev_npv = 0.0;              // Previous snapshot NPV.
+    double curr_npv = 0.0;              // Current snapshot NPV.
+    double total_pnl = 0.0;             // Current minus previous NPV plus realized cash handling.
 
-    double carry_pnl = 0.0;
-    double market_move_pnl = 0.0;
-    double cash_pnl = 0.0;
-    double residual = 0.0;
+    double carry_pnl = 0.0;             // Aging or carry contribution.
+    double market_move_pnl = 0.0;       // Market-factor move contribution.
+    double cash_pnl = 0.0;              // Realized cashflow contribution.
+    double residual = 0.0;              // Unexplained residual.
 
-    bool prev_valuation_available = false;
-    bool curr_valuation_available = false;
-    bool rolled_valuation_available = false;
-    ValuationResult prev_valuation;
-    ValuationResult curr_valuation;
-    ValuationResult rolled_valuation;
-    CashflowExtractionResult cashflow_extraction;
-    std::vector<PnlExplainComponent> components;
-    std::map<std::string, std::string> diagnostics;
+    bool prev_valuation_available = false;   // Previous valuation availability flag.
+    bool curr_valuation_available = false;   // Current valuation availability flag.
+    bool rolled_valuation_available = false; // Rolled valuation availability flag.
+    ValuationResult prev_valuation;          // Previous snapshot valuation detail.
+    ValuationResult curr_valuation;          // Current snapshot valuation detail.
+    ValuationResult rolled_valuation;        // Previous trade aged to current date.
+    CashflowExtractionResult cashflow_extraction; // Cashflows realized between snapshots.
+    std::vector<PnlExplainComponent> components;  // Explained PnL components.
+    std::map<std::string, std::string> diagnostics; // Result-level diagnostics.
 };
 
 /**

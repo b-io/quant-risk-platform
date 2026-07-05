@@ -65,6 +65,32 @@ std::string QueryString(const std::string& db_path, const std::string& sql) {
 
 } // namespace
 
+TEST(SQLiteStorageBackendTest, ConstructorRejectsMissingParentDirectory) {
+    const auto missing_parent = std::filesystem::path("missing_sqlite_parent_for_test");
+    const auto db_path = missing_parent / "test.db";
+    std::filesystem::remove_all(missing_parent);
+
+    EXPECT_THROW({
+        persistence::SQLiteStorageBackend storage(db_path.string());
+    }, std::runtime_error);
+}
+
+TEST(SQLiteStorageBackendTest, InitializeSchemaRejectsCorruptDatabaseFile) {
+    const auto db_path = std::filesystem::path("corrupt_sqlite_for_test.db");
+    std::filesystem::remove(db_path);
+    {
+        std::ofstream db_file(db_path, std::ios::binary);
+        db_file << "not a sqlite database";
+    }
+
+    EXPECT_THROW({
+        persistence::SQLiteStorageBackend storage(db_path.string());
+        storage.initialize_schema();
+    }, std::runtime_error);
+
+    std::filesystem::remove(db_path);
+}
+
 class PersistenceTest : public ::testing::Test {
 protected:
     void SetUp() override {
@@ -149,8 +175,8 @@ TEST_F(PersistenceTest, MarketSnapshotQuotesRoundTrip) {
     EXPECT_EQ(s2.quotes[0].tenor, "10Y");
 }
 
-TEST_F(PersistenceTest, MarketSnapshotPreservesPhase2MarketFields) {
-    storage->store_market_snapshot("S_PHASE2", "2026-03-24", "USD", R"json([
+TEST_F(PersistenceTest, MarketSnapshotPreservesMarketFields) {
+    storage->store_market_snapshot("S_MARKET_SCHEMA", "2026-03-24", "USD", R"json([
         {
           "id": { "currency": "USD", "family": "OIS" },
           "purpose": "OISDiscount",
@@ -161,7 +187,7 @@ TEST_F(PersistenceTest, MarketSnapshotPreservesPhase2MarketFields) {
           "interpolation": "LogLinear"
         }
     ])json");
-    storage->store_market_quote("S_PHASE2", "EURUSD.SPOT", 1.085, "USD", R"json({
+    storage->store_market_quote("S_MARKET_SCHEMA", "EURUSD.SPOT", 1.085, "USD", R"json({
         "instrument_type": "FXSpot",
         "quote_type": "FXSpot",
         "risk_factor_id": "RF:FX:EURUSD:SPOT",
@@ -171,7 +197,7 @@ TEST_F(PersistenceTest, MarketSnapshotPreservesPhase2MarketFields) {
         "source_ts": "2026-03-24T17:00:00Z",
         "stale_after_days": 1
     })json");
-    storage->store_market_quote("S_PHASE2", "USD_OIS_2Y", 0.0538, "USD", R"json({
+    storage->store_market_quote("S_MARKET_SCHEMA", "USD_OIS_2Y", 0.0538, "USD", R"json({
         "instrument_type": "OIS",
         "quote_type": "OIS",
         "risk_factor_id": "RF:RATES:USD:OIS:2Y",
@@ -181,9 +207,9 @@ TEST_F(PersistenceTest, MarketSnapshotPreservesPhase2MarketFields) {
         "stale_after_days": 1
     })json");
 
-    auto snapshot = storage->load_market_snapshot("S_PHASE2");
+    auto snapshot = storage->load_market_snapshot("S_MARKET_SCHEMA");
 
-    EXPECT_EQ(snapshot.snapshot_id, "S_PHASE2");
+    EXPECT_EQ(snapshot.snapshot_id, "S_MARKET_SCHEMA");
     EXPECT_EQ(snapshot.schema_version, 2);
     EXPECT_EQ(snapshot.base_currency, domain::Currency::USD);
     ASSERT_EQ(snapshot.curves.size(), 1U);
@@ -197,7 +223,7 @@ TEST_F(PersistenceTest, MarketSnapshotPreservesPhase2MarketFields) {
     EXPECT_EQ(snapshot.quotes[0].underlier, "EURUSD");
     EXPECT_TRUE(snapshot.diagnostics.empty());
     EXPECT_EQ(
-        QueryString(db_path, "SELECT quote_type FROM market_quotes WHERE snapshot_id = 'S_PHASE2' AND quote_id = 'EURUSD.SPOT';"),
+        QueryString(db_path, "SELECT quote_type FROM market_quotes WHERE snapshot_id = 'S_MARKET_SCHEMA' AND quote_id = 'EURUSD.SPOT';"),
         "FXSpot");
 }
 
@@ -292,6 +318,76 @@ TEST_F(PersistenceTest, ScenarioAndVarResultsPersistence) {
     EXPECT_NEAR(QueryDouble(db_path, "SELECT portfolio_pnl FROM scenario_results WHERE scenario_name = 'RISK_OFF';"), -1250.0, 1e-10);
     EXPECT_NEAR(QueryDouble(db_path, "SELECT var_value FROM var_results WHERE run_id = 'RUN_HVAR_1';"), 1250.0, 1e-10);
     EXPECT_NEAR(QueryDouble(db_path, "SELECT expected_shortfall FROM var_results WHERE run_id = 'RUN_HVAR_1';"), 1250.0, 1e-10);
+}
+
+TEST_F(PersistenceTest, FactorsHistoryBindingsAndScenarioSetsRoundTrip) {
+    domain::FactorDefinition factor;
+    factor.factor_id = "RF:RATES:USD:OIS:5Y";
+    factor.factor_type = domain::FactorType::RateZero;
+    factor.shock_measure = domain::ShockMeasure::Absolute;
+    factor.currency = domain::Currency::USD;
+    factor.curve_id = "USD:OIS";
+    factor.tenor = "5Y";
+    factor.quote_ids = {"USD_OIS_5Y"};
+    factor.description = "USD OIS 5Y zero node";
+    storage->store_factor_definition(factor);
+
+    auto factors = storage->load_factor_definitions("P1");
+    ASSERT_EQ(factors.size(), 1U);
+    EXPECT_EQ(factors[0].factor_id, factor.factor_id);
+    EXPECT_EQ(factors[0].factor_type, domain::FactorType::RateZero);
+    EXPECT_EQ(factors[0].shock_measure, domain::ShockMeasure::Absolute);
+    EXPECT_EQ(factors[0].currency, domain::Currency::USD);
+    EXPECT_EQ(factors[0].quote_ids, factor.quote_ids);
+
+    domain::FactorObservation observation;
+    observation.factor_id = factor.factor_id;
+    observation.market_date = "2026-03-24";
+    observation.level = 0.041;
+    observation.move = 0.0003;
+    observation.move_unit = "absolute";
+    storage->store_factor_observation(observation);
+
+    auto history = storage->load_factor_history({factor.factor_id}, "2026-03-01", "2026-03-31");
+    ASSERT_EQ(history.size(), 1U);
+    EXPECT_EQ(history[0].factor_id, factor.factor_id);
+    EXPECT_EQ(history[0].market_date, "2026-03-24");
+    EXPECT_DOUBLE_EQ(history[0].level, 0.041);
+    EXPECT_DOUBLE_EQ(history[0].move, 0.0003);
+
+    domain::FactorBinding binding;
+    binding.factor_id = factor.factor_id;
+    binding.quote_id = "USD_OIS_5Y";
+    binding.shock_measure = domain::ShockMeasure::BasisPoints;
+    binding.weight = 0.75;
+    binding.transform = "bp";
+    binding.selector_json = R"json({"tenor":"5Y"})json";
+    storage->store_factor_binding(binding);
+
+    auto bindings = storage->load_factor_bindings({factor.factor_id});
+    ASSERT_EQ(bindings.size(), 1U);
+    EXPECT_EQ(bindings[0].factor_id, factor.factor_id);
+    EXPECT_EQ(bindings[0].quote_id, "USD_OIS_5Y");
+    EXPECT_EQ(bindings[0].shock_measure, domain::ShockMeasure::BasisPoints);
+    EXPECT_DOUBLE_EQ(bindings[0].weight, 0.75);
+    EXPECT_EQ(bindings[0].transform, "bp");
+    EXPECT_EQ(bindings[0].selector_json, R"json({"tenor":"5Y"})json");
+    EXPECT_TRUE(storage->load_factor_bindings({}).empty());
+
+    storage->store_scenario_set("SCENARIOS", "Scenario Set");
+    storage->store_scenario_factor_shock("SCENARIOS", "RATES_UP", factor.factor_id, 0.001);
+    storage->store_scenario_factor_shock("SCENARIOS", "RATES_DOWN", factor.factor_id, -0.001);
+    const auto scenarios = storage->load_scenario_set("SCENARIOS");
+    ASSERT_EQ(scenarios.size(), 2U);
+    EXPECT_DOUBLE_EQ(scenarios.at("RATES_UP").at(factor.factor_id), 0.001);
+    EXPECT_DOUBLE_EQ(scenarios.at("RATES_DOWN").at(factor.factor_id), -0.001);
+
+    storage->store_portfolio("P1", "P1", "USD");
+    storage->store_market_snapshot("S1", "2026-03-24", "USD", "[]");
+    storage->store_analysis_run("RUN_RISK_1", "RISK", "P1", "S1");
+    storage->store_risk_result("RUN_RISK_1", "T1", "PV01", factor.factor_id, 42.0);
+    EXPECT_EQ(storage->list_runs("P1").size(), 1U);
+    EXPECT_DOUBLE_EQ(QueryDouble(db_path, "SELECT value FROM risk_results WHERE run_id = 'RUN_RISK_1';"), 42.0);
 }
 
 TEST_F(PersistenceTest, ScenarioImportRejectsNonCanonicalFactorIds) {

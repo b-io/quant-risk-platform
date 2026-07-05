@@ -1,0 +1,136 @@
+{
+  "portfolio_id": "conservative_income_model",
+  "portfolio_name": "Conservative Income Model",
+  "portfolio_style": "basic_model",
+  "description": "Conservative multi-asset income with explicit credit protection.",
+  "base_currency": "USD",
+  "asset_mix": {
+    "defensive_assets_pct": 80,
+    "growth_assets_pct": 20
+  },
+  "books": [
+    {
+      "book_id": "BOOK:CONSERVATIVE_INCOME:CORE_INCOME",
+      "book_name": "Conservative Income Core Income",
+      "trades": [
+        "ci_usd_core_bond_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:CONSERVATIVE_INCOME:CREDIT_HEDGE",
+      "book_name": "Conservative Income Credit Hedge",
+      "trades": [
+        "ci_acme_cds_hedge_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:CONSERVATIVE_INCOME:CREDIT_INCOME",
+      "book_name": "Conservative Income Credit Income",
+      "trades": [
+        "ci_acme_credit_bond_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:CONSERVATIVE_INCOME:EQUITY_INCOME",
+      "book_name": "Conservative Income Equity Income",
+      "trades": [
+        "ci_aapl_income_equity_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:CONSERVATIVE_INCOME:FX_HEDGE",
+      "book_name": "Conservative Income Fx Hedge",
+      "trades": [
+        "ci_eurusd_income_hedge_001"
+      ]
+    }
+  ],
+  "trades": [
+    {
+      "id": "ci_usd_core_bond_001",
+      "asset_class": "rates",
+      "type": "fixed_rate_bond",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:CONSERVATIVE_INCOME:CORE_INCOME",
+      "strategy": "USD_CORE_BONDS",
+      "notional": 2000000,
+      "start_date": "2026-03-26",
+      "maturity_date": "2031-03-26",
+      "details": {
+        "coupon_rate": 0.0545,
+        "frequency": "Annual"
+      }
+    },
+    {
+      "id": "ci_acme_credit_bond_001",
+      "asset_class": "credit",
+      "type": "credit_bond",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:CONSERVATIVE_INCOME:CREDIT_INCOME",
+      "strategy": "INVESTMENT_GRADE_CREDIT",
+      "notional": 1500000,
+      "start_date": "2026-03-24",
+      "maturity_date": "2031-03-24",
+      "details": {
+        "coupon_rate": 0.056,
+        "frequency": "Annual",
+        "issuer": "ACME",
+        "spread_quote_id": "ACME_BOND_SPREAD_5Y"
+      }
+    },
+    {
+      "id": "ci_acme_cds_hedge_001",
+      "asset_class": "credit",
+      "type": "cds",
+      "currency": "USD",
+      "direction": "buy_protection",
+      "book": "BOOK:CONSERVATIVE_INCOME:CREDIT_HEDGE",
+      "strategy": "CREDIT_PROTECTION",
+      "notional": 1000000,
+      "start_date": "2026-03-24",
+      "maturity_date": "2031-03-24",
+      "details": {
+        "coupon_rate": 0.01,
+        "frequency": "Quarterly",
+        "issuer": "ACME",
+        "recovery_quote_id": "ACME_RECOVERY",
+        "spread_quote_id": "ACME_CDS_5Y"
+      }
+    },
+    {
+      "id": "ci_aapl_income_equity_001",
+      "asset_class": "equity",
+      "type": "equity_spot",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:CONSERVATIVE_INCOME:EQUITY_INCOME",
+      "strategy": "QUALITY_EQUITY",
+      "quantity": 100,
+      "details": {
+        "underlier": "AAPL",
+        "reference_price": 182.0
+      }
+    },
+    {
+      "id": "ci_eurusd_income_hedge_001",
+      "asset_class": "fx",
+      "type": "fx_forward",
+      "currency": "USD",
+      "direction": "sell_base",
+      "book": "BOOK:CONSERVATIVE_INCOME:FX_HEDGE",
+      "strategy": "EURUSD_HEDGE",
+      "notional": 750000,
+      "start_date": "2026-03-24",
+      "maturity_date": "2026-09-24",
+      "details": {
+        "base_currency": "EUR",
+        "quote_currency": "USD",
+        "forward_rate": 1.102,
+        "spot_quote_id": "EURUSD",
+        "forward_points_quote_id": "EURUSD_FWDPTS_6M"
+      }
+    }
+  ]
+}

@@ -1,0 +1,182 @@
+{
+  "portfolio_id": "aggressive_growth_model",
+  "portfolio_name": "Aggressive Growth Model",
+  "portfolio_style": "basic_model",
+  "description": "Aggressive portfolio dominated by derivative growth and volatility exposures.",
+  "base_currency": "USD",
+  "asset_mix": {
+    "defensive_assets_pct": 10,
+    "growth_assets_pct": 90
+  },
+  "books": [
+    {
+      "book_id": "BOOK:AGGRESSIVE_GROWTH:COMMODITY_VOLATILITY",
+      "book_name": "Aggressive Growth Commodity Volatility",
+      "trades": [
+        "ag_wti_calendar_001",
+        "ag_wti_option_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:AGGRESSIVE_GROWTH:CREDIT_VOLATILITY",
+      "book_name": "Aggressive Growth Credit Volatility",
+      "trades": [
+        "ag_cdx_option_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:AGGRESSIVE_GROWTH:EQUITY_VOLATILITY",
+      "book_name": "Aggressive Growth Equity Volatility",
+      "trades": [
+        "ag_aapl_call_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:AGGRESSIVE_GROWTH:FX_CARRY",
+      "book_name": "Aggressive Growth Fx Carry",
+      "trades": [
+        "ag_eurusd_swap_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:AGGRESSIVE_GROWTH:RATES_OPTION_HEDGE",
+      "book_name": "Aggressive Growth Rates Option Hedge",
+      "trades": [
+        "ag_usd_bermudan_001"
+      ]
+    }
+  ],
+  "trades": [
+    {
+      "id": "ag_usd_bermudan_001",
+      "asset_class": "rates",
+      "type": "bermudan_swaption",
+      "currency": "USD",
+      "direction": "payer",
+      "book": "BOOK:AGGRESSIVE_GROWTH:RATES_OPTION_HEDGE",
+      "strategy": "USD_BERMUDAN_SWAPTION",
+      "notional": 2000000,
+      "start_date": "2026-06-24",
+      "maturity_date": "2031-06-24",
+      "details": {
+        "fixed_rate": 0.055,
+        "floating_index": "USD_LIBOR_3M",
+        "volatility": 0.012,
+        "mean_reversion": 0.03,
+        "exercise_dates": [
+          "2026-06-24",
+          "2027-06-24",
+          "2028-06-24",
+          "2029-06-24"
+        ]
+      }
+    },
+    {
+      "id": "ag_cdx_option_001",
+      "asset_class": "credit",
+      "type": "credit_index_option",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:AGGRESSIVE_GROWTH:CREDIT_VOLATILITY",
+      "strategy": "CDX_IG_CALL",
+      "notional": 4000000,
+      "maturity_date": "2031-03-24",
+      "details": {
+        "expiry_date": "2027-03-24",
+        "index_factor": 0.98,
+        "index_name": "CDX_IG",
+        "strike_spread": 0.009,
+        "frequency": "Quarterly",
+        "option_type": "call",
+        "recovery_quote_id": "CDX_IG_RECOVERY",
+        "spread_quote_id": "CDX_IG_5Y",
+        "volatility_quote_id": "CDX_IG_OPTION_VOL_1Y_5Y"
+      }
+    },
+    {
+      "id": "ag_eurusd_swap_001",
+      "asset_class": "fx",
+      "type": "fx_swap",
+      "currency": "USD",
+      "direction": "buy_base",
+      "book": "BOOK:AGGRESSIVE_GROWTH:FX_CARRY",
+      "strategy": "EURUSD_SWAP",
+      "notional": 1000000,
+      "start_date": "2026-06-24",
+      "maturity_date": "2027-03-24",
+      "details": {
+        "base_currency": "EUR",
+        "quote_currency": "USD",
+        "near_rate": 1.088,
+        "far_rate": 1.091,
+        "spot_quote_id": "EURUSD",
+        "near_forward_points_quote_id": "EURUSD_FWDPTS_3M",
+        "far_forward_points_quote_id": "EURUSD_FWDPTS_1Y"
+      }
+    },
+    {
+      "id": "ag_wti_option_001",
+      "asset_class": "commodity",
+      "type": "commodity_future_option",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:AGGRESSIVE_GROWTH:COMMODITY_VOLATILITY",
+      "strategy": "WTI_UPSIDE",
+      "quantity": 2,
+      "maturity_date": "2026-09-24",
+      "details": {
+        "underlier": "WTI",
+        "contract_size": 1000,
+        "strike_price": 80.0,
+        "expiry_date": "2026-09-24",
+        "future_quote_id": "WTI_FUT_6M",
+        "volatility_quote_id": "WTI_VOL_6M_ATM",
+        "option_type": "call",
+        "unit": "bbl"
+      }
+    },
+    {
+      "id": "ag_wti_calendar_001",
+      "asset_class": "commodity",
+      "type": "commodity_calendar_spread_option",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:AGGRESSIVE_GROWTH:COMMODITY_VOLATILITY",
+      "strategy": "WTI_CALENDAR_VOL",
+      "quantity": 2,
+      "details": {
+        "underlier": "WTI",
+        "contract_size": 1000,
+        "strike_spread": 0.5,
+        "expiry_date": "2026-09-24",
+        "near_future_quote_id": "WTI_FUT_6M",
+        "far_future_quote_id": "WTI_FUT_9M",
+        "volatility_quote_id": "WTI_VOL_6M_ATM",
+        "option_type": "call",
+        "unit": "bbl"
+      }
+    },
+    {
+      "id": "ag_aapl_call_001",
+      "asset_class": "equity",
+      "type": "equity_option",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:AGGRESSIVE_GROWTH:EQUITY_VOLATILITY",
+      "strategy": "AAPL_CALL",
+      "quantity": 250,
+      "details": {
+        "underlier": "AAPL",
+        "strike_price": 185.0,
+        "expiry_date": "2026-09-24",
+        "settlement_date": "2026-09-24",
+        "spot_quote_id": "AAPL",
+        "dividend_yield_quote_id": "AAPL_DIVYLD_1Y",
+        "borrow_rate_quote_id": "AAPL_BORROW_1Y",
+        "volatility_quote_id": "AAPL_VOL_6M_ATM",
+        "exercise_style": "european",
+        "option_type": "call"
+      }
+    }
+  ]
+}

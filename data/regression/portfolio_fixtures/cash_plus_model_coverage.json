@@ -1,0 +1,51 @@
+{
+  "fixture_id": "cash_plus_model_coverage",
+  "description": "Portfolio-backed structural golden coverage for Cash Plus Model.",
+  "market_path": "market/demo_market.json",
+  "portfolio_id": "cash_plus_model",
+  "portfolio_path": "portfolios/cash_plus_model_portfolio.json",
+  "asset_mix": {
+    "defensive_assets_pct": 95,
+    "growth_assets_pct": 5
+  },
+  "expected_books": {
+    "BOOK:CASH_PLUS:CASH": [
+      "cp_usd_deposit_001"
+    ],
+    "BOOK:CASH_PLUS:FX_HEDGE": [
+      "cp_eurusd_hedge_001"
+    ],
+    "BOOK:CASH_PLUS:LIQUID_GROWTH": [
+      "cp_aapl_overlay_001"
+    ],
+    "BOOK:CASH_PLUS:SHORT_DURATION_INCOME": [
+      "cp_usd_frn_001"
+    ]
+  },
+  "trades": {
+    "cp_aapl_overlay_001": {
+      "asset_class": "equity",
+      "book": "BOOK:CASH_PLUS:LIQUID_GROWTH",
+      "product_type": "equity_spot",
+      "support_status": "supported"
+    },
+    "cp_eurusd_hedge_001": {
+      "asset_class": "fx",
+      "book": "BOOK:CASH_PLUS:FX_HEDGE",
+      "product_type": "fx_forward",
+      "support_status": "supported"
+    },
+    "cp_usd_deposit_001": {
+      "asset_class": "rates",
+      "book": "BOOK:CASH_PLUS:CASH",
+      "product_type": "deposit",
+      "support_status": "supported"
+    },
+    "cp_usd_frn_001": {
+      "asset_class": "rates",
+      "book": "BOOK:CASH_PLUS:SHORT_DURATION_INCOME",
+      "product_type": "floating_rate_note",
+      "support_status": "supported"
+    }
+  }
+}

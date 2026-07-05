@@ -3,7 +3,7 @@
 
 param(
     [string[]]$ExtraArgs = @(),
-    [string]$Preset = "Release-Python",
+    [string]$Preset = "dev",
     [switch]$SkipEnv
 )
 
@@ -30,7 +30,7 @@ $cmakeArgs += $ExtraArgs
 
 # Note: Presets in CMakePresets.json already handle:
 # - CMAKE_TOOLCHAIN_FILE (via $env:VCPKG_ROOT)
-# - VCPKG_INSTALL_OPTIONS (--allow-unsupported)
+# - VCPKG_INSTALL_OPTIONS (vcpkg install/cache locations and switches)
 # - BUILD_TESTING
 # - QRP_BUILD_PYTHON
 
@@ -42,8 +42,9 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # 2. Build the project
-Write-Host "Building with preset..." -ForegroundColor Yellow
-cmake --build --preset $Preset
+$buildDir = Join-Path $projectRoot "build\$Preset"
+Write-Host "Building $buildDir..." -ForegroundColor Yellow
+cmake --build $buildDir
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Build failed. See errors above." -ForegroundColor Red

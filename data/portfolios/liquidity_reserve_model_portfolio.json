@@ -1,0 +1,54 @@
+{
+  "portfolio_id": "liquidity_reserve_model",
+  "portfolio_name": "Liquidity Reserve Model",
+  "portfolio_style": "basic_model",
+  "description": "Cash and short-duration rates holdings for capital preservation and immediate liquidity.",
+  "base_currency": "USD",
+  "asset_mix": {
+    "defensive_assets_pct": 100,
+    "growth_assets_pct": 0
+  },
+  "books": [
+    {
+      "book_id": "BOOK:LIQUIDITY_RESERVE:CASH_AND_BILLS",
+      "book_name": "Liquidity Reserve Cash And Bills",
+      "trades": [
+        "lr_usd_deposit_001",
+        "lr_usd_tbill_proxy_001"
+      ]
+    }
+  ],
+  "trades": [
+    {
+      "id": "lr_usd_deposit_001",
+      "asset_class": "rates",
+      "type": "deposit",
+      "currency": "USD",
+      "direction": "lend",
+      "book": "BOOK:LIQUIDITY_RESERVE:CASH_AND_BILLS",
+      "strategy": "CASH_LIQUIDITY",
+      "notional": 5000000,
+      "start_date": "2026-03-26",
+      "maturity_date": "2026-06-26",
+      "details": {
+        "deposit_rate": 0.052
+      }
+    },
+    {
+      "id": "lr_usd_tbill_proxy_001",
+      "asset_class": "rates",
+      "type": "fixed_rate_bond",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:LIQUIDITY_RESERVE:CASH_AND_BILLS",
+      "strategy": "SHORT_DURATION",
+      "notional": 1000000,
+      "start_date": "2026-03-26",
+      "maturity_date": "2027-03-26",
+      "details": {
+        "coupon_rate": 0.0525,
+        "frequency": "Annual"
+      }
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux-coverage:
+    name: Linux Coverage
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/.vcpkg
+      VCPKG_TARGET_TRIPLET: x64-linux
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcovr ninja-build
+
+      - name: Bootstrap vcpkg
+        run: |
+          git clone --depth 1 https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
+          "$VCPKG_ROOT/bootstrap-vcpkg.sh"
+
+      - name: Cache vcpkg artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.VCPKG_ROOT }}/archives
+            ${{ env.VCPKG_ROOT }}/buildtrees
+            ${{ env.VCPKG_ROOT }}/downloads
+            ${{ env.VCPKG_ROOT }}/installed
+            ${{ env.VCPKG_ROOT }}/packages
+          key: vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-
+
+      - name: Configure C++ coverage build
+        run: cmake --preset coverage -DQRP_COVERAGE_MIN_LINE=0
+
+      - name: Run C++ tests and coverage
+        run: cmake --build build/coverage --target coverage
+
+      - name: Run Python tests and coverage
+        run: |
+          python coverage/python/coverage_metric.py \
+            --project-root "$PWD" \
+            --source "$PWD/python/qrp" \
+            --tests "$PWD/tests/python" \
+            --json "$PWD/build/coverage/coverage/python/coverage_metric.json" \
+            --markdown "$PWD/build/coverage/coverage/python/coverage_metric.md" \
+            --threshold 0
+
+      - name: Update coverage summary
+        run: |
+          python coverage/coverage_summary.py \
+            --cpp-json "$PWD/build/coverage/coverage/cpp/coverage_metric.json" \
+            --python-json "$PWD/build/coverage/coverage/python/coverage_metric.json" \
+            --output-dir "$PWD/coverage"
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: |
+            build/coverage/coverage
+            coverage
+
+      - name: Commit coverage summary on default branch
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add coverage/coverage-badge.svg coverage/coverage_summary.json coverage/coverage_summary.md
+          if ! git diff --cached --quiet; then
+            git commit -m "Update coverage summary [skip ci]"
+            git push origin HEAD:${GITHUB_REF_NAME}
+          fi

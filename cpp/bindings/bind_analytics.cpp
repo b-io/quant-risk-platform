@@ -136,6 +136,7 @@ void bind_analytics(py::module_& m) {
             .def_readwrite("fx_delta", &analytics::RiskResult::fx_delta)
             .def_readwrite("fx_vega", &analytics::RiskResult::fx_vega)
             .def_readwrite("pv01", &analytics::RiskResult::pv01)
+            .def_readwrite("spread_duration", &analytics::RiskResult::spread_duration)
             .def_readwrite("trade_id", &analytics::RiskResult::trade_id);
 
         py::class_<analytics::SimulationResult>(m, "SimulationResult")

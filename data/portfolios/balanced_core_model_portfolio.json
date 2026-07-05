@@ -1,0 +1,155 @@
+{
+  "portfolio_id": "balanced_core_model",
+  "portfolio_name": "Balanced Core Model",
+  "portfolio_style": "basic_model",
+  "description": "Core 50/50 portfolio with liquid rates, credit, FX, equity, and commodity books.",
+  "base_currency": "USD",
+  "asset_mix": {
+    "defensive_assets_pct": 50,
+    "growth_assets_pct": 50
+  },
+  "books": [
+    {
+      "book_id": "BOOK:BALANCED_CORE:CORE_INCOME",
+      "book_name": "Balanced Core Core Income",
+      "trades": [
+        "bc_usd_bond_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:BALANCED_CORE:CREDIT_INCOME",
+      "book_name": "Balanced Core Credit Income",
+      "trades": [
+        "bc_acme_credit_bond_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:BALANCED_CORE:FX",
+      "book_name": "Balanced Core Fx",
+      "trades": [
+        "bc_eurusd_spot_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:BALANCED_CORE:LIQUIDITY",
+      "book_name": "Balanced Core Liquidity",
+      "trades": [
+        "bc_usd_deposit_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:BALANCED_CORE:QUALITY_EQUITY",
+      "book_name": "Balanced Core Quality Equity",
+      "trades": [
+        "bc_aapl_equity_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:BALANCED_CORE:REAL_ASSETS",
+      "book_name": "Balanced Core Real Assets",
+      "trades": [
+        "bc_wti_future_001"
+      ]
+    }
+  ],
+  "trades": [
+    {
+      "id": "bc_usd_deposit_001",
+      "asset_class": "rates",
+      "type": "deposit",
+      "currency": "USD",
+      "direction": "lend",
+      "book": "BOOK:BALANCED_CORE:LIQUIDITY",
+      "strategy": "CASH_BUFFER",
+      "notional": 1000000,
+      "start_date": "2026-03-26",
+      "maturity_date": "2026-06-26",
+      "details": {
+        "deposit_rate": 0.052
+      }
+    },
+    {
+      "id": "bc_usd_bond_001",
+      "asset_class": "rates",
+      "type": "fixed_rate_bond",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:BALANCED_CORE:CORE_INCOME",
+      "strategy": "USD_CORE_BONDS",
+      "notional": 1000000,
+      "start_date": "2026-03-26",
+      "maturity_date": "2031-03-26",
+      "details": {
+        "coupon_rate": 0.055,
+        "frequency": "Annual"
+      }
+    },
+    {
+      "id": "bc_acme_credit_bond_001",
+      "asset_class": "credit",
+      "type": "credit_bond",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:BALANCED_CORE:CREDIT_INCOME",
+      "strategy": "INVESTMENT_GRADE_CREDIT",
+      "notional": 1000000,
+      "start_date": "2026-03-24",
+      "maturity_date": "2031-03-24",
+      "details": {
+        "coupon_rate": 0.056,
+        "frequency": "Annual",
+        "issuer": "ACME",
+        "spread_quote_id": "ACME_BOND_SPREAD_5Y"
+      }
+    },
+    {
+      "id": "bc_eurusd_spot_001",
+      "asset_class": "fx",
+      "type": "fx_spot",
+      "currency": "USD",
+      "direction": "buy_base",
+      "book": "BOOK:BALANCED_CORE:FX",
+      "strategy": "EURUSD_CASH",
+      "notional": 500000,
+      "details": {
+        "base_currency": "EUR",
+        "quote_currency": "USD",
+        "reference_rate": 1.08,
+        "spot_quote_id": "EURUSD"
+      }
+    },
+    {
+      "id": "bc_wti_future_001",
+      "asset_class": "commodity",
+      "type": "commodity_future",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:BALANCED_CORE:REAL_ASSETS",
+      "strategy": "WTI_FUTURE",
+      "quantity": 1,
+      "maturity_date": "2026-09-24",
+      "details": {
+        "underlier": "WTI",
+        "contract_size": 1000,
+        "reference_price": 78.0,
+        "future_quote_id": "WTI_FUT_6M",
+        "tenor": "6M",
+        "unit": "bbl"
+      }
+    },
+    {
+      "id": "bc_aapl_equity_001",
+      "asset_class": "equity",
+      "type": "equity_spot",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:BALANCED_CORE:QUALITY_EQUITY",
+      "strategy": "QUALITY_EQUITY",
+      "quantity": 200,
+      "details": {
+        "underlier": "AAPL",
+        "reference_price": 180.0
+      }
+    }
+  ]
+}

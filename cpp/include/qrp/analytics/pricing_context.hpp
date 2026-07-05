@@ -36,7 +36,7 @@ public:
      */
     domain::CurveId get_discount_curve_id(domain::Currency currency) const {
         // Use the standard family name present in sample data and conventions
-        // See docs/design/CURVE_BOOTSTRAP_DESIGN.md for curve family naming
+        // See docs/architecture/CURVE_BOOTSTRAP_DESIGN.md for curve family naming.
         return {currency, "OIS"};
     }
 
@@ -48,7 +48,7 @@ public:
     }
 
 private:
-    std::shared_ptr<market::MarketState> market_state_;
+    std::shared_ptr<market::MarketState> market_state_; // Shared built market state used for pricing.
 };
 
 } // namespace qrp::analytics

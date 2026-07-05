@@ -1,3 +1,5 @@
+"""Creates the Plotly HTML dashboard used by the demo platform workflow."""
+
 import html
 import json
 from collections import defaultdict

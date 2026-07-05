@@ -1,0 +1,139 @@
+{
+  "portfolio_id": "cautious_fx_carry",
+  "portfolio_name": "Cautious FX Carry",
+  "portfolio_style": "thematic_variant",
+  "description": "Cautious FX book covering spot, forwards, swaps, NDFs, and vanilla options.",
+  "base_currency": "USD",
+  "asset_mix": {
+    "defensive_assets_pct": 70,
+    "growth_assets_pct": 30
+  },
+  "books": [
+    {
+      "book_id": "BOOK:CAUTIOUS:FX_CARRY",
+      "book_name": "Cautious Fx Carry",
+      "trades": [
+        "cfx_eurusd_forward_001",
+        "cfx_eurusd_swap_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:CAUTIOUS:FX_CASH",
+      "book_name": "Cautious Fx Cash",
+      "trades": [
+        "cfx_eurusd_spot_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:CAUTIOUS:FX_RELATIVE_VALUE",
+      "book_name": "Cautious Fx Relative Value",
+      "trades": [
+        "cfx_eurusd_ndf_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:CAUTIOUS:FX_VOLATILITY",
+      "book_name": "Cautious Fx Volatility",
+      "trades": [
+        "cfx_eurusd_option_001"
+      ]
+    }
+  ],
+  "trades": [
+    {
+      "id": "cfx_eurusd_spot_001",
+      "asset_class": "fx",
+      "type": "fx_spot",
+      "currency": "USD",
+      "direction": "buy_base",
+      "book": "BOOK:CAUTIOUS:FX_CASH",
+      "strategy": "EURUSD_SPOT",
+      "notional": 1000000,
+      "details": {
+        "base_currency": "EUR",
+        "quote_currency": "USD",
+        "reference_rate": 1.08,
+        "spot_quote_id": "EURUSD"
+      }
+    },
+    {
+      "id": "cfx_eurusd_forward_001",
+      "asset_class": "fx",
+      "type": "fx_forward",
+      "currency": "USD",
+      "direction": "buy_base",
+      "book": "BOOK:CAUTIOUS:FX_CARRY",
+      "strategy": "EURUSD_FORWARD",
+      "notional": 2000000,
+      "start_date": "2026-03-24",
+      "maturity_date": "2026-09-24",
+      "details": {
+        "base_currency": "EUR",
+        "quote_currency": "USD",
+        "forward_rate": 1.1025,
+        "spot_quote_id": "EURUSD",
+        "forward_points_quote_id": "EURUSD_FWDPTS_6M"
+      }
+    },
+    {
+      "id": "cfx_eurusd_swap_001",
+      "asset_class": "fx",
+      "type": "fx_swap",
+      "currency": "USD",
+      "direction": "buy_base",
+      "book": "BOOK:CAUTIOUS:FX_CARRY",
+      "strategy": "EURUSD_SWAP",
+      "notional": 1500000,
+      "start_date": "2026-06-24",
+      "maturity_date": "2027-03-24",
+      "details": {
+        "base_currency": "EUR",
+        "quote_currency": "USD",
+        "near_rate": 1.088,
+        "far_rate": 1.091,
+        "spot_quote_id": "EURUSD",
+        "near_forward_points_quote_id": "EURUSD_FWDPTS_3M",
+        "far_forward_points_quote_id": "EURUSD_FWDPTS_1Y"
+      }
+    },
+    {
+      "id": "cfx_eurusd_ndf_001",
+      "asset_class": "fx",
+      "type": "ndf",
+      "currency": "USD",
+      "direction": "buy_base",
+      "book": "BOOK:CAUTIOUS:FX_RELATIVE_VALUE",
+      "strategy": "EURUSD_NDF",
+      "notional": 2000000,
+      "maturity_date": "2026-09-24",
+      "details": {
+        "base_currency": "EUR",
+        "quote_currency": "USD",
+        "fixing_date": "2026-09-22",
+        "forward_rate": 1.103,
+        "spot_quote_id": "EURUSD",
+        "forward_points_quote_id": "EURUSD_FWDPTS_6M"
+      }
+    },
+    {
+      "id": "cfx_eurusd_option_001",
+      "asset_class": "fx",
+      "type": "fx_option",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:CAUTIOUS:FX_VOLATILITY",
+      "strategy": "EURUSD_CALL",
+      "notional": 1000000,
+      "details": {
+        "base_currency": "EUR",
+        "quote_currency": "USD",
+        "strike_rate": 1.1,
+        "expiry_date": "2026-09-24",
+        "settlement_date": "2026-09-28",
+        "option_type": "call",
+        "spot_quote_id": "EURUSD",
+        "volatility_quote_id": "EURUSD_VOL_6M_ATM"
+      }
+    }
+  ]
+}

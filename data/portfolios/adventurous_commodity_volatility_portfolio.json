@@ -1,0 +1,194 @@
+{
+  "portfolio_id": "adventurous_commodity_volatility",
+  "portfolio_name": "Adventurous Commodity Volatility",
+  "portfolio_style": "thematic_variant",
+  "description": "Adventurous commodity portfolio covering spot, forwards, futures, strips, future options, spread options, and swing optionality.",
+  "base_currency": "USD",
+  "asset_mix": {
+    "defensive_assets_pct": 5,
+    "growth_assets_pct": 95
+  },
+  "books": [
+    {
+      "book_id": "BOOK:ADVENTUROUS:COMMODITY_CURVE",
+      "book_name": "Adventurous Commodity Curve",
+      "trades": [
+        "acv_wti_strip_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:ADVENTUROUS:COMMODITY_DELTA",
+      "book_name": "Adventurous Commodity Delta",
+      "trades": [
+        "acv_wti_forward_001",
+        "acv_wti_future_001",
+        "acv_wti_spot_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:ADVENTUROUS:COMMODITY_FLEXIBILITY",
+      "book_name": "Adventurous Commodity Flexibility",
+      "trades": [
+        "acv_ttf_swing_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:ADVENTUROUS:COMMODITY_VOLATILITY",
+      "book_name": "Adventurous Commodity Volatility",
+      "trades": [
+        "acv_wti_calendar_001",
+        "acv_wti_option_001"
+      ]
+    }
+  ],
+  "trades": [
+    {
+      "id": "acv_wti_spot_001",
+      "asset_class": "commodity",
+      "type": "commodity_spot",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:ADVENTUROUS:COMMODITY_DELTA",
+      "strategy": "WTI_SPOT",
+      "quantity": 1000,
+      "details": {
+        "underlier": "WTI",
+        "reference_price": 77.0,
+        "quote_id": "WTI_SPOT",
+        "unit": "bbl"
+      }
+    },
+    {
+      "id": "acv_wti_forward_001",
+      "asset_class": "commodity",
+      "type": "commodity_forward",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:ADVENTUROUS:COMMODITY_DELTA",
+      "strategy": "WTI_FORWARD",
+      "quantity": 1000,
+      "maturity_date": "2026-09-24",
+      "details": {
+        "underlier": "WTI",
+        "contract_price": 78.0,
+        "forward_quote_id": "WTI_FUT_6M",
+        "tenor": "6M",
+        "unit": "bbl"
+      }
+    },
+    {
+      "id": "acv_wti_future_001",
+      "asset_class": "commodity",
+      "type": "commodity_future",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:ADVENTUROUS:COMMODITY_DELTA",
+      "strategy": "WTI_FUTURE",
+      "quantity": 3,
+      "maturity_date": "2026-09-24",
+      "details": {
+        "underlier": "WTI",
+        "contract_size": 1000,
+        "reference_price": 78.0,
+        "future_quote_id": "WTI_FUT_6M",
+        "tenor": "6M",
+        "unit": "bbl"
+      }
+    },
+    {
+      "id": "acv_wti_strip_001",
+      "asset_class": "commodity",
+      "type": "commodity_future_strip",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:ADVENTUROUS:COMMODITY_CURVE",
+      "strategy": "WTI_CALENDAR_STRIP",
+      "quantity": 1,
+      "start_date": "2026-09-24",
+      "maturity_date": "2026-12-24",
+      "details": {
+        "underlier": "WTI",
+        "contract_size": 1000,
+        "reference_price": 78.5,
+        "future_quote_ids": [
+          "WTI_FUT_6M",
+          "WTI_FUT_9M"
+        ],
+        "weights": [
+          0.5,
+          0.5
+        ],
+        "unit": "bbl"
+      }
+    },
+    {
+      "id": "acv_wti_option_001",
+      "asset_class": "commodity",
+      "type": "commodity_future_option",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:ADVENTUROUS:COMMODITY_VOLATILITY",
+      "strategy": "WTI_UPSIDE",
+      "quantity": 2,
+      "maturity_date": "2026-09-24",
+      "details": {
+        "underlier": "WTI",
+        "contract_size": 1000,
+        "strike_price": 80.0,
+        "expiry_date": "2026-09-24",
+        "future_quote_id": "WTI_FUT_6M",
+        "volatility_quote_id": "WTI_VOL_6M_ATM",
+        "option_type": "call",
+        "unit": "bbl"
+      }
+    },
+    {
+      "id": "acv_wti_calendar_001",
+      "asset_class": "commodity",
+      "type": "commodity_calendar_spread_option",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:ADVENTUROUS:COMMODITY_VOLATILITY",
+      "strategy": "WTI_CALENDAR_VOL",
+      "quantity": 2,
+      "details": {
+        "underlier": "WTI",
+        "contract_size": 1000,
+        "strike_spread": 0.5,
+        "expiry_date": "2026-09-24",
+        "near_future_quote_id": "WTI_FUT_6M",
+        "far_future_quote_id": "WTI_FUT_9M",
+        "volatility_quote_id": "WTI_VOL_6M_ATM",
+        "option_type": "call",
+        "unit": "bbl"
+      }
+    },
+    {
+      "id": "acv_ttf_swing_001",
+      "asset_class": "commodity",
+      "type": "commodity_swing",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:ADVENTUROUS:COMMODITY_FLEXIBILITY",
+      "strategy": "TTF_SWING_OPTIONALITY",
+      "start_date": "2026-04-01",
+      "maturity_date": "2026-12-24",
+      "details": {
+        "underlier": "TTF",
+        "min_quantity": 100,
+        "max_quantity": 250,
+        "strike_price": 31.0,
+        "forward_quote_ids": [
+          "TTF_FWD_Q1",
+          "TTF_FWD_Q2"
+        ],
+        "exercise_dates": [
+          "2026-06-24",
+          "2026-09-24"
+        ],
+        "volatility": 0.4,
+        "unit": "MWh"
+      }
+    }
+  ]
+}

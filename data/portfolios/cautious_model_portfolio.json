@@ -1,0 +1,133 @@
+{
+  "portfolio_id": "cautious_model",
+  "portfolio_name": "Cautious Model",
+  "portfolio_style": "basic_model",
+  "description": "Cautious allocation mixing rates income, credit, FX, commodities, and equity beta.",
+  "base_currency": "USD",
+  "asset_mix": {
+    "defensive_assets_pct": 70,
+    "growth_assets_pct": 30
+  },
+  "books": [
+    {
+      "book_id": "BOOK:CAUTIOUS:CREDIT_INCOME",
+      "book_name": "Cautious Credit Income",
+      "trades": [
+        "ca_acme_credit_bond_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:CAUTIOUS:FX_CARRY",
+      "book_name": "Cautious Fx Carry",
+      "trades": [
+        "ca_eurusd_forward_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:CAUTIOUS:QUALITY_EQUITY",
+      "book_name": "Cautious Quality Equity",
+      "trades": [
+        "ca_aapl_equity_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:CAUTIOUS:RATES_HEDGE",
+      "book_name": "Cautious Rates Hedge",
+      "trades": [
+        "ca_usd_duration_swap_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:CAUTIOUS:REAL_ASSETS",
+      "book_name": "Cautious Real Assets",
+      "trades": [
+        "ca_wti_spot_001"
+      ]
+    }
+  ],
+  "trades": [
+    {
+      "id": "ca_usd_duration_swap_001",
+      "asset_class": "rates",
+      "type": "vanilla_swap",
+      "currency": "USD",
+      "direction": "receive_fixed",
+      "book": "BOOK:CAUTIOUS:RATES_HEDGE",
+      "strategy": "USD_DURATION",
+      "notional": 2000000,
+      "start_date": "2026-03-26",
+      "maturity_date": "2031-03-26",
+      "details": {
+        "fixed_rate": 0.0525,
+        "floating_index": "USD_LIBOR_3M"
+      }
+    },
+    {
+      "id": "ca_acme_credit_bond_001",
+      "asset_class": "credit",
+      "type": "credit_bond",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:CAUTIOUS:CREDIT_INCOME",
+      "strategy": "INVESTMENT_GRADE_CREDIT",
+      "notional": 1000000,
+      "start_date": "2026-03-24",
+      "maturity_date": "2031-03-24",
+      "details": {
+        "coupon_rate": 0.055,
+        "frequency": "Annual",
+        "issuer": "ACME",
+        "spread_quote_id": "ACME_BOND_SPREAD_5Y"
+      }
+    },
+    {
+      "id": "ca_eurusd_forward_001",
+      "asset_class": "fx",
+      "type": "fx_forward",
+      "currency": "USD",
+      "direction": "buy_base",
+      "book": "BOOK:CAUTIOUS:FX_CARRY",
+      "strategy": "EURUSD_CARRY",
+      "notional": 1000000,
+      "start_date": "2026-03-24",
+      "maturity_date": "2026-09-24",
+      "details": {
+        "base_currency": "EUR",
+        "quote_currency": "USD",
+        "forward_rate": 1.1025,
+        "spot_quote_id": "EURUSD",
+        "forward_points_quote_id": "EURUSD_FWDPTS_6M"
+      }
+    },
+    {
+      "id": "ca_wti_spot_001",
+      "asset_class": "commodity",
+      "type": "commodity_spot",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:CAUTIOUS:REAL_ASSETS",
+      "strategy": "ENERGY_REAL_ASSET",
+      "quantity": 500,
+      "details": {
+        "underlier": "WTI",
+        "reference_price": 76.8,
+        "quote_id": "WTI_SPOT",
+        "unit": "bbl"
+      }
+    },
+    {
+      "id": "ca_aapl_equity_001",
+      "asset_class": "equity",
+      "type": "equity_spot",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:CAUTIOUS:QUALITY_EQUITY",
+      "strategy": "QUALITY_EQUITY",
+      "quantity": 150,
+      "details": {
+        "underlier": "AAPL",
+        "reference_price": 181.0
+      }
+    }
+  ]
+}

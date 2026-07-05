@@ -1,3 +1,5 @@
+"""Runs the end-to-end platform demo, golden checks, and optional dashboard export."""
+
 import argparse
 import importlib.machinery
 import importlib.util
@@ -20,28 +22,32 @@ def configure_module_path():
     build_path = os.environ.get("QRP_PYTHON_PATH")
     if not build_path:
         candidates = [
-            project_root / "build" / "Release-Python" / "python" / "Release",
-            project_root / "build" / "Release-Python" / "python",
-            project_root / "build" / "Release-Python-Shared" / "python" / "Release",
-            project_root / "build" / "Release-Python-Shared" / "python",
+            project_root / "build" / "dev" / "python" / "RelWithDebInfo",
+            project_root / "build" / "dev" / "python",
+            project_root / "build" / "dev-shared" / "python" / "RelWithDebInfo",
+            project_root / "build" / "dev-shared" / "python",
+            project_root / "build" / "release" / "python" / "Release",
+            project_root / "build" / "release" / "python",
+            project_root / "build" / "release-shared" / "python" / "Release",
+            project_root / "build" / "release-shared" / "python",
         ]
-        incompatible_extensions = []
+        wrong_runtime_extensions = []
         for candidate in candidates:
             extension_files = list(candidate.glob("quant_risk_platform*.pyd")) + list(candidate.glob("quant_risk_platform*.so"))
-            compatible_files = [
+            matching_runtime_files = [
                 path for path in extension_files
                 if any(path.name.endswith(suffix) for suffix in importlib.machinery.EXTENSION_SUFFIXES)
             ]
-            if compatible_files:
+            if matching_runtime_files:
                 build_path = str(candidate)
                 break
-            incompatible_extensions.extend(extension_files)
-        if not build_path and incompatible_extensions:
+            wrong_runtime_extensions.extend(extension_files)
+        if not build_path and wrong_runtime_extensions:
             suffixes = ", ".join(importlib.machinery.EXTENSION_SUFFIXES)
-            found = "\n  ".join(str(path) for path in incompatible_extensions)
+            found = "\n  ".join(str(path) for path in wrong_runtime_extensions)
             print("Warning: found compiled quant_risk_platform extensions, but none match this Python runtime.")
             print(f"Current Python: {sys.executable}")
-            print(f"Compatible extension suffixes: {suffixes}")
+            print(f"Expected extension suffixes: {suffixes}")
             print(f"Found extensions:\n  {found}")
 
     if build_path and os.path.exists(build_path):

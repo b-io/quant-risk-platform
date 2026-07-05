@@ -167,7 +167,7 @@ Properties:
 
 - positive short rates;
 - mean reversion of the log-rate;
-- compatibility with tree-based callable valuation;
+- clean use with tree-based callable valuation;
 - more numerical calibration than Gaussian models.
 
 The main limitation is behavior near zero or negative-rate regimes, where a strictly lognormal state variable can become

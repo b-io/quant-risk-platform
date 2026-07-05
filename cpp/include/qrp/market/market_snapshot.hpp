@@ -24,20 +24,20 @@ namespace qrp::market {
  * @brief Result of attempting to build one market curve into a MarketState.
  */
 struct CurveBuildResult {
-    domain::CurveId id;
-    domain::CurvePurpose purpose = domain::CurvePurpose::UNKNOWN;
-    std::vector<std::string> quote_ids;
-    bool built = false;
-    std::string status_message;
+    domain::CurveId id;                                  // Curve identifier.
+    domain::CurvePurpose purpose = domain::CurvePurpose::UNKNOWN; // Curve purpose.
+    std::vector<std::string> quote_ids;                  // Quote ids consumed by the curve.
+    bool built = false;                                  // Whether construction succeeded.
+    std::string status_message;                          // Build diagnostic message.
 };
 
 /**
  * @brief Output from building the supported rates market objects in a snapshot.
  */
 struct RatesMarketBuildResult {
-    std::shared_ptr<MarketState> state;
-    std::vector<CurveBuildResult> curve_results;
-    std::vector<std::string> rates_vol_quote_ids;
+    std::shared_ptr<MarketState> state;                  // Built market state.
+    std::vector<CurveBuildResult> curve_results;         // Per-curve build results.
+    std::vector<std::string> rates_vol_quote_ids;        // Rates-volatility quote ids catalogued by builder.
 };
 
 /**
@@ -155,7 +155,7 @@ public:
     std::shared_ptr<MarketState> built_state() const { return state_; }
 
 private:
-    std::shared_ptr<MarketState> state_;
+    std::shared_ptr<MarketState> state_; // Runtime market state built from the DTO snapshot.
 };
 
 } // namespace qrp::market

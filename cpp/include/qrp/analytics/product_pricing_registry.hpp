@@ -38,13 +38,13 @@ struct ProductPricingDefinition {
      */
     using PricingProfileBuilder = std::function<InstrumentPricingProfile(const domain::Trade&)>;
 
-    CashflowExtractor cashflow_extractor;
-    InstrumentBuilder instrument_builder;
-    std::string model_name;
-    PricingProfileBuilder pricing_profile_builder;
-    domain::ProductType product_type = domain::ProductType::Unknown;
-    std::string reason;
-    domain::SupportStatus status = domain::SupportStatus::Unsupported;
+    CashflowExtractor cashflow_extractor;              // Cashflow extraction hook.
+    InstrumentBuilder instrument_builder;              // QuantLib instrument construction hook.
+    std::string model_name;                            // Pricing model or approximation name.
+    PricingProfileBuilder pricing_profile_builder;     // NPV normalization hook.
+    domain::ProductType product_type = domain::ProductType::Unknown; // Registered product type.
+    std::string reason;                                // Human-readable support reason.
+    domain::SupportStatus status = domain::SupportStatus::Unsupported; // Registered support status.
 };
 
 /**

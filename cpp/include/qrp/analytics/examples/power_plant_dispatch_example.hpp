@@ -20,8 +20,8 @@ public:
     struct Params {
         double capacity = 100.0; // MW
         double heat_rate = 2.0;  // Fuel units per MWh
-        double startup_cost = 500.0;
-        double variable_opex = 2.0;
+        double startup_cost = 500.0; // Fixed startup cost when switching on.
+        double variable_opex = 2.0;  // Variable operating cost per MWh.
         double co2_intensity = 0.5; // tons/MWh
     };
 
@@ -96,7 +96,7 @@ public:
     }
 
 private:
-    Params params_;
+    Params params_; // Fixed plant operating parameters.
 };
 
 } // namespace qrp::analytics::examples

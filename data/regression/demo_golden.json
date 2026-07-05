@@ -220,7 +220,7 @@
         "asset_class": "equity",
         "npv": -8500.0,
         "product_type": "equity_spot",
-        "support_status": "partially_supported"
+        "support_status": "supported"
       },
       "fx_fwd_eurusd_001": {
         "asset_class": "fx",

@@ -1,0 +1,69 @@
+{
+  "fixture_id": "growth_model_coverage",
+  "description": "Portfolio-backed structural golden coverage for Growth Model.",
+  "market_path": "market/demo_market.json",
+  "portfolio_id": "growth_model",
+  "portfolio_path": "portfolios/growth_model_portfolio.json",
+  "asset_mix": {
+    "defensive_assets_pct": 30,
+    "growth_assets_pct": 70
+  },
+  "expected_books": {
+    "BOOK:GROWTH:COMMODITY_VOLATILITY": [
+      "gr_wti_option_001"
+    ],
+    "BOOK:GROWTH:CREDIT_VOLATILITY": [
+      "gr_cdx_option_001"
+    ],
+    "BOOK:GROWTH:EQUITY_BETA": [
+      "gr_spx_future_001"
+    ],
+    "BOOK:GROWTH:EQUITY_VOLATILITY": [
+      "gr_aapl_call_001"
+    ],
+    "BOOK:GROWTH:FX_VOLATILITY": [
+      "gr_eurusd_option_001"
+    ],
+    "BOOK:GROWTH:MACRO_HEDGE": [
+      "gr_usd_swaption_001"
+    ]
+  },
+  "trades": {
+    "gr_aapl_call_001": {
+      "asset_class": "equity",
+      "book": "BOOK:GROWTH:EQUITY_VOLATILITY",
+      "product_type": "equity_option",
+      "support_status": "supported"
+    },
+    "gr_cdx_option_001": {
+      "asset_class": "credit",
+      "book": "BOOK:GROWTH:CREDIT_VOLATILITY",
+      "product_type": "credit_index_option",
+      "support_status": "supported"
+    },
+    "gr_eurusd_option_001": {
+      "asset_class": "fx",
+      "book": "BOOK:GROWTH:FX_VOLATILITY",
+      "product_type": "fx_option",
+      "support_status": "supported"
+    },
+    "gr_spx_future_001": {
+      "asset_class": "equity",
+      "book": "BOOK:GROWTH:EQUITY_BETA",
+      "product_type": "equity_future",
+      "support_status": "supported"
+    },
+    "gr_usd_swaption_001": {
+      "asset_class": "rates",
+      "book": "BOOK:GROWTH:MACRO_HEDGE",
+      "product_type": "european_swaption",
+      "support_status": "supported"
+    },
+    "gr_wti_option_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:GROWTH:COMMODITY_VOLATILITY",
+      "product_type": "commodity_future_option",
+      "support_status": "supported"
+    }
+  }
+}

@@ -49,7 +49,7 @@ public:
         return features;
     }
 private:
-    int degree_;
+    int degree_; // Maximum univariate polynomial degree.
 };
 
 } // namespace qrp::analytics::regression

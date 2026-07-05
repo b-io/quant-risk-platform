@@ -17,9 +17,9 @@ namespace qrp::analytics {
  * @brief Scenario-level stress output with portfolio and trade PnL contributions.
  */
 struct StressResult {
-    std::string scenario_name;
-    double total_pnl;
-    std::map<std::string, double> trade_pnls;
+    std::string scenario_name;                 // Applied stress scenario name.
+    double total_pnl;                          // Portfolio PnL under the scenario.
+    std::map<std::string, double> trade_pnls;  // Trade id to stressed PnL contribution.
 };
 
 /**

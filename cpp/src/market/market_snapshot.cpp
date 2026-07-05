@@ -37,6 +37,7 @@
 #include <ql/time/daycounters/actual365fixed.hpp>
 #include <ql/time/daycounters/actualactual.hpp>
 #include <ql/time/daycounters/thirty360.hpp>
+#include <ql/time/imm.hpp>
 
 #include <algorithm>
 #include <stdexcept>
@@ -44,10 +45,10 @@
 #include <vector>
 
 /*
-Design note (see docs/design/CURVE_BOOTSTRAP_DESIGN.md):
+Design note (see docs/architecture/CURVE_BOOTSTRAP_DESIGN.md):
 - We build yield curves with QuantLib::PiecewiseYieldCurve<Discount, LogLinear>.
-- Helpers are stored as QuantLib::ext::shared_ptr to be ABI-compatible with the QuantLib build in vcpkg
-  (QuantLib uses ext::shared_ptr which maps to boost::shared_ptr or std::shared_ptr depending on config).
+- Helpers use QuantLib::ext::shared_ptr so their pointer type matches the QuantLib build in vcpkg
+  (QuantLib maps ext::shared_ptr to boost::shared_ptr or std::shared_ptr depending on config).
 - Quotes are QuantLib::SimpleQuote handles owned by MarketState. Any bump on a handle propagates to the
   curve via QuantLib's observer mechanism (no rebuild), which is essential for fast risk/scenario runs.
 - We support both OIS (discount) and IBOR/FRA/IRS helpers. The choice of helpers reflects market practice:
@@ -94,7 +95,16 @@ QuantLib::Date resolve_future_expiry_date(
     }
 
     const auto expiry_tenor = !quote.expiry.empty() ? quote.expiry : quote.tenor;
-    return calendar.advance(valuation_date, CurveBuilder::parse_tenor(expiry_tenor));
+    const auto target_date = calendar.advance(valuation_date, CurveBuilder::parse_tenor(expiry_tenor));
+
+    auto imm_date = QuantLib::IMM::nextDate(valuation_date, true);
+    while (true) {
+        const auto next_imm_date = QuantLib::IMM::nextDate(imm_date + 1, true);
+        if (next_imm_date > target_date) {
+            return imm_date;
+        }
+        imm_date = next_imm_date;
+    }
 }
 
 /**

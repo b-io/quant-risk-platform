@@ -1,0 +1,102 @@
+{
+  "portfolio_id": "defensive_income_model",
+  "portfolio_name": "Defensive Income Model",
+  "portfolio_style": "basic_model",
+  "description": "Income-biased defensive allocation with modest credit and equity participation.",
+  "base_currency": "USD",
+  "asset_mix": {
+    "defensive_assets_pct": 90,
+    "growth_assets_pct": 10
+  },
+  "books": [
+    {
+      "book_id": "BOOK:DEFENSIVE_INCOME:CORE_INCOME",
+      "book_name": "Defensive Income Core Income",
+      "trades": [
+        "di_usd_core_bond_001",
+        "di_usd_frn_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:DEFENSIVE_INCOME:CREDIT_INCOME",
+      "book_name": "Defensive Income Credit Income",
+      "trades": [
+        "di_acme_credit_bond_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:DEFENSIVE_INCOME:QUALITY_EQUITY",
+      "book_name": "Defensive Income Quality Equity",
+      "trades": [
+        "di_aapl_quality_equity_001"
+      ]
+    }
+  ],
+  "trades": [
+    {
+      "id": "di_usd_core_bond_001",
+      "asset_class": "rates",
+      "type": "fixed_rate_bond",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:DEFENSIVE_INCOME:CORE_INCOME",
+      "strategy": "USD_CORE_BONDS",
+      "notional": 2500000,
+      "start_date": "2026-03-26",
+      "maturity_date": "2031-03-26",
+      "details": {
+        "coupon_rate": 0.054,
+        "frequency": "Annual"
+      }
+    },
+    {
+      "id": "di_usd_frn_001",
+      "asset_class": "rates",
+      "type": "floating_rate_note",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:DEFENSIVE_INCOME:CORE_INCOME",
+      "strategy": "FLOATING_RATE_INCOME",
+      "notional": 1500000,
+      "start_date": "2026-03-26",
+      "maturity_date": "2029-03-26",
+      "details": {
+        "floating_index": "USD_LIBOR_3M",
+        "frequency": "Quarterly",
+        "spread": 0.001
+      }
+    },
+    {
+      "id": "di_acme_credit_bond_001",
+      "asset_class": "credit",
+      "type": "credit_bond",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:DEFENSIVE_INCOME:CREDIT_INCOME",
+      "strategy": "INVESTMENT_GRADE_CREDIT",
+      "notional": 1000000,
+      "start_date": "2026-03-24",
+      "maturity_date": "2031-03-24",
+      "details": {
+        "coupon_rate": 0.055,
+        "frequency": "Annual",
+        "issuer": "ACME",
+        "spread_quote_id": "ACME_BOND_SPREAD_5Y"
+      }
+    },
+    {
+      "id": "di_aapl_quality_equity_001",
+      "asset_class": "equity",
+      "type": "equity_spot",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:DEFENSIVE_INCOME:QUALITY_EQUITY",
+      "strategy": "QUALITY_EQUITY",
+      "quantity": 75,
+      "details": {
+        "underlier": "AAPL",
+        "reference_price": 183.0
+      }
+    }
+  ]
+}

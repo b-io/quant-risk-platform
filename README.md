@@ -1,26 +1,52 @@
 # Quant Risk Platform
 
+![Coverage](coverage/coverage-badge.svg)
+
 Production-shaped C++ and Python platform for pricing, risk analytics, scenario analysis, and P&L across asset
 classes, with QuantLib at the core and Python used as an interface layer.
 
-> The current implementation focus is rates. The architecture is intentionally designed to extend toward credit, FX,
-> equities, commodities, and volatility-driven analytics without changing the core layering.
+> The current implementation covers common rates, FX, and credit products. The architecture is intentionally designed
+> to extend toward commodities, equities, and volatility-driven analytics without changing the core layering.
 
 ## Quickstart
 
 For build, test, and demo instructions, including Python binding workflows and smoke tests,
 see [QUICKSTART.md](QUICKSTART.md).
 
+## CI and Coverage
+
+The GitHub Actions workflow in `.github/workflows/tests.yml` runs C++ tests, Python tests, C++ gcovr coverage, Python
+coverage, and uploads the generated reports as workflow artifacts. On pushes to `main` or `master`, it also refreshes
+the committed lightweight coverage badge and summary files under `coverage/`.
+
+For the auto-commit step, enable repository write tokens in GitHub:
+
+- `Settings > Actions > General > Workflow permissions`
+- Select `Read and write permissions`
+- Keep pull-request workflows restricted unless you intentionally need write access from forks
+
+The local equivalent is:
+
+```powershell
+.\scripts\test.ps1
+```
+
+The script prints C++ coverage at the end of the C++ section, Python coverage at the end of the Python section, and a
+final combined summary.
+
 ### Supported builds on Windows (summary)
 
-- C++ only: Debug, Release, RelWithDebInfo
-- Python bindings: Release, RelWithDebInfo
+- Daily development: `dev` for C++ plus Python with a static `qrp_core`.
+- Shared-core validation: `dev-shared` for C++ plus Python with a shared `qrp_core`.
+- Production-style checks: `release` and `release-shared`.
+- Native C++ debugging: `debug` and `debug-shared`.
 
 Suggested commands:
 
-- C++ only Release: `cmake --preset Release && cmake --build --preset Release --target qrp_core`
-- Python Release:
-  `cmake --preset Release-Python && cmake --build --preset Release-Python --target quant_risk_platform && ctest --preset Release-Python -R python_import`
+- Daily C++ plus Python:
+  `cmake --preset dev && cmake --build build/dev --target quant_risk_platform && ctest --test-dir build/dev -R python_import`
+- Production-style C++ plus Python:
+  `cmake --preset release && cmake --build build/release --target quant_risk_platform && ctest --test-dir build/release -R python_import`
 
 ## Documentation
 
@@ -78,8 +104,9 @@ The repository is beyond scaffold stage and already contains:
 - canonical documentation under `docs/`.
 
 Current implementation maturity is best described as a
-**rates-focused platform with persistent storage and reactive risk foundation**. The next architecture milestones are
-core trade/result hardening, market-data normalization, refined risk-factor taxonomy, and staged asset-class expansion.
+**multi-asset platform with rates, FX, and credit pricing coverage plus persistent storage and reactive risk
+foundation**. The next architecture milestones are commodities, equities, stronger product-family goldens, and
+production controls.
 
 ## Implemented today
 
@@ -88,7 +115,7 @@ The current codebase already includes:
 - market loading and JSON DTOs,
 - convention-aware rates market construction,
 - QuantLib helper-based rates curve bootstrapping,
-- pricing for selected vanilla rates instruments,
+- pricing for common rates, FX, credit, and equity spot instruments,
 - high-performance reactive risk (Observer pattern),
 - SQLite-backed persistence for portfolios, market snapshots, and results,
 - end-to-end persisted valuation and risk workflows,
@@ -96,7 +123,7 @@ The current codebase already includes:
 
 ## Planned next steps
 
-- expand pricing coverage to FX, Equities, and Credit,
+- expand pricing coverage to commodities and fuller equity derivatives,
 - refine the risk factor taxonomy for consistent aggregation,
 - separate historical, parametric, and Monte Carlo VaR,
 - evolve Monte Carlo from one-step factor simulation toward a fuller path-based framework,

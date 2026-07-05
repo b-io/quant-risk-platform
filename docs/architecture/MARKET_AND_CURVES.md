@@ -46,15 +46,19 @@ A robust schema should distinguish:
 Each quote should carry enough metadata to build the correct helper or surface node. The platform uses a unified risk
 factor taxonomy to ensure that deterministic risk, stress, and simulation share the same factor map.
 
-**Format:** `RF:<family>:<currency_or_market>:<object>:<bucket>`
+**Format:** `RF:<family>:<currency_or_market>:<object>:<bucket>`, with shorter spot forms where no tenor is needed.
 
 **Supported Families:**
 
-- `RF:RATES:<CCY>:<CURVE>:<TENOR>` (e.g., `RF:RATES:USD:SOFR:2Y`)
-- `RF:CREDIT:<ENTITY>:<SPREAD/HAZARD>:<TENOR>`
-- `RF:FX:<CCYPAIR>:SPOT:ALL`
-- `RF:FXVOL:<CCYPAIR>:VOL:<EXPIRY_STRIKE>`
-- `RF:EQUITY:<TICKER>:SPOT:ALL`
+- `RF:RATES:<CCY>:<CURVE>:<TENOR>` (e.g., `RF:RATES:USD:OIS:2Y`)
+- `RF:RATESVOL:<CCY>:<SURFACE>:<EXPIRY>:<TENOR_OR_STRIKE>`
+- `RF:CREDIT:<ENTITY>:<SPREAD/HAZARD/RECOVERY>:<TENOR_OR_SPOT>`
+- `RF:CREDITVOL:<ENTITY>:<EXPIRY>:<TENOR_OR_STRIKE>`
+- `RF:FX:<CCYPAIR>:SPOT` and `RF:FX:<CCYPAIR>:FWDPTS_<TENOR>`
+- `RF:FXVOL:<CCYPAIR>:<EXPIRY>:<DELTA_OR_STRIKE>`
+- `RF:EQ:<TICKER>:SPOT`, `RF:EQ:<TICKER>:DIVYLD:<TENOR>`, `RF:EQ:<TICKER>:BORROW:<TENOR>`, and `RF:EQ:<INDEX>:FUT:<TENOR>`
+- `RF:EQVOL:<TICKER_OR_INDEX>:<EXPIRY>:<STRIKE>`
+- `RF:COM:<UNDERLIER>:SPOT`, `RF:COM:<UNDERLIER>:FWD:<TENOR>`, and `RF:COMVOL:<UNDERLIER>:<EXPIRY>:<STRIKE>`
 
 **Tradeoffs:**
 

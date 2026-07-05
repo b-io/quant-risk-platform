@@ -19,15 +19,21 @@ namespace qrp::domain {
 enum class FactorType {
     // Commodity
     CommodityForward, // Relative moves on forward curves
+    CommoditySpot,    // Relative moves on commodity spot prices
 
     // Credit
+    CreditRecovery,   // Absolute shifts on recovery assumptions
     CreditSpread,     // Absolute shifts on credit spreads
     HazardRate,       // Absolute shifts on default probabilities
 
     // Equity
+    EquityBorrowRate,    // Absolute shifts on equity borrow curves
+    EquityDividendYield, // Absolute shifts on dividend-yield curves
+    EquityForward,       // Relative moves on equity forwards or futures
     EquitySpot,       // Relative/Log-returns on equity prices
 
     // FX
+    FXForwardPoint,    // Absolute shifts on FX forward points
     FXSpot,           // Relative moves on spot rates
 
     // Generic
@@ -57,15 +63,21 @@ enum class ShockMeasure {
 inline FactorType parse_factor_type(const std::string& value) {
     // Commodity
     if (value == "CommodityForward") return FactorType::CommodityForward;
+    if (value == "CommoditySpot") return FactorType::CommoditySpot;
 
     // Credit
+    if (value == "CreditRecovery") return FactorType::CreditRecovery;
     if (value == "CreditSpread") return FactorType::CreditSpread;
     if (value == "HazardRate") return FactorType::HazardRate;
 
     // Equity
+    if (value == "EquityBorrowRate") return FactorType::EquityBorrowRate;
+    if (value == "EquityDividendYield") return FactorType::EquityDividendYield;
+    if (value == "EquityForward") return FactorType::EquityForward;
     if (value == "EquitySpot") return FactorType::EquitySpot;
 
     // FX
+    if (value == "FXForwardPoint") return FactorType::FXForwardPoint;
     if (value == "FXSpot") return FactorType::FXSpot;
 
     // Generic
@@ -99,15 +111,21 @@ inline std::string to_string(FactorType factor_type) {
     switch (factor_type) {
         // Commodity
         case FactorType::CommodityForward: return "CommodityForward";
+        case FactorType::CommoditySpot: return "CommoditySpot";
 
         // Credit
+        case FactorType::CreditRecovery: return "CreditRecovery";
         case FactorType::CreditSpread: return "CreditSpread";
         case FactorType::HazardRate: return "HazardRate";
 
         // Equity
+        case FactorType::EquityBorrowRate: return "EquityBorrowRate";
+        case FactorType::EquityDividendYield: return "EquityDividendYield";
+        case FactorType::EquityForward: return "EquityForward";
         case FactorType::EquitySpot: return "EquitySpot";
 
         // FX
+        case FactorType::FXForwardPoint: return "FXForwardPoint";
         case FactorType::FXSpot: return "FXSpot";
 
         // Generic
@@ -201,17 +219,42 @@ inline bool is_canonical_factor_id(const std::string& factor_id) {
     }
 
     const auto& family = parts[1];
-    if (family == "COM") return parts.size() == 5 && parts[3] == "FWD";
+    if (family == "COM") {
+        return (parts.size() == 4 && parts[3] == "SPOT") ||
+               (parts.size() == 5 && parts[3] == "FWD");
+    }
     if (family == "COMVOL") return parts.size() == 5;
-    if (family == "CREDIT") return parts.size() == 5 && parts[3] == "SPREAD";
+    if (family == "CREDIT") {
+        return parts.size() == 5 &&
+               (parts[3] == "HAZARD" || parts[3] == "RECOVERY" || parts[3] == "SPREAD");
+    }
     if (family == "CREDITVOL") return parts.size() == 5;
-    if (family == "EQ") return parts.size() == 4 && parts[3] == "SPOT";
+    if (family == "EQ") {
+        return (parts.size() == 4 && parts[3] == "SPOT") ||
+               (parts.size() == 5 &&
+                (parts[3] == "BORROW" || parts[3] == "DIVYLD" || parts[3] == "FUT" || parts[3] == "FWD"));
+    }
     if (family == "EQVOL") return parts.size() == 5;
-    if (family == "FX") return parts.size() == 4 && parts[3] == "SPOT";
+    if (family == "FX") {
+        return (parts.size() == 4 &&
+                (parts[3] == "SPOT" || parts[3].rfind("FWDPTS_", 0) == 0)) ||
+               (parts.size() == 5 && parts[3] == "FWDPTS");
+    }
     if (family == "FXVOL") return parts.size() == 5;
     if (family == "RATES") return parts.size() == 5;
     if (family == "RATESVOL") return parts.size() == 6;
     return false;
+}
+
+/**
+ * @brief Builds a canonical commodity spot factor id.
+ */
+inline std::string make_commodity_spot_factor_id(const std::string& underlier) {
+    return factor_id_detail::join({
+        "RF", "COM",
+        factor_id_detail::token(underlier, "commodity underlier"),
+        "SPOT"
+    });
 }
 
 /**
@@ -254,6 +297,18 @@ inline std::string make_credit_spread_factor_id(const std::string& issuer_or_ind
 }
 
 /**
+ * @brief Builds a canonical credit recovery-rate factor id.
+ */
+inline std::string make_credit_recovery_factor_id(const std::string& issuer_or_index) {
+    return factor_id_detail::join({
+        "RF", "CREDIT",
+        factor_id_detail::token(issuer_or_index, "credit issuer or index"),
+        "RECOVERY",
+        "SPOT"
+    });
+}
+
+/**
  * @brief Builds a canonical credit volatility factor id.
  */
 inline std::string make_credit_vol_factor_id(
@@ -280,6 +335,42 @@ inline std::string make_equity_spot_factor_id(const std::string& underlier) {
 }
 
 /**
+ * @brief Builds a canonical equity carry factor id for dividend yield or borrow-rate curves.
+ */
+inline std::string make_equity_carry_factor_id(
+    const std::string& underlier,
+    const std::string& carry_type,
+    const std::string& tenor) {
+    if (carry_type != "BORROW" && carry_type != "DIVYLD") {
+        throw std::invalid_argument("Equity carry factor type must be BORROW or DIVYLD");
+    }
+    return factor_id_detail::join({
+        "RF", "EQ",
+        factor_id_detail::token(underlier, "equity underlier"),
+        factor_id_detail::token(carry_type, "equity carry type"),
+        factor_id_detail::token(tenor, "tenor")
+    });
+}
+
+/**
+ * @brief Builds a canonical equity forward or listed-future factor id.
+ */
+inline std::string make_equity_forward_factor_id(
+    const std::string& underlier,
+    const std::string& forward_type,
+    const std::string& tenor) {
+    if (forward_type != "FUT" && forward_type != "FWD") {
+        throw std::invalid_argument("Equity forward factor type must be FUT or FWD");
+    }
+    return factor_id_detail::join({
+        "RF", "EQ",
+        factor_id_detail::token(underlier, "equity underlier"),
+        factor_id_detail::token(forward_type, "equity forward type"),
+        factor_id_detail::token(tenor, "tenor")
+    });
+}
+
+/**
  * @brief Builds a canonical equity volatility factor id.
  */
 inline std::string make_equity_vol_factor_id(
@@ -302,6 +393,17 @@ inline std::string make_fx_spot_factor_id(const std::string& pair) {
         "RF", "FX",
         factor_id_detail::token(pair, "FX pair"),
         "SPOT"
+    });
+}
+
+/**
+ * @brief Builds a canonical FX forward-points factor id.
+ */
+inline std::string make_fx_forward_points_factor_id(const std::string& pair, const std::string& tenor) {
+    return factor_id_detail::join({
+        "RF", "FX",
+        factor_id_detail::token(pair, "FX pair"),
+        "FWDPTS_" + factor_id_detail::token(tenor, "tenor")
     });
 }
 
@@ -355,14 +457,14 @@ inline std::string make_rates_vol_factor_id(
  * A factor is the atomic unit of risk. It may map to one or more market quotes.
  */
 struct FactorDefinition {
-    std::string factor_id;
-    FactorType factor_type = FactorType::Custom;
-    ShockMeasure shock_measure = ShockMeasure::Absolute;
-    Currency currency = Currency::UNKNOWN;
-    std::string curve_id;     // Optional: The curve this factor impacts
-    std::string tenor;        // Optional: The tenor node on a curve/surface
-    std::vector<std::string> quote_ids; // The specific raw quotes linked to this factor
-    std::string description;
+    std::string factor_id;                  // Canonical factor identifier.
+    FactorType factor_type = FactorType::Custom; // Factor taxonomy.
+    ShockMeasure shock_measure = ShockMeasure::Absolute; // Default shock measure.
+    Currency currency = Currency::UNKNOWN;  // Factor currency when applicable.
+    std::string curve_id;                   // Curve or surface impacted by the factor.
+    std::string tenor;                      // Tenor node on a curve or surface.
+    std::vector<std::string> quote_ids;     // Raw market quotes linked to this factor.
+    std::string description;                // Human-readable factor description.
 };
 
 /**
@@ -371,23 +473,23 @@ struct FactorDefinition {
  * Used for covariance estimation and historical simulation.
  */
 struct FactorObservation {
-    std::string factor_id;
-    std::string market_date;
-    double level = 0.0;       // Raw value at that date
-    double move = 0.0;        // The move (shock) according to ShockMeasure
-    std::string move_unit;    // e.g., "absolute", "log_return", "bp"
+    std::string factor_id;     // Observed factor id.
+    std::string market_date;   // Observation date.
+    double level = 0.0;        // Raw factor level at that date.
+    double move = 0.0;         // Historical move expressed in move_unit.
+    std::string move_unit;     // Move unit such as absolute, log_return, or bp.
 };
 
 /**
  * @brief Describes how a factor affects a specific market quote.
  */
 struct FactorBinding {
-    std::string factor_id;
-    std::string quote_id;
-    ShockMeasure shock_measure = ShockMeasure::Absolute;
-    double weight = 1.0;
-    std::string transform;      // optional: identity, log_return, bp, vol_points, custom
-    std::string selector_json;  // optional metadata for curve/surface selection rules
+    std::string factor_id;      // Driving factor id.
+    std::string quote_id;       // Market quote receiving the factor shock.
+    ShockMeasure shock_measure = ShockMeasure::Absolute; // Shock measure applied to the quote.
+    double weight = 1.0;        // Linear multiplier from factor shock to quote move.
+    std::string transform;      // Optional transform such as identity, log_return, bp, or vol_points.
+    std::string selector_json;  // Optional metadata for curve/surface selection rules.
 };
 
 } // namespace qrp::domain

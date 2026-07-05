@@ -8,6 +8,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <memory>
 
 using namespace qrp::analytics;
 
@@ -97,4 +98,49 @@ TEST(LsmcTest, AmericanPutValuation) {
     // American Put should be slightly higher, around 6.5 - 7.0
     EXPECT_GT(result.value, 6.0);
     EXPECT_LT(result.value, 8.0);
+}
+
+class DefaultDecisionProblem : public dynamic_programming::DecisionProblem {
+public:
+    std::vector<dynamic_programming::Action> feasibleActions(
+        const dynamic_programming::State&,
+        std::size_t
+    ) const override {
+        return {{0, "Continue", {}}};
+    }
+
+    double immediateCashflow(
+        const dynamic_programming::State&,
+        const dynamic_programming::Action&,
+        std::size_t
+    ) const override {
+        return 0.0;
+    }
+
+    dynamic_programming::State nextState(
+        const dynamic_programming::State&,
+        const dynamic_programming::Action&,
+        const std::vector<double>& market_variables_next,
+        std::size_t
+    ) const override {
+        return {market_variables_next, {}};
+    }
+
+    std::vector<double> regressionFeatures(
+        const dynamic_programming::State& state,
+        std::size_t
+    ) const override {
+        return state.market_variables;
+    }
+};
+
+TEST(LsmcTest, DecisionProblemDefaultsRemainUsableThroughBaseInterface) {
+    std::unique_ptr<dynamic_programming::DecisionProblem> problem = std::make_unique<DefaultDecisionProblem>();
+    const dynamic_programming::State state{{100.0}, {}};
+    const dynamic_programming::Action action{0, "Continue", {}};
+
+    EXPECT_FALSE(problem->isTerminalAction(state, action, 0));
+    EXPECT_DOUBLE_EQ(problem->terminalValue(state), 0.0);
+
+    problem.reset();
 }

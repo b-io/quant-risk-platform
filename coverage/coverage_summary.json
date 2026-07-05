@@ -1,0 +1,23 @@
+{
+  "combined_line_coverage_percent": 92.46,
+  "generated_at_utc": "2026-07-05T07:42:19+00:00",
+  "languages": [
+    {
+      "language": "C++",
+      "line_coverage_percent": 92.01,
+      "lines_covered": 3510,
+      "lines_valid": 3815,
+      "status": "pass"
+    },
+    {
+      "language": "Python",
+      "line_coverage_percent": 100.0,
+      "lines_covered": 229,
+      "lines_valid": 229,
+      "status": "pass"
+    }
+  ],
+  "lines_covered": 3739,
+  "lines_valid": 4044,
+  "status": "pass"
+}

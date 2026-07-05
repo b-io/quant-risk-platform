@@ -3,5 +3,5 @@
 #include <qrp/persistence/storage_backend.hpp>
 
 namespace qrp::persistence {
-// Placeholder for Phase 2 implementation of repositories
+// Repository interfaces are implemented by concrete storage backends.
 }

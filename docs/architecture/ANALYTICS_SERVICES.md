@@ -28,7 +28,7 @@ Current limitations:
 
 - instruments are rebuilt inside multiple services,
 - risk is still mostly bump-and-revalue,
-- explain is still approximate,
+- explain is deterministic and componentized, but realized cashflow extraction still needs product event sources,
 - Monte Carlo is a one-step factor simulation rather than a general path framework,
 - there is no explicit historical VaR vs. parametric VaR split,
 - there is no built portfolio cache.
@@ -96,4 +96,4 @@ This design choice is fundamental to the project.
 2. separate factor definitions from scenario definitions,
 3. split Monte Carlo one-step simulation from path simulation,
 4. add explicit VaR engines by methodology,
-5. upgrade explain from placeholder logic to reconciliation logic.
+5. add product event-source integration for realized cashflow explain.

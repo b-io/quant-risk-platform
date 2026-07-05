@@ -45,9 +45,9 @@ public:
     }
 
 private:
-    double initial_value_;
-    double drift_;
-    double volatility_;
+    double initial_value_; // Initial process level.
+    double drift_;         // Annualized drift.
+    double volatility_;    // Annualized volatility.
 };
 
 } // namespace qrp::analytics::simulation

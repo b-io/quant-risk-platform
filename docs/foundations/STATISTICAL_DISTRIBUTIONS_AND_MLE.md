@@ -74,8 +74,8 @@ $$
 L(\theta; x_1,\dots,x_n)=\prod_{i=1}^n p(x_i;\theta).
 $$
 
-The likelihood is not a probability in $\theta$; rather, it measures how compatible different parameter values are with
-the observed sample.
+The likelihood is not a probability in $\theta$; rather, it measures how strongly different parameter values fit the
+observed sample.
 
 The **maximum likelihood estimator** (MLE) is defined by
 
@@ -1296,4 +1296,3 @@ The next natural topics after this chapter are:
 
 If you want this chapter to read even more like a textbook, the next step would be to add short derivations of the means
 and variances, plus a small section on moment-generating functions and probability-generating functions.
-

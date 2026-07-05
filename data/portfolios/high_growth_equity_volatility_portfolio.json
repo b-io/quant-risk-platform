@@ -1,0 +1,155 @@
+{
+  "portfolio_id": "high_growth_equity_volatility",
+  "portfolio_name": "High Growth Equity Volatility",
+  "portfolio_style": "thematic_variant",
+  "description": "High-growth equity portfolio covering spot, forwards, futures, and European/American option risk.",
+  "base_currency": "USD",
+  "asset_mix": {
+    "defensive_assets_pct": 20,
+    "growth_assets_pct": 80
+  },
+  "books": [
+    {
+      "book_id": "BOOK:HIGH_GROWTH:EQUITY_DELTA",
+      "book_name": "High Growth Equity Delta",
+      "trades": [
+        "hgev_aapl_spot_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:HIGH_GROWTH:EQUITY_DERIVATIVES",
+      "book_name": "High Growth Equity Derivatives",
+      "trades": [
+        "hgev_aapl_forward_001",
+        "hgev_spx_future_001"
+      ]
+    },
+    {
+      "book_id": "BOOK:HIGH_GROWTH:EQUITY_VOLATILITY",
+      "book_name": "High Growth Equity Volatility",
+      "trades": [
+        "hgev_aapl_american_put_001",
+        "hgev_aapl_call_001",
+        "hgev_aapl_euro_put_001"
+      ]
+    }
+  ],
+  "trades": [
+    {
+      "id": "hgev_aapl_spot_001",
+      "asset_class": "equity",
+      "type": "equity_spot",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:HIGH_GROWTH:EQUITY_DELTA",
+      "strategy": "AAPL_DELTA",
+      "quantity": 300,
+      "details": {
+        "underlier": "AAPL",
+        "reference_price": 180.0
+      }
+    },
+    {
+      "id": "hgev_aapl_forward_001",
+      "asset_class": "equity",
+      "type": "equity_forward",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:HIGH_GROWTH:EQUITY_DERIVATIVES",
+      "strategy": "AAPL_FORWARD",
+      "quantity": 250,
+      "maturity_date": "2026-09-24",
+      "details": {
+        "underlier": "AAPL",
+        "forward_price": 184.0,
+        "spot_quote_id": "AAPL",
+        "dividend_yield_quote_id": "AAPL_DIVYLD_1Y",
+        "borrow_rate_quote_id": "AAPL_BORROW_1Y"
+      }
+    },
+    {
+      "id": "hgev_spx_future_001",
+      "asset_class": "equity",
+      "type": "equity_future",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:HIGH_GROWTH:EQUITY_DERIVATIVES",
+      "strategy": "SPX_BETA",
+      "quantity": 3,
+      "maturity_date": "2026-09-24",
+      "details": {
+        "underlier": "SPX",
+        "contract_size": 50,
+        "reference_price": 5350.0,
+        "future_quote_id": "ES_FUT_6M",
+        "spot_quote_id": "SPX"
+      }
+    },
+    {
+      "id": "hgev_aapl_call_001",
+      "asset_class": "equity",
+      "type": "equity_option",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:HIGH_GROWTH:EQUITY_VOLATILITY",
+      "strategy": "AAPL_EUROPEAN_CALL",
+      "quantity": 250,
+      "details": {
+        "underlier": "AAPL",
+        "strike_price": 185.0,
+        "expiry_date": "2026-09-24",
+        "settlement_date": "2026-09-24",
+        "spot_quote_id": "AAPL",
+        "dividend_yield_quote_id": "AAPL_DIVYLD_1Y",
+        "borrow_rate_quote_id": "AAPL_BORROW_1Y",
+        "volatility_quote_id": "AAPL_VOL_6M_ATM",
+        "exercise_style": "european",
+        "option_type": "call"
+      }
+    },
+    {
+      "id": "hgev_aapl_euro_put_001",
+      "asset_class": "equity",
+      "type": "equity_option",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:HIGH_GROWTH:EQUITY_VOLATILITY",
+      "strategy": "AAPL_EUROPEAN_PUT",
+      "quantity": 250,
+      "details": {
+        "underlier": "AAPL",
+        "strike_price": 190.0,
+        "expiry_date": "2026-09-24",
+        "settlement_date": "2026-09-24",
+        "spot_quote_id": "AAPL",
+        "dividend_yield_quote_id": "AAPL_DIVYLD_1Y",
+        "borrow_rate_quote_id": "AAPL_BORROW_1Y",
+        "volatility_quote_id": "AAPL_VOL_6M_ATM",
+        "exercise_style": "european",
+        "option_type": "put"
+      }
+    },
+    {
+      "id": "hgev_aapl_american_put_001",
+      "asset_class": "equity",
+      "type": "equity_option",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:HIGH_GROWTH:EQUITY_VOLATILITY",
+      "strategy": "AAPL_AMERICAN_PUT",
+      "quantity": 250,
+      "details": {
+        "underlier": "AAPL",
+        "strike_price": 190.0,
+        "expiry_date": "2026-09-24",
+        "settlement_date": "2026-09-24",
+        "spot_quote_id": "AAPL",
+        "dividend_yield_quote_id": "AAPL_DIVYLD_1Y",
+        "borrow_rate_quote_id": "AAPL_BORROW_1Y",
+        "volatility_quote_id": "AAPL_VOL_6M_ATM",
+        "exercise_style": "american",
+        "option_type": "put"
+      }
+    }
+  ]
+}

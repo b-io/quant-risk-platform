@@ -25,7 +25,7 @@ Why:
 
 Implementation notes:
 
-- Helpers are held as `QuantLib::ext::shared_ptr` (ABI-compatible with QuantLib's build).
+- Helpers are held as `QuantLib::ext::shared_ptr` so the pointer type matches the QuantLib build.
 - We pass the 4-argument constructor with an explicit `IterativeBootstrap<CurveT>` to avoid overload ambiguity across
   versions.
 

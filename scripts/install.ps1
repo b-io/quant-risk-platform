@@ -1,7 +1,7 @@
 # Install dependencies for Quant Risk Platform
 
 param(
-    [string]$Preset = "Release-Python",
+    [string]$Preset = "dev",
     [switch]$SkipEnv
 )
 
@@ -27,14 +27,21 @@ $triplet = if ($env:VCPKG_TARGET_TRIPLET) { $env:VCPKG_TARGET_TRIPLET } else { "
 # Find the vcpkg-provided Python if it exists
 $vcpkgPython = $null
 $candidates = @(
+    "build\$Preset\vcpkg_installed\$triplet\tools\python3\python",
     "build\$Preset\vcpkg_installed\$triplet\tools\python3\python.exe",
-    "build\Release-Python\vcpkg_installed\$triplet\tools\python3\python.exe",
-    "build\Release\vcpkg_installed\$triplet\tools\python3\python.exe",
-    "build\Debug\vcpkg_installed\$triplet\tools\python3\python.exe"
+    "build\dev\vcpkg_installed\$triplet\tools\python3\python",
+    "build\dev\vcpkg_installed\$triplet\tools\python3\python.exe",
+    "build\release\vcpkg_installed\$triplet\tools\python3\python",
+    "build\release\vcpkg_installed\$triplet\tools\python3\python.exe",
+    "build\debug\vcpkg_installed\$triplet\tools\python3\python",
+    "build\debug\vcpkg_installed\$triplet\tools\python3\python.exe"
 )
 
 if ($env:VCPKG_ROOT) {
-    $candidates = @("installed\$triplet\tools\python3\python.exe") + $candidates
+    $candidates = @(
+        "installed\$triplet\tools\python3\python",
+        "installed\$triplet\tools\python3\python.exe"
+    ) + $candidates
 }
 
 foreach ($relPath in $candidates) {
@@ -80,6 +87,8 @@ Write-Host "--- Checking vcpkg ---" -ForegroundColor Cyan
 $vcpkgPath = $null
 if ($env:VCPKG_ROOT -and (Test-Path "$env:VCPKG_ROOT\vcpkg.exe")) {
     $vcpkgPath = "$env:VCPKG_ROOT\vcpkg.exe"
+} elseif ($env:VCPKG_ROOT -and (Test-Path "$env:VCPKG_ROOT\vcpkg")) {
+    $vcpkgPath = "$env:VCPKG_ROOT\vcpkg"
 } elseif (Get-Command vcpkg -ErrorAction SilentlyContinue) {
     $vcpkgPath = "vcpkg"
 }

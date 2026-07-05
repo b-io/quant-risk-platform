@@ -1,7 +1,8 @@
-// Verifies Phase 3 rates product valuation coverage across cash, linear, bond, and option products.
+// Verifies Rates product valuation coverage across cash, linear, bond, and option products.
 
 #include <qrp/analytics/pricing_context.hpp>
 #include <qrp/analytics/valuation_service.hpp>
+#include <qrp/instruments/instrument_factory.hpp>
 #include <qrp/market/market_snapshot.hpp>
 
 #include <gtest/gtest.h>
@@ -36,7 +37,7 @@ qrp::domain::MarketQuote make_quote(
 qrp::domain::MarketSnapshot make_rates_market() {
     qrp::domain::MarketSnapshot market;
     market.valuation_date = "2026-03-24";
-    market.snapshot_id = "UNIT_RATES_PHASE3";
+    market.snapshot_id = "UNIT_RATES_PRODUCTS";
     market.base_currency = qrp::domain::Currency::USD;
     market.default_stale_after_days = 10;
 
@@ -92,13 +93,13 @@ std::shared_ptr<TradeT> make_rates_trade(const std::string& id, const std::strin
     trade->currency = "USD";
     trade->direction = direction;
     trade->book = "BOOK:RATES";
-    trade->strategy = "PHASE3";
+    trade->strategy = "RATES_PRODUCTS";
     return trade;
 }
 
-qrp::domain::Portfolio make_phase3_rates_portfolio() {
+qrp::domain::Portfolio make_rates_portfolio() {
     qrp::domain::Portfolio portfolio;
-    portfolio.portfolio_id = "phase3_rates";
+    portfolio.portfolio_id = "rates_products";
 
     auto deposit = make_rates_trade<qrp::domain::DepositTrade>("deposit_usd", "lend");
     deposit->notional = 1'000'000.0;
@@ -193,10 +194,10 @@ qrp::domain::Portfolio make_phase3_rates_portfolio() {
 
 } // namespace
 
-TEST(RatesProductsTest, PricesPhase3RatesProducts) {
+TEST(RatesProductsTest, PricesRatesProducts) {
     qrp::market::MarketSnapshot market(make_rates_market());
     qrp::analytics::PricingContext context(market.built_state());
-    const auto portfolio = make_phase3_rates_portfolio();
+    const auto portfolio = make_rates_portfolio();
 
     const auto results = qrp::analytics::ValuationService::price_portfolio(portfolio, context);
 
@@ -225,4 +226,152 @@ TEST(RatesProductsTest, PricesPhase3RatesProducts) {
     EXPECT_GE(by_trade.at("cap_usd").npv, 0.0);
     EXPECT_GE(by_trade.at("european_swaption_usd").npv, 0.0);
     EXPECT_GE(by_trade.at("bermudan_swaption_usd").npv, 0.0);
+}
+
+TEST(RatesProductsTest, PricesAlternativeDirectionsAndFallbackInputs) {
+    auto market_dto = make_rates_market();
+    market_dto.quotes.push_back(make_quote(
+        "USD_IR_FUT_DEC26",
+        qrp::domain::QuoteInstrumentType::InterestRateFuture,
+        qrp::domain::QuoteType::InterestRateFuture,
+        "3M",
+        0.0550,
+        "IBOR_3M"));
+    market_dto.fixings["USD_LIBOR_1M"]["2026-03-24"] = 0.0535;
+    market_dto.fixings["USD_LIBOR_6M"]["2026-03-24"] = 0.0545;
+    market_dto.fixings["OIS"]["2026-03-24"] = 0.0525;
+
+    qrp::market::MarketSnapshot market(market_dto);
+    qrp::analytics::PricingContext context(market.built_state());
+
+    qrp::domain::Portfolio portfolio;
+    portfolio.portfolio_id = "rates_edge_cases";
+
+    auto borrow_deposit = make_rates_trade<qrp::domain::DepositTrade>("deposit_borrow_usd", "borrow");
+    borrow_deposit->notional = 1'000'000.0;
+    borrow_deposit->start_date = "2026-03-26";
+    borrow_deposit->maturity_date = "2026-06-26";
+    borrow_deposit->deposit_rate = 0.0520;
+    portfolio.trades.push_back(borrow_deposit);
+
+    auto implied_future = make_rates_trade<qrp::domain::InterestRateFutureTrade>("future_implied_usd", "long");
+    implied_future->quantity = 5.0;
+    implied_future->contract_size = 2500.0;
+    implied_future->reference_price = 94.25;
+    implied_future->start_date = "2026-12-16";
+    implied_future->maturity_date = "2027-03-16";
+    implied_future->floating_index = "USD_LIBOR_3M";
+    portfolio.trades.push_back(implied_future);
+
+    auto quoted_rate_future = make_rates_trade<qrp::domain::InterestRateFutureTrade>("future_decimal_quote_usd", "long");
+    quoted_rate_future->quantity = 5.0;
+    quoted_rate_future->contract_size = 2500.0;
+    quoted_rate_future->reference_price = 94.25;
+    quoted_rate_future->start_date = "2026-12-16";
+    quoted_rate_future->maturity_date = "2027-03-16";
+    quoted_rate_future->floating_index = "USD_LIBOR_3M";
+    quoted_rate_future->future_quote_id = "USD_IR_FUT_DEC26";
+    portfolio.trades.push_back(quoted_rate_future);
+
+    auto short_fra_6m = make_rates_trade<qrp::domain::FraTrade>("fra_short_6m_usd", "lend");
+    short_fra_6m->notional = 1'000'000.0;
+    short_fra_6m->start_date = "2026-06-24";
+    short_fra_6m->maturity_date = "2026-12-24";
+    short_fra_6m->strike_rate = 0.0540;
+    short_fra_6m->floating_index = "USD_LIBOR_6M";
+    portfolio.trades.push_back(short_fra_6m);
+
+    auto receiver_swap = make_rates_trade<qrp::domain::VanillaSwapTrade>("swap_default_index_usd", "receiver");
+    receiver_swap->notional = 2'000'000.0;
+    receiver_swap->start_date = "2026-03-26";
+    receiver_swap->maturity_date = "2029-03-26";
+    receiver_swap->fixed_rate = 0.0525;
+    receiver_swap->floating_index = "";
+    portfolio.trades.push_back(receiver_swap);
+
+    auto ois = make_rates_trade<qrp::domain::OisSwapTrade>("ois_pay_fixed_usd", "pay_fixed");
+    ois->notional = 2'000'000.0;
+    ois->start_date = "2026-03-26";
+    ois->maturity_date = "2029-03-26";
+    ois->fixed_rate = 0.0525;
+    ois->overnight_index = "OIS";
+    ois->spread = 0.0001;
+    portfolio.trades.push_back(ois);
+
+    auto semiannual_bond = make_rates_trade<qrp::domain::FixedRateBondTrade>("bond_semiannual_usd", "long");
+    semiannual_bond->notional = 1'000'000.0;
+    semiannual_bond->start_date = "2026-03-26";
+    semiannual_bond->maturity_date = "2029-03-26";
+    semiannual_bond->coupon_rate = 0.0530;
+    semiannual_bond->frequency = "semi-annual";
+    portfolio.trades.push_back(semiannual_bond);
+
+    auto monthly_floater = make_rates_trade<qrp::domain::FloatingRateNoteTrade>("frn_monthly_1m_usd", "long");
+    monthly_floater->notional = 1'000'000.0;
+    monthly_floater->start_date = "2026-03-26";
+    monthly_floater->maturity_date = "2027-03-26";
+    monthly_floater->floating_index = "USD_LIBOR_1M";
+    monthly_floater->frequency = "Monthly";
+    monthly_floater->spread = 0.0005;
+    portfolio.trades.push_back(monthly_floater);
+
+    auto floor = make_rates_trade<qrp::domain::CapFloorTrade>("floor_default_vol_usd", "long");
+    floor->notional = 1'500'000.0;
+    floor->start_date = "2026-06-24";
+    floor->maturity_date = "2028-06-24";
+    floor->strike_rate = 0.0520;
+    floor->cap_floor_type = "floor";
+    floor->floating_index = "USD_LIBOR_3M";
+    portfolio.trades.push_back(floor);
+
+    auto bermudan_default_exercise = make_rates_trade<qrp::domain::BermudanSwaptionTrade>("bermudan_default_exercise_usd", "receiver");
+    bermudan_default_exercise->notional = 1'000'000.0;
+    bermudan_default_exercise->start_date = "2026-06-24";
+    bermudan_default_exercise->maturity_date = "2029-06-24";
+    bermudan_default_exercise->fixed_rate = 0.0520;
+    bermudan_default_exercise->floating_index = "USD_LIBOR_3M";
+    portfolio.trades.push_back(bermudan_default_exercise);
+
+    const auto results = qrp::analytics::ValuationService::price_portfolio(portfolio, context);
+
+    ASSERT_EQ(results.size(), 10U);
+    for (const auto& result : results) {
+        EXPECT_EQ(result.support_status, qrp::domain::SupportStatus::Supported) << result.trade_id;
+        EXPECT_TRUE(std::isfinite(result.npv)) << result.trade_id;
+    }
+}
+
+TEST(RatesProductsTest, FactoriesReturnNullWhenRatesCurvesAreMissing) {
+    qrp::domain::MarketSnapshot market_dto;
+    market_dto.valuation_date = "2026-03-24";
+    qrp::market::MarketSnapshot market(market_dto);
+    qrp::analytics::PricingContext context(market.built_state());
+
+    qrp::domain::InterestRateFutureTrade future;
+    future.currency = "USD";
+    future.start_date = "2026-06-17";
+    future.maturity_date = "2026-09-17";
+    future.floating_index = "USD_LIBOR_3M";
+    EXPECT_FALSE(qrp::instruments::RatesInstrumentFactory::create_interest_rate_future(future, context));
+
+    qrp::domain::OisSwapTrade ois;
+    ois.currency = "USD";
+    ois.start_date = "2026-03-26";
+    ois.maturity_date = "2029-03-26";
+    ois.overnight_index = "SOFR";
+    EXPECT_FALSE(qrp::instruments::RatesInstrumentFactory::create_ois_swap(ois, context));
+
+    qrp::domain::EuropeanSwaptionTrade european_swaption;
+    european_swaption.currency = "USD";
+    european_swaption.start_date = "2026-06-24";
+    european_swaption.maturity_date = "2031-06-24";
+    european_swaption.floating_index = "USD_LIBOR_3M";
+    EXPECT_FALSE(qrp::instruments::RatesInstrumentFactory::create_european_swaption(european_swaption, context));
+
+    qrp::domain::BermudanSwaptionTrade bermudan_swaption;
+    bermudan_swaption.currency = "USD";
+    bermudan_swaption.start_date = "2026-06-24";
+    bermudan_swaption.maturity_date = "2031-06-24";
+    bermudan_swaption.floating_index = "USD_LIBOR_3M";
+    EXPECT_FALSE(qrp::instruments::RatesInstrumentFactory::create_bermudan_swaption(bermudan_swaption, context));
 }

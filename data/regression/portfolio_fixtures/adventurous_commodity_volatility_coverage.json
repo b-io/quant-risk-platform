@@ -1,0 +1,72 @@
+{
+  "fixture_id": "adventurous_commodity_volatility_coverage",
+  "description": "Portfolio-backed structural golden coverage for Adventurous Commodity Volatility.",
+  "market_path": "market/demo_market.json",
+  "portfolio_id": "adventurous_commodity_volatility",
+  "portfolio_path": "portfolios/adventurous_commodity_volatility_portfolio.json",
+  "asset_mix": {
+    "defensive_assets_pct": 5,
+    "growth_assets_pct": 95
+  },
+  "expected_books": {
+    "BOOK:ADVENTUROUS:COMMODITY_CURVE": [
+      "acv_wti_strip_001"
+    ],
+    "BOOK:ADVENTUROUS:COMMODITY_DELTA": [
+      "acv_wti_forward_001",
+      "acv_wti_future_001",
+      "acv_wti_spot_001"
+    ],
+    "BOOK:ADVENTUROUS:COMMODITY_FLEXIBILITY": [
+      "acv_ttf_swing_001"
+    ],
+    "BOOK:ADVENTUROUS:COMMODITY_VOLATILITY": [
+      "acv_wti_calendar_001",
+      "acv_wti_option_001"
+    ]
+  },
+  "trades": {
+    "acv_ttf_swing_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:ADVENTUROUS:COMMODITY_FLEXIBILITY",
+      "product_type": "commodity_swing",
+      "support_status": "partially_supported"
+    },
+    "acv_wti_calendar_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:ADVENTUROUS:COMMODITY_VOLATILITY",
+      "product_type": "commodity_calendar_spread_option",
+      "support_status": "supported"
+    },
+    "acv_wti_forward_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:ADVENTUROUS:COMMODITY_DELTA",
+      "product_type": "commodity_forward",
+      "support_status": "supported"
+    },
+    "acv_wti_future_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:ADVENTUROUS:COMMODITY_DELTA",
+      "product_type": "commodity_future",
+      "support_status": "supported"
+    },
+    "acv_wti_option_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:ADVENTUROUS:COMMODITY_VOLATILITY",
+      "product_type": "commodity_future_option",
+      "support_status": "supported"
+    },
+    "acv_wti_spot_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:ADVENTUROUS:COMMODITY_DELTA",
+      "product_type": "commodity_spot",
+      "support_status": "supported"
+    },
+    "acv_wti_strip_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:ADVENTUROUS:COMMODITY_CURVE",
+      "product_type": "commodity_future_strip",
+      "support_status": "supported"
+    }
+  }
+}

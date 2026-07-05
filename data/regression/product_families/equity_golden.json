@@ -30,7 +30,7 @@
         "GLOBAL_RISK_OFF": -74200.0,
         "GLOBAL_RISK_ON": 74200.0
       },
-      "support_status": "partially_supported",
+      "support_status": "supported",
       "valuation": {
         "npv": -8500.0
       }

@@ -7,6 +7,7 @@
 
 #include <gtest/gtest.h>
 
+#include <filesystem>
 #include <map>
 #include <memory>
 #include <stdexcept>
@@ -232,7 +233,9 @@ TEST(CvxpyAdapterTest, MissingWorkerPathReturnsErrorWithoutStartingPython) {
     CvxpyAdapter solver;
     auto problem = make_supported_mean_variance_problem();
     SolverConfig config;
-    config.custom_params["cvxpy_worker_path"] = "Z:/definitely/missing/cvxpy_worker.py";
+    const auto missing_worker = std::filesystem::temp_directory_path() / "qrp_missing_cvxpy_worker_for_test.py";
+    ASSERT_FALSE(std::filesystem::exists(missing_worker));
+    config.custom_params["cvxpy_worker_path"] = missing_worker.string();
 
     auto result = solver.solve(problem, config);
 

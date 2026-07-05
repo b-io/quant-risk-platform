@@ -6,7 +6,7 @@ set -e
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 PROJECT_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
 
-PRESET="Release-Python"
+PRESET="dev"
 SKIP_ENV=0
 
 while [[ "$#" -gt 0 ]]; do
@@ -32,10 +32,12 @@ VCPKG_PYTHON=""
 candidates=(
     "build/${PRESET}/vcpkg_installed/${TRIPLET}/tools/python3/python"
     "build/${PRESET}/vcpkg_installed/${TRIPLET}/tools/python3/python.exe"
-    "build/Release-Python/vcpkg_installed/${TRIPLET}/tools/python3/python"
-    "build/Release-Python/vcpkg_installed/${TRIPLET}/tools/python3/python.exe"
-    "build/Release/vcpkg_installed/${TRIPLET}/tools/python3/python"
-    "build/Release/vcpkg_installed/${TRIPLET}/tools/python3/python.exe"
+    "build/dev/vcpkg_installed/${TRIPLET}/tools/python3/python"
+    "build/dev/vcpkg_installed/${TRIPLET}/tools/python3/python.exe"
+    "build/release/vcpkg_installed/${TRIPLET}/tools/python3/python"
+    "build/release/vcpkg_installed/${TRIPLET}/tools/python3/python.exe"
+    "build/debug/vcpkg_installed/${TRIPLET}/tools/python3/python"
+    "build/debug/vcpkg_installed/${TRIPLET}/tools/python3/python.exe"
 )
 
 if [[ -n "${VCPKG_ROOT:-}" && -n "$TRIPLET" ]]; then
@@ -61,10 +63,20 @@ if [[ ! -z "$VCPKG_PYTHON" ]]; then
     # Ensure pip exists
     if ! "$PYTHON_EXEC" -m pip --version >/dev/null 2>&1; then
         echo -e "\033[0;33mpip not found for vcpkg Python. Attempting to install pip...\033[0m"
-        "$PYTHON_EXEC" -m ensurepip --upgrade || echo "Failed to install pip via ensurepip"
+        if ! "$PYTHON_EXEC" -m ensurepip --upgrade; then
+            echo -e "\033[0;33mWarning: failed to install pip for vcpkg Python. Falling back to system Python.\033[0m"
+            if command -v python3 >/dev/null 2>&1; then
+                PYTHON_EXEC="python3"
+            elif command -v python >/dev/null 2>&1; then
+                PYTHON_EXEC="python"
+            fi
+        fi
     fi
 else
     echo -e "\033[0;33mWarning: vcpkg Python not found. Using system 'python3'.\033[0m"
+    if ! command -v "$PYTHON_EXEC" >/dev/null 2>&1 && command -v python >/dev/null 2>&1; then
+        PYTHON_EXEC="python"
+    fi
 fi
 
 echo -e "\033[0;36m--- Installing Python dependencies ---\033[0m"
@@ -83,6 +95,8 @@ echo -e "\033[0;36m--- Checking vcpkg ---\033[0m"
 VCPKG_EXEC=""
 if [ ! -z "$VCPKG_ROOT" ] && [ -f "$VCPKG_ROOT/vcpkg" ]; then
     VCPKG_EXEC="$VCPKG_ROOT/vcpkg"
+elif [ ! -z "$VCPKG_ROOT" ] && [ -f "$VCPKG_ROOT/vcpkg.exe" ]; then
+    VCPKG_EXEC="$VCPKG_ROOT/vcpkg.exe"
 elif command -v vcpkg >/dev/null 2>&1; then
     VCPKG_EXEC=$(command -v vcpkg)
 fi

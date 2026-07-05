@@ -146,11 +146,11 @@ public:
     const std::map<std::string, std::map<QuantLib::Date, double>>& fixings() const { return fixings_; }
 
 private:
-    QuantLib::Date valuation_date_;
-    std::map<domain::CurveId, QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure>> curves_;
-    std::map<std::string, QuantLib::ext::shared_ptr<QuantLib::SimpleQuote>> quote_handles_;
-    std::map<std::string, domain::MarketQuote> quote_metadata_;
-    std::map<std::string, std::map<QuantLib::Date, double>> fixings_;
+    QuantLib::Date valuation_date_; // Valuation date for all stored market objects.
+    std::map<domain::CurveId, QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure>> curves_; // Yield curves by id.
+    std::map<std::string, QuantLib::ext::shared_ptr<QuantLib::SimpleQuote>> quote_handles_; // Live quote handles by id.
+    std::map<std::string, domain::MarketQuote> quote_metadata_; // Original quote metadata by id.
+    std::map<std::string, std::map<QuantLib::Date, double>> fixings_; // Fixings by index and date.
 };
 
 } // namespace qrp::market

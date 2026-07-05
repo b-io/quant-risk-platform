@@ -323,11 +323,11 @@ inline void from_json(const nlohmann::json& j, CurveSpec& s) {
  * @brief Diagnostic emitted while validating market snapshots.
  */
 struct MarketDataDiagnostic {
-    std::string severity;
-    std::string code;
-    std::string message;
-    std::string quote_id;
-    std::string curve_id;
+    std::string severity; // Diagnostic severity.
+    std::string code;     // Stable diagnostic code.
+    std::string message;  // Human-readable diagnostic message.
+    std::string quote_id; // Related quote id, when applicable.
+    std::string curve_id; // Related curve id, when applicable.
 };
 
 /**
@@ -345,17 +345,17 @@ inline void from_json(const nlohmann::json& j, MarketDataDiagnostic& d) {
  * @brief Versioned market snapshot DTO used as raw input to market-state construction.
  */
 struct MarketSnapshot {
-    std::string valuation_date;
-    std::string snapshot_id;
-    int schema_version = 2;
-    Currency base_currency = Currency::UNKNOWN;
-    std::string source_name;
-    std::string recorded_ts;
-    int default_stale_after_days = -1;
-    std::vector<MarketQuote> quotes;
-    std::vector<CurveSpec> curves;
+    std::string valuation_date;       // Market state valuation date.
+    std::string snapshot_id;          // Stable market snapshot id.
+    int schema_version = 2;           // Market snapshot schema version.
+    Currency base_currency = Currency::UNKNOWN; // Reporting/base currency.
+    std::string source_name;          // Source system or fixture name.
+    std::string recorded_ts;          // Timestamp when the snapshot was recorded.
+    int default_stale_after_days = -1; // Default quote staleness threshold.
+    std::vector<MarketQuote> quotes;  // Raw market quotes included in the snapshot.
+    std::vector<CurveSpec> curves;    // Curve construction specifications.
     std::map<std::string, std::map<std::string, double>> fixings; // index_name -> { date -> value }
-    std::vector<MarketDataDiagnostic> diagnostics;
+    std::vector<MarketDataDiagnostic> diagnostics; // Validation diagnostics captured with the snapshot.
 };
 
 /**

@@ -6,6 +6,7 @@
 
 #include <gtest/gtest.h>
 
+#include <array>
 #include <memory>
 
 using namespace qrp;
@@ -30,6 +31,49 @@ TEST(ConventionTest, FallsBackToCurrencyOisConvention) {
     EXPECT_EQ(convention.currency, domain::Currency::EUR);
     EXPECT_EQ(convention.index_family, "OIS");
     EXPECT_EQ(convention.calendar, domain::BusinessCalendar::Target);
+}
+
+TEST(ConventionTest, LoadsDefaultOisConventionsByCurrency) {
+    auto& registry = conventions::MarketConventionRegistry::instance();
+
+    struct ExpectedOisConvention {
+        domain::Currency currency;
+        domain::BusinessCalendar calendar;
+        int settlement_days;
+        domain::DayCount day_count;
+    };
+
+    const std::array<ExpectedOisConvention, 4> expected_conventions = {{
+        {domain::Currency::USD, domain::BusinessCalendar::US, 2, domain::DayCount::ACT360},
+        {domain::Currency::EUR, domain::BusinessCalendar::Target, 2, domain::DayCount::ACT360},
+        {domain::Currency::GBP, domain::BusinessCalendar::UK, 0, domain::DayCount::ACT365},
+        {domain::Currency::CHF, domain::BusinessCalendar::CHF, 2, domain::DayCount::ACT360},
+    }};
+
+    for (const auto& expected : expected_conventions) {
+        auto convention = registry.get_rates_convention(expected.currency, "OIS");
+
+        EXPECT_EQ(convention.currency, expected.currency);
+        EXPECT_EQ(convention.index_family, "OIS");
+        EXPECT_EQ(convention.calendar, expected.calendar);
+        EXPECT_EQ(convention.settlement_days, expected.settlement_days);
+        EXPECT_EQ(convention.day_count, expected.day_count);
+        EXPECT_EQ(convention.fixed_leg_frequency, domain::Frequency::Annual);
+        EXPECT_EQ(convention.floating_leg_frequency, domain::Frequency::Annual);
+        EXPECT_EQ(convention.date_generation, domain::DateGeneration::Forward);
+    }
+}
+
+TEST(ConventionTest, ReturnsMinimalConventionWhenNoCurrencyDefaultExists) {
+    auto& registry = conventions::MarketConventionRegistry::instance();
+
+    auto convention = registry.get_rates_convention(domain::Currency::UNKNOWN, "MISSING_INDEX");
+
+    EXPECT_EQ(convention.currency, domain::Currency::UNKNOWN);
+    EXPECT_EQ(convention.index_family, "MISSING_INDEX");
+    EXPECT_EQ(convention.calendar, domain::BusinessCalendar::Target);
+    EXPECT_EQ(convention.settlement_days, 2);
+    EXPECT_EQ(convention.day_count, domain::DayCount::ACT360);
 }
 
 TEST(ConventionTest, RegistersCustomConvention) {

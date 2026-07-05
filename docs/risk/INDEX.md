@@ -64,7 +64,7 @@ explicit pricing objects and reproducible market state.
 
 ## Implementation Sequence
 
-Risk expansion should follow the later phases in
+Risk expansion should follow the implementation roadmap in
 `docs/implementation/PHASED_BUILD_PLAN.md`:
 
 - PnL explain with realized cashflows, sequential revaluation, persistence, and

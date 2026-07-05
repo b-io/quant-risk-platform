@@ -52,7 +52,7 @@ public:
     }
 
 private:
-    std::vector<std::vector<double>> data_;
+    std::vector<std::vector<double>> data_; // Path values by time step and state dimension.
 };
 
 /**
