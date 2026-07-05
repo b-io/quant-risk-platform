@@ -9,77 +9,315 @@
   "trades": {
     "bond_usd_001": {
       "pnl_explain": {
-        "carry_pnl": 739.47,
+        "carry_pnl": 296.26,
         "cash_pnl": 0.0,
-        "market_move_pnl": -6313.34,
+        "market_move_pnl": -4328.85,
         "residual_pnl": 0.0,
-        "total_pnl": -5573.87
+        "total_pnl": -4032.59
       },
       "product_type": "fixed_rate_bond",
       "risk": {
         "bucketed_risk": {
-          "1Y": 7.43,
-          "2Y": -675.48,
-          "5Y": -591.19,
-          "6M": -5.59
+          "1D": -1.11,
+          "5Y": -867.07
+        },
+        "cs01": -0.0,
+        "fx_delta": -0.0,
+        "fx_vega": -0.0,
+        "pv01": -868.24
+      },
+      "stress": {
+        "CROSS_ASSET_REPRICING": -41041.52,
+        "GLOBAL_RISK_OFF": 24493.28,
+        "GLOBAL_RISK_ON": -27491.98,
+        "USD_CURVE_BEAR_FLATTENER": -17218.19,
+        "USD_CURVE_BEAR_STEEPENER": -34369.72,
+        "USD_CURVE_BULL_STEEPENER": 17485.72,
+        "USD_FUNDING_STRESS": -34312.99,
+        "USD_LIBOR_OIS_WIDENING": 8688.71,
+        "USD_RATES_PARALLEL_DOWN_100BP": 71095.01,
+        "USD_RATES_PARALLEL_UP_100BP": -67755.25
+      },
+      "support_status": "supported",
+      "valuation": {
+        "npv": 2001275.27
+      }
+    },
+    "demo_usd_bermudan_swaption_001": {
+      "pnl_explain": {
+        "carry_pnl": 0.0,
+        "cash_pnl": 0.0,
+        "market_move_pnl": 1563.0,
+        "residual_pnl": 0.0,
+        "total_pnl": 1563.0
+      },
+      "product_type": "bermudan_swaption",
+      "risk": {
+        "bucketed_risk": {},
+        "cs01": 0.0,
+        "fx_delta": 0.0,
+        "fx_vega": 0.0,
+        "pv01": 0.0
+      },
+      "stress": {},
+      "support_status": "supported",
+      "valuation": {
+        "npv": 47173.0
+      }
+    },
+    "demo_usd_cap_001": {
+      "pnl_explain": {
+        "carry_pnl": 0.81,
+        "cash_pnl": 0.0,
+        "market_move_pnl": 455.18,
+        "residual_pnl": 0.0,
+        "total_pnl": 455.99
+      },
+      "product_type": "cap_floor",
+      "risk": {
+        "bucketed_risk": {
+          "2Y": 89.07,
+          "3M": 11.25
         },
         "cs01": 0.0,
         "fx_delta": 0.0,
         "fx_vega": 0.0,
-        "pv01": -1264.65
+        "pv01": 99.78
       },
       "stress": {
-        "CROSS_ASSET_REPRICING": -67767.37,
-        "GLOBAL_RISK_OFF": 40176.55,
-        "GLOBAL_RISK_ON": -45331.88,
-        "USD_CURVE_BEAR_FLATTENER": -38550.52,
-        "USD_CURVE_BEAR_STEEPENER": -40367.45,
-        "USD_CURVE_BULL_STEEPENER": 39089.97,
-        "USD_LIBOR_OIS_WIDENING": 5912.28,
-        "USD_RATES_PARALLEL_DOWN_100BP": 116082.06,
-        "USD_RATES_PARALLEL_UP_100BP": -112184.08
+        "CROSS_ASSET_REPRICING": -24.48,
+        "GLOBAL_RISK_OFF": 14.42,
+        "GLOBAL_RISK_ON": -16.35,
+        "USD_CURVE_BEAR_FLATTENER": -28.51,
+        "USD_CURVE_BEAR_STEEPENER": -2.11,
+        "USD_CURVE_BULL_STEEPENER": 28.83,
+        "USD_FUNDING_STRESS": 7988.91,
+        "USD_RATES_PARALLEL_DOWN_100BP": 41.46,
+        "USD_RATES_PARALLEL_UP_100BP": -40.65
       },
       "support_status": "supported",
       "valuation": {
-        "npv": 4995290.38
+        "npv": 5348.68
+      }
+    },
+    "demo_usd_deposit_001": {
+      "pnl_explain": {
+        "carry_pnl": -0.05,
+        "cash_pnl": 0.0,
+        "market_move_pnl": -125.13,
+        "residual_pnl": 0.0,
+        "total_pnl": -125.18
+      },
+      "product_type": "deposit",
+      "risk": {
+        "bucketed_risk": {},
+        "cs01": 0.0,
+        "fx_delta": 0.0,
+        "fx_vega": 0.0,
+        "pv01": 0.0
+      },
+      "stress": {},
+      "support_status": "supported",
+      "valuation": {
+        "npv": -336.64
+      }
+    },
+    "demo_usd_european_swaption_001": {
+      "pnl_explain": {
+        "carry_pnl": 4.64,
+        "cash_pnl": 0.0,
+        "market_move_pnl": 1954.88,
+        "residual_pnl": 0.0,
+        "total_pnl": 1959.52
+      },
+      "product_type": "european_swaption",
+      "risk": {
+        "bucketed_risk": {
+          "2Y": -75.81,
+          "3M": -19.97,
+          "5Y": 501.52
+        },
+        "cs01": 0.0,
+        "fx_delta": 0.0,
+        "fx_vega": 0.0,
+        "pv01": 404.01
+      },
+      "stress": {
+        "CROSS_ASSET_REPRICING": -380.27,
+        "GLOBAL_RISK_OFF": 225.45,
+        "GLOBAL_RISK_ON": -254.38,
+        "USD_CURVE_BEAR_FLATTENER": -228.41,
+        "USD_CURVE_BEAR_STEEPENER": 19666.13,
+        "USD_CURVE_BULL_STEEPENER": 231.53,
+        "USD_FUNDING_STRESS": 25034.74,
+        "USD_LIBOR_OIS_WIDENING": 48327.39,
+        "USD_RATES_PARALLEL_DOWN_100BP": 651.42,
+        "USD_RATES_PARALLEL_UP_100BP": -629.51
+      },
+      "support_status": "supported",
+      "valuation": {
+        "npv": 31196.66
+      }
+    },
+    "demo_usd_fra_001": {
+      "pnl_explain": {
+        "carry_pnl": 0.04,
+        "cash_pnl": 0.0,
+        "market_move_pnl": 248.59,
+        "residual_pnl": 0.0,
+        "total_pnl": 248.63
+      },
+      "product_type": "fra",
+      "risk": {
+        "bucketed_risk": {
+          "3M": 49.71
+        },
+        "cs01": 0.0,
+        "fx_delta": 0.0,
+        "fx_vega": 0.0,
+        "pv01": 49.71
+      },
+      "stress": {
+        "USD_FUNDING_STRESS": 3222.2
+      },
+      "support_status": "supported",
+      "valuation": {
+        "npv": 244.67
+      }
+    },
+    "demo_usd_frn_001": {
+      "pnl_explain": {
+        "carry_pnl": 223.61,
+        "cash_pnl": 0.0,
+        "market_move_pnl": -166.15,
+        "residual_pnl": 0.0,
+        "total_pnl": 57.46
+      },
+      "product_type": "floating_rate_note",
+      "risk": {
+        "bucketed_risk": {
+          "1Y": 1.82,
+          "5Y": 2.82,
+          "6M": -1.55
+        },
+        "cs01": -0.0,
+        "fx_delta": -0.0,
+        "fx_vega": -0.0,
+        "pv01": 1.88
+      },
+      "stress": {
+        "CROSS_ASSET_REPRICING": -21235.33,
+        "GLOBAL_RISK_OFF": 12598.45,
+        "GLOBAL_RISK_ON": -14207.12,
+        "USD_CURVE_BEAR_FLATTENER": -11666.45,
+        "USD_CURVE_BEAR_STEEPENER": -5501.4,
+        "USD_CURVE_BULL_STEEPENER": 11831.15,
+        "USD_FUNDING_STRESS": 5273.09,
+        "USD_LIBOR_OIS_WIDENING": 19407.23,
+        "USD_RATES_PARALLEL_DOWN_100BP": 36418.53,
+        "USD_RATES_PARALLEL_UP_100BP": -35143.27
+      },
+      "support_status": "supported",
+      "valuation": {
+        "npv": 1510135.89
+      }
+    },
+    "demo_usd_ir_future_001": {
+      "pnl_explain": {
+        "carry_pnl": 0.0,
+        "cash_pnl": 0.0,
+        "market_move_pnl": 0.0,
+        "residual_pnl": 0.0,
+        "total_pnl": 0.0
+      },
+      "product_type": "interest_rate_future",
+      "risk": {
+        "bucketed_risk": {},
+        "cs01": 0.0,
+        "fx_delta": 0.0,
+        "fx_vega": 0.0,
+        "pv01": 0.0
+      },
+      "stress": {},
+      "support_status": "supported",
+      "valuation": {
+        "npv": 2500.0
+      }
+    },
+    "demo_usd_ois_001": {
+      "pnl_explain": {
+        "carry_pnl": -3.76,
+        "cash_pnl": 0.0,
+        "market_move_pnl": -6376.58,
+        "residual_pnl": 0.0,
+        "total_pnl": -6380.34
+      },
+      "product_type": "ois_swap",
+      "risk": {
+        "bucketed_risk": {
+          "1M": 16.21,
+          "1Y": 1.29,
+          "2Y": 1.89,
+          "5Y": -1295.29
+        },
+        "cs01": -0.0,
+        "fx_delta": -0.0,
+        "fx_vega": -0.0,
+        "pv01": -1275.44
+      },
+      "stress": {
+        "CROSS_ASSET_REPRICING": -61108.86,
+        "GLOBAL_RISK_OFF": 36470.52,
+        "GLOBAL_RISK_ON": -40934.53,
+        "USD_CURVE_BEAR_FLATTENER": -23939.89,
+        "USD_CURVE_BEAR_STEEPENER": -51293.05,
+        "USD_CURVE_BULL_STEEPENER": 24335.18,
+        "USD_FUNDING_STRESS": -50375.8,
+        "USD_LIBOR_OIS_WIDENING": 12979.8,
+        "USD_RATES_PARALLEL_DOWN_100BP": 105862.97,
+        "USD_RATES_PARALLEL_UP_100BP": -100882.94
+      },
+      "support_status": "supported",
+      "valuation": {
+        "npv": -25398.01
       }
     },
     "swap_usd_001": {
       "pnl_explain": {
-        "carry_pnl": 54.77,
+        "carry_pnl": 12.97,
         "cash_pnl": 0.0,
-        "market_move_pnl": 19930.26,
+        "market_move_pnl": 10088.77,
         "residual_pnl": 0.0,
-        "total_pnl": 19985.03
+        "total_pnl": 10101.74
       },
       "product_type": "vanilla_swap",
       "risk": {
         "bucketed_risk": {
-          "1Y": -3.4,
-          "2Y": -26.83,
-          "3M": -3.49,
-          "5Y": 4277.02,
-          "6M": 1.58
+          "2Y": -10.72,
+          "3M": -2.89,
+          "5Y": 2154.55,
+          "6M": 1.35
         },
         "cs01": 0.0,
         "fx_delta": 0.0,
         "fx_vega": 0.0,
-        "pv01": 4243.4
+        "pv01": 2140.89
       },
       "stress": {
-        "CROSS_ASSET_REPRICING": -3492.55,
-        "GLOBAL_RISK_OFF": 2070.8,
-        "GLOBAL_RISK_ON": -2336.33,
-        "USD_CURVE_BEAR_FLATTENER": -2173.69,
-        "USD_CURVE_BEAR_STEEPENER": 147479.56,
-        "USD_CURVE_BULL_STEEPENER": 2201.67,
-        "USD_LIBOR_OIS_WIDENING": 327262.21,
-        "USD_RATES_PARALLEL_DOWN_100BP": 5983.65,
-        "USD_RATES_PARALLEL_UP_100BP": -5781.43
+        "CROSS_ASSET_REPRICING": -499.99,
+        "GLOBAL_RISK_OFF": 294.99,
+        "GLOBAL_RISK_ON": -334.12,
+        "USD_CURVE_BEAR_FLATTENER": -378.79,
+        "USD_CURVE_BEAR_STEEPENER": 74551.44,
+        "USD_CURVE_BULL_STEEPENER": 382.98,
+        "USD_FUNDING_STRESS": 116476.17,
+        "USD_LIBOR_OIS_WIDENING": 163470.51,
+        "USD_RATES_PARALLEL_DOWN_100BP": 849.45,
+        "USD_RATES_PARALLEL_UP_100BP": -829.34
       },
       "support_status": "supported",
       "valuation": {
-        "npv": 367512.57
+        "npv": 86343.31
       }
     }
   }

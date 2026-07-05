@@ -42,12 +42,22 @@ nlohmann::json trade_payload(
 }
 
 template <typename TradeT>
-std::shared_ptr<TradeT> require_trade(const std::map<std::string, std::shared_ptr<domain::Trade>>& trades, const std::string& id) {
-    auto it = trades.find(id);
-    EXPECT_NE(it, trades.end());
-    auto casted = it == trades.end() ? nullptr : std::dynamic_pointer_cast<TradeT>(it->second);
-    EXPECT_NE(casted, nullptr);
-    return casted;
+const TradeT& require_trade(
+    const std::map<std::string, std::shared_ptr<domain::Trade>>& trades,
+    const std::string& id) {
+    const auto it = trades.find(id);
+    if (it == trades.end()) {
+        ADD_FAILURE() << "Missing trade id: " << id;
+        throw std::runtime_error("Missing trade id: " + id);
+    }
+
+    const auto* casted = dynamic_cast<const TradeT*>(it->second.get());
+    if (casted == nullptr) {
+        ADD_FAILURE() << "Trade has unexpected concrete type: " << id;
+        throw std::runtime_error("Unexpected trade type: " + id);
+    }
+
+    return *casted;
 }
 
 } // namespace
@@ -93,7 +103,9 @@ TEST(TradeModelTest, SerializesAllTradeTypesAndBuildsConcreteTradeDtos) {
         {domain::TradeType::CommodityFuture, "commodity_future", domain::ProductType::CommodityFuture},
         {domain::TradeType::CommodityFutureStrip, "commodity_future_strip", domain::ProductType::CommodityFutureStrip},
         {domain::TradeType::CommodityFutureOption, "commodity_future_option", domain::ProductType::CommodityFutureOption},
-        {domain::TradeType::CommodityCalendarSpreadOption, "commodity_calendar_spread_option", domain::ProductType::CommodityCalendarSpreadOption},
+        {domain::TradeType::CommodityCalendarSpreadOption,
+         "commodity_calendar_spread_option",
+         domain::ProductType::CommodityCalendarSpreadOption},
         {domain::TradeType::CommoditySwing, "commodity_swing", domain::ProductType::CommoditySwing},
         {domain::TradeType::CreditBond, "credit_bond", domain::ProductType::CreditBond},
         {domain::TradeType::Cds, "cds", domain::ProductType::Cds},
@@ -122,10 +134,13 @@ TEST(TradeModelTest, SerializesAllTradeTypesAndBuildsConcreteTradeDtos) {
     };
 
     for (const auto& [trade_type, type_name, product_type] : cases) {
+        SCOPED_TRACE(type_name);
         EXPECT_EQ(domain::to_string(trade_type), type_name);
         EXPECT_EQ(domain::product_type_from_trade_type(trade_type), product_type);
-        EXPECT_EQ(domain::make_trade(trade_type)->trade_type, trade_type);
-        EXPECT_EQ(domain::make_trade(type_name)->type, type_name);
+        const auto trade_by_enum = domain::make_trade(trade_type);
+        const auto trade_by_name = domain::make_trade(type_name);
+        EXPECT_EQ(trade_by_enum->trade_type, trade_type);
+        EXPECT_EQ(trade_by_name->type, type_name);
     }
 
     EXPECT_EQ(domain::to_string(domain::TradeType::Unknown), "unknown");
@@ -212,7 +227,9 @@ TEST(TradeModelTest, ParsesCanonicalAssetClassesAndProductTypes) {
     EXPECT_EQ(qrp::domain::parse_product_type("commodity_spot"), qrp::domain::ProductType::CommoditySpot);
     EXPECT_EQ(qrp::domain::parse_product_type("commodity_forward"), qrp::domain::ProductType::CommodityForward);
     EXPECT_EQ(qrp::domain::parse_product_type("commodity_future_strip"), qrp::domain::ProductType::CommodityFutureStrip);
-    EXPECT_EQ(qrp::domain::parse_product_type("commodity_calendar_spread_option"), qrp::domain::ProductType::CommodityCalendarSpreadOption);
+    EXPECT_EQ(
+        qrp::domain::parse_product_type("commodity_calendar_spread_option"),
+        qrp::domain::ProductType::CommodityCalendarSpreadOption);
     EXPECT_EQ(qrp::domain::parse_product_type("commodity_future_option"), qrp::domain::ProductType::CommodityFutureOption);
     EXPECT_EQ(qrp::domain::parse_product_type("credit_bond"), qrp::domain::ProductType::CreditBond);
     EXPECT_EQ(qrp::domain::parse_product_type("cds"), qrp::domain::ProductType::Cds);
@@ -598,27 +615,27 @@ TEST(TradeModelTest, PortfolioJsonParsesAllSupportedTradeEconomics) {
         EXPECT_EQ(trade->strategy, "STRATEGY:UNIT");
     }
 
-    EXPECT_DOUBLE_EQ(require_trade<domain::DepositTrade>(trades_by_id, "T01")->deposit_rate, 0.0525);
-    EXPECT_EQ(require_trade<domain::FraTrade>(trades_by_id, "T02")->floating_index, "IBOR_3M");
-    EXPECT_EQ(require_trade<domain::InterestRateFutureTrade>(trades_by_id, "T03")->future_quote_id, "SFRZ6");
-    EXPECT_DOUBLE_EQ(require_trade<domain::VanillaSwapTrade>(trades_by_id, "T04")->fixed_rate, 0.045);
-    EXPECT_EQ(require_trade<domain::OisSwapTrade>(trades_by_id, "T05")->overnight_index, "SOFR");
-    EXPECT_EQ(require_trade<domain::FixedRateBondTrade>(trades_by_id, "T06")->frequency, "Annual");
-    EXPECT_DOUBLE_EQ(require_trade<domain::FloatingRateNoteTrade>(trades_by_id, "T07")->spread, 0.0012);
-    EXPECT_EQ(require_trade<domain::CapFloorTrade>(trades_by_id, "T08")->cap_floor_type, "floor");
-    EXPECT_EQ(require_trade<domain::EuropeanSwaptionTrade>(trades_by_id, "T09")->option_expiry_date, "2027-03-24");
-    EXPECT_EQ(require_trade<domain::BermudanSwaptionTrade>(trades_by_id, "T10")->exercise_dates.size(), 2U);
-    EXPECT_EQ(require_trade<domain::FxSpotTrade>(trades_by_id, "T11")->spot_quote_id, "EURUSD");
-    EXPECT_EQ(require_trade<domain::FxForwardTrade>(trades_by_id, "T12")->forward_quote_id, "EURUSD_FWD_6M");
-    EXPECT_EQ(require_trade<domain::FxSwapTrade>(trades_by_id, "T13")->far_forward_quote_id, "EURUSD_FWD_1Y");
-    EXPECT_EQ(require_trade<domain::NdfTrade>(trades_by_id, "T14")->fixing_quote_id, "BRLUSD_FIX");
-    EXPECT_EQ(require_trade<domain::FxOptionTrade>(trades_by_id, "T15")->settlement_date, "2026-09-26");
-    EXPECT_EQ(require_trade<domain::CreditBondTrade>(trades_by_id, "T16")->issuer, "ACME");
-    EXPECT_EQ(require_trade<domain::CdsTrade>(trades_by_id, "T17")->recovery_quote_id, "ACME_RECOVERY");
-    EXPECT_DOUBLE_EQ(require_trade<domain::CdsIndexTrade>(trades_by_id, "T18")->index_factor, 0.97);
-    EXPECT_EQ(require_trade<domain::CdsOptionTrade>(trades_by_id, "T19")->option_type, "receiver");
-    EXPECT_EQ(require_trade<domain::CreditIndexOptionTrade>(trades_by_id, "T20")->index_name, "CDX_IG");
-    EXPECT_EQ(require_trade<domain::EquitySpotTrade>(trades_by_id, "T21")->underlier, "AAPL");
+    EXPECT_DOUBLE_EQ(require_trade<domain::DepositTrade>(trades_by_id, "T01").deposit_rate, 0.0525);
+    EXPECT_EQ(require_trade<domain::FraTrade>(trades_by_id, "T02").floating_index, "IBOR_3M");
+    EXPECT_EQ(require_trade<domain::InterestRateFutureTrade>(trades_by_id, "T03").future_quote_id, "SFRZ6");
+    EXPECT_DOUBLE_EQ(require_trade<domain::VanillaSwapTrade>(trades_by_id, "T04").fixed_rate, 0.045);
+    EXPECT_EQ(require_trade<domain::OisSwapTrade>(trades_by_id, "T05").overnight_index, "SOFR");
+    EXPECT_EQ(require_trade<domain::FixedRateBondTrade>(trades_by_id, "T06").frequency, "Annual");
+    EXPECT_DOUBLE_EQ(require_trade<domain::FloatingRateNoteTrade>(trades_by_id, "T07").spread, 0.0012);
+    EXPECT_EQ(require_trade<domain::CapFloorTrade>(trades_by_id, "T08").cap_floor_type, "floor");
+    EXPECT_EQ(require_trade<domain::EuropeanSwaptionTrade>(trades_by_id, "T09").option_expiry_date, "2027-03-24");
+    EXPECT_EQ(require_trade<domain::BermudanSwaptionTrade>(trades_by_id, "T10").exercise_dates.size(), 2U);
+    EXPECT_EQ(require_trade<domain::FxSpotTrade>(trades_by_id, "T11").spot_quote_id, "EURUSD");
+    EXPECT_EQ(require_trade<domain::FxForwardTrade>(trades_by_id, "T12").forward_quote_id, "EURUSD_FWD_6M");
+    EXPECT_EQ(require_trade<domain::FxSwapTrade>(trades_by_id, "T13").far_forward_quote_id, "EURUSD_FWD_1Y");
+    EXPECT_EQ(require_trade<domain::NdfTrade>(trades_by_id, "T14").fixing_quote_id, "BRLUSD_FIX");
+    EXPECT_EQ(require_trade<domain::FxOptionTrade>(trades_by_id, "T15").settlement_date, "2026-09-26");
+    EXPECT_EQ(require_trade<domain::CreditBondTrade>(trades_by_id, "T16").issuer, "ACME");
+    EXPECT_EQ(require_trade<domain::CdsTrade>(trades_by_id, "T17").recovery_quote_id, "ACME_RECOVERY");
+    EXPECT_DOUBLE_EQ(require_trade<domain::CdsIndexTrade>(trades_by_id, "T18").index_factor, 0.97);
+    EXPECT_EQ(require_trade<domain::CdsOptionTrade>(trades_by_id, "T19").option_type, "receiver");
+    EXPECT_EQ(require_trade<domain::CreditIndexOptionTrade>(trades_by_id, "T20").index_name, "CDX_IG");
+    EXPECT_EQ(require_trade<domain::EquitySpotTrade>(trades_by_id, "T21").underlier, "AAPL");
 }
 
 TEST(TradeModelTest, PortfolioJsonParsesCommodityAndEquityTradeEconomics) {
@@ -677,16 +694,16 @@ TEST(TradeModelTest, PortfolioJsonParsesCommodityAndEquityTradeEconomics) {
         trades_by_id.emplace(trade->id, trade);
     }
 
-    EXPECT_EQ(require_trade<domain::CommoditySpotTrade>(trades_by_id, "C01")->spot_quote_id, "WTI_SPOT");
-    EXPECT_EQ(require_trade<domain::CommodityForwardTrade>(trades_by_id, "C02")->forward_quote_id, "WTI_FWD_6M");
-    EXPECT_DOUBLE_EQ(require_trade<domain::CommodityFutureTrade>(trades_by_id, "C03")->contract_size, 1000.0);
-    EXPECT_EQ(require_trade<domain::CommodityFutureStripTrade>(trades_by_id, "C04")->future_quote_ids.size(), 2U);
-    EXPECT_EQ(require_trade<domain::CommodityFutureOptionTrade>(trades_by_id, "C05")->volatility_quote_id, "WTI_VOL_6M_ATM");
-    EXPECT_EQ(require_trade<domain::CommodityCalendarSpreadOptionTrade>(trades_by_id, "C06")->far_future_quote_id, "WTI_FUT_9M");
-    EXPECT_EQ(require_trade<domain::CommoditySwingTrade>(trades_by_id, "C07")->exercise_dates.size(), 2U);
-    EXPECT_EQ(require_trade<domain::EquityForwardTrade>(trades_by_id, "E01")->dividend_yield_quote_id, "AAPL_DIVYLD_1Y");
-    EXPECT_DOUBLE_EQ(require_trade<domain::EquityFutureTrade>(trades_by_id, "E02")->contract_size, 50.0);
-    EXPECT_EQ(require_trade<domain::EquityOptionTrade>(trades_by_id, "E03")->exercise_style, "american");
+    EXPECT_EQ(require_trade<domain::CommoditySpotTrade>(trades_by_id, "C01").spot_quote_id, "WTI_SPOT");
+    EXPECT_EQ(require_trade<domain::CommodityForwardTrade>(trades_by_id, "C02").forward_quote_id, "WTI_FWD_6M");
+    EXPECT_DOUBLE_EQ(require_trade<domain::CommodityFutureTrade>(trades_by_id, "C03").contract_size, 1000.0);
+    EXPECT_EQ(require_trade<domain::CommodityFutureStripTrade>(trades_by_id, "C04").future_quote_ids.size(), 2U);
+    EXPECT_EQ(require_trade<domain::CommodityFutureOptionTrade>(trades_by_id, "C05").volatility_quote_id, "WTI_VOL_6M_ATM");
+    EXPECT_EQ(require_trade<domain::CommodityCalendarSpreadOptionTrade>(trades_by_id, "C06").far_future_quote_id, "WTI_FUT_9M");
+    EXPECT_EQ(require_trade<domain::CommoditySwingTrade>(trades_by_id, "C07").exercise_dates.size(), 2U);
+    EXPECT_EQ(require_trade<domain::EquityForwardTrade>(trades_by_id, "E01").dividend_yield_quote_id, "AAPL_DIVYLD_1Y");
+    EXPECT_DOUBLE_EQ(require_trade<domain::EquityFutureTrade>(trades_by_id, "E02").contract_size, 50.0);
+    EXPECT_EQ(require_trade<domain::EquityOptionTrade>(trades_by_id, "E03").exercise_style, "american");
 }
 
 TEST(TradeModelTest, CoversPortfolioDetailHelpersAndTaxonomyFallbacks) {

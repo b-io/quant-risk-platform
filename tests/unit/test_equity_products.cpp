@@ -207,3 +207,45 @@ TEST(EquityProductsTest, FactoriesReturnNullWhenEquityQuotesAreMissing) {
     option.expiry_date = "2026-09-24";
     EXPECT_FALSE(qrp::instruments::EquityInstrumentFactory::create_equity_option(option, context));
 }
+
+TEST(EquityProductsTest, PricesFallbackFutureAndExpiredOptionBranches) {
+    auto market_dto = make_equity_market();
+    market_dto.quotes.push_back(make_quote(
+        "AAPL_ZERO_VOL",
+        qrp::domain::QuoteInstrumentType::EquityVol,
+        qrp::domain::QuoteType::Volatility,
+        "6M",
+        0.0,
+        "AAPL"));
+    qrp::market::MarketSnapshot market(market_dto);
+    qrp::analytics::PricingContext context(market.built_state());
+
+    qrp::domain::EquityFutureTrade future;
+    future.currency = "USD";
+    future.direction = "long";
+    future.underlier = "SPX";
+    future.quantity = 1.0;
+    future.contract_size = 50.0;
+    future.reference_price = 5300.0;
+    future.maturity_date = "2026-09-24";
+
+    auto future_instrument = qrp::instruments::EquityInstrumentFactory::create_equity_future(future, context);
+    ASSERT_TRUE(future_instrument);
+    EXPECT_GT(future_instrument->NPV(), 0.0);
+
+    qrp::domain::EquityOptionTrade zero_vol_put;
+    zero_vol_put.currency = "USD";
+    zero_vol_put.direction = "long";
+    zero_vol_put.underlier = "AAPL";
+    zero_vol_put.quantity = 10.0;
+    zero_vol_put.strike_price = 190.0;
+    zero_vol_put.expiry_date = "2026-09-24";
+    zero_vol_put.settlement_date = "2026-09-24";
+    zero_vol_put.option_type = "put";
+    zero_vol_put.exercise_style = "european";
+    zero_vol_put.volatility_quote_id = "AAPL_ZERO_VOL";
+
+    auto option_instrument = qrp::instruments::EquityInstrumentFactory::create_equity_option(zero_vol_put, context);
+    ASSERT_TRUE(option_instrument);
+    EXPECT_NEAR(option_instrument->NPV(), 45.0, 1.0e-10);
+}

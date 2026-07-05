@@ -7,13 +7,106 @@
     "valuation": 1.0
   },
   "trades": {
+    "demo_aapl_forward_001": {
+      "pnl_explain": {
+        "carry_pnl": -5.3,
+        "cash_pnl": 0.0,
+        "market_move_pnl": -361.58,
+        "residual_pnl": 0.0,
+        "total_pnl": -366.89
+      },
+      "product_type": "equity_forward",
+      "risk": {
+        "bucketed_risk": {
+          "6M": 1.72
+        },
+        "cs01": 0.0,
+        "fx_delta": 0.0,
+        "fx_vega": 0.0,
+        "pv01": 1.78
+      },
+      "stress": {
+        "CROSS_ASSET_REPRICING": -1111.04,
+        "EQUITY_CRASH_VOL_SPIKE": -7406.92,
+        "EQUITY_INDEX_SELL_OFF": -6620.27,
+        "EQUITY_RALLY_VOL_CRUSH": 4444.15,
+        "GLOBAL_RISK_OFF": -2962.77,
+        "GLOBAL_RISK_ON": 2962.77,
+        "USD_CURVE_BEAR_FLATTENER": 132.28,
+        "USD_CURVE_BULL_STEEPENER": -133.26,
+        "USD_FUNDING_STRESS": 88.31
+      },
+      "support_status": "supported",
+      "valuation": {
+        "npv": 1215.92
+      }
+    },
+    "demo_aapl_option_001": {
+      "pnl_explain": {
+        "carry_pnl": -2.82,
+        "cash_pnl": 0.0,
+        "market_move_pnl": -212.7,
+        "residual_pnl": 0.0,
+        "total_pnl": -215.52
+      },
+      "product_type": "equity_option",
+      "risk": {
+        "bucketed_risk": {},
+        "cs01": 0.0,
+        "fx_delta": 0.0,
+        "fx_vega": 0.0,
+        "pv01": 0.95
+      },
+      "stress": {
+        "CROSS_ASSET_REPRICING": -626.32,
+        "EQUITY_CRASH_VOL_SPIKE": -2702.35,
+        "EQUITY_INDEX_SELL_OFF": -2045.83,
+        "EQUITY_RALLY_VOL_CRUSH": 3179.88,
+        "GLOBAL_RISK_OFF": -1494.73,
+        "GLOBAL_RISK_ON": 2014.97,
+        "USD_CURVE_BEAR_FLATTENER": 70.97,
+        "USD_CURVE_BULL_STEEPENER": -70.36,
+        "USD_FUNDING_STRESS": 47.26
+      },
+      "support_status": "supported",
+      "valuation": {
+        "npv": 3074.63
+      }
+    },
+    "demo_spx_future_001": {
+      "pnl_explain": {
+        "carry_pnl": 0.07,
+        "cash_pnl": 0.0,
+        "market_move_pnl": -0.12,
+        "residual_pnl": 0.0,
+        "total_pnl": -0.05
+      },
+      "product_type": "equity_future",
+      "risk": {
+        "bucketed_risk": {},
+        "cs01": -0.0,
+        "fx_delta": -0.0,
+        "fx_vega": -0.0,
+        "pv01": -0.02
+      },
+      "stress": {
+        "EQUITY_INDEX_SELL_OFF": -78183.03,
+        "USD_CURVE_BEAR_FLATTENER": -1.8,
+        "USD_CURVE_BULL_STEEPENER": 1.81,
+        "USD_FUNDING_STRESS": -1.2
+      },
+      "support_status": "supported",
+      "valuation": {
+        "npv": 486.67
+      }
+    },
     "equity_spot_aapl_001": {
       "pnl_explain": {
         "carry_pnl": 0.0,
         "cash_pnl": 0.0,
-        "market_move_pnl": -9275.0,
+        "market_move_pnl": -463.75,
         "residual_pnl": 0.0,
-        "total_pnl": -9275.0
+        "total_pnl": -463.75
       },
       "product_type": "equity_spot",
       "risk": {
@@ -24,15 +117,16 @@
         "pv01": 0.0
       },
       "stress": {
-        "CROSS_ASSET_REPRICING": -27825.0,
-        "EQUITY_CRASH_VOL_SPIKE": -185500.0,
-        "EQUITY_RALLY_VOL_CRUSH": 111300.0,
-        "GLOBAL_RISK_OFF": -74200.0,
-        "GLOBAL_RISK_ON": 74200.0
+        "CROSS_ASSET_REPRICING": -1391.25,
+        "EQUITY_CRASH_VOL_SPIKE": -9275.0,
+        "EQUITY_INDEX_SELL_OFF": -8347.5,
+        "EQUITY_RALLY_VOL_CRUSH": 5565.0,
+        "GLOBAL_RISK_OFF": -3710.0,
+        "GLOBAL_RISK_ON": 3710.0
       },
       "support_status": "supported",
       "valuation": {
-        "npv": -8500.0
+        "npv": 1375.0
       }
     }
   }

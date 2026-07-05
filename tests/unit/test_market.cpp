@@ -170,6 +170,24 @@ TEST(MarketTest, CurveBuilderMapsDomainEnumsAndIndexFamilies) {
     EXPECT_TRUE(CurveBuilder::create_ibor_index(domain::Currency::UNKNOWN, tenor, empty_curve));
 }
 
+TEST(MarketTest, ParsesMarketDataJsonTaxonomyHelpers) {
+    EXPECT_EQ(nlohmann::json("OISDiscount").get<domain::CurvePurpose>(), domain::CurvePurpose::OISDiscount);
+    EXPECT_EQ(nlohmann::json("OIS").get<domain::QuoteInstrumentType>(), domain::QuoteInstrumentType::OIS);
+    EXPECT_EQ(nlohmann::json("Swap").get<domain::QuoteType>(), domain::QuoteType::Swap);
+
+    EXPECT_EQ(nlohmann::json("CubicSpline").get<domain::InterpolationType>(), domain::InterpolationType::CubicSpline);
+    EXPECT_EQ(nlohmann::json("Linear").get<domain::InterpolationType>(), domain::InterpolationType::Linear);
+    EXPECT_EQ(nlohmann::json("LogLinear").get<domain::InterpolationType>(), domain::InterpolationType::LogLinear);
+    EXPECT_EQ(nlohmann::json("unsupported").get<domain::InterpolationType>(), domain::InterpolationType::UNKNOWN);
+
+    const auto curve_id = nlohmann::json{
+        {"currency", "USD"},
+        {"family", "OIS"}
+    }.get<domain::CurveId>();
+    EXPECT_EQ(curve_id.currency, domain::Currency::USD);
+    EXPECT_EQ(curve_id.family, "OIS");
+}
+
 TEST(MarketTest, MarketStateResetRestoresQuoteValues) {
     MarketState state(QuantLib::Date(24, QuantLib::March, 2024));
     state.add_quote("USD_OIS_5Y", 0.03);

@@ -4,7 +4,7 @@ This directory contains the Python-based API, examples, and notebooks for the Qu
 
 #### Directory Structure
 
-- `examples/`: Python scripts demonstrating and smoke-testing valuation, factor scenarios, stress, risk, P&L explain, Monte Carlo, and optional optimization-worker flows.
+- `examples/`: Python scripts demonstrating and smoke-testing valuation, factor scenarios, stress, risk, P&L explain, Monte Carlo, dashboard export, and optional optimization-worker flows.
 - `notebooks/`: Jupyter Notebooks providing interactive walkthroughs of the platform's features, including valuation, risk analysis, and VaR.
 
 #### Key Components
@@ -26,8 +26,12 @@ The platform's core logic is implemented in C++ and exposed to Python using Pybi
    The optional CVXPY worker section is skipped automatically if its optional dependencies are not installed in the
    Python environment used to run the script.
    To generate and open the interactive Plotly risk dashboard, including finance themes, light/dark mode, support
-   coverage, stress/risk/Monte Carlo panels, and market-as-of/generated timestamps:
+   coverage, selectable demo portfolios, stress/risk/Monte Carlo panels, and market-as-of/generated timestamps:
    ```powershell
    uv run --project python python python\examples\demo_platform.py --dashboard
+   ```
+   To run the standalone multi-asset optimizer demo through the optional CVXPY worker:
+   ```powershell
+   uv run --project python python python\examples\demo_optimizer.py
    ```
 3. Or launch a notebook to explore the API interactively.

@@ -107,6 +107,27 @@ change, and residual.
 
 **Expected Shortfall** is the conditional tail loss beyond a VaR threshold.
 
+## Portfolio Optimization
+
+**Efficient frontier** is the set of feasible portfolios that maximize expected
+return for a given risk level, or minimize risk for a given expected return,
+under the declared constraints and input assumptions.
+
+**Current portfolio marker** is the plotted location of the existing portfolio
+in risk-return space using the same expected-return, covariance, and constraint
+context as the frontier.
+
+**Recommended portfolio marker** is the plotted location of the proposed
+portfolio after applying an optimization or recommendation path.
+
+**Recommendation action** is a single feasible portfolio change, such as a
+rebalance, hedge, concentration reduction, unsupported-product replacement, or
+factor-risk reduction.
+
+**Recommendation tree** is a graph of portfolio states and recommendation
+actions. Each edge should state cost, turnover, expected-return impact, risk
+impact, constraint impact, and implementation diagnostics.
+
 ## Rates
 
 **Discount curve** maps dates or times to discount factors.

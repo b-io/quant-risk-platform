@@ -5,7 +5,7 @@ This directory contains JSON-formatted data for testing and demonstration purpos
 #### Folder Structure
 
 - `market/`: Market snapshots (`demo_market.json`) containing quotes, yield curves, and other market state information.
-- `portfolios/`: Sample portfolios. `demo_portfolio.json` is the stable numeric demo baseline; the generated `*_portfolio.json` files provide model and thematic portfolios for book-level structural golden coverage.
+- `portfolios/`: Sample portfolios. `demo_portfolio.json` is the stable numeric product-gallery demo baseline covering every supported product family; the generated `*_portfolio.json` files provide model and thematic portfolios for book-level structural golden coverage.
 - `regression/`: Golden expected outputs used by the Python demo to detect valuation, risk, stress, P&L explain, and Monte Carlo drift. The top-level demo baseline checks end-to-end stability, `regression/product_families/` keeps product-family fixtures for product-level coverage, and `regression/portfolio_fixtures/` links portfolios to expected book/product/support coverage before numeric golden values are regenerated.
 - `scenarios/`: Factor definitions, factor-to-quote bindings, and predefined factor scenarios (`demo_scenarios.json`) for stress testing and VaR analysis. The demo set binds every quote used by the model/thematic portfolios and covers common first-order stresses across USD/EUR rates, curve shape, basis, credit, FX, equity, commodity, volatility, and cross-asset risk-on/risk-off regimes.
 

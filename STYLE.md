@@ -148,6 +148,9 @@ Use alphanumerical ordering for common neutral sets:
 - Binding groups, `m.def(...)` entries, enum `.value(...)` entries, and
   independent DTO fields in Python bindings.
 - Test helper declarations.
+- Report and dashboard trade rows, unless the view is explicitly ranked by a
+  metric. The default trade row key is `asset_class`, then `product_type`, then
+  `trade_id`, all alphanumerical.
 
 Use business ordering only when it reads better and has domain meaning:
 
@@ -156,6 +159,16 @@ Use business ordering only when it reads better and has domain meaning:
 - Base valuation before horizon valuation.
 - Input validation before transformation and persistence.
 - DTO fields only when the field order is part of a documented external format.
+
+Metric-ranked charts are allowed when the title or section name makes the
+ranking explicit, such as "Worst Stress", "Top NPV Contributors", or
+"Contribution by Absolute P&L". Dense categorical charts should use a bounded
+row-aware height or split into a dedicated detail view before labels overlap.
+Dashboard chart titles should be visually bold. Dense x-axis labels should use
+a consistent bottom-left to top-right diagonal angle when wrapping alone is not
+enough. Trade-level charts should preserve the asset-class and product-type
+hierarchy when it helps users scan the result. Dashboard tables should prefer
+fixed responsive widths and soft wrapping over horizontal scrollbars.
 
 ## Tests
 

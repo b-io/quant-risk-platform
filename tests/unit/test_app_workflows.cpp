@@ -49,7 +49,7 @@ TEST_F(AppWorkflowTest, RunsDemoImportAnalyticsAndReports) {
 
     const auto valuation_run = platform.run_valuation("demo_portfolio", "SNAP:2026-03-24");
     const auto valuation_records = storage->get_valuation_results(valuation_run);
-    ASSERT_EQ(valuation_records.size(), 4U);
+    ASSERT_EQ(valuation_records.size(), 31U);
 
     const auto risk_run = platform.run_risk("demo_portfolio", "SNAP:2026-03-24");
     EXPECT_FALSE(risk_run.empty());

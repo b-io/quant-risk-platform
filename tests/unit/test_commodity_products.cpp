@@ -197,19 +197,81 @@ TEST(CommodityProductsTest, FactoriesReturnNullWhenCommodityQuotesAreMissing) {
     qrp::market::MarketSnapshot market(market_dto);
     qrp::analytics::PricingContext context(market.built_state());
 
+    qrp::domain::CommoditySpotTrade spot;
+    spot.underlier = "WTI";
+    EXPECT_FALSE(qrp::instruments::CommodityInstrumentFactory::create_commodity_spot(spot, context));
+
+    qrp::domain::CommodityForwardTrade forward;
+    forward.underlier = "WTI";
+    EXPECT_FALSE(qrp::instruments::CommodityInstrumentFactory::create_commodity_forward(forward, context));
+
+    forward.maturity_date = "2026-09-24";
+    forward.forward_quote_id = "MISSING";
+    forward.spot_quote_id = "MISSING_SPOT";
+    EXPECT_FALSE(qrp::instruments::CommodityInstrumentFactory::create_commodity_forward(forward, context));
+
+    qrp::domain::CommodityFutureTrade future_without_maturity;
+    future_without_maturity.future_quote_id = "MISSING";
+    EXPECT_FALSE(qrp::instruments::CommodityInstrumentFactory::create_commodity_future(future_without_maturity, context));
+
     qrp::domain::CommodityFutureTrade future;
     future.maturity_date = "2026-09-24";
     future.future_quote_id = "MISSING";
     EXPECT_FALSE(qrp::instruments::CommodityInstrumentFactory::create_commodity_future(future, context));
+
+    qrp::domain::CommodityFutureStripTrade strip;
+    strip.maturity_date = "2026-12-24";
+    EXPECT_FALSE(qrp::instruments::CommodityInstrumentFactory::create_commodity_future_strip(strip, context));
+
+    strip.future_quote_ids = {"MISSING"};
+    EXPECT_FALSE(qrp::instruments::CommodityInstrumentFactory::create_commodity_future_strip(strip, context));
+
+    qrp::domain::CommodityFutureOptionTrade option_without_expiry;
+    option_without_expiry.future_quote_id = "MISSING";
+    EXPECT_FALSE(qrp::instruments::CommodityInstrumentFactory::create_commodity_future_option(option_without_expiry, context));
 
     qrp::domain::CommodityFutureOptionTrade option;
     option.expiry_date = "2026-09-24";
     option.future_quote_id = "MISSING";
     EXPECT_FALSE(qrp::instruments::CommodityInstrumentFactory::create_commodity_future_option(option, context));
 
+    qrp::domain::CommodityCalendarSpreadOptionTrade spread_without_expiry;
+    spread_without_expiry.near_future_quote_id = "MISSING_NEAR";
+    spread_without_expiry.far_future_quote_id = "MISSING_FAR";
+    EXPECT_FALSE(qrp::instruments::CommodityInstrumentFactory::create_commodity_calendar_spread_option(spread_without_expiry, context));
+
     qrp::domain::CommodityCalendarSpreadOptionTrade spread_option;
     spread_option.expiry_date = "2026-09-24";
     spread_option.near_future_quote_id = "MISSING_NEAR";
     spread_option.far_future_quote_id = "MISSING_FAR";
     EXPECT_FALSE(qrp::instruments::CommodityInstrumentFactory::create_commodity_calendar_spread_option(spread_option, context));
+
+    qrp::domain::CommoditySwingTrade swing_without_maturity;
+    swing_without_maturity.underlier = "TTF";
+    EXPECT_FALSE(qrp::instruments::CommodityInstrumentFactory::create_commodity_swing(swing_without_maturity, context));
+
+    qrp::domain::CommoditySwingTrade swing_without_quotes;
+    swing_without_quotes.underlier = "TTF";
+    swing_without_quotes.maturity_date = "2026-12-24";
+    EXPECT_FALSE(qrp::instruments::CommodityInstrumentFactory::create_commodity_swing(swing_without_quotes, context));
+}
+
+TEST(CommodityProductsTest, SwingFactoryFallsBackToUnderlierForwardQuote) {
+    qrp::market::MarketSnapshot market(make_commodity_market());
+    qrp::analytics::PricingContext context(market.built_state());
+
+    qrp::domain::CommoditySwingTrade swing;
+    swing.currency = "USD";
+    swing.direction = "long";
+    swing.underlier = "TTF";
+    swing.maturity_date = "2026-12-24";
+    swing.min_quantity = 100.0;
+    swing.max_quantity = 200.0;
+    swing.strike_price = 31.0;
+    swing.volatility = 0.40;
+
+    auto instrument = qrp::instruments::CommodityInstrumentFactory::create_commodity_swing(swing, context);
+
+    ASSERT_TRUE(instrument);
+    EXPECT_GT(instrument->NPV(), 0.0);
 }

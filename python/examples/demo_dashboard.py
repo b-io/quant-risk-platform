@@ -8,6 +8,7 @@ from datetime import date, datetime, timedelta
 
 FINANCE_FONT = '"IBM Plex Sans", "Aptos", "Bahnschrift", sans-serif'
 MONO_FONT = '"IBM Plex Mono", "Cascadia Mono", "SFMono-Regular", monospace'
+CATEGORY_TICKANGLE = -35
 
 DASHBOARD_STYLE_PRESETS = {
     "institutional": {
@@ -24,7 +25,15 @@ DASHBOARD_STYLE_PRESETS = {
             "rates": "#7bc5ba",
             "volatility": "#9bcfaa",
         },
-        "colorway": ["#7bc5ba", "#94b9e2", "#dfbf72", "#e49a9d", "#bba1d9", "#9bcfaa", "#9bc7d8"],
+        "colorway": [
+            "#7bc5ba",
+            "#94b9e2",
+            "#dfbf72",
+            "#e49a9d",
+            "#bba1d9",
+            "#9bcfaa",
+            "#9bc7d8",
+        ],
         "danger": "#d3777c",
         "fill_text": "#14231e",
         "label": "Institutional",
@@ -43,7 +52,15 @@ DASHBOARD_STYLE_PRESETS = {
             "rates": "#84ded8",
             "volatility": "#bfdd8b",
         },
-        "colorway": ["#84ded8", "#abb9ee", "#f3d184", "#f3a7b5", "#c1abea", "#bfdd8b", "#9edcf2"],
+        "colorway": [
+            "#84ded8",
+            "#abb9ee",
+            "#f3d184",
+            "#f3a7b5",
+            "#c1abea",
+            "#bfdd8b",
+            "#9edcf2",
+        ],
         "danger": "#e98295",
         "fill_text": "#132421",
         "label": "Aurora",
@@ -62,7 +79,15 @@ DASHBOARD_STYLE_PRESETS = {
             "rates": "#22c55e",
             "volatility": "#84cc16",
         },
-        "colorway": ["#22c55e", "#06b6d4", "#eab308", "#ef4444", "#a3e635", "#14b8a6", "#f97316"],
+        "colorway": [
+            "#22c55e",
+            "#06b6d4",
+            "#eab308",
+            "#ef4444",
+            "#a3e635",
+            "#14b8a6",
+            "#f97316",
+        ],
         "danger": "#ef4444",
         "fill_text": "#03120a",
         "label": "Terminal",
@@ -81,7 +106,15 @@ DASHBOARD_STYLE_PRESETS = {
             "rates": "#93d6cc",
             "volatility": "#a6d7bd",
         },
-        "colorway": ["#93d6cc", "#a5c4ea", "#dec982", "#eaa5a2", "#c0b2e2", "#a6d7bd", "#9dd3e8"],
+        "colorway": [
+            "#93d6cc",
+            "#a5c4ea",
+            "#dec982",
+            "#eaa5a2",
+            "#c0b2e2",
+            "#a6d7bd",
+            "#9dd3e8",
+        ],
         "danger": "#de8580",
         "fill_text": "#10231f",
         "label": "Nordic",
@@ -126,7 +159,9 @@ def optional_plotly_modules():
         import plotly.io as pio
         from plotly.subplots import make_subplots
     except ImportError as exc:
-        print(f"Skipped: Plotly dashboard dependencies are not available in this Python environment ({exc}).")
+        print(
+            f"Skipped: Plotly dashboard dependencies are not available in this Python environment ({exc})."
+        )
         print("Install the optional dashboard dependencies with:")
         print("  uv sync --project python --extra dashboard")
         print("Then run the demo with the uv-managed interpreter:")
@@ -154,7 +189,9 @@ def style_color(index):
 def stable_color_index(value, modulo):
     if modulo <= 0:
         return 0
-    return sum((index + 1) * ord(char) for index, char in enumerate(str(value))) % modulo
+    return (
+        sum((index + 1) * ord(char) for index, char in enumerate(str(value))) % modulo
+    )
 
 
 def hex_to_rgb(color):
@@ -162,7 +199,7 @@ def hex_to_rgb(color):
     if len(clean) != 6:
         return None
     try:
-        return tuple(int(clean[index:index + 2], 16) for index in (0, 2, 4))
+        return tuple(int(clean[index : index + 2], 16) for index in (0, 2, 4))
     except ValueError:
         return None
 
@@ -230,7 +267,9 @@ def semantic_node_color(node_id, index=0):
         return product_family_color(asset_color, node)
     if node.startswith("trade:"):
         asset_color = preset["asset_colors"].get(asset_class, style_color(index))
-        product_color = product_family_color(asset_color, product_node_id_from_trade_node(node))
+        product_color = product_family_color(
+            asset_color, product_node_id_from_trade_node(node)
+        )
         return trade_family_color(product_color, node)
     return preset["asset_colors"].get(asset_class, style_color(index))
 
@@ -246,7 +285,10 @@ def support_status_color(status):
     normalized = str(status or "").lower()
     if "partial" in normalized:
         return preset["amber"]
-    if any(token in normalized for token in ("error", "missing", "not_supported", "unsupported")):
+    if any(
+        token in normalized
+        for token in ("error", "missing", "not_supported", "unsupported")
+    ):
         return preset["danger"]
     if "supported" in normalized:
         return preset["accent"]
@@ -266,8 +308,92 @@ def support_status_text(status, count, total):
 
 def support_statuses_from_counts(status_counts):
     known = [status for status in SUPPORT_STATUS_ORDER if status in status_counts]
-    extras = sorted(status for status in status_counts if status not in SUPPORT_STATUS_ORDER)
+    extras = sorted(
+        status for status in status_counts if status not in SUPPORT_STATUS_ORDER
+    )
     return known + extras
+
+
+def sort_text(value):
+    return str(value or "").casefold()
+
+
+def trade_sort_key(row):
+    return (
+        sort_text(row.get("asset_class")),
+        sort_text(row.get("product_type")),
+        sort_text(row.get("trade_id")),
+    )
+
+
+def sort_trade_rows(rows):
+    return sorted(rows, key=trade_sort_key)
+
+
+def trade_id_sort_key(trade_id, trade_rows):
+    by_trade = {row["trade_id"]: row for row in trade_rows}
+    return trade_sort_key(by_trade.get(trade_id, {"trade_id": trade_id}))
+
+
+def bounded_chart_height(
+    item_count,
+    *,
+    base_height,
+    row_height,
+    min_height=420,
+    max_height=1180,
+):
+    return max(min_height, min(max_height, base_height + int(item_count) * row_height))
+
+
+def categorical_left_margin(labels, *, min_margin=72, max_margin=260, char_width=6):
+    longest = max((len(str(label)) for label in labels), default=0)
+    return max(min_margin, min(max_margin, 28 + longest * char_width))
+
+
+def bold_chart_text(value):
+    """Return Plotly-safe bold text for chart titles and subplot annotations."""
+    return f"<b>{html.escape(str(value or ''), quote=False)}</b>"
+
+
+def axis_tick_label(value, *, max_line_length=18, max_lines=3):
+    """Wrap long categorical chart labels at natural separators."""
+    raw_value = str(value or "")
+    tokens = [token for token in raw_value.replace(":", "_").split("_") if token]
+    if not tokens:
+        return raw_value
+    lines = []
+    current_tokens = []
+    consumed_tokens = 0
+    for token in tokens:
+        candidate_tokens = [*current_tokens, token]
+        candidate = "_".join(candidate_tokens)
+        if current_tokens and len(candidate) > max_line_length:
+            line = "_".join(current_tokens)
+            if len(line) > max_line_length:
+                line = f"{line[:max_line_length]}..."
+            lines.append(line)
+            current_tokens = [token]
+            consumed_tokens += 1
+            if len(lines) >= max_lines - 1:
+                break
+            continue
+        current_tokens = candidate_tokens
+        consumed_tokens += 1
+        if len(lines) >= max_lines - 1:
+            break
+    if current_tokens and len(lines) < max_lines:
+        line = "_".join(current_tokens)
+        if len(line) > max_line_length:
+            line = f"{line[:max_line_length]}..."
+        lines.append(line)
+    if consumed_tokens < len(tokens) and len(lines) == max_lines:
+        lines[-1] = f"{lines[-1].rstrip('.')}..."
+    return "<br>".join(lines)
+
+
+def support_diagnostic_rows(trade_rows):
+    return [row for row in trade_rows if row["status"] != "supported"]
 
 
 def padded_number_range(values, minimum_span=1.0):
@@ -370,18 +496,23 @@ def build_trade_rows(portfolio, valuation_results):
     rows = []
     for trade in portfolio.trades:
         valuation = valuation_by_trade[trade.id]
-        rows.append({
-            "asset_class": valuation.tags.get("asset_class", trade.asset_class),
-            "book": trade.book,
-            "currency": valuation.currency,
-            "exposure": trade_exposure_proxy(trade, valuation),
-            "npv": valuation.npv,
-            "product_type": valuation.tags.get("product_type", trade.type),
-            "status": valuation.tags.get("status", "unknown"),
-            "strategy": trade.strategy,
-            "trade_id": trade.id,
-        })
-    return rows
+        rows.append(
+            {
+                "asset_class": valuation.tags.get("asset_class", trade.asset_class),
+                "book": trade.book,
+                "currency": valuation.currency,
+                "exposure": trade_exposure_proxy(trade, valuation),
+                "model": getattr(valuation, "model_name", "")
+                or valuation.tags.get("model", ""),
+                "npv": valuation.npv,
+                "product_type": valuation.tags.get("product_type", trade.type),
+                "status": valuation.tags.get("status", "unknown"),
+                "status_message": getattr(valuation, "status_message", ""),
+                "strategy": trade.strategy,
+                "trade_id": trade.id,
+            }
+        )
+    return sort_trade_rows(rows)
 
 
 def aggregate_rows(rows, key, value):
@@ -420,7 +551,10 @@ def allocation_donut_segments(trade_rows, node_id="portfolio"):
 
     labels = list(sorted(totals))
     return {
-        "colors": [semantic_node_color(segment_ids[label], index) for index, label in enumerate(labels)],
+        "colors": [
+            semantic_node_color(segment_ids[label], index)
+            for index, label in enumerate(labels)
+        ],
         "ids": [segment_ids[label] for label in labels],
         "labels": labels,
         "values": [totals[label] for label in labels],
@@ -428,7 +562,9 @@ def allocation_donut_segments(trade_rows, node_id="portfolio"):
 
 
 def treemap_node_colors(node_ids):
-    return [semantic_node_color(node_id, index) for index, node_id in enumerate(node_ids)]
+    return [
+        semantic_node_color(node_id, index) for index, node_id in enumerate(node_ids)
+    ]
 
 
 def stress_performance_path(total_npv, stress_results):
@@ -450,11 +586,15 @@ def stress_performance_path(total_npv, stress_results):
         drawdowns.append((value - peak) / denominator)
 
     max_drawdown = min(drawdowns) if drawdowns else 0.0
-    max_drawdown_amount = min(value - peak for value, peak in zip(equity_values, peaks)) if peaks else 0.0
+    max_drawdown_amount = (
+        min(value - peak for value, peak in zip(equity_values, peaks)) if peaks else 0.0
+    )
     return scenario_names, equity_values, drawdowns, max_drawdown, max_drawdown_amount
 
 
-def apply_finance_layout(fig, height, showlegend=False, barmode=None, title=None, yaxis_title=None):
+def apply_finance_layout(
+    fig, height, showlegend=False, barmode=None, title=None, yaxis_title=None
+):
     layout = {
         "colorway": DASHBOARD_COLORWAY,
         "font": {"color": "#16231d", "family": FINANCE_FONT, "size": 12},
@@ -475,12 +615,16 @@ def apply_finance_layout(fig, height, showlegend=False, barmode=None, title=None
     if barmode:
         layout["barmode"] = barmode
     if title:
-        layout["title"] = title
+        layout["title"] = {"text": bold_chart_text(title)}
     if yaxis_title:
         layout["yaxis_title"] = yaxis_title
 
     fig.update_layout(**layout)
-    fig.update_annotations(font={"color": "#24372f", "family": FINANCE_FONT, "size": 13})
+    for annotation in fig.layout.annotations or []:
+        annotation.update(
+            font={"color": "#24372f", "family": FINANCE_FONT, "size": 13},
+            text=bold_chart_text(annotation.text),
+        )
     fig.update_xaxes(
         gridcolor="rgba(35, 55, 47, 0.13)",
         linecolor="rgba(35, 55, 47, 0.25)",
@@ -498,36 +642,65 @@ def apply_finance_layout(fig, height, showlegend=False, barmode=None, title=None
     return fig
 
 
-def render_dashboard_html(title, cards, figures, output_path, pio, report_context=None):
+def render_dashboard_html(title, views, output_path, pio, report_context=None):
     output_path.parent.mkdir(parents=True, exist_ok=True)
     context = report_context or {}
     market_as_of = context.get("market_as_of", "n/a")
     generated_at = context.get("generated_at", "n/a")
     style_options = dashboard_style_options()
     style_presets_json = json.dumps(DASHBOARD_STYLE_PRESETS, sort_keys=True)
-    card_html = "\n".join(
-        f"""
-        <section class="card">
-          <div class="card-label">{html.escape(card["label"])}</div>
-          <div class="card-value">{html.escape(card["value"])}</div>
-          <div class="card-note">{html.escape(card["note"])}</div>
-        </section>
-        """
-        for card in cards
+    portfolio_options = "\n".join(
+        f'<option value="{html.escape(view["id"])}">{html.escape(view["label"])}</option>'
+        for view in views
     )
-    figure_html = "\n".join(
-        f"""
-        <section class="panel">
-          <div class="panel-heading">
-            <h2>{html.escape(name)}</h2>
-            <button class="panel-reset" type="button" data-panel-reset>Reset slice</button>
+    plotly_index = 0
+    view_html = []
+    for view_index, view in enumerate(views):
+        card_html = "\n".join(
+            f"""
+            <section class="card">
+              <div class="card-label">{html.escape(card["label"])}</div>
+              <div class="card-value">{html.escape(card["value"])}</div>
+              <div class="card-note">{html.escape(card["note"])}</div>
+            </section>
+            """
+            for card in view["cards"]
+        )
+        figure_html = []
+        for name, fig in view["figures"]:
+            if isinstance(fig, dict) and fig.get("kind") == "html":
+                panel_body = fig["html"]
+            else:
+                include_plotly = "cdn" if plotly_index == 0 else False
+                plotly_index += 1
+                panel_body = pio.to_html(
+                    fig, full_html=False, include_plotlyjs=include_plotly
+                )
+            figure_html.append(f"""
+            <section class="panel">
+              <div class="panel-heading">
+                <h2>{html.escape(name)}</h2>
+                <button class="panel-reset" type="button" data-panel-reset>Reset slice</button>
+              </div>
+              <div class="panel-filter" data-panel-filter hidden></div>
+              {panel_body}
+            </section>
+            """)
+        hidden = "" if view_index == 0 else " hidden"
+        view_html.append(f"""
+        <section class="portfolio-view" data-portfolio-view="{html.escape(view["id"])}"{hidden}>
+          <div class="view-heading">
+            <div>
+              <h2>{html.escape(view["label"])}</h2>
+              <p>{html.escape(view["description"])}</p>
+            </div>
+            <span>{html.escape(view["summary"])}</span>
           </div>
-          <div class="panel-filter" data-panel-filter hidden></div>
-          {pio.to_html(fig, full_html=False, include_plotlyjs=("cdn" if idx == 0 else False))}
+          <div class="cards">{card_html}</div>
+          {"".join(figure_html)}
         </section>
-        """
-        for idx, (name, fig) in enumerate(figures)
-    )
+        """)
+    view_html = "\n".join(view_html)
     initial_theme_script = """
   <script>
     (function () {
@@ -548,7 +721,9 @@ def render_dashboard_html(title, cards, figures, output_path, pio, report_contex
       const styleStorageKey = "qrp-dashboard-style";
       const button = document.querySelector("[data-theme-toggle]");
       const label = document.querySelector("[data-theme-label]");
+      const portfolioSelect = document.querySelector("[data-portfolio-select]");
       const styleSelect = document.querySelector("[data-style-select]");
+      const portfolioStorageKey = "qrp-dashboard-portfolio";
       const contrastPalettes = {
         light: {
           font: "#16231d",
@@ -689,6 +864,37 @@ def render_dashboard_html(title, cards, figures, output_path, pio, report_contex
         return `trade:${row.asset_class}:${row.product_type}:${row.trade_id}`;
       }
 
+      function tradeAxisValues(rows) {
+        return [
+          rows.map((row) => row.asset_class || ""),
+          rows.map((row) => row.product_type || ""),
+          rows.map((row) => row.trade_id || "")
+        ];
+      }
+
+      function tradeCustomData(rows) {
+        return rows.map((row) => [
+          row.asset_class || "",
+          row.product_type || "",
+          row.trade_id || ""
+        ]);
+      }
+
+      function traceTradeIds(trace) {
+        const yValues = trace.y || [];
+        return Array.isArray(yValues[0]) ? (yValues[yValues.length - 1] || []) : yValues;
+      }
+
+      function tradeIdFromPoint(point) {
+        if (Array.isArray(point.customdata) && point.customdata.length >= 3) {
+          return point.customdata[2];
+        }
+        if (Array.isArray(point.y)) {
+          return point.y[point.y.length - 1];
+        }
+        return point.y;
+      }
+
       function familyColor(baseColor, nodeId, variants) {
         const [mixColor, weight] = variants[stableColorIndex(nodeId, variants.length)];
         return mixHex(baseColor, mixColor, weight);
@@ -724,7 +930,7 @@ def render_dashboard_html(title, cards, figures, output_path, pio, report_contex
         if (traceIndex === 2) {
           const rows = meta.tradeRows || [];
           const rowsById = new Map(rows.map((row) => [row.trade_id, row]));
-          return (trace.y || []).map((tradeId, pointIndex) => {
+          return traceTradeIds(trace).map((tradeId, pointIndex) => {
             const row = rowsById.get(tradeId);
             if (!row) {
               return preset.colorway[pointIndex % preset.colorway.length] || preset.accent;
@@ -804,8 +1010,11 @@ def render_dashboard_html(title, cards, figures, output_path, pio, report_contex
             }, [index]));
           } else if (trace.type === "pie") {
             const ids = trace.ids || trace.customdata || [];
+            const colors = trace.meta && trace.meta.qrpSupportDonut
+              ? (trace.customdata || []).map((status) => supportStatusColor(status, preset))
+              : (ids.length ? ids.map((id, pointIndex) => nodeColor(id, pointIndex, preset)) : preset.colorway);
             operations.push(Plotly.restyle(plot, {
-              "marker.colors": [ids.length ? ids.map((id, pointIndex) => nodeColor(id, pointIndex, preset)) : preset.colorway],
+              "marker.colors": [colors],
               "textfont.color": preset.fill_text || tokens.font
             }, [index]));
           } else if (trace.type === "treemap") {
@@ -902,9 +1111,45 @@ def render_dashboard_html(title, cards, figures, output_path, pio, report_contex
           applyStyle(styleSelect.value);
         });
       }
+      function activePortfolioView() {
+        return document.querySelector(".portfolio-view:not([hidden])");
+      }
+      function resizeActivePlots() {
+        const activeView = activePortfolioView();
+        if (!activeView || !window.Plotly) {
+          return;
+        }
+        activeView.querySelectorAll(".js-plotly-plot").forEach((plot) => {
+          plot.dataset.qrpVisualState = "";
+          Plotly.Plots.resize(plot);
+        });
+        scheduleVisualRefresh();
+      }
+      function applyPortfolioView(viewId) {
+        const views = Array.from(document.querySelectorAll("[data-portfolio-view]"));
+        const selected = views.find((view) => view.dataset.portfolioView === viewId) || views[0];
+        if (!selected) {
+          return;
+        }
+        views.forEach((view) => {
+          view.hidden = view !== selected;
+        });
+        if (portfolioSelect) {
+          portfolioSelect.value = selected.dataset.portfolioView;
+        }
+        localStorage.setItem(portfolioStorageKey, selected.dataset.portfolioView);
+        window.setTimeout(resizeActivePlots, 40);
+      }
+      if (portfolioSelect) {
+        portfolioSelect.addEventListener("change", () => {
+          applyPortfolioView(portfolioSelect.value);
+        });
+        applyPortfolioView(localStorage.getItem(portfolioStorageKey) || portfolioSelect.value);
+      }
       window.addEventListener("load", () => {
         applyTheme(document.documentElement.dataset.theme || "light");
         applyStyle(activeStyleKey());
+        resizeActivePlots();
       });
     }());
   </script>
@@ -917,9 +1162,76 @@ def render_dashboard_html(title, cards, figures, output_path, pio, report_contex
         return `$${numeric.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
       }
 
+      function compareTableValues(left, right, kind) {
+        if (kind === "number") {
+          return Number(left || 0) - Number(right || 0);
+        }
+        return String(left || "").localeCompare(String(right || ""), undefined, {
+          numeric: true,
+          sensitivity: "base"
+        });
+      }
+
+      function sortTable(table, columnIndex, kind, direction) {
+        const tbody = table.querySelector("tbody");
+        if (!tbody) return;
+        const multiplier = direction === "descending" ? -1 : 1;
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        rows.sort((leftRow, rightRow) => {
+          const leftCell = leftRow.children[columnIndex];
+          const rightCell = rightRow.children[columnIndex];
+          const primary = compareTableValues(
+            leftCell && leftCell.dataset.sortValue,
+            rightCell && rightCell.dataset.sortValue,
+            kind
+          );
+          if (primary !== 0) return primary * multiplier;
+          return String(leftRow.dataset.defaultSort || "").localeCompare(
+            String(rightRow.dataset.defaultSort || ""),
+            undefined,
+            { numeric: true, sensitivity: "base" }
+          );
+        });
+        rows.forEach((row) => tbody.appendChild(row));
+      }
+
+      function initializeSortableTables() {
+        document.querySelectorAll("[data-sortable-table]").forEach((table) => {
+          if (table.dataset.sortReady === "true") return;
+          table.dataset.sortReady = "true";
+          table.querySelectorAll("thead button[data-sort-column]").forEach((button) => {
+            button.addEventListener("click", () => {
+              const current = button.getAttribute("aria-sort");
+              const direction = current === "ascending" ? "descending" : "ascending";
+              table.querySelectorAll("thead button[aria-sort]").forEach((header) => {
+                header.setAttribute("aria-sort", "none");
+              });
+              button.setAttribute("aria-sort", direction);
+              sortTable(
+                table,
+                Number(button.dataset.sortColumn || 0),
+                button.dataset.sortKind || "text",
+                direction
+              );
+            });
+          });
+        });
+      }
+
       function compactLabel(label) {
         const text = String(label || "All portfolio");
         return text.length > 34 ? `${text.slice(0, 31)}...` : text;
+      }
+
+      function escapeHtmlText(value) {
+        return String(value || "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;");
+      }
+
+      function boldChartTitle(value) {
+        return `<b>${escapeHtmlText(value)}</b>`;
       }
 
       function activePreset() {
@@ -957,19 +1269,6 @@ def render_dashboard_html(title, cards, figures, output_path, pio, report_contex
         return String(status || "unknown")
           .replaceAll("_", " ")
           .replace(/\\b\\w/g, (char) => char.toUpperCase());
-      }
-
-      function supportStatusText(status, count, total) {
-        if (Number(count || 0) <= 0) {
-          return "";
-        }
-        const share = total > 0 ? (100 * Number(count || 0) / total) : 0;
-        return `${statusLabel(status)}: ${Number(count || 0).toFixed(0)} / ${share.toFixed(0)}%`;
-      }
-
-      function supportShareText(count, total) {
-        const share = total > 0 ? (100 * Number(count || 0) / total) : 0;
-        return `${share.toFixed(2)}%`;
       }
 
       function mixHex(baseColor, mixColor, weight) {
@@ -1153,9 +1452,9 @@ def render_dashboard_html(title, cards, figures, output_path, pio, report_contex
         return Array.from(counts.keys()).sort((a, b) => a.localeCompare(b));
       }
 
-      function supportStatusTraceStart(plot) {
-        const start = plot.layout && plot.layout.meta && plot.layout.meta.supportStatusTraceStart;
-        return Number.isInteger(start) ? start : 3;
+      function supportStatusTraceIndex(plot) {
+        const index = plot.layout && plot.layout.meta && plot.layout.meta.supportStatusTraceIndex;
+        return Number.isInteger(index) ? index : 3;
       }
 
       function rowsForNode(rows, id) {
@@ -1240,19 +1539,22 @@ def render_dashboard_html(title, cards, figures, output_path, pio, report_contex
 
       function updateLinkedCharts(plot, rows, label, nodeId, options) {
         const settings = options || {};
-        const sortedByNpv = rows
-          .slice()
-          .sort((a, b) => Math.abs(a.npv) - Math.abs(b.npv));
-        const tradeIds = sortedByNpv.map((row) => row.trade_id);
-        const npvs = sortedByNpv.map((row) => Number(row.npv || 0));
+        const sortedRows = rows.slice().sort((a, b) => {
+          return String(`${a.asset_class}|${a.product_type}|${a.trade_id}`).localeCompare(
+            String(`${b.asset_class}|${b.product_type}|${b.trade_id}`),
+            undefined,
+            { numeric: true, sensitivity: "base" }
+          );
+        });
+        const tradeAxis = tradeAxisValues(sortedRows);
+        const tradeData = tradeCustomData(sortedRows);
+        const npvs = sortedRows.map((row) => Number(row.npv || 0));
         const statusCountMap = statusCounts(rows);
         const statusNames = supportStatuses(plot, statusCountMap);
         const statusValues = statusNames.map((status) => statusCountMap.get(status) || 0);
-        const statusTotal = statusValues.reduce((total, count) => total + count, 0);
         const donut = buildDonut(rows, nodeId);
         const npvRange = paddedNumberRange(npvs, 1);
-        const supportRange = paddedNumberRange([statusTotal], 1);
-        const supportStart = supportStatusTraceStart(plot);
+        const supportTrace = supportStatusTraceIndex(plot);
         const treeLevel = nodeId && !nodeId.startsWith("status:") && nodeId !== "portfolio" ? nodeId : "";
 
         const updates = [
@@ -1267,35 +1569,31 @@ def render_dashboard_html(title, cards, figures, output_path, pio, report_contex
             "values": [donut.values]
           }, [1]),
           Plotly.restyle(plot, {
-            "marker.color": [sortedByNpv.map(tradeMetricColor)],
+            "customdata": [tradeData],
+            "marker.color": [sortedRows.map(tradeMetricColor)],
             "text": [npvs.map(money)],
             "x": [npvs],
-            "y": [tradeIds]
+            "y": [tradeAxis]
           }, [2])
         ];
 
-        statusNames.forEach((status, index) => {
-          const count = statusValues[index];
-          updates.push(Plotly.restyle(plot, {
-            "customdata": [[[supportShareText(count, statusTotal)]]],
-            "marker.color": statusColor(status),
-            "text": [[supportStatusText(status, count, statusTotal)]],
-            "x": [[count]]
-          }, [supportStart + index]));
-        });
+        updates.push(Plotly.restyle(plot, {
+          "customdata": [statusNames],
+          "labels": [statusNames.map(statusLabel)],
+          "marker.colors": [statusNames.map(statusColor)],
+          "values": [statusValues]
+        }, [supportTrace]));
 
         if (settings.updateTreeLevel === false) {
           updates.shift();
         }
 
         updates.push(Plotly.relayout(plot, {
-          "annotations[1].text": `Allocation - ${compactLabel(label)}`,
-          "annotations[2].text": `NPV - ${compactLabel(label)}`,
-          "annotations[3].text": `Support - ${compactLabel(label)}`,
+          "annotations[1].text": boldChartTitle(`Allocation - ${compactLabel(label)}`),
+          "annotations[2].text": boldChartTitle(`NPV - ${compactLabel(label)}`),
+          "annotations[3].text": boldChartTitle(`Support - ${compactLabel(label)}`),
           "xaxis.range": npvRange,
-          "xaxis2.range": supportRange,
-          "yaxis.autorange": true,
-          "yaxis2.autorange": true
+          "yaxis.autorange": "reversed"
         }));
 
         setFilterLabel(plot, label, rows);
@@ -1367,7 +1665,7 @@ def render_dashboard_html(title, cards, figures, output_path, pio, report_contex
           }
 
           if (point.curveNumber === 2) {
-            const tradeId = point.y;
+            const tradeId = tradeIdFromPoint(point);
             const selectedRows = activeRows.filter((row) => row.trade_id === tradeId);
             window.setTimeout(() => {
               applySelection(selectedRows, `Trade: ${tradeId}`, selectedRows[0] ? tradeNodeId(selectedRows[0]) : `trade:${tradeId}`);
@@ -1375,13 +1673,12 @@ def render_dashboard_html(title, cards, figures, output_path, pio, report_contex
             return;
           }
 
-          const supportStart = supportStatusTraceStart(plot);
-          const statuses = supportStatuses(plot, statusCounts(rows));
-          if (point.curveNumber >= supportStart && point.curveNumber < supportStart + statuses.length) {
-            const trace = plot.data && plot.data[point.curveNumber];
-            const status = trace && trace.meta && trace.meta.qrpStatus
-              ? trace.meta.qrpStatus
-              : statuses[point.curveNumber - supportStart];
+          const supportTrace = supportStatusTraceIndex(plot);
+          if (point.curveNumber === supportTrace) {
+            const trace = plot.data && plot.data[supportTrace];
+            const status = trace && trace.customdata
+              ? trace.customdata[point.pointNumber]
+              : "";
             const selectedRows = activeRows.filter((row) => row.status === status);
             window.setTimeout(() => {
               applySelection(selectedRows, `Pricing status: ${statusLabel(status)}`, `status:${status}`);
@@ -1419,11 +1716,16 @@ def render_dashboard_html(title, cards, figures, output_path, pio, report_contex
       }
 
       if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", initializeLinkedPanels);
+        document.addEventListener("DOMContentLoaded", () => {
+          initializeLinkedPanels();
+          initializeSortableTables();
+        });
       } else {
         initializeLinkedPanels();
+        initializeSortableTables();
       }
       window.addEventListener("load", initializeLinkedPanels);
+      window.addEventListener("load", initializeSortableTables);
     }());
   </script>
 """
@@ -1617,6 +1919,9 @@ def render_dashboard_html(title, cards, figures, output_path, pio, report_contex
       outline: none;
       padding: 7px 30px 7px 12px;
     }}
+    .portfolio-picker select {{
+      min-width: 240px;
+    }}
     .style-picker::after {{
       border-left: 4px solid transparent;
       border-right: 4px solid transparent;
@@ -1694,6 +1999,34 @@ def render_dashboard_html(title, cards, figures, output_path, pio, report_contex
       gap: 18px;
       grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
       margin: 28px 0;
+    }}
+    .portfolio-view[hidden] {{
+      display: none;
+    }}
+    .view-heading {{
+      align-items: flex-end;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      gap: 18px;
+      justify-content: space-between;
+      margin: 28px 0 6px;
+      padding: 0 2px 16px;
+    }}
+    .view-heading h2 {{
+      margin-bottom: 8px;
+    }}
+    .view-heading p {{
+      color: var(--muted);
+      line-height: 1.55;
+      margin: 0;
+      max-width: 860px;
+    }}
+    .view-heading span {{
+      color: var(--accent);
+      font-family: "IBM Plex Mono", "Cascadia Mono", monospace;
+      font-size: 0.82rem;
+      font-weight: 700;
+      white-space: nowrap;
     }}
     .card, .panel {{
       backdrop-filter: blur(18px);
@@ -1785,6 +2118,150 @@ def render_dashboard_html(title, cards, figures, output_path, pio, report_contex
     .panel .js-plotly-plot {{
       border-radius: 18px;
     }}
+    .data-table-wrap {{
+      max-height: var(--table-max-height, 620px);
+      overflow-x: hidden;
+      overflow-y: auto;
+      position: relative;
+      z-index: 1;
+    }}
+    .data-table {{
+      border-collapse: collapse;
+      font-size: 0.86rem;
+      table-layout: fixed;
+      width: 100%;
+    }}
+    .data-table th {{
+      background: #102820;
+      color: #f4fff9;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }}
+    .data-table th button {{
+      align-items: center;
+      background: transparent;
+      border: 0;
+      color: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      font: 700 0.82rem "IBM Plex Sans", "Aptos", sans-serif;
+      gap: 7px;
+      justify-content: space-between;
+      min-width: 0;
+      padding: 10px 9px;
+      text-align: left;
+      width: 100%;
+    }}
+    .data-table th button span:first-child {{
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }}
+    .data-table td {{
+      border: 1px solid rgba(16, 40, 32, 0.11);
+      color: var(--ink);
+      overflow-wrap: anywhere;
+      padding: 9px;
+      white-space: normal;
+      word-break: normal;
+    }}
+    .data-table td[data-kind="number"] {{
+      white-space: nowrap;
+    }}
+    .data-table[data-table-id="support-diagnostics"] th:nth-child(1),
+    .data-table[data-table-id="support-diagnostics"] td:nth-child(1) {{
+      width: 14%;
+    }}
+    .data-table[data-table-id="support-diagnostics"] th:nth-child(2),
+    .data-table[data-table-id="support-diagnostics"] td:nth-child(2) {{
+      width: 8%;
+    }}
+    .data-table[data-table-id="support-diagnostics"] th:nth-child(3),
+    .data-table[data-table-id="support-diagnostics"] td:nth-child(3) {{
+      width: 13%;
+    }}
+    .data-table[data-table-id="support-diagnostics"] th:nth-child(4),
+    .data-table[data-table-id="support-diagnostics"] td:nth-child(4) {{
+      width: 24%;
+    }}
+    .data-table[data-table-id="support-diagnostics"] th:nth-child(5),
+    .data-table[data-table-id="support-diagnostics"] td:nth-child(5) {{
+      width: 13%;
+    }}
+    .data-table[data-table-id="support-diagnostics"] th:nth-child(6),
+    .data-table[data-table-id="support-diagnostics"] td:nth-child(6) {{
+      width: 28%;
+    }}
+    .data-table[data-table-id="trade-inventory"] th:nth-child(1),
+    .data-table[data-table-id="trade-inventory"] td:nth-child(1) {{
+      width: 17%;
+    }}
+    .data-table[data-table-id="trade-inventory"] th:nth-child(2),
+    .data-table[data-table-id="trade-inventory"] td:nth-child(2) {{
+      width: 8%;
+    }}
+    .data-table[data-table-id="trade-inventory"] th:nth-child(3),
+    .data-table[data-table-id="trade-inventory"] td:nth-child(3) {{
+      width: 16%;
+    }}
+    .data-table[data-table-id="trade-inventory"] th:nth-child(4),
+    .data-table[data-table-id="trade-inventory"] td:nth-child(4) {{
+      width: 18%;
+    }}
+    .data-table[data-table-id="trade-inventory"] th:nth-child(5),
+    .data-table[data-table-id="trade-inventory"] td:nth-child(5) {{
+      width: 13%;
+    }}
+    .data-table[data-table-id="trade-inventory"] th:nth-child(6),
+    .data-table[data-table-id="trade-inventory"] td:nth-child(6),
+    .data-table[data-table-id="trade-inventory"] th:nth-child(7),
+    .data-table[data-table-id="trade-inventory"] td:nth-child(7) {{
+      width: 8%;
+    }}
+    .data-table[data-table-id="trade-inventory"] th:nth-child(8),
+    .data-table[data-table-id="trade-inventory"] td:nth-child(8) {{
+      width: 12%;
+    }}
+    .data-table tbody tr:nth-child(odd) {{
+      background: rgba(255, 248, 235, 0.72);
+    }}
+    .data-table tbody tr:nth-child(even) {{
+      background: rgba(241, 232, 214, 0.58);
+    }}
+    .sort-arrow::after {{
+      color: var(--accent);
+      content: "\\2195";
+      font-size: 0.78rem;
+    }}
+    .data-table th button[aria-sort="ascending"] .sort-arrow::after {{
+      content: "\\2191";
+    }}
+    .data-table th button[aria-sort="descending"] .sort-arrow::after {{
+      content: "\\2193";
+    }}
+    .status-pill {{
+      align-items: center;
+      border-radius: 999px;
+      display: inline-flex;
+      font-size: 0.78rem;
+      font-weight: 700;
+      justify-content: center;
+      line-height: 1.15;
+      padding: 3px 8px;
+      white-space: normal;
+    }}
+    .status-pill-supported {{
+      background: color-mix(in srgb, var(--accent) 16%, transparent);
+      color: var(--accent);
+    }}
+    .status-pill-partially-supported {{
+      background: color-mix(in srgb, var(--amber) 22%, transparent);
+      color: #85622d;
+    }}
+    .status-pill-unsupported, .status-pill-failed {{
+      background: color-mix(in srgb, var(--danger) 18%, transparent);
+      color: var(--danger);
+    }}
     .footnote {{
       color: var(--muted);
       font-size: 0.9rem;
@@ -1798,6 +2275,13 @@ def render_dashboard_html(title, cards, figures, output_path, pio, report_contex
       }}
       .theme-toggle {{
         align-self: flex-end;
+      }}
+      .view-heading {{
+        align-items: flex-start;
+        flex-direction: column;
+      }}
+      .view-heading span {{
+        white-space: normal;
       }}
       .dashboard-shell {{
         padding: 16px;
@@ -1817,6 +2301,12 @@ def render_dashboard_html(title, cards, figures, output_path, pio, report_contex
           </div>
         </div>
         <div class="dashboard-controls">
+          <label class="style-picker portfolio-picker">
+            <span>Portfolio</span>
+            <select data-portfolio-select aria-label="Dashboard portfolio">
+              {portfolio_options}
+            </select>
+          </label>
           <label class="style-picker">
             <span>Style</span>
             <select data-style-select aria-label="Dashboard visual style">
@@ -1846,8 +2336,7 @@ def render_dashboard_html(title, cards, figures, output_path, pio, report_contex
       </div>
     </header>
     <main>
-      <div class="cards">{card_html}</div>
-      {figure_html}
+      {view_html}
       <p class="footnote">
         Historical stress paths are scenario-ordered revaluations applied to the current portfolio as of
         {html.escape(market_as_of)}; they are not chronological observations. Monte Carlo path fans run from the
@@ -1866,15 +2355,32 @@ def render_dashboard_html(title, cards, figures, output_path, pio, report_contex
 
 def make_portfolio_allocation_figure(go, make_subplots, trade_rows):
     fill_text_color = active_style_preset()["fill_text"]
+    trade_rows = sort_trade_rows(trade_rows)
     exposure_by_asset = aggregate_rows(trade_rows, "asset_class", "exposure")
-    sorted_by_npv = sorted(trade_rows, key=lambda row: abs(row["npv"]))
-    npv_trade_ids = [row["trade_id"] for row in sorted_by_npv]
-    npv_values = [row["npv"] for row in sorted_by_npv]
+    npv_axis = [
+        [row["asset_class"] for row in trade_rows],
+        [row["product_type"] for row in trade_rows],
+        [row["trade_id"] for row in trade_rows],
+    ]
+    npv_axis_labels = [
+        f"{row['asset_class']} / {row['product_type']} / {row['trade_id']}"
+        for row in trade_rows
+    ]
+    npv_values = [row["npv"] for row in trade_rows]
     donut = allocation_donut_segments(trade_rows)
-    status_counts = aggregate_rows([{**row, "count": 1.0} for row in trade_rows], "status", "count")
+    status_counts = aggregate_rows(
+        [{**row, "count": 1.0} for row in trade_rows], "status", "count"
+    )
     status_statuses = support_statuses_from_counts(status_counts)
-    status_total = sum(status_counts.values())
     status_values = [status_counts.get(status, 0.0) for status in status_statuses]
+    chart_height = bounded_chart_height(
+        len(trade_rows),
+        base_height=640,
+        row_height=28,
+        min_height=980,
+        max_height=1420,
+    )
+    row_heights = [0.32, 0.52, 0.16] if len(trade_rows) > 22 else [0.38, 0.44, 0.18]
 
     treemap_ids = ["portfolio"]
     treemap_labels = ["All portfolio"]
@@ -1907,22 +2413,23 @@ def make_portfolio_allocation_figure(go, make_subplots, trade_rows):
         treemap_values.append(row["exposure"])
 
     fig = make_subplots(
-        rows=2,
+        rows=3,
         cols=2,
         column_widths=[0.52, 0.48],
         horizontal_spacing=0.08,
-        row_heights=[0.60, 0.40],
+        row_heights=row_heights,
         specs=[
             [{"type": "domain"}, {"type": "domain"}],
-            [{"type": "xy"}, {"type": "xy"}],
+            [{"type": "xy", "colspan": 2}, None],
+            [{"type": "domain", "colspan": 2}, None],
         ],
         subplot_titles=[
             "Exposure Map",
             "Allocation Donut",
             "NPV by Trade",
-            "Pricing Support",
+            "Pricing Support Mix",
         ],
-        vertical_spacing=0.18,
+        vertical_spacing=0.11,
     )
     fig.add_trace(
         go.Treemap(
@@ -1972,111 +2479,252 @@ def make_portfolio_allocation_figure(go, make_subplots, trade_rows):
         go.Bar(
             cliponaxis=False,
             constraintext="none",
+            customdata=[
+                [row["asset_class"], row["product_type"], row["trade_id"]]
+                for row in trade_rows
+            ],
+            hovertemplate=(
+                "<b>%{customdata[2]}</b><br>"
+                "Asset: %{customdata[0]}<br>"
+                "Product: %{customdata[1]}<br>"
+                "NPV: %{x:,.2f}<extra></extra>"
+            ),
             orientation="h",
             x=npv_values,
-            y=npv_trade_ids,
-            marker_color=[trade_metric_color(row) for row in sorted_by_npv],
+            y=npv_axis,
+            marker_color=[trade_metric_color(row) for row in trade_rows],
             text=[money(value) for value in npv_values],
             textposition="auto",
-            hovertemplate="%{y}<br>NPV: %{x:,.2f}<extra></extra>",
         ),
         row=2,
         col=1,
     )
-    for status, value in zip(status_statuses, status_values):
-        fig.add_trace(
-            go.Bar(
-                cliponaxis=False,
-                constraintext="none",
-                customdata=[[pct(value / status_total) if status_total else "0.00%"]],
-                hovertemplate=(
-                    f"<b>{support_status_label(status)}</b><br>"
-                    "Trades: %{x:.0f}<br>Share: %{customdata[0]}<extra></extra>"
-                ),
-                marker_color=support_status_color(status),
-                meta={"qrpStatus": status},
-                name=support_status_label(status),
-                orientation="h",
-                text=[support_status_text(status, value, status_total)],
-                textposition="inside",
-                x=[value],
-                y=["Coverage"],
+    fig.add_trace(
+        go.Pie(
+            customdata=status_statuses,
+            hole=0.58,
+            hovertemplate="<b>%{label}</b><br>Trades: %{value:.0f}<br>Share: %{percent}<extra></extra>",
+            labels=[support_status_label(status) for status in status_statuses],
+            marker={
+                "colors": [support_status_color(status) for status in status_statuses],
+                "line": {"color": "rgba(255,255,255,0.38)", "width": 2},
+            },
+            meta={"qrpSupportDonut": True},
+            name="Pricing Support",
+            sort=False,
+            textfont={"color": fill_text_color, "family": FINANCE_FONT, "size": 12},
+            textinfo="label+percent",
+            values=status_values,
+        ),
+        row=3,
+        col=1,
+    )
+    apply_finance_layout(fig, height=chart_height)
+    fig.update_layout(
+        margin={
+            "b": 76,
+            "l": categorical_left_margin(
+                npv_axis_labels, min_margin=180, max_margin=300, char_width=4
             ),
-            row=2,
-            col=2,
-        )
-    apply_finance_layout(fig, height=760)
-    fig.update_layout(barmode="stack", margin={"b": 76, "l": 72, "r": 44, "t": 130})
+            "r": 44,
+            "t": 130,
+        }
+    )
     for annotation in fig.layout.annotations:
-        if annotation.text in {"Exposure Map", "Allocation Donut"}:
+        if annotation.text in {
+            bold_chart_text("Exposure Map"),
+            bold_chart_text("Allocation Donut"),
+        }:
             annotation.update(yshift=38)
-    fig.update_layout(meta={
-        "qrpPanel": "portfolio_allocation",
-        "supportStatusTraceStart": 3,
-        "supportStatuses": status_statuses,
-        "tradeRows": trade_rows,
-    })
-    fig.update_xaxes(range=padded_number_range(npv_values), title_text="NPV", row=2, col=1)
-    fig.update_xaxes(range=padded_number_range([status_total]), title_text="Trades", row=2, col=2)
-    fig.update_yaxes(automargin=True, row=2, col=1)
-    fig.update_yaxes(automargin=True, row=2, col=2)
+    fig.update_layout(
+        meta={
+            "qrpPanel": "portfolio_allocation",
+            "supportStatusTraceIndex": 3,
+            "supportStatuses": status_statuses,
+            "tradeRows": trade_rows,
+        }
+    )
+    fig.update_xaxes(
+        range=padded_number_range(npv_values), title_text="NPV", row=2, col=1
+    )
+    fig.update_yaxes(
+        autorange="reversed", automargin=True, row=2, col=1, type="multicategory"
+    )
     return fig
 
 
 def make_trade_inventory_figure(go, trade_rows):
-    row_fill = [
-        "rgba(255, 248, 235, 0.94)" if index % 2 == 0 else "rgba(241, 232, 214, 0.86)"
-        for index, _ in enumerate(trade_rows)
+    columns = [
+        ("trade_id", "Trade", "text"),
+        ("asset_class", "Asset", "text"),
+        ("product_type", "Product", "text"),
+        ("book", "Book", "text"),
+        ("strategy", "Strategy", "text"),
+        ("exposure", "Exposure", "number"),
+        ("npv", "NPV", "number"),
+        ("status", "Status", "text"),
     ]
-    fig = go.Figure(
-        data=[
-            go.Table(
-                columnwidth=[1.25, 0.85, 1.25, 1.35, 1.25, 1.05, 1.0, 1.25],
-                header={
-                    "align": "left",
-                    "fill_color": "#102820",
-                    "font": {"color": "#f4fff9", "family": FINANCE_FONT, "size": 13},
-                    "height": 38,
-                    "line": {"color": "rgba(255,255,255,0.18)", "width": 1},
-                    "values": ["Trade", "Asset", "Product", "Book", "Strategy", "Exposure", "NPV", "Status"],
-                },
-                cells={
-                    "align": "left",
-                    "fill_color": [row_fill],
-                    "font": {"color": "#16231d", "family": FINANCE_FONT, "size": 12},
-                    "height": 34,
-                    "line": {"color": "rgba(16, 40, 32, 0.10)", "width": 1},
-                    "values": [
-                        [row["trade_id"] for row in trade_rows],
-                        [row["asset_class"] for row in trade_rows],
-                        [row["product_type"] for row in trade_rows],
-                        [row["book"] for row in trade_rows],
-                        [row["strategy"] for row in trade_rows],
-                        [money(row["exposure"]) for row in trade_rows],
-                        [money(row["npv"]) for row in trade_rows],
-                        [row["status"] for row in trade_rows],
-                    ],
-                },
-            )
-        ]
+    return {
+        "html": sortable_table_html(
+            "trade-inventory",
+            sort_trade_rows(trade_rows),
+            columns,
+            max_height=bounded_chart_height(
+                len(trade_rows),
+                base_height=160,
+                row_height=34,
+                min_height=360,
+                max_height=760,
+            ),
+        ),
+        "kind": "html",
+    }
+
+
+def sortable_value(value, kind):
+    if kind == "number":
+        return f"{float(value or 0.0):.12f}"
+    return sort_text(value)
+
+
+def cell_display(row, key, kind):
+    value = row.get(key, "")
+    if key == "status":
+        return (
+            f'<span class="status-pill status-pill-{html.escape(str(value).replace("_", "-"))}">'
+            f"{html.escape(support_status_label(value))}</span>"
+        )
+    if kind == "number":
+        return html.escape(money(float(value or 0.0)))
+    return html.escape(str(value or ""))
+
+
+def sortable_table_html(table_id, rows, columns, *, max_height):
+    header_html = "".join(
+        f"""
+        <th>
+          <button type="button" data-sort-column="{index}" data-sort-kind="{html.escape(kind)}" aria-sort="none">
+            <span>{html.escape(label)}</span><span class="sort-arrow" aria-hidden="true"></span>
+          </button>
+        </th>
+        """
+        for index, (_, label, kind) in enumerate(columns)
     )
-    apply_finance_layout(fig, height=max(360, 168 + len(trade_rows) * 38), title="Trade Inventory")
-    return fig
+    body_html = "\n".join(
+        f"""
+        <tr data-default-sort="{
+            html.escape("|".join(str(value) for value in trade_sort_key(row)))
+        }">
+          {
+            "".join(
+                f'<td data-kind="{html.escape(kind)}" data-sort-value="{html.escape(sortable_value(row.get(key), kind))}">{cell_display(row, key, kind)}</td>'
+                for key, _, kind in columns
+            )
+        }
+        </tr>
+        """
+        for row in rows
+    )
+    if not body_html:
+        body_html = f'<tr><td colspan="{len(columns)}">No rows</td></tr>'
+
+    return f"""
+    <div class="data-table-wrap" style="--table-max-height: {int(max_height)}px">
+      <table class="data-table" data-sortable-table data-table-id="{html.escape(table_id)}">
+        <thead><tr>{header_html}</tr></thead>
+        <tbody>{body_html}</tbody>
+      </table>
+    </div>
+    """
 
 
-def make_risk_measures_figure(go, make_subplots, risk_results):
-    trade_ids = [result.trade_id for result in risk_results]
-    all_buckets = sorted({bucket for result in risk_results for bucket in result.bucketed_risk})
-    z = [[result.bucketed_risk.get(bucket, 0.0) for bucket in all_buckets] for result in risk_results]
+def make_support_diagnostics_panel(trade_rows):
+    rows = support_diagnostic_rows(sort_trade_rows(trade_rows))
+    columns = [
+        ("trade_id", "Trade", "text"),
+        ("asset_class", "Asset", "text"),
+        ("product_type", "Product", "text"),
+        ("model", "Model", "text"),
+        ("status", "Status", "text"),
+        ("status_message", "Reason", "text"),
+    ]
+    if not rows:
+        rows = [
+            {
+                "asset_class": "",
+                "model": "",
+                "product_type": "",
+                "status": "supported",
+                "status_message": "All trades use fully supported pricing profiles.",
+                "trade_id": "all_trades",
+            }
+        ]
+    return {
+        "html": sortable_table_html(
+            "support-diagnostics",
+            rows,
+            columns,
+            max_height=bounded_chart_height(
+                len(rows),
+                base_height=150,
+                row_height=38,
+                min_height=260,
+                max_height=520,
+            ),
+        ),
+        "kind": "html",
+    }
+
+
+def make_risk_measures_figure(go, make_subplots, risk_results, trade_rows):
+    sorted_results = sorted(
+        risk_results, key=lambda result: trade_id_sort_key(result.trade_id, trade_rows)
+    )
+    trade_ids = [result.trade_id for result in sorted_results]
+    all_buckets = sorted(
+        {bucket for result in sorted_results for bucket in result.bucketed_risk}
+    )
+    z = [
+        [result.bucketed_risk.get(bucket, 0.0) for bucket in all_buckets]
+        for result in sorted_results
+    ]
+    height = bounded_chart_height(
+        len(sorted_results),
+        base_height=280,
+        row_height=26,
+        min_height=520,
+        max_height=980,
+    )
 
     fig = make_subplots(
         rows=1,
         cols=2,
         specs=[[{"type": "xy"}, {"type": "xy"}]],
-        subplot_titles=["Aggregate Sensitivities by Trade", "Bucketed Rate/Credit Risk"],
+        subplot_titles=[
+            "Aggregate Sensitivities by Trade",
+            "Bucketed Rate/Credit Risk",
+        ],
     )
-    fig.add_trace(go.Bar(name="PV01", x=trade_ids, y=[result.pv01 for result in risk_results]), row=1, col=1)
-    fig.add_trace(go.Bar(name="CS01", x=trade_ids, y=[result.cs01 for result in risk_results]), row=1, col=1)
+    fig.add_trace(
+        go.Bar(
+            name="PV01",
+            orientation="h",
+            x=[result.pv01 for result in sorted_results],
+            y=trade_ids,
+        ),
+        row=1,
+        col=1,
+    )
+    fig.add_trace(
+        go.Bar(
+            name="CS01",
+            orientation="h",
+            x=[result.cs01 for result in sorted_results],
+            y=trade_ids,
+        ),
+        row=1,
+        col=1,
+    )
     if all_buckets:
         fig.add_trace(
             go.Heatmap(
@@ -2090,35 +2738,53 @@ def make_risk_measures_figure(go, make_subplots, risk_results):
             row=1,
             col=2,
         )
-    apply_finance_layout(fig, barmode="group", height=520, showlegend=True)
+    apply_finance_layout(fig, barmode="group", height=height, showlegend=True)
+    fig.update_layout(
+        margin={"b": 86, "l": categorical_left_margin(trade_ids), "r": 38, "t": 82}
+    )
+    fig.update_xaxes(title_text="Sensitivity", row=1, col=1)
+    fig.update_yaxes(autorange="reversed", automargin=True, row=1, col=1)
+    fig.update_yaxes(autorange="reversed", automargin=True, row=1, col=2)
     return fig
 
 
-def make_historical_stress_figure(go, make_subplots, stress_results):
+def make_historical_stress_figure(go, make_subplots, stress_results, trade_rows):
     stress_sorted = sorted(stress_results, key=lambda result: result.total_pnl)
     scenario_names = [result.scenario_name for result in stress_sorted]
     scenario_pnls = [result.total_pnl for result in stress_sorted]
-    trade_ids = sorted({trade_id for result in stress_results for trade_id in result.trade_pnls})
-    stress_matrix = [[result.trade_pnls.get(trade_id, 0.0) for trade_id in trade_ids] for result in stress_sorted]
+    trade_ids = sorted(
+        {trade_id for result in stress_results for trade_id in result.trade_pnls},
+        key=lambda trade_id: trade_id_sort_key(trade_id, trade_rows),
+    )
+    stress_matrix = [
+        [result.trade_pnls.get(trade_id, 0.0) for result in stress_sorted]
+        for trade_id in trade_ids
+    ]
     worst = stress_sorted[0]
     worst_trade_pnls = sorted(
         [(trade_id, worst.trade_pnls.get(trade_id, 0.0)) for trade_id in trade_ids],
         key=lambda item: abs(item[1]),
+        reverse=True,
+    )
+    height = bounded_chart_height(
+        max(len(scenario_names), len(trade_ids)),
+        base_height=760,
+        row_height=26,
+        min_height=1120,
+        max_height=1560,
     )
 
     fig = make_subplots(
-        rows=2,
-        cols=2,
-        column_widths=[0.46, 0.54],
-        horizontal_spacing=0.10,
-        row_heights=[0.58, 0.42],
-        specs=[[{"type": "xy"}, {"type": "xy"}], [{"type": "xy", "colspan": 2}, None]],
+        rows=3,
+        cols=1,
+        row_heights=[0.26, 0.38, 0.36],
+        specs=[[{"type": "xy"}], [{"type": "xy"}], [{"type": "xy"}]],
         subplot_titles=[
             "Stress Scenario Ranking",
             "Trade P&L Matrix",
             f"Worst Scenario Contribution: {worst.scenario_name}",
         ],
-        vertical_spacing=0.22,
+        vertical_spacing=0.13,
     )
     fig.add_trace(
         go.Bar(
@@ -2126,7 +2792,9 @@ def make_historical_stress_figure(go, make_subplots, stress_results):
             constraintext="none",
             customdata=[[result.scenario_name] for result in stress_sorted],
             hovertemplate="<b>%{customdata[0]}</b><br>Total P&L: %{x:,.0f}<extra></extra>",
-            marker_color=[NEGATIVE_COLOR if pnl < 0 else POSITIVE_COLOR for pnl in scenario_pnls],
+            marker_color=[
+                NEGATIVE_COLOR if pnl < 0 else POSITIVE_COLOR for pnl in scenario_pnls
+            ],
             orientation="h",
             text=[money(pnl) for pnl in scenario_pnls],
             textposition="auto",
@@ -2141,37 +2809,50 @@ def make_historical_stress_figure(go, make_subplots, stress_results):
             colorbar={"title": "Trade P&L", "thickness": 18},
             colorscale=DIVERGING_SCALE,
             hovertemplate="<b>%{y}</b><br>%{x}<br>P&L: %{z:,.0f}<extra></extra>",
-            x=trade_ids,
-            y=scenario_names,
+            x=scenario_names,
+            y=trade_ids,
             zmid=0.0,
             z=stress_matrix,
         ),
-        row=1,
-        col=2,
+        row=2,
+        col=1,
     )
     fig.add_trace(
         go.Bar(
             cliponaxis=False,
             constraintext="none",
             hovertemplate="%{y}<br>Contribution: %{x:,.0f}<extra></extra>",
-            marker_color=[NEGATIVE_COLOR if pnl < 0 else POSITIVE_COLOR for _, pnl in worst_trade_pnls],
+            marker_color=[
+                NEGATIVE_COLOR if pnl < 0 else POSITIVE_COLOR
+                for _, pnl in worst_trade_pnls
+            ],
             orientation="h",
             text=[money(pnl) for _, pnl in worst_trade_pnls],
             textposition="auto",
             x=[pnl for _, pnl in worst_trade_pnls],
             y=[trade_id for trade_id, _ in worst_trade_pnls],
         ),
-        row=2,
+        row=3,
         col=1,
     )
-    apply_finance_layout(fig, height=880)
-    fig.update_layout(margin={"b": 88, "l": 132, "r": 72, "t": 108})
+    apply_finance_layout(fig, height=height)
+    fig.update_layout(
+        margin={
+            "b": 118,
+            "l": max(
+                categorical_left_margin(scenario_names),
+                categorical_left_margin([trade_id for trade_id, _ in worst_trade_pnls]),
+            ),
+            "r": 94,
+            "t": 108,
+        }
+    )
     fig.add_vline(
         x=worst.total_pnl,
         line_color=WARNING_COLOR,
         line_dash="dot",
         line_width=2,
-        row=2,
+        row=3,
         col=1,
     )
     fig.add_annotation(
@@ -2184,17 +2865,43 @@ def make_historical_stress_figure(go, make_subplots, stress_results):
         y=1.06,
         yref="y3 domain",
     )
-    fig.update_xaxes(range=padded_number_range(scenario_pnls), title_text="Total P&L", row=1, col=1)
-    fig.update_xaxes(tickangle=0, row=1, col=2)
-    fig.update_xaxes(range=padded_number_range([pnl for _, pnl in worst_trade_pnls] + [worst.total_pnl]), title_text="Trade Contribution", row=2, col=1)
+    fig.update_xaxes(
+        range=padded_number_range(scenario_pnls),
+        title_text="Total P&L",
+        row=1,
+        col=1,
+    )
+    fig.update_xaxes(
+        automargin=True,
+        tickangle=CATEGORY_TICKANGLE,
+        tickfont={"family": FINANCE_FONT, "size": 9},
+        tickmode="array",
+        ticktext=[axis_tick_label(scenario_name) for scenario_name in scenario_names],
+        tickvals=scenario_names,
+        title_text="Scenario",
+        row=2,
+        col=1,
+    )
+    fig.update_xaxes(
+        range=padded_number_range(
+            [pnl for _, pnl in worst_trade_pnls] + [worst.total_pnl]
+        ),
+        title_text="Trade Contribution",
+        row=3,
+        col=1,
+    )
     fig.update_yaxes(autorange="reversed", automargin=True, row=1, col=1)
-    fig.update_yaxes(autorange="reversed", automargin=True, row=1, col=2)
-    fig.update_yaxes(automargin=True, row=2, col=1)
+    fig.update_yaxes(autorange="reversed", automargin=True, row=2, col=1)
+    fig.update_yaxes(autorange="reversed", automargin=True, row=3, col=1)
     return fig
 
 
-def make_performance_drawdown_figure(go, make_subplots, total_npv, stress_results, market_as_of=None):
-    scenario_names, equity_values, drawdowns, max_drawdown, _ = stress_performance_path(total_npv, stress_results)
+def make_performance_drawdown_figure(
+    go, make_subplots, total_npv, stress_results, market_as_of=None
+):
+    scenario_names, equity_values, drawdowns, max_drawdown, _ = stress_performance_path(
+        total_npv, stress_results
+    )
     normalized = [value - equity_values[0] for value in equity_values]
     as_of_label = format_date(market_as_of)
 
@@ -2229,7 +2936,9 @@ def make_performance_drawdown_figure(go, make_subplots, total_npv, stress_result
         col=1,
     )
     apply_finance_layout(fig, height=680)
-    fig.update_xaxes(title_text="Stress scenario order (not chronological time)", row=2, col=1)
+    fig.update_xaxes(
+        title_text="Stress scenario order (not chronological time)", row=2, col=1
+    )
     fig.update_yaxes(title_text="Cumulative P&L", row=1, col=1)
     fig.update_yaxes(title_text="Drawdown %", row=2, col=1)
     return fig
@@ -2239,11 +2948,15 @@ def make_monte_carlo_figure(go, make_subplots, mc_results, market_as_of=None):
     titles = []
     for label, result, _ in mc_results:
         end_date = horizon_date(market_as_of, result.horizon_days)
-        horizon_label = format_date(end_date) if end_date else f"{result.horizon_days:g}d"
+        horizon_label = (
+            format_date(end_date) if end_date else f"{result.horizon_days:g}d"
+        )
         titles.append(f"{label} P&L Distribution to {horizon_label}")
     for label, result, _ in mc_results:
         end_date = horizon_date(market_as_of, result.horizon_days)
-        horizon_label = format_date(end_date) if end_date else f"{result.horizon_days:g}d"
+        horizon_label = (
+            format_date(end_date) if end_date else f"{result.horizon_days:g}d"
+        )
         titles.append(f"{label} Future Path Fan to {horizon_label}")
 
     fig = make_subplots(
@@ -2261,13 +2974,21 @@ def make_monte_carlo_figure(go, make_subplots, mc_results, market_as_of=None):
         es_threshold = -result.expected_shortfall_95
 
         fig.add_trace(
-            go.Histogram(name=f"{label} P&L", x=pnls, nbinsx=35, marker_color=POSITIVE_COLOR),
+            go.Histogram(
+                name=f"{label} P&L", x=pnls, nbinsx=35, marker_color=POSITIVE_COLOR
+            ),
             row=1,
             col=col,
         )
-        fig.add_vline(x=var_threshold, line_dash="dash", line_color=NEGATIVE_COLOR, row=1, col=col)
-        fig.add_vline(x=es_threshold, line_dash="dot", line_color="#7c2d12", row=1, col=col)
-        fig.add_vline(x=mean_pnl, line_dash="solid", line_color=WARNING_COLOR, row=1, col=col)
+        fig.add_vline(
+            x=var_threshold, line_dash="dash", line_color=NEGATIVE_COLOR, row=1, col=col
+        )
+        fig.add_vline(
+            x=es_threshold, line_dash="dot", line_color="#7c2d12", row=1, col=col
+        )
+        fig.add_vline(
+            x=mean_pnl, line_dash="solid", line_color=WARNING_COLOR, row=1, col=col
+        )
 
         selected_pnls = pnls[: min(40, len(pnls))]
         for path_index, pnl in enumerate(selected_pnls):
@@ -2302,7 +3023,9 @@ def make_monte_carlo_figure(go, make_subplots, mc_results, market_as_of=None):
         )
         end_date = horizon_date(market_as_of, horizon_days)
         horizon_label = format_date(end_date) if end_date else f"{horizon_days:g}d"
-        fig.update_xaxes(title_text=f"Horizon P&L ending {horizon_label}", row=1, col=col)
+        fig.update_xaxes(
+            title_text=f"Horizon P&L ending {horizon_label}", row=1, col=col
+        )
         if uses_dates:
             fig.update_xaxes(title_text="Date", type="date", row=2, col=col)
         else:
@@ -2329,47 +3052,107 @@ def explain_result_residual(result):
     )
 
 
-def make_pnl_explain_figure(go, pnl_results):
-    trade_ids = [result.trade_id for result in pnl_results]
+def make_pnl_explain_figure(go, pnl_results, trade_rows):
+    sorted_results = sorted(
+        pnl_results, key=lambda result: trade_id_sort_key(result.trade_id, trade_rows)
+    )
+    trade_ids = [result.trade_id for result in sorted_results]
+    height = bounded_chart_height(
+        len(sorted_results),
+        base_height=260,
+        row_height=27,
+        min_height=520,
+        max_height=1060,
+    )
     fig = go.Figure()
-    fig.add_trace(go.Bar(
-        name="Carry",
-        x=trade_ids,
-        y=[explain_component_amount(result, "carry", number_attr(result, "carry_pnl")) for result in pnl_results],
-        marker_color=WARNING_COLOR))
-    fig.add_trace(go.Bar(
-        name="Cash",
-        x=trade_ids,
-        y=[explain_component_amount(result, "cash", number_attr(result, "cash_pnl")) for result in pnl_results],
-        marker_color=DASHBOARD_COLORWAY[1]))
-    fig.add_trace(go.Bar(
-        name="Market Move",
-        x=trade_ids,
-        y=[explain_component_amount(result, "market_move", number_attr(result, "market_move_pnl")) for result in pnl_results],
-        marker_color=POSITIVE_COLOR))
-    fig.add_trace(go.Bar(
-        name="Residual",
-        x=trade_ids,
-        y=[explain_component_amount(result, "residual", explain_result_residual(result)) for result in pnl_results],
-        marker_color=NEGATIVE_COLOR))
+    fig.add_trace(
+        go.Bar(
+            name="Carry",
+            orientation="h",
+            x=[
+                explain_component_amount(
+                    result, "carry", number_attr(result, "carry_pnl")
+                )
+                for result in sorted_results
+            ],
+            y=trade_ids,
+            marker_color=WARNING_COLOR,
+        )
+    )
+    fig.add_trace(
+        go.Bar(
+            name="Cash",
+            orientation="h",
+            x=[
+                explain_component_amount(
+                    result, "cash", number_attr(result, "cash_pnl")
+                )
+                for result in sorted_results
+            ],
+            y=trade_ids,
+            marker_color=DASHBOARD_COLORWAY[1],
+        )
+    )
+    fig.add_trace(
+        go.Bar(
+            name="Market Move",
+            orientation="h",
+            x=[
+                explain_component_amount(
+                    result, "market_move", number_attr(result, "market_move_pnl")
+                )
+                for result in sorted_results
+            ],
+            y=trade_ids,
+            marker_color=POSITIVE_COLOR,
+        )
+    )
+    fig.add_trace(
+        go.Bar(
+            name="Residual",
+            orientation="h",
+            x=[
+                explain_component_amount(
+                    result, "residual", explain_result_residual(result)
+                )
+                for result in sorted_results
+            ],
+            y=trade_ids,
+            marker_color=NEGATIVE_COLOR,
+        )
+    )
     apply_finance_layout(
         fig,
         barmode="relative",
-        height=520,
+        height=height,
         showlegend=True,
         title="P&L Explain by Trade",
-        yaxis_title="P&L",
     )
+    fig.update_layout(
+        margin={"b": 86, "l": categorical_left_margin(trade_ids), "r": 38, "t": 82}
+    )
+    fig.update_xaxes(title_text="P&L")
+    fig.update_yaxes(autorange="reversed", automargin=True)
     return fig
 
 
 def make_factor_scenario_figure(go, make_subplots, factors, scenarios):
     factor_ids = [factor.factor_id for factor in factors]
     scenario_names = [scenario.name for scenario in scenarios]
-    z = [[scenario.factor_shocks.get(factor_id, 0.0) for factor_id in factor_ids] for scenario in scenarios]
+    z = [
+        [scenario.factor_shocks.get(factor_id, 0.0) for factor_id in factor_ids]
+        for scenario in scenarios
+    ]
     factor_type_counts = defaultdict(int)
     for factor in factors:
         factor_type_counts[enum_label(factor.factor_type)] += 1
+    height = bounded_chart_height(
+        max(len(scenario_names), len(factor_type_counts)),
+        base_height=420,
+        row_height=20,
+        min_height=620,
+        max_height=1000,
+    )
 
     fig = make_subplots(
         rows=1,
@@ -2390,48 +3173,60 @@ def make_factor_scenario_figure(go, make_subplots, factors, scenarios):
         col=1,
     )
     fig.add_trace(
-        go.Bar(x=list(factor_type_counts), y=list(factor_type_counts.values()), marker_color=POSITIVE_COLOR),
+        go.Bar(
+            x=list(factor_type_counts),
+            y=list(factor_type_counts.values()),
+            marker_color=POSITIVE_COLOR,
+        ),
         row=1,
         col=2,
     )
-    apply_finance_layout(fig, height=620)
-    fig.update_xaxes(tickangle=35, row=1, col=1)
+    apply_finance_layout(fig, height=height)
+    fig.update_layout(
+        margin={
+            "b": 110,
+            "l": categorical_left_margin(scenario_names),
+            "r": 42,
+            "t": 82,
+        }
+    )
+    fig.update_xaxes(tickangle=CATEGORY_TICKANGLE, row=1, col=1)
     return fig
 
 
-def create_plotly_dashboard(
+def portfolio_label(portfolio):
+    return getattr(portfolio, "portfolio_name", "") or getattr(
+        portfolio, "portfolio_id", "Portfolio"
+    )
+
+
+def portfolio_description(portfolio):
+    description = getattr(portfolio, "description", "")
+    if description:
+        return description
+    return "Portfolio analytics generated from current valuation, stress, risk, P&L explain, and Monte Carlo outputs."
+
+
+def make_dashboard_cards(
     portfolio,
     valuation_results,
     total_npv,
     stress_results,
-    risk_results,
-    pnl_results,
     mc_results,
-    factors,
-    scenarios,
-    output_path,
     optimization_result=None,
-    market_valuation_date=None,
-    generated_at=None):
-    modules = optional_plotly_modules()
-    if modules is None:
-        return None
-    go, make_subplots, pio = modules
-
-    generated_at = generated_at or dashboard_generated_at()
-    market_as_of = parse_valuation_date(market_valuation_date)
-    market_as_of_label = format_date(market_as_of)
-    generated_at_label = format_timestamp(generated_at)
+):
     trade_rows = build_trade_rows(portfolio, valuation_results)
     gross_exposure = sum(row["exposure"] for row in trade_rows)
     worst_stress = min(stress_results, key=lambda result: result.total_pnl)
-    _, _, _, max_drawdown, max_drawdown_amount = stress_performance_path(total_npv, stress_results)
+    _, _, _, max_drawdown, max_drawdown_amount = stress_performance_path(
+        total_npv, stress_results
+    )
     mc_card = mc_results[0][1] if mc_results else None
     optimization_note = "not run"
     if optimization_result:
         optimization_note = optimization_result.get("status", "unknown")
 
-    cards = [
+    return [
         {
             "label": "Portfolio NPV",
             "value": money(total_npv),
@@ -2454,7 +3249,9 @@ def create_plotly_dashboard(
         },
         {
             "label": "Monte Carlo VaR / ES",
-            "value": f"{money(mc_card.var_95)} / {money(mc_card.expected_shortfall_95)}" if mc_card else "n/a",
+            "value": f"{money(mc_card.var_95)} / {money(mc_card.expected_shortfall_95)}"
+            if mc_card
+            else "n/a",
             "note": mc_results[0][0] if mc_results else "No Monte Carlo results",
         },
         {
@@ -2464,21 +3261,161 @@ def create_plotly_dashboard(
         },
     ]
 
-    figures = [
-        ("Portfolio Allocation", make_portfolio_allocation_figure(go, make_subplots, trade_rows)),
+
+def make_dashboard_figures(
+    go,
+    make_subplots,
+    portfolio,
+    valuation_results,
+    total_npv,
+    stress_results,
+    risk_results,
+    pnl_results,
+    mc_results,
+    factors,
+    scenarios,
+    market_as_of,
+):
+    trade_rows = build_trade_rows(portfolio, valuation_results)
+    return [
+        (
+            "Portfolio Allocation",
+            make_portfolio_allocation_figure(go, make_subplots, trade_rows),
+        ),
+        ("Support Diagnostics", make_support_diagnostics_panel(trade_rows)),
         ("Trade Inventory", make_trade_inventory_figure(go, trade_rows)),
-        ("Risk Measures", make_risk_measures_figure(go, make_subplots, risk_results)),
-        ("Historical Stress", make_historical_stress_figure(go, make_subplots, stress_results)),
-        ("Performance and Drawdown", make_performance_drawdown_figure(go, make_subplots, total_npv, stress_results, market_as_of)),
-        ("Monte Carlo VaR and Future Path Fan", make_monte_carlo_figure(go, make_subplots, mc_results, market_as_of)),
-        ("P&L Explain", make_pnl_explain_figure(go, pnl_results)),
-        ("Risk Factor Scenario Coverage", make_factor_scenario_figure(go, make_subplots, factors, scenarios)),
+        (
+            "Risk Measures",
+            make_risk_measures_figure(go, make_subplots, risk_results, trade_rows),
+        ),
+        (
+            "Historical Stress",
+            make_historical_stress_figure(
+                go, make_subplots, stress_results, trade_rows
+            ),
+        ),
+        (
+            "Performance and Drawdown",
+            make_performance_drawdown_figure(
+                go, make_subplots, total_npv, stress_results, market_as_of
+            ),
+        ),
+        (
+            "Monte Carlo VaR and Future Path Fan",
+            make_monte_carlo_figure(go, make_subplots, mc_results, market_as_of),
+        ),
+        ("P&L Explain", make_pnl_explain_figure(go, pnl_results, trade_rows)),
+        (
+            "Risk Factor Scenario Coverage",
+            make_factor_scenario_figure(go, make_subplots, factors, scenarios),
+        ),
+    ]
+
+
+def make_dashboard_view(
+    go,
+    make_subplots,
+    analytics,
+    factors,
+    scenarios,
+    market_as_of,
+    optimization_result=None,
+):
+    portfolio = analytics["portfolio"]
+    valuation_results = analytics["valuation_results"]
+    total_npv = analytics["total_npv"]
+    stress_results = analytics["stress_results"]
+    risk_results = analytics["risk_results"]
+    pnl_results = analytics["pnl_results"]
+    mc_results = analytics["mc_results"]
+    trade_rows = build_trade_rows(portfolio, valuation_results)
+    supported_count = sum(1 for row in trade_rows if row["status"] == "supported")
+    asset_class_count = len(set(row["asset_class"] for row in trade_rows))
+    summary = f"{len(trade_rows)} trades | {supported_count} supported | {asset_class_count} asset classes"
+
+    return {
+        "cards": make_dashboard_cards(
+            portfolio,
+            valuation_results,
+            total_npv,
+            stress_results,
+            mc_results,
+            optimization_result,
+        ),
+        "description": portfolio_description(portfolio),
+        "figures": make_dashboard_figures(
+            go,
+            make_subplots,
+            portfolio,
+            valuation_results,
+            total_npv,
+            stress_results,
+            risk_results,
+            pnl_results,
+            mc_results,
+            factors,
+            scenarios,
+            market_as_of,
+        ),
+        "id": getattr(portfolio, "portfolio_id", portfolio_label(portfolio)),
+        "label": portfolio_label(portfolio),
+        "summary": summary,
+    }
+
+
+def create_plotly_dashboard(
+    portfolio,
+    valuation_results,
+    total_npv,
+    stress_results,
+    risk_results,
+    pnl_results,
+    mc_results,
+    factors,
+    scenarios,
+    output_path,
+    optimization_result=None,
+    market_valuation_date=None,
+    generated_at=None,
+    portfolio_views=None,
+):
+    modules = optional_plotly_modules()
+    if modules is None:
+        return None
+    go, make_subplots, pio = modules
+
+    generated_at = generated_at or dashboard_generated_at()
+    market_as_of = parse_valuation_date(market_valuation_date)
+    market_as_of_label = format_date(market_as_of)
+    generated_at_label = format_timestamp(generated_at)
+    analytics_views = [
+        {
+            "mc_results": mc_results,
+            "pnl_results": pnl_results,
+            "portfolio": portfolio,
+            "risk_results": risk_results,
+            "stress_results": stress_results,
+            "total_npv": total_npv,
+            "valuation_results": valuation_results,
+        }
+    ]
+    analytics_views.extend(portfolio_views or [])
+    views = [
+        make_dashboard_view(
+            go,
+            make_subplots,
+            analytics,
+            factors,
+            scenarios,
+            market_as_of,
+            optimization_result,
+        )
+        for analytics in analytics_views
     ]
 
     return render_dashboard_html(
         "Quant Risk Platform Demo Dashboard",
-        cards,
-        figures,
+        views,
         output_path,
         pio,
         {

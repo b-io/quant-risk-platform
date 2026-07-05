@@ -4,14 +4,21 @@
 #include <qrp/optimization/models/risk_model.hpp>
 #include <qrp/optimization/portfolio_optimization.hpp>
 #include <qrp/optimization/portfolio_optimization_engine.hpp>
+#include <qrp/util/logger.hpp>
 
 #include <gtest/gtest.h>
 
+#include <chrono>
+#include <cstdlib>
 #include <filesystem>
+#include <fstream>
+#include <limits>
 #include <map>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 using namespace qrp::optimization;
 
@@ -57,6 +64,16 @@ std::shared_ptr<FullCovarianceModel> make_two_asset_risk_model() {
     return risk_model;
 }
 
+std::shared_ptr<FactorRiskModel> make_two_asset_factor_risk_model() {
+    auto risk_model = std::make_shared<FactorRiskModel>();
+    risk_model->asset_ids = {"AAPL", "MSFT"};
+    risk_model->factor_ids = {"EQUITY"};
+    risk_model->exposures = {{1.0}, {0.8}};
+    risk_model->factor_covariance = {{0.04}};
+    risk_model->specific_risk = {{"AAPL", 0.01}, {"MSFT", 0.02}};
+    return risk_model;
+}
+
 OptimizationProblem make_supported_mean_variance_problem() {
     OptimizationProblem problem;
     problem.name = "Supported mean variance";
@@ -74,6 +91,88 @@ OptimizationProblem make_supported_mean_variance_problem() {
     problem.constraints.push_back(budget);
 
     return problem;
+}
+
+OptimizationProblem make_supported_factor_problem() {
+    OptimizationProblem problem;
+    problem.name = "Supported factor problem";
+    problem.variables = {
+        {"AAPL", 0.0, 1.0},
+        {"MSFT", 0.0, 1.0}
+    };
+    problem.risk_model = make_two_asset_factor_risk_model();
+
+    auto tracking_error = std::make_shared<TrackingErrorObjective>();
+    tracking_error->benchmark_weights = {{"AAPL", 0.55}, {"MSFT", 0.45}};
+    problem.objectives.push_back(tracking_error);
+
+    auto maximize_return = std::make_shared<MaximizeReturnObjective>();
+    maximize_return->expected_returns = {{"AAPL", 0.10}, {"MSFT", 0.08}};
+    problem.objectives.push_back(maximize_return);
+
+    auto exposure_cap = std::make_shared<LinearInequalityConstraint>();
+    exposure_cap->coefficients = {{"AAPL", 1.0}, {"MSFT", 1.0}};
+    exposure_cap->lower_bound = 0.80;
+    exposure_cap->upper_bound = 1.00;
+    problem.constraints.push_back(exposure_cap);
+
+    auto turnover = std::make_shared<TurnoverConstraint>();
+    turnover->current_weights = {{"AAPL", 0.50}, {"MSFT", 0.50}};
+    turnover->max_turnover = 0.20;
+    problem.constraints.push_back(turnover);
+
+    return problem;
+}
+
+std::optional<std::string> test_python_executable() {
+#ifdef QRP_TEST_PYTHON_EXECUTABLE
+    return std::string(QRP_TEST_PYTHON_EXECUTABLE);
+#else
+    const char* python = std::getenv("QRP_PYTHON_EXECUTABLE");
+    if (python != nullptr && *python != '\0') {
+        return std::string(python);
+    }
+    return std::nullopt;
+#endif
+}
+
+void set_environment_variable(const char* name, const std::string& value) {
+#ifdef _MSC_VER
+    _putenv_s(name, value.c_str());
+#else
+    setenv(name, value.c_str(), 1);
+#endif
+}
+
+class TemporaryWorkerScript {
+public:
+    explicit TemporaryWorkerScript(std::string body) {
+        const auto suffix = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+        path_ = std::filesystem::current_path() / ("qrp_cvxpy_worker_test_" + std::to_string(suffix) + ".py");
+        std::ofstream script(path_);
+        script << body;
+    }
+
+    ~TemporaryWorkerScript() {
+        std::error_code ec;
+        std::filesystem::remove(path_, ec);
+    }
+
+    const std::filesystem::path& path() const { return path_; }
+
+private:
+    std::filesystem::path path_;
+};
+
+SolverConfig make_worker_config(const std::filesystem::path& worker_path, const std::string& python, const std::string& status) {
+    SolverConfig config;
+    config.custom_params["cvxpy_worker_path"] = worker_path.filename().string();
+    config.custom_params["python_executable"] = python;
+    config.solver_name = status;
+    config.tolerance = 1.0e-8;
+    config.max_iterations = 250;
+    config.time_limit_sec = 3.5;
+    return config;
 }
 
 TEST(PortfolioOptimizationTest, BuildsMeanVarianceProblemForSolver) {
@@ -176,6 +275,29 @@ TEST(CvxpyAdapterTest, SupportsValidMeanVarianceProblem) {
     EXPECT_TRUE(solver.supports(make_supported_mean_variance_problem()));
 }
 
+TEST(CvxpyAdapterTest, ReportsCapabilitiesAndName) {
+    CvxpyAdapter solver;
+
+    const auto capabilities = solver.get_capabilities();
+
+    EXPECT_EQ(solver.name(), "CVXPY+OSQP");
+    EXPECT_TRUE(capabilities.supports_quadratic_objectives);
+    EXPECT_TRUE(capabilities.supports_linear_constraints);
+    EXPECT_FALSE(capabilities.supports_integer_variables);
+}
+
+TEST(CvxpyAdapterTest, SupportsReturnOnlyProblemWithoutRiskModel) {
+    CvxpyAdapter solver;
+    OptimizationProblem problem;
+    problem.variables = {{"AAPL"}, {"MSFT"}};
+
+    auto objective = std::make_shared<MaximizeReturnObjective>();
+    objective->expected_returns = {{"AAPL", 0.10}, {"MSFT", 0.08}};
+    problem.objectives.push_back(objective);
+
+    EXPECT_TRUE(solver.supports(problem));
+}
+
 TEST(CvxpyAdapterTest, RejectsIntegerVariables) {
     CvxpyAdapter solver;
     auto problem = make_supported_mean_variance_problem();
@@ -207,6 +329,92 @@ TEST(CvxpyAdapterTest, RejectsInvalidFullCovarianceMatrix) {
     EXPECT_FALSE(solver.supports(problem));
 }
 
+TEST(CvxpyAdapterTest, RejectsInvalidProblemShapes) {
+    CvxpyAdapter solver;
+    auto problem = make_supported_mean_variance_problem();
+
+    auto invalid = problem;
+    invalid.variables.clear();
+    EXPECT_FALSE(solver.supports(invalid));
+
+    invalid = problem;
+    invalid.variables[1].id = invalid.variables[0].id;
+    EXPECT_FALSE(solver.supports(invalid));
+
+    invalid = problem;
+    invalid.variables[0].lower_bound = 2.0;
+    invalid.variables[0].upper_bound = 1.0;
+    EXPECT_FALSE(solver.supports(invalid));
+
+    invalid = problem;
+    invalid.objectives.clear();
+    EXPECT_FALSE(solver.supports(invalid));
+
+    invalid = problem;
+    invalid.scenarios.push_back({{"scenario", "not_supported"}});
+    EXPECT_FALSE(solver.supports(invalid));
+
+    invalid = problem;
+    invalid.objectives.front().reset();
+    EXPECT_FALSE(solver.supports(invalid));
+
+    invalid = problem;
+    auto mean_variance = std::dynamic_pointer_cast<MeanVarianceObjective>(invalid.objectives.front());
+    ASSERT_NE(mean_variance, nullptr);
+    mean_variance->risk_aversion = -1.0;
+    EXPECT_FALSE(solver.supports(invalid));
+
+    invalid = problem;
+    mean_variance = std::dynamic_pointer_cast<MeanVarianceObjective>(invalid.objectives.front());
+    ASSERT_NE(mean_variance, nullptr);
+    mean_variance->expected_returns.clear();
+    EXPECT_FALSE(solver.supports(invalid));
+
+    invalid = make_supported_factor_problem();
+    auto tracking_error = std::dynamic_pointer_cast<TrackingErrorObjective>(invalid.objectives.front());
+    ASSERT_NE(tracking_error, nullptr);
+    tracking_error->benchmark_weights["UNKNOWN"] = 0.1;
+    EXPECT_FALSE(solver.supports(invalid));
+
+    invalid = make_supported_factor_problem();
+    auto inequality = std::dynamic_pointer_cast<LinearInequalityConstraint>(invalid.constraints.front());
+    ASSERT_NE(inequality, nullptr);
+    inequality->lower_bound.reset();
+    inequality->upper_bound.reset();
+    EXPECT_FALSE(solver.supports(invalid));
+
+    invalid = make_supported_factor_problem();
+    inequality = std::dynamic_pointer_cast<LinearInequalityConstraint>(invalid.constraints.front());
+    ASSERT_NE(inequality, nullptr);
+    inequality->lower_bound = 1.1;
+    inequality->upper_bound = 1.0;
+    EXPECT_FALSE(solver.supports(invalid));
+
+    invalid = make_supported_factor_problem();
+    auto turnover = std::dynamic_pointer_cast<TurnoverConstraint>(invalid.constraints.back());
+    ASSERT_NE(turnover, nullptr);
+    turnover->max_turnover = -0.1;
+    EXPECT_FALSE(solver.supports(invalid));
+
+    invalid = make_supported_factor_problem();
+    auto factor = std::dynamic_pointer_cast<FactorRiskModel>(invalid.risk_model);
+    ASSERT_NE(factor, nullptr);
+    factor->exposures = {{1.0}};
+    EXPECT_FALSE(solver.supports(invalid));
+
+    invalid = make_supported_factor_problem();
+    factor = std::dynamic_pointer_cast<FactorRiskModel>(invalid.risk_model);
+    ASSERT_NE(factor, nullptr);
+    factor->specific_risk["UNKNOWN"] = 0.01;
+    EXPECT_FALSE(solver.supports(invalid));
+
+    invalid = make_supported_factor_problem();
+    factor = std::dynamic_pointer_cast<FactorRiskModel>(invalid.risk_model);
+    ASSERT_NE(factor, nullptr);
+    factor->specific_risk["AAPL"] = -0.01;
+    EXPECT_FALSE(solver.supports(invalid));
+}
+
 TEST(CvxpyAdapterTest, SupportsTrackingErrorProblem) {
     CvxpyAdapter solver;
     auto problem = make_supported_mean_variance_problem();
@@ -229,6 +437,166 @@ TEST(CvxpyAdapterTest, RejectsMinimumVarianceWithoutRiskModel) {
     EXPECT_FALSE(solver.supports(problem));
 }
 
+TEST(CvxpyAdapterTest, SolvesThroughWorkerAndMapsStatuses) {
+    const auto python = test_python_executable();
+    if (!python) {
+        GTEST_SKIP() << "Python executable was not configured for worker protocol tests.";
+    }
+
+    TemporaryWorkerScript worker(R"PY(
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as fh:
+    request = json.load(fh)
+
+status = request["config"]["solver"]
+if status == "exit_7":
+    sys.exit(7)
+if status == "bad_json":
+    with open(sys.argv[2], "w", encoding="utf-8") as fh:
+        fh.write("{not json")
+    sys.exit(0)
+if status == "missing_response":
+    sys.exit(0)
+
+response = {
+    "status": status,
+    "message": "worker status: " + status,
+    "objective_value": 1.25,
+    "optimal_values": {"AAPL": 0.4, "MSFT": 0.6},
+    "solve_time_ms": 12.5,
+}
+
+with open(sys.argv[2], "w", encoding="utf-8") as fh:
+    json.dump(response, fh)
+)PY");
+
+    CvxpyAdapter solver;
+    const auto problem = make_supported_factor_problem();
+
+    auto config = make_worker_config(worker.path(), *python, "optimal_inaccurate");
+    config.verbose = true;
+    auto result = solver.solve(problem, config);
+    EXPECT_EQ(result.status, SolverStatus::Solved);
+    EXPECT_EQ(result.message, "worker status: optimal_inaccurate");
+    EXPECT_DOUBLE_EQ(result.objective_value, 1.25);
+    EXPECT_DOUBLE_EQ(result.optimal_values.at("AAPL"), 0.4);
+    EXPECT_DOUBLE_EQ(result.solve_time_ms, 12.5);
+
+    config = make_worker_config(worker.path(), *python, "infeasible_inaccurate");
+    EXPECT_EQ(solver.solve(problem, config).status, SolverStatus::Infeasible);
+
+    config = make_worker_config(worker.path(), *python, "unbounded_inaccurate");
+    EXPECT_EQ(solver.solve(problem, config).status, SolverStatus::Unbounded);
+
+    config = make_worker_config(worker.path(), *python, "user_limit");
+    EXPECT_EQ(solver.solve(problem, config).status, SolverStatus::LimitReached);
+
+    config = make_worker_config(worker.path(), *python, "unexpected_status");
+    EXPECT_EQ(solver.solve(problem, config).status, SolverStatus::Error);
+}
+
+TEST(CvxpyAdapterTest, WorkerProtocolFailuresReturnErrors) {
+    const auto python = test_python_executable();
+    if (!python) {
+        GTEST_SKIP() << "Python executable was not configured for worker protocol tests.";
+    }
+
+    TemporaryWorkerScript worker(R"PY(
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as fh:
+    request = json.load(fh)
+
+mode = request["config"]["solver"]
+if mode == "exit_7":
+    sys.exit(7)
+if mode == "bad_json":
+    with open(sys.argv[2], "w", encoding="utf-8") as fh:
+        fh.write("{not json")
+    sys.exit(0)
+if mode == "missing_response":
+    sys.exit(0)
+)PY");
+
+    CvxpyAdapter solver;
+    const auto problem = make_supported_mean_variance_problem();
+
+    auto config = make_worker_config(worker.path(), *python, "exit_7");
+    auto result = solver.solve(problem, config);
+    EXPECT_EQ(result.status, SolverStatus::Error);
+    EXPECT_NE(result.message.find("exit code 7"), std::string::npos);
+
+    config = make_worker_config(worker.path(), *python, "bad_json");
+    result = solver.solve(problem, config);
+    EXPECT_EQ(result.status, SolverStatus::Error);
+    EXPECT_NE(result.message.find("Failed to parse JSON response"), std::string::npos);
+
+    config = make_worker_config(worker.path(), *python, "missing_response");
+    result = solver.solve(problem, config);
+    EXPECT_EQ(result.status, SolverStatus::Error);
+    EXPECT_NE(result.message.find("Failed to open response file"), std::string::npos);
+}
+
+TEST(CvxpyAdapterTest, SolvesWithWorkerAndPythonFromEnvironment) {
+    const auto python = test_python_executable();
+    if (!python) {
+        GTEST_SKIP() << "Python executable was not configured for worker protocol tests.";
+    }
+
+    TemporaryWorkerScript worker(R"PY(
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as fh:
+    request = json.load(fh)
+
+with open(sys.argv[2], "w", encoding="utf-8") as fh:
+    json.dump({
+        "status": "optimal",
+        "message": request["name"],
+        "objective_value": 0.5,
+        "optimal_values": {"AAPL": 1.0},
+    }, fh)
+)PY");
+
+    set_environment_variable("QRP_CVXPY_WORKER", worker.path().string());
+    set_environment_variable("QRP_PYTHON_EXECUTABLE", *python);
+
+    OptimizationProblem problem;
+    problem.name = "environment worker";
+    problem.variables = {{"AAPL"}};
+    auto objective = std::make_shared<MaximizeReturnObjective>();
+    objective->expected_returns = {{"AAPL", 0.10}};
+    problem.objectives.push_back(objective);
+
+    CvxpyAdapter solver;
+    const auto result = solver.solve(problem, SolverConfig{});
+
+    EXPECT_EQ(result.status, SolverStatus::Solved);
+    EXPECT_EQ(result.message, "environment worker");
+    EXPECT_DOUBLE_EQ(result.optimal_values.at("AAPL"), 1.0);
+}
+
+TEST(CvxpyAdapterTest, DiscoversWorkerAndReportsProcessStartFailure) {
+    set_environment_variable("QRP_CVXPY_WORKER", "");
+    set_environment_variable("QRP_PYTHON_EXECUTABLE", "");
+
+    SolverConfig config;
+    config.custom_params["python_executable"] = "missing python executable for qrp tests.exe";
+
+    CvxpyAdapter solver;
+    const auto result = solver.solve(make_supported_mean_variance_problem(), config);
+
+    EXPECT_EQ(result.status, SolverStatus::Error);
+    EXPECT_TRUE(
+        result.message.find("Failed to start CVXPY worker") != std::string::npos ||
+        result.message.find("exit code 127") != std::string::npos)
+        << result.message;
+}
+
 TEST(CvxpyAdapterTest, MissingWorkerPathReturnsErrorWithoutStartingPython) {
     CvxpyAdapter solver;
     auto problem = make_supported_mean_variance_problem();
@@ -241,4 +609,17 @@ TEST(CvxpyAdapterTest, MissingWorkerPathReturnsErrorWithoutStartingPython) {
 
     EXPECT_EQ(result.status, SolverStatus::Error);
     EXPECT_NE(result.message.find("CVXPY worker not found"), std::string::npos);
+}
+
+TEST(LoggerTest, InitializesSharedLoggerFromEnvironment) {
+    set_environment_variable("QRP_LOG_LEVEL", "debug");
+
+    auto logger = qrp::util::Logger::get();
+
+    ASSERT_NE(logger, nullptr);
+    EXPECT_EQ(logger->name(), "qrp");
+    EXPECT_EQ(logger->level(), spdlog::level::debug);
+
+    qrp::util::Logger::initialize();
+    EXPECT_EQ(qrp::util::Logger::get(), logger);
 }

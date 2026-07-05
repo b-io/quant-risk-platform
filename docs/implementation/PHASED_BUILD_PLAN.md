@@ -299,6 +299,56 @@ Validation standard:
   diagnostics were raised, and whether valuation, risk, and explain outputs
   passed reconciliation gates.
 
+## Phase 12: Portfolio Optimization And Recommendations
+
+Portfolio optimization should become an explainable decision workflow rather
+than a single target allocation.
+
+Deliverables:
+
+- Efficient-frontier generation under client, regulatory, liquidity, turnover,
+  product, and concentration constraints.
+- Current portfolio, benchmark, nearest feasible, and recommended portfolio
+  markers on the frontier.
+- Benchmark-relative performance, tracking-error, drawdown, and allocation-drift
+  reports.
+- Recommendation actions for rebalancing, hedging, concentration reduction,
+  unsupported-product replacement, factor-risk reduction, and return/risk
+  improvement.
+- A recommendation tree where each action produces a new feasible portfolio
+  state with cost, turnover, expected-return, risk, constraint, and diagnostic
+  impacts.
+- Persistence for optimization inputs, solver configuration, frontier points,
+  recommendation nodes, recommendation edges, and accepted actions.
+- Dashboard views that show recommendation paths on the efficient frontier and
+  explain why each action improves or worsens the constrained objective.
+
+Validation standard:
+
+- Optimization and recommendation outputs must state the objective, constraints,
+  benchmark, expected-return source, covariance source, solver configuration,
+  feasibility status, binding constraints, turnover, and residual constraint
+  violations.
+
+## Cross-Phase Dashboard Requirements
+
+Analytics dashboards should remain usable as portfolios, scenarios, and factor
+sets become dense.
+
+Requirements:
+
+- Chart titles should be visually bold and consistent across Plotly panels.
+- Dense categorical x-axis labels should wrap and, when diagonal labels are
+  needed, use a bottom-left to top-right angle consistently.
+- Charts with many rows should use bounded row-aware heights or split into
+  dedicated detail panels before labels overlap.
+- Trade-level views should preserve hierarchy where useful, especially
+  `asset_class`, `product_type`, and `trade_id`.
+- Dashboard tables should use responsive fixed layouts and soft wrapping rather
+  than horizontal scrollbars.
+- Default trade ordering should be `asset_class`, then `product_type`, then
+  `trade_id`; metric-ranked exceptions must make the ranking explicit.
+
 ## Cross-Phase Documentation Requirements
 
 Every phase should update:
