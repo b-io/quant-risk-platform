@@ -38,7 +38,10 @@ jobs:
 
       - name: Bootstrap vcpkg
         run: |
+          VCPKG_BASELINE="$(python -c 'import json; print(json.load(open("vcpkg.json", encoding="utf-8"))["builtin-baseline"])')"
           git clone --depth 1 https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
+          git -C "$VCPKG_ROOT" fetch --depth 1 origin "$VCPKG_BASELINE"
+          git -C "$VCPKG_ROOT" checkout --detach "$VCPKG_BASELINE"
           "$VCPKG_ROOT/bootstrap-vcpkg.sh"
 
       - name: Cache vcpkg artifacts

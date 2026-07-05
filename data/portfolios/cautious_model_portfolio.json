@@ -47,19 +47,19 @@
   ],
   "trades": [
     {
-      "id": "ca_usd_duration_swap_001",
-      "asset_class": "rates",
-      "type": "vanilla_swap",
+      "id": "ca_wti_spot_001",
+      "asset_class": "commodity",
+      "type": "commodity_spot",
       "currency": "USD",
-      "direction": "receive_fixed",
-      "book": "BOOK:CAUTIOUS:RATES_HEDGE",
-      "strategy": "USD_DURATION",
-      "notional": 2000000,
-      "start_date": "2026-03-26",
-      "maturity_date": "2031-03-26",
+      "direction": "long",
+      "book": "BOOK:CAUTIOUS:REAL_ASSETS",
+      "strategy": "ENERGY_REAL_ASSET",
+      "quantity": 500,
       "details": {
-        "fixed_rate": 0.0525,
-        "floating_index": "USD_LIBOR_3M"
+        "underlier": "WTI",
+        "reference_price": 76.8,
+        "quote_id": "WTI_SPOT",
+        "unit": "bbl"
       }
     },
     {
@@ -78,6 +78,20 @@
         "frequency": "Annual",
         "issuer": "ACME",
         "spread_quote_id": "ACME_BOND_SPREAD_5Y"
+      }
+    },
+    {
+      "id": "ca_aapl_equity_001",
+      "asset_class": "equity",
+      "type": "equity_spot",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:CAUTIOUS:QUALITY_EQUITY",
+      "strategy": "QUALITY_EQUITY",
+      "quantity": 150,
+      "details": {
+        "underlier": "AAPL",
+        "reference_price": 181.0
       }
     },
     {
@@ -100,33 +114,19 @@
       }
     },
     {
-      "id": "ca_wti_spot_001",
-      "asset_class": "commodity",
-      "type": "commodity_spot",
+      "id": "ca_usd_duration_swap_001",
+      "asset_class": "rates",
+      "type": "vanilla_swap",
       "currency": "USD",
-      "direction": "long",
-      "book": "BOOK:CAUTIOUS:REAL_ASSETS",
-      "strategy": "ENERGY_REAL_ASSET",
-      "quantity": 500,
+      "direction": "receive_fixed",
+      "book": "BOOK:CAUTIOUS:RATES_HEDGE",
+      "strategy": "USD_DURATION",
+      "notional": 2000000,
+      "start_date": "2026-03-26",
+      "maturity_date": "2031-03-26",
       "details": {
-        "underlier": "WTI",
-        "reference_price": 76.8,
-        "quote_id": "WTI_SPOT",
-        "unit": "bbl"
-      }
-    },
-    {
-      "id": "ca_aapl_equity_001",
-      "asset_class": "equity",
-      "type": "equity_spot",
-      "currency": "USD",
-      "direction": "long",
-      "book": "BOOK:CAUTIOUS:QUALITY_EQUITY",
-      "strategy": "QUALITY_EQUITY",
-      "quantity": 150,
-      "details": {
-        "underlier": "AAPL",
-        "reference_price": 181.0
+        "fixed_rate": 0.0525,
+        "floating_index": "USD_LIBOR_3M"
       }
     }
   ]

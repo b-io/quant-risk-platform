@@ -33,10 +33,10 @@
     ]
   },
   "trades": {
-    "bmai_aapl_equity_001": {
-      "asset_class": "equity",
-      "book": "BOOK:BALANCED_CORE:QUALITY_EQUITY",
-      "product_type": "equity_spot",
+    "bmai_wti_forward_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:BALANCED_CORE:REAL_ASSETS",
+      "product_type": "commodity_forward",
       "support_status": "supported"
     },
     "bmai_cdx_index_001": {
@@ -51,16 +51,22 @@
       "product_type": "credit_bond",
       "support_status": "supported"
     },
-    "bmai_deposit_001": {
-      "asset_class": "rates",
-      "book": "BOOK:BALANCED_CORE:LIQUIDITY",
-      "product_type": "deposit",
+    "bmai_aapl_equity_001": {
+      "asset_class": "equity",
+      "book": "BOOK:BALANCED_CORE:QUALITY_EQUITY",
+      "product_type": "equity_spot",
       "support_status": "supported"
     },
     "bmai_eurusd_hedge_001": {
       "asset_class": "fx",
       "book": "BOOK:BALANCED_CORE:FX_HEDGE",
       "product_type": "fx_forward",
+      "support_status": "supported"
+    },
+    "bmai_deposit_001": {
+      "asset_class": "rates",
+      "book": "BOOK:BALANCED_CORE:LIQUIDITY",
+      "product_type": "deposit",
       "support_status": "supported"
     },
     "bmai_fixed_bond_001": {
@@ -73,12 +79,6 @@
       "asset_class": "rates",
       "book": "BOOK:BALANCED_CORE:CORE_INCOME",
       "product_type": "floating_rate_note",
-      "support_status": "supported"
-    },
-    "bmai_wti_forward_001": {
-      "asset_class": "commodity",
-      "book": "BOOK:BALANCED_CORE:REAL_ASSETS",
-      "product_type": "commodity_forward",
       "support_status": "supported"
     }
   }

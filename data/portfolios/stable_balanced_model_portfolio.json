@@ -54,36 +54,21 @@
   ],
   "trades": [
     {
-      "id": "sb_usd_ois_001",
-      "asset_class": "rates",
-      "type": "ois_swap",
-      "currency": "USD",
-      "direction": "receive_fixed",
-      "book": "BOOK:STABLE_BALANCED:RATES_HEDGE",
-      "strategy": "USD_OIS_HEDGE",
-      "notional": 2000000,
-      "start_date": "2026-03-26",
-      "maturity_date": "2031-03-26",
-      "details": {
-        "fixed_rate": 0.052,
-        "overnight_index": "SOFR",
-        "spread": 0.0
-      }
-    },
-    {
-      "id": "sb_usd_bond_001",
-      "asset_class": "rates",
-      "type": "fixed_rate_bond",
+      "id": "sb_wti_forward_001",
+      "asset_class": "commodity",
+      "type": "commodity_forward",
       "currency": "USD",
       "direction": "long",
-      "book": "BOOK:STABLE_BALANCED:CORE_INCOME",
-      "strategy": "USD_CORE_BONDS",
-      "notional": 1500000,
-      "start_date": "2026-03-26",
-      "maturity_date": "2031-03-26",
+      "book": "BOOK:STABLE_BALANCED:REAL_ASSETS",
+      "strategy": "WTI_FORWARD",
+      "quantity": 700,
+      "maturity_date": "2026-09-24",
       "details": {
-        "coupon_rate": 0.055,
-        "frequency": "Annual"
+        "underlier": "WTI",
+        "contract_price": 78.1,
+        "forward_quote_id": "WTI_FUT_6M",
+        "tenor": "6M",
+        "unit": "bbl"
       }
     },
     {
@@ -104,6 +89,24 @@
         "index_name": "CDX_IG",
         "recovery_quote_id": "CDX_IG_RECOVERY",
         "spread_quote_id": "CDX_IG_5Y"
+      }
+    },
+    {
+      "id": "sb_spx_future_001",
+      "asset_class": "equity",
+      "type": "equity_future",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:STABLE_BALANCED:EQUITY_BETA",
+      "strategy": "SPX_BETA",
+      "quantity": 1,
+      "maturity_date": "2026-09-24",
+      "details": {
+        "underlier": "SPX",
+        "contract_size": 50,
+        "reference_price": 5350.0,
+        "future_quote_id": "ES_FUT_6M",
+        "spot_quote_id": "SPX"
       }
     },
     {
@@ -128,39 +131,36 @@
       }
     },
     {
-      "id": "sb_wti_forward_001",
-      "asset_class": "commodity",
-      "type": "commodity_forward",
+      "id": "sb_usd_bond_001",
+      "asset_class": "rates",
+      "type": "fixed_rate_bond",
       "currency": "USD",
       "direction": "long",
-      "book": "BOOK:STABLE_BALANCED:REAL_ASSETS",
-      "strategy": "WTI_FORWARD",
-      "quantity": 700,
-      "maturity_date": "2026-09-24",
+      "book": "BOOK:STABLE_BALANCED:CORE_INCOME",
+      "strategy": "USD_CORE_BONDS",
+      "notional": 1500000,
+      "start_date": "2026-03-26",
+      "maturity_date": "2031-03-26",
       "details": {
-        "underlier": "WTI",
-        "contract_price": 78.1,
-        "forward_quote_id": "WTI_FUT_6M",
-        "tenor": "6M",
-        "unit": "bbl"
+        "coupon_rate": 0.055,
+        "frequency": "Annual"
       }
     },
     {
-      "id": "sb_spx_future_001",
-      "asset_class": "equity",
-      "type": "equity_future",
+      "id": "sb_usd_ois_001",
+      "asset_class": "rates",
+      "type": "ois_swap",
       "currency": "USD",
-      "direction": "long",
-      "book": "BOOK:STABLE_BALANCED:EQUITY_BETA",
-      "strategy": "SPX_BETA",
-      "quantity": 1,
-      "maturity_date": "2026-09-24",
+      "direction": "receive_fixed",
+      "book": "BOOK:STABLE_BALANCED:RATES_HEDGE",
+      "strategy": "USD_OIS_HEDGE",
+      "notional": 2000000,
+      "start_date": "2026-03-26",
+      "maturity_date": "2031-03-26",
       "details": {
-        "underlier": "SPX",
-        "contract_size": 50,
-        "reference_price": 5350.0,
-        "future_quote_id": "ES_FUT_6M",
-        "spot_quote_id": "SPX"
+        "fixed_rate": 0.052,
+        "overnight_index": "SOFR",
+        "spread": 0.0
       }
     }
   ]

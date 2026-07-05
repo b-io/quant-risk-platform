@@ -182,6 +182,66 @@ def trade_id_sort_key(trade_id, sort_map):
     return sort_map.get(trade_id, trade_sort_tuple("", "", trade_id))
 
 
+def trade_expectation_sort_key(trade_id, expectation, default_asset_class=""):
+    return trade_sort_tuple(
+        expectation.get("asset_class", default_asset_class),
+        expectation.get("product_type", ""),
+        trade_id,
+    )
+
+
+def ordered_trade_expectations(trades, default_asset_class=""):
+    return {
+        trade_id: trades[trade_id]
+        for trade_id in sorted(
+            trades,
+            key=lambda item: trade_expectation_sort_key(
+                item, trades[item], default_asset_class
+            ),
+        )
+    }
+
+
+def canonicalize_golden_order(golden):
+    valuation_trades = golden.get("valuation", {}).get("trades", {})
+    if not valuation_trades:
+        return golden
+
+    ordered_valuation = ordered_trade_expectations(valuation_trades)
+    golden["valuation"]["trades"] = ordered_valuation
+    sort_map = {
+        trade_id: trade_expectation_sort_key(trade_id, expectation)
+        for trade_id, expectation in ordered_valuation.items()
+    }
+
+    for section_name in ("risk", "pnl_explain"):
+        section = golden.get(section_name, {})
+        tolerance = section.get("tolerance")
+        ordered_section = {
+            trade_id: section[trade_id]
+            for trade_id in sorted(
+                (key for key in section if key != "tolerance"),
+                key=lambda item: sort_map.get(item, trade_sort_tuple("", "", item)),
+            )
+        }
+        if tolerance is not None:
+            ordered_section["tolerance"] = tolerance
+        golden[section_name] = ordered_section
+
+    for scenario_name, scenario in golden.get("stress", {}).items():
+        if scenario_name == "tolerance" or "trade_pnls" not in scenario:
+            continue
+        trade_pnls = scenario["trade_pnls"]
+        scenario["trade_pnls"] = {
+            trade_id: trade_pnls[trade_id]
+            for trade_id in sorted(
+                trade_pnls,
+                key=lambda item: sort_map.get(item, trade_sort_tuple("", "", item)),
+            )
+        }
+    return golden
+
+
 QUOTE_INSTRUMENT_CATEGORY = {
     # Commodity
     "CommodityForward": "Commodity",
@@ -266,7 +326,7 @@ def enum_name(value):
 
 def load_golden_expectations(path):
     with open(path, "r", encoding="utf-8") as handle:
-        return json.load(handle)
+        return canonicalize_golden_order(json.load(handle))
 
 
 def load_product_family_expectations(path):
@@ -274,11 +334,19 @@ def load_product_family_expectations(path):
     for fixture_path in sorted(path.glob("*_golden.json")):
         with open(fixture_path, "r", encoding="utf-8") as handle:
             fixture = json.load(handle)
+        fixture["trades"] = ordered_trade_expectations(
+            fixture["trades"], fixture.get("asset_class", "")
+        )
         fixture["fixture_path"] = str(fixture_path)
         fixtures.append(fixture)
     if not fixtures:
         raise ValueError(f"No product-family golden fixtures found in {path}")
-    return fixtures
+    return sorted(
+        fixtures,
+        key=lambda item: trade_sort_tuple(
+            item.get("asset_class", ""), "", Path(item["fixture_path"]).name
+        ),
+    )
 
 
 def quote_values(market):

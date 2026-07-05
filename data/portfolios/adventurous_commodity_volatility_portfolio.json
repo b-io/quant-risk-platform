@@ -43,18 +43,23 @@
   ],
   "trades": [
     {
-      "id": "acv_wti_spot_001",
+      "id": "acv_wti_calendar_001",
       "asset_class": "commodity",
-      "type": "commodity_spot",
+      "type": "commodity_calendar_spread_option",
       "currency": "USD",
       "direction": "long",
-      "book": "BOOK:ADVENTUROUS:COMMODITY_DELTA",
-      "strategy": "WTI_SPOT",
-      "quantity": 1000,
+      "book": "BOOK:ADVENTUROUS:COMMODITY_VOLATILITY",
+      "strategy": "WTI_CALENDAR_VOL",
+      "quantity": 2,
       "details": {
         "underlier": "WTI",
-        "reference_price": 77.0,
-        "quote_id": "WTI_SPOT",
+        "contract_size": 1000,
+        "strike_spread": 0.5,
+        "expiry_date": "2026-09-24",
+        "near_future_quote_id": "WTI_FUT_6M",
+        "far_future_quote_id": "WTI_FUT_9M",
+        "volatility_quote_id": "WTI_VOL_6M_ATM",
+        "option_type": "call",
         "unit": "bbl"
       }
     },
@@ -96,6 +101,27 @@
       }
     },
     {
+      "id": "acv_wti_option_001",
+      "asset_class": "commodity",
+      "type": "commodity_future_option",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:ADVENTUROUS:COMMODITY_VOLATILITY",
+      "strategy": "WTI_UPSIDE",
+      "quantity": 2,
+      "maturity_date": "2026-09-24",
+      "details": {
+        "underlier": "WTI",
+        "contract_size": 1000,
+        "strike_price": 80.0,
+        "expiry_date": "2026-09-24",
+        "future_quote_id": "WTI_FUT_6M",
+        "volatility_quote_id": "WTI_VOL_6M_ATM",
+        "option_type": "call",
+        "unit": "bbl"
+      }
+    },
+    {
       "id": "acv_wti_strip_001",
       "asset_class": "commodity",
       "type": "commodity_future_strip",
@@ -122,44 +148,18 @@
       }
     },
     {
-      "id": "acv_wti_option_001",
+      "id": "acv_wti_spot_001",
       "asset_class": "commodity",
-      "type": "commodity_future_option",
+      "type": "commodity_spot",
       "currency": "USD",
       "direction": "long",
-      "book": "BOOK:ADVENTUROUS:COMMODITY_VOLATILITY",
-      "strategy": "WTI_UPSIDE",
-      "quantity": 2,
-      "maturity_date": "2026-09-24",
+      "book": "BOOK:ADVENTUROUS:COMMODITY_DELTA",
+      "strategy": "WTI_SPOT",
+      "quantity": 1000,
       "details": {
         "underlier": "WTI",
-        "contract_size": 1000,
-        "strike_price": 80.0,
-        "expiry_date": "2026-09-24",
-        "future_quote_id": "WTI_FUT_6M",
-        "volatility_quote_id": "WTI_VOL_6M_ATM",
-        "option_type": "call",
-        "unit": "bbl"
-      }
-    },
-    {
-      "id": "acv_wti_calendar_001",
-      "asset_class": "commodity",
-      "type": "commodity_calendar_spread_option",
-      "currency": "USD",
-      "direction": "long",
-      "book": "BOOK:ADVENTUROUS:COMMODITY_VOLATILITY",
-      "strategy": "WTI_CALENDAR_VOL",
-      "quantity": 2,
-      "details": {
-        "underlier": "WTI",
-        "contract_size": 1000,
-        "strike_spread": 0.5,
-        "expiry_date": "2026-09-24",
-        "near_future_quote_id": "WTI_FUT_6M",
-        "far_future_quote_id": "WTI_FUT_9M",
-        "volatility_quote_id": "WTI_VOL_6M_ATM",
-        "option_type": "call",
+        "reference_price": 77.0,
+        "quote_id": "WTI_SPOT",
         "unit": "bbl"
       }
     },

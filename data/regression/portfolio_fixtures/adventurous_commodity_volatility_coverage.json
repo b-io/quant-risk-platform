@@ -26,12 +26,6 @@
     ]
   },
   "trades": {
-    "acv_ttf_swing_001": {
-      "asset_class": "commodity",
-      "book": "BOOK:ADVENTUROUS:COMMODITY_FLEXIBILITY",
-      "product_type": "commodity_swing",
-      "support_status": "partially_supported"
-    },
     "acv_wti_calendar_001": {
       "asset_class": "commodity",
       "book": "BOOK:ADVENTUROUS:COMMODITY_VOLATILITY",
@@ -56,17 +50,23 @@
       "product_type": "commodity_future_option",
       "support_status": "supported"
     },
+    "acv_wti_strip_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:ADVENTUROUS:COMMODITY_CURVE",
+      "product_type": "commodity_future_strip",
+      "support_status": "supported"
+    },
     "acv_wti_spot_001": {
       "asset_class": "commodity",
       "book": "BOOK:ADVENTUROUS:COMMODITY_DELTA",
       "product_type": "commodity_spot",
       "support_status": "supported"
     },
-    "acv_wti_strip_001": {
+    "acv_ttf_swing_001": {
       "asset_class": "commodity",
-      "book": "BOOK:ADVENTUROUS:COMMODITY_CURVE",
-      "product_type": "commodity_future_strip",
-      "support_status": "supported"
+      "book": "BOOK:ADVENTUROUS:COMMODITY_FLEXIBILITY",
+      "product_type": "commodity_swing",
+      "support_status": "partially_supported"
     }
   }
 }

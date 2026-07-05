@@ -40,38 +40,6 @@
   ],
   "trades": [
     {
-      "id": "cp_usd_deposit_001",
-      "asset_class": "rates",
-      "type": "deposit",
-      "currency": "USD",
-      "direction": "lend",
-      "book": "BOOK:CASH_PLUS:CASH",
-      "strategy": "CASH_LIQUIDITY",
-      "notional": 4000000,
-      "start_date": "2026-03-26",
-      "maturity_date": "2026-06-26",
-      "details": {
-        "deposit_rate": 0.052
-      }
-    },
-    {
-      "id": "cp_usd_frn_001",
-      "asset_class": "rates",
-      "type": "floating_rate_note",
-      "currency": "USD",
-      "direction": "long",
-      "book": "BOOK:CASH_PLUS:SHORT_DURATION_INCOME",
-      "strategy": "FLOATING_RATE_INCOME",
-      "notional": 1500000,
-      "start_date": "2026-03-26",
-      "maturity_date": "2029-03-26",
-      "details": {
-        "floating_index": "USD_LIBOR_3M",
-        "frequency": "Quarterly",
-        "spread": 0.0008
-      }
-    },
-    {
       "id": "cp_aapl_overlay_001",
       "asset_class": "equity",
       "type": "equity_spot",
@@ -102,6 +70,38 @@
         "forward_rate": 1.101,
         "spot_quote_id": "EURUSD",
         "forward_points_quote_id": "EURUSD_FWDPTS_6M"
+      }
+    },
+    {
+      "id": "cp_usd_deposit_001",
+      "asset_class": "rates",
+      "type": "deposit",
+      "currency": "USD",
+      "direction": "lend",
+      "book": "BOOK:CASH_PLUS:CASH",
+      "strategy": "CASH_LIQUIDITY",
+      "notional": 4000000,
+      "start_date": "2026-03-26",
+      "maturity_date": "2026-06-26",
+      "details": {
+        "deposit_rate": 0.052
+      }
+    },
+    {
+      "id": "cp_usd_frn_001",
+      "asset_class": "rates",
+      "type": "floating_rate_note",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:CASH_PLUS:SHORT_DURATION_INCOME",
+      "strategy": "FLOATING_RATE_INCOME",
+      "notional": 1500000,
+      "start_date": "2026-03-26",
+      "maturity_date": "2029-03-26",
+      "details": {
+        "floating_index": "USD_LIBOR_3M",
+        "frequency": "Quarterly",
+        "spread": 0.0008
       }
     }
   ]

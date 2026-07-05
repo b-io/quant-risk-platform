@@ -26,16 +26,22 @@
     ]
   },
   "trades": {
-    "ca_aapl_equity_001": {
-      "asset_class": "equity",
-      "book": "BOOK:CAUTIOUS:QUALITY_EQUITY",
-      "product_type": "equity_spot",
+    "ca_wti_spot_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:CAUTIOUS:REAL_ASSETS",
+      "product_type": "commodity_spot",
       "support_status": "supported"
     },
     "ca_acme_credit_bond_001": {
       "asset_class": "credit",
       "book": "BOOK:CAUTIOUS:CREDIT_INCOME",
       "product_type": "credit_bond",
+      "support_status": "supported"
+    },
+    "ca_aapl_equity_001": {
+      "asset_class": "equity",
+      "book": "BOOK:CAUTIOUS:QUALITY_EQUITY",
+      "product_type": "equity_spot",
       "support_status": "supported"
     },
     "ca_eurusd_forward_001": {
@@ -48,12 +54,6 @@
       "asset_class": "rates",
       "book": "BOOK:CAUTIOUS:RATES_HEDGE",
       "product_type": "vanilla_swap",
-      "support_status": "supported"
-    },
-    "ca_wti_spot_001": {
-      "asset_class": "commodity",
-      "book": "BOOK:CAUTIOUS:REAL_ASSETS",
-      "product_type": "commodity_spot",
       "support_status": "supported"
     }
   }

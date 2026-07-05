@@ -37,22 +37,10 @@
     ]
   },
   "trades": {
-    "ad_aapl_american_put_001": {
-      "asset_class": "equity",
-      "book": "BOOK:ADVENTUROUS:EQUITY_VOLATILITY",
-      "product_type": "equity_option",
-      "support_status": "supported"
-    },
-    "ad_acme_cds_option_001": {
-      "asset_class": "credit",
-      "book": "BOOK:ADVENTUROUS:CREDIT_VOLATILITY",
-      "product_type": "cds_option",
-      "support_status": "supported"
-    },
-    "ad_eurusd_ndf_001": {
-      "asset_class": "fx",
-      "book": "BOOK:ADVENTUROUS:FX_RELATIVE_VALUE",
-      "product_type": "ndf",
+    "ad_wti_option_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:ADVENTUROUS:COMMODITY_VOLATILITY",
+      "product_type": "commodity_future_option",
       "support_status": "supported"
     },
     "ad_ttf_swing_001": {
@@ -61,16 +49,28 @@
       "product_type": "commodity_swing",
       "support_status": "partially_supported"
     },
+    "ad_acme_cds_option_001": {
+      "asset_class": "credit",
+      "book": "BOOK:ADVENTUROUS:CREDIT_VOLATILITY",
+      "product_type": "cds_option",
+      "support_status": "supported"
+    },
+    "ad_aapl_american_put_001": {
+      "asset_class": "equity",
+      "book": "BOOK:ADVENTUROUS:EQUITY_VOLATILITY",
+      "product_type": "equity_option",
+      "support_status": "supported"
+    },
+    "ad_eurusd_ndf_001": {
+      "asset_class": "fx",
+      "book": "BOOK:ADVENTUROUS:FX_RELATIVE_VALUE",
+      "product_type": "ndf",
+      "support_status": "supported"
+    },
     "ad_usd_fra_001": {
       "asset_class": "rates",
       "book": "BOOK:ADVENTUROUS:RATES_RELATIVE_VALUE",
       "product_type": "fra",
-      "support_status": "supported"
-    },
-    "ad_wti_option_001": {
-      "asset_class": "commodity",
-      "book": "BOOK:ADVENTUROUS:COMMODITY_VOLATILITY",
-      "product_type": "commodity_future_option",
       "support_status": "supported"
     }
   }

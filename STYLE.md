@@ -136,21 +136,17 @@ public:
 
 ## Ordering
 
-Default to alphanumerical ordering for lists of independent items. Use a
-business or dependency order only when the order itself carries domain meaning,
-or when registration/construction requires it, and make that reason clear from
-section names or nearby code.
+Default to alphanumerical ordering for independent neutral sets. When items have
+a natural hierarchy, sort from the broadest stable layer to the most specific
+identifier, with each layer ordered alphanumerically. For example, trade-like
+items sort by `asset_class`, then `product_type`, then `trade_id`; portfolio
+asset-like items sort by `asset_class`, then asset identifier. Apply the same
+principle to code declarations, fixtures, generated artifacts, reports,
+dashboards, and console output.
 
-Use alphanumerical ordering for common neutral sets:
-
-- Include files within a group.
-- Enum values.
-- Binding groups, `m.def(...)` entries, enum `.value(...)` entries, and
-  independent DTO fields in Python bindings.
-- Test helper declarations.
-- Report and dashboard trade rows, unless the view is explicitly ranked by a
-  metric. The default trade row key is `asset_class`, then `product_type`, then
-  `trade_id`, all alphanumerical.
+Common neutral sets include include files within a group, enum values, binding
+groups, `m.def(...)` entries, enum `.value(...)` entries, independent DTO fields
+in Python bindings, and test helper declarations.
 
 Use business ordering only when it reads better and has domain meaning:
 

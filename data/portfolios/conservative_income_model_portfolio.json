@@ -47,19 +47,22 @@
   ],
   "trades": [
     {
-      "id": "ci_usd_core_bond_001",
-      "asset_class": "rates",
-      "type": "fixed_rate_bond",
+      "id": "ci_acme_cds_hedge_001",
+      "asset_class": "credit",
+      "type": "cds",
       "currency": "USD",
-      "direction": "long",
-      "book": "BOOK:CONSERVATIVE_INCOME:CORE_INCOME",
-      "strategy": "USD_CORE_BONDS",
-      "notional": 2000000,
-      "start_date": "2026-03-26",
-      "maturity_date": "2031-03-26",
+      "direction": "buy_protection",
+      "book": "BOOK:CONSERVATIVE_INCOME:CREDIT_HEDGE",
+      "strategy": "CREDIT_PROTECTION",
+      "notional": 1000000,
+      "start_date": "2026-03-24",
+      "maturity_date": "2031-03-24",
       "details": {
-        "coupon_rate": 0.0545,
-        "frequency": "Annual"
+        "coupon_rate": 0.01,
+        "frequency": "Quarterly",
+        "issuer": "ACME",
+        "recovery_quote_id": "ACME_RECOVERY",
+        "spread_quote_id": "ACME_CDS_5Y"
       }
     },
     {
@@ -78,25 +81,6 @@
         "frequency": "Annual",
         "issuer": "ACME",
         "spread_quote_id": "ACME_BOND_SPREAD_5Y"
-      }
-    },
-    {
-      "id": "ci_acme_cds_hedge_001",
-      "asset_class": "credit",
-      "type": "cds",
-      "currency": "USD",
-      "direction": "buy_protection",
-      "book": "BOOK:CONSERVATIVE_INCOME:CREDIT_HEDGE",
-      "strategy": "CREDIT_PROTECTION",
-      "notional": 1000000,
-      "start_date": "2026-03-24",
-      "maturity_date": "2031-03-24",
-      "details": {
-        "coupon_rate": 0.01,
-        "frequency": "Quarterly",
-        "issuer": "ACME",
-        "recovery_quote_id": "ACME_RECOVERY",
-        "spread_quote_id": "ACME_CDS_5Y"
       }
     },
     {
@@ -130,6 +114,22 @@
         "forward_rate": 1.102,
         "spot_quote_id": "EURUSD",
         "forward_points_quote_id": "EURUSD_FWDPTS_6M"
+      }
+    },
+    {
+      "id": "ci_usd_core_bond_001",
+      "asset_class": "rates",
+      "type": "fixed_rate_bond",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:CONSERVATIVE_INCOME:CORE_INCOME",
+      "strategy": "USD_CORE_BONDS",
+      "notional": 2000000,
+      "start_date": "2026-03-26",
+      "maturity_date": "2031-03-26",
+      "details": {
+        "coupon_rate": 0.0545,
+        "frequency": "Annual"
       }
     }
   ]

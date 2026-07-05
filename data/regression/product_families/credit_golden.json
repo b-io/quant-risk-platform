@@ -46,6 +46,43 @@
         "npv": 40619.05
       }
     },
+    "demo_cdx_index_001": {
+      "pnl_explain": {
+        "carry_pnl": 2.46,
+        "cash_pnl": 0.0,
+        "market_move_pnl": -19.89,
+        "residual_pnl": 0.0,
+        "total_pnl": -17.43
+      },
+      "product_type": "cds_index",
+      "risk": {
+        "bucketed_risk": {
+          "2Y": -1.21,
+          "5Y": 1637.25
+        },
+        "cs01": 1639.72,
+        "fx_delta": -0.0,
+        "fx_vega": -0.0,
+        "pv01": -4.0
+      },
+      "stress": {
+        "CREDIT_RECESSION": 72746.25,
+        "CROSS_ASSET_REPRICING": -201.42,
+        "GLOBAL_RISK_OFF": 119.62,
+        "GLOBAL_RISK_ON": -134.78,
+        "USD_CURVE_BEAR_FLATTENER": -117.15,
+        "USD_CURVE_BEAR_STEEPENER": -128.46,
+        "USD_CURVE_BULL_STEEPENER": 118.75,
+        "USD_FUNDING_STRESS": -174.21,
+        "USD_LIBOR_OIS_WIDENING": 24.79,
+        "USD_RATES_PARALLEL_DOWN_100BP": 346.02,
+        "USD_RATES_PARALLEL_UP_100BP": -333.2
+      },
+      "support_status": "supported",
+      "valuation": {
+        "npv": 16746.98
+      }
+    },
     "demo_acme_cds_option_001": {
       "pnl_explain": {
         "carry_pnl": 1.28,
@@ -121,43 +158,6 @@
       "support_status": "supported",
       "valuation": {
         "npv": 1410637.57
-      }
-    },
-    "demo_cdx_index_001": {
-      "pnl_explain": {
-        "carry_pnl": 2.46,
-        "cash_pnl": 0.0,
-        "market_move_pnl": -19.89,
-        "residual_pnl": 0.0,
-        "total_pnl": -17.43
-      },
-      "product_type": "cds_index",
-      "risk": {
-        "bucketed_risk": {
-          "2Y": -1.21,
-          "5Y": 1637.25
-        },
-        "cs01": 1639.72,
-        "fx_delta": -0.0,
-        "fx_vega": -0.0,
-        "pv01": -4.0
-      },
-      "stress": {
-        "CREDIT_RECESSION": 72746.25,
-        "CROSS_ASSET_REPRICING": -201.42,
-        "GLOBAL_RISK_OFF": 119.62,
-        "GLOBAL_RISK_ON": -134.78,
-        "USD_CURVE_BEAR_FLATTENER": -117.15,
-        "USD_CURVE_BEAR_STEEPENER": -128.46,
-        "USD_CURVE_BULL_STEEPENER": 118.75,
-        "USD_FUNDING_STRESS": -174.21,
-        "USD_LIBOR_OIS_WIDENING": 24.79,
-        "USD_RATES_PARALLEL_DOWN_100BP": 346.02,
-        "USD_RATES_PARALLEL_UP_100BP": -333.2
-      },
-      "support_status": "supported",
-      "valuation": {
-        "npv": 16746.98
       }
     },
     "demo_cdx_index_option_001": {

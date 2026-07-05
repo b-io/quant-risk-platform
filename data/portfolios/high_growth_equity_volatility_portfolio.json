@@ -36,20 +36,6 @@
   ],
   "trades": [
     {
-      "id": "hgev_aapl_spot_001",
-      "asset_class": "equity",
-      "type": "equity_spot",
-      "currency": "USD",
-      "direction": "long",
-      "book": "BOOK:HIGH_GROWTH:EQUITY_DELTA",
-      "strategy": "AAPL_DELTA",
-      "quantity": 300,
-      "details": {
-        "underlier": "AAPL",
-        "reference_price": 180.0
-      }
-    },
-    {
       "id": "hgev_aapl_forward_001",
       "asset_class": "equity",
       "type": "equity_forward",
@@ -83,6 +69,28 @@
         "reference_price": 5350.0,
         "future_quote_id": "ES_FUT_6M",
         "spot_quote_id": "SPX"
+      }
+    },
+    {
+      "id": "hgev_aapl_american_put_001",
+      "asset_class": "equity",
+      "type": "equity_option",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:HIGH_GROWTH:EQUITY_VOLATILITY",
+      "strategy": "AAPL_AMERICAN_PUT",
+      "quantity": 250,
+      "details": {
+        "underlier": "AAPL",
+        "strike_price": 190.0,
+        "expiry_date": "2026-09-24",
+        "settlement_date": "2026-09-24",
+        "spot_quote_id": "AAPL",
+        "dividend_yield_quote_id": "AAPL_DIVYLD_1Y",
+        "borrow_rate_quote_id": "AAPL_BORROW_1Y",
+        "volatility_quote_id": "AAPL_VOL_6M_ATM",
+        "exercise_style": "american",
+        "option_type": "put"
       }
     },
     {
@@ -130,25 +138,17 @@
       }
     },
     {
-      "id": "hgev_aapl_american_put_001",
+      "id": "hgev_aapl_spot_001",
       "asset_class": "equity",
-      "type": "equity_option",
+      "type": "equity_spot",
       "currency": "USD",
       "direction": "long",
-      "book": "BOOK:HIGH_GROWTH:EQUITY_VOLATILITY",
-      "strategy": "AAPL_AMERICAN_PUT",
-      "quantity": 250,
+      "book": "BOOK:HIGH_GROWTH:EQUITY_DELTA",
+      "strategy": "AAPL_DELTA",
+      "quantity": 300,
       "details": {
         "underlier": "AAPL",
-        "strike_price": 190.0,
-        "expiry_date": "2026-09-24",
-        "settlement_date": "2026-09-24",
-        "spot_quote_id": "AAPL",
-        "dividend_yield_quote_id": "AAPL_DIVYLD_1Y",
-        "borrow_rate_quote_id": "AAPL_BORROW_1Y",
-        "volatility_quote_id": "AAPL_VOL_6M_ATM",
-        "exercise_style": "american",
-        "option_type": "put"
+        "reference_price": 180.0
       }
     }
   ]

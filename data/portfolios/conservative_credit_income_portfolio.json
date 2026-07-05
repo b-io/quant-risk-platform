@@ -41,24 +41,6 @@
   ],
   "trades": [
     {
-      "id": "cci_acme_credit_bond_001",
-      "asset_class": "credit",
-      "type": "credit_bond",
-      "currency": "USD",
-      "direction": "long",
-      "book": "BOOK:CONSERVATIVE_INCOME:CREDIT_INCOME",
-      "strategy": "INVESTMENT_GRADE_CREDIT",
-      "notional": 2000000,
-      "start_date": "2026-03-24",
-      "maturity_date": "2031-03-24",
-      "details": {
-        "coupon_rate": 0.055,
-        "frequency": "Annual",
-        "issuer": "ACME",
-        "spread_quote_id": "ACME_BOND_SPREAD_5Y"
-      }
-    },
-    {
       "id": "cci_acme_cds_001",
       "asset_class": "credit",
       "type": "cds",
@@ -116,6 +98,24 @@
         "recovery_quote_id": "ACME_RECOVERY",
         "spread_quote_id": "ACME_CDS_5Y",
         "volatility_quote_id": "ACME_CDS_OPTION_VOL_1Y_5Y"
+      }
+    },
+    {
+      "id": "cci_acme_credit_bond_001",
+      "asset_class": "credit",
+      "type": "credit_bond",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:CONSERVATIVE_INCOME:CREDIT_INCOME",
+      "strategy": "INVESTMENT_GRADE_CREDIT",
+      "notional": 2000000,
+      "start_date": "2026-03-24",
+      "maturity_date": "2031-03-24",
+      "details": {
+        "coupon_rate": 0.055,
+        "frequency": "Annual",
+        "issuer": "ACME",
+        "spread_quote_id": "ACME_BOND_SPREAD_5Y"
       }
     },
     {

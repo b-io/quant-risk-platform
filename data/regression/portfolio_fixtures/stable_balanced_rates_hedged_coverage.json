@@ -61,16 +61,16 @@
       "product_type": "fixed_rate_bond",
       "support_status": "supported"
     },
-    "sbrh_fra_001": {
-      "asset_class": "rates",
-      "book": "BOOK:STABLE_BALANCED:RATES_RELATIVE_VALUE",
-      "product_type": "fra",
-      "support_status": "supported"
-    },
     "sbrh_frn_001": {
       "asset_class": "rates",
       "book": "BOOK:STABLE_BALANCED:RATES_INCOME",
       "product_type": "floating_rate_note",
+      "support_status": "supported"
+    },
+    "sbrh_fra_001": {
+      "asset_class": "rates",
+      "book": "BOOK:STABLE_BALANCED:RATES_RELATIVE_VALUE",
+      "product_type": "fra",
       "support_status": "supported"
     },
     "sbrh_ir_future_001": {

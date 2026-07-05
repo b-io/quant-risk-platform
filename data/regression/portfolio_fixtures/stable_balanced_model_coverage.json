@@ -29,22 +29,28 @@
     ]
   },
   "trades": {
+    "sb_wti_forward_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:STABLE_BALANCED:REAL_ASSETS",
+      "product_type": "commodity_forward",
+      "support_status": "supported"
+    },
     "sb_cdx_index_001": {
       "asset_class": "credit",
       "book": "BOOK:STABLE_BALANCED:CREDIT_BETA",
       "product_type": "cds_index",
       "support_status": "supported"
     },
-    "sb_eurusd_swap_001": {
-      "asset_class": "fx",
-      "book": "BOOK:STABLE_BALANCED:FX_HEDGE",
-      "product_type": "fx_swap",
-      "support_status": "supported"
-    },
     "sb_spx_future_001": {
       "asset_class": "equity",
       "book": "BOOK:STABLE_BALANCED:EQUITY_BETA",
       "product_type": "equity_future",
+      "support_status": "supported"
+    },
+    "sb_eurusd_swap_001": {
+      "asset_class": "fx",
+      "book": "BOOK:STABLE_BALANCED:FX_HEDGE",
+      "product_type": "fx_swap",
       "support_status": "supported"
     },
     "sb_usd_bond_001": {
@@ -57,12 +63,6 @@
       "asset_class": "rates",
       "book": "BOOK:STABLE_BALANCED:RATES_HEDGE",
       "product_type": "ois_swap",
-      "support_status": "supported"
-    },
-    "sb_wti_forward_001": {
-      "asset_class": "commodity",
-      "book": "BOOK:STABLE_BALANCED:REAL_ASSETS",
-      "product_type": "commodity_forward",
       "support_status": "supported"
     }
   }

@@ -30,12 +30,6 @@
       "product_type": "fx_forward",
       "support_status": "supported"
     },
-    "cfx_eurusd_ndf_001": {
-      "asset_class": "fx",
-      "book": "BOOK:CAUTIOUS:FX_RELATIVE_VALUE",
-      "product_type": "ndf",
-      "support_status": "supported"
-    },
     "cfx_eurusd_option_001": {
       "asset_class": "fx",
       "book": "BOOK:CAUTIOUS:FX_VOLATILITY",
@@ -52,6 +46,12 @@
       "asset_class": "fx",
       "book": "BOOK:CAUTIOUS:FX_CARRY",
       "product_type": "fx_swap",
+      "support_status": "supported"
+    },
+    "cfx_eurusd_ndf_001": {
+      "asset_class": "fx",
+      "book": "BOOK:CAUTIOUS:FX_RELATIVE_VALUE",
+      "product_type": "ndf",
       "support_status": "supported"
     }
   }

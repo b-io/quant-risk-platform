@@ -41,22 +41,6 @@
   ],
   "trades": [
     {
-      "id": "cfx_eurusd_spot_001",
-      "asset_class": "fx",
-      "type": "fx_spot",
-      "currency": "USD",
-      "direction": "buy_base",
-      "book": "BOOK:CAUTIOUS:FX_CASH",
-      "strategy": "EURUSD_SPOT",
-      "notional": 1000000,
-      "details": {
-        "base_currency": "EUR",
-        "quote_currency": "USD",
-        "reference_rate": 1.08,
-        "spot_quote_id": "EURUSD"
-      }
-    },
-    {
       "id": "cfx_eurusd_forward_001",
       "asset_class": "fx",
       "type": "fx_forward",
@@ -73,6 +57,42 @@
         "forward_rate": 1.1025,
         "spot_quote_id": "EURUSD",
         "forward_points_quote_id": "EURUSD_FWDPTS_6M"
+      }
+    },
+    {
+      "id": "cfx_eurusd_option_001",
+      "asset_class": "fx",
+      "type": "fx_option",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:CAUTIOUS:FX_VOLATILITY",
+      "strategy": "EURUSD_CALL",
+      "notional": 1000000,
+      "details": {
+        "base_currency": "EUR",
+        "quote_currency": "USD",
+        "strike_rate": 1.1,
+        "expiry_date": "2026-09-24",
+        "settlement_date": "2026-09-28",
+        "option_type": "call",
+        "spot_quote_id": "EURUSD",
+        "volatility_quote_id": "EURUSD_VOL_6M_ATM"
+      }
+    },
+    {
+      "id": "cfx_eurusd_spot_001",
+      "asset_class": "fx",
+      "type": "fx_spot",
+      "currency": "USD",
+      "direction": "buy_base",
+      "book": "BOOK:CAUTIOUS:FX_CASH",
+      "strategy": "EURUSD_SPOT",
+      "notional": 1000000,
+      "details": {
+        "base_currency": "EUR",
+        "quote_currency": "USD",
+        "reference_rate": 1.08,
+        "spot_quote_id": "EURUSD"
       }
     },
     {
@@ -113,26 +133,6 @@
         "forward_rate": 1.103,
         "spot_quote_id": "EURUSD",
         "forward_points_quote_id": "EURUSD_FWDPTS_6M"
-      }
-    },
-    {
-      "id": "cfx_eurusd_option_001",
-      "asset_class": "fx",
-      "type": "fx_option",
-      "currency": "USD",
-      "direction": "long",
-      "book": "BOOK:CAUTIOUS:FX_VOLATILITY",
-      "strategy": "EURUSD_CALL",
-      "notional": 1000000,
-      "details": {
-        "base_currency": "EUR",
-        "quote_currency": "USD",
-        "strike_rate": 1.1,
-        "expiry_date": "2026-09-24",
-        "settlement_date": "2026-09-28",
-        "option_type": "call",
-        "spot_quote_id": "EURUSD",
-        "volatility_quote_id": "EURUSD_VOL_6M_ATM"
       }
     }
   ]

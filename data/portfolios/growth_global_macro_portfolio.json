@@ -46,8 +46,8 @@
       "trades": [
         "ggm_wti_forward_001",
         "ggm_wti_future_001",
-        "ggm_wti_spot_001",
-        "ggm_wti_strip_001"
+        "ggm_wti_strip_001",
+        "ggm_wti_spot_001"
       ]
     },
     {
@@ -69,118 +69,30 @@
       "book_id": "BOOK:GROWTH:GLOBAL_MACRO_RATES",
       "book_name": "Growth Global Macro Rates",
       "trades": [
-        "ggm_usd_swap_001",
-        "ggm_usd_swaption_001"
+        "ggm_usd_swaption_001",
+        "ggm_usd_swap_001"
       ]
     }
   ],
   "trades": [
     {
-      "id": "ggm_usd_swap_001",
-      "asset_class": "rates",
-      "type": "vanilla_swap",
-      "currency": "USD",
-      "direction": "pay_fixed",
-      "book": "BOOK:GROWTH:GLOBAL_MACRO_RATES",
-      "strategy": "USD_CURVE_VIEW",
-      "notional": 4000000,
-      "start_date": "2026-03-26",
-      "maturity_date": "2031-03-26",
-      "details": {
-        "fixed_rate": 0.0525,
-        "floating_index": "USD_LIBOR_3M"
-      }
-    },
-    {
-      "id": "ggm_usd_swaption_001",
-      "asset_class": "rates",
-      "type": "european_swaption",
-      "currency": "USD",
-      "direction": "payer",
-      "book": "BOOK:GROWTH:GLOBAL_MACRO_RATES",
-      "strategy": "USD_RATE_CONVEXITY",
-      "notional": 3000000,
-      "start_date": "2027-03-24",
-      "maturity_date": "2031-03-24",
-      "details": {
-        "option_expiry_date": "2027-03-24",
-        "fixed_rate": 0.055,
-        "floating_index": "USD_LIBOR_3M",
-        "volatility_quote_id": "USD_SWAPTION_VOL_1Y_5Y"
-      }
-    },
-    {
-      "id": "ggm_eurusd_forward_001",
-      "asset_class": "fx",
-      "type": "fx_forward",
-      "currency": "USD",
-      "direction": "buy_base",
-      "book": "BOOK:GROWTH:GLOBAL_MACRO_FX",
-      "strategy": "EURUSD_FORWARD_CARRY",
-      "notional": 2000000,
-      "start_date": "2026-03-24",
-      "maturity_date": "2026-09-24",
-      "details": {
-        "base_currency": "EUR",
-        "quote_currency": "USD",
-        "forward_rate": 1.1025,
-        "spot_quote_id": "EURUSD",
-        "forward_points_quote_id": "EURUSD_FWDPTS_6M"
-      }
-    },
-    {
-      "id": "ggm_eurusd_option_001",
-      "asset_class": "fx",
-      "type": "fx_option",
-      "currency": "USD",
-      "direction": "long",
-      "book": "BOOK:GROWTH:GLOBAL_MACRO_FX",
-      "strategy": "EURUSD_CALL",
-      "notional": 1000000,
-      "details": {
-        "base_currency": "EUR",
-        "quote_currency": "USD",
-        "strike_rate": 1.1,
-        "expiry_date": "2026-09-24",
-        "settlement_date": "2026-09-28",
-        "option_type": "call",
-        "spot_quote_id": "EURUSD",
-        "volatility_quote_id": "EURUSD_VOL_6M_ATM"
-      }
-    },
-    {
-      "id": "ggm_cdx_index_001",
-      "asset_class": "credit",
-      "type": "cds_index",
-      "currency": "USD",
-      "direction": "buy_protection",
-      "book": "BOOK:GROWTH:GLOBAL_MACRO_CREDIT",
-      "strategy": "CDX_IG_OVERLAY",
-      "notional": 5000000,
-      "start_date": "2026-03-24",
-      "maturity_date": "2031-03-24",
-      "details": {
-        "coupon_rate": 0.009,
-        "frequency": "Quarterly",
-        "index_factor": 0.98,
-        "index_name": "CDX_IG",
-        "recovery_quote_id": "CDX_IG_RECOVERY",
-        "spread_quote_id": "CDX_IG_5Y"
-      }
-    },
-    {
-      "id": "ggm_wti_spot_001",
+      "id": "ggm_wti_calendar_001",
       "asset_class": "commodity",
-      "type": "commodity_spot",
+      "type": "commodity_calendar_spread_option",
       "currency": "USD",
       "direction": "long",
-      "book": "BOOK:GROWTH:GLOBAL_MACRO_COMMODITY",
-      "strategy": "WTI_DIRECTIONAL",
-      "quantity": 2000,
+      "book": "BOOK:GROWTH:COMMODITY_VOLATILITY",
+      "strategy": "WTI_CALENDAR_VOL",
+      "quantity": 3,
       "details": {
         "underlier": "WTI",
-        "reference_price": 76.8,
-        "quote_id": "WTI_SPOT",
+        "contract_size": 1000,
+        "strike_spread": 0.5,
+        "expiry_date": "2026-09-24",
+        "near_future_quote_id": "WTI_FUT_6M",
+        "far_future_quote_id": "WTI_FUT_9M",
+        "volatility_quote_id": "WTI_VOL_6M_ATM",
+        "option_type": "call",
         "unit": "bbl"
       }
     },
@@ -222,6 +134,27 @@
       }
     },
     {
+      "id": "ggm_wti_option_001",
+      "asset_class": "commodity",
+      "type": "commodity_future_option",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:GROWTH:COMMODITY_VOLATILITY",
+      "strategy": "WTI_UPSIDE_CONVEXITY",
+      "quantity": 4,
+      "maturity_date": "2026-09-24",
+      "details": {
+        "underlier": "WTI",
+        "contract_size": 1000,
+        "strike_price": 80.0,
+        "expiry_date": "2026-09-24",
+        "future_quote_id": "WTI_FUT_6M",
+        "volatility_quote_id": "WTI_VOL_6M_ATM",
+        "option_type": "call",
+        "unit": "bbl"
+      }
+    },
+    {
       "id": "ggm_wti_strip_001",
       "asset_class": "commodity",
       "type": "commodity_future_strip",
@@ -248,44 +181,18 @@
       }
     },
     {
-      "id": "ggm_wti_option_001",
+      "id": "ggm_wti_spot_001",
       "asset_class": "commodity",
-      "type": "commodity_future_option",
+      "type": "commodity_spot",
       "currency": "USD",
       "direction": "long",
-      "book": "BOOK:GROWTH:COMMODITY_VOLATILITY",
-      "strategy": "WTI_UPSIDE_CONVEXITY",
-      "quantity": 4,
-      "maturity_date": "2026-09-24",
+      "book": "BOOK:GROWTH:GLOBAL_MACRO_COMMODITY",
+      "strategy": "WTI_DIRECTIONAL",
+      "quantity": 2000,
       "details": {
         "underlier": "WTI",
-        "contract_size": 1000,
-        "strike_price": 80.0,
-        "expiry_date": "2026-09-24",
-        "future_quote_id": "WTI_FUT_6M",
-        "volatility_quote_id": "WTI_VOL_6M_ATM",
-        "option_type": "call",
-        "unit": "bbl"
-      }
-    },
-    {
-      "id": "ggm_wti_calendar_001",
-      "asset_class": "commodity",
-      "type": "commodity_calendar_spread_option",
-      "currency": "USD",
-      "direction": "long",
-      "book": "BOOK:GROWTH:COMMODITY_VOLATILITY",
-      "strategy": "WTI_CALENDAR_VOL",
-      "quantity": 3,
-      "details": {
-        "underlier": "WTI",
-        "contract_size": 1000,
-        "strike_spread": 0.5,
-        "expiry_date": "2026-09-24",
-        "near_future_quote_id": "WTI_FUT_6M",
-        "far_future_quote_id": "WTI_FUT_9M",
-        "volatility_quote_id": "WTI_VOL_6M_ATM",
-        "option_type": "call",
+        "reference_price": 76.8,
+        "quote_id": "WTI_SPOT",
         "unit": "bbl"
       }
     },
@@ -314,6 +221,26 @@
         ],
         "volatility": 0.4,
         "unit": "MWh"
+      }
+    },
+    {
+      "id": "ggm_cdx_index_001",
+      "asset_class": "credit",
+      "type": "cds_index",
+      "currency": "USD",
+      "direction": "buy_protection",
+      "book": "BOOK:GROWTH:GLOBAL_MACRO_CREDIT",
+      "strategy": "CDX_IG_OVERLAY",
+      "notional": 5000000,
+      "start_date": "2026-03-24",
+      "maturity_date": "2031-03-24",
+      "details": {
+        "coupon_rate": 0.009,
+        "frequency": "Quarterly",
+        "index_factor": 0.98,
+        "index_name": "CDX_IG",
+        "recovery_quote_id": "CDX_IG_RECOVERY",
+        "spread_quote_id": "CDX_IG_5Y"
       }
     },
     {
@@ -394,6 +321,79 @@
         "volatility_quote_id": "AAPL_VOL_6M_ATM",
         "exercise_style": "american",
         "option_type": "put"
+      }
+    },
+    {
+      "id": "ggm_eurusd_forward_001",
+      "asset_class": "fx",
+      "type": "fx_forward",
+      "currency": "USD",
+      "direction": "buy_base",
+      "book": "BOOK:GROWTH:GLOBAL_MACRO_FX",
+      "strategy": "EURUSD_FORWARD_CARRY",
+      "notional": 2000000,
+      "start_date": "2026-03-24",
+      "maturity_date": "2026-09-24",
+      "details": {
+        "base_currency": "EUR",
+        "quote_currency": "USD",
+        "forward_rate": 1.1025,
+        "spot_quote_id": "EURUSD",
+        "forward_points_quote_id": "EURUSD_FWDPTS_6M"
+      }
+    },
+    {
+      "id": "ggm_eurusd_option_001",
+      "asset_class": "fx",
+      "type": "fx_option",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:GROWTH:GLOBAL_MACRO_FX",
+      "strategy": "EURUSD_CALL",
+      "notional": 1000000,
+      "details": {
+        "base_currency": "EUR",
+        "quote_currency": "USD",
+        "strike_rate": 1.1,
+        "expiry_date": "2026-09-24",
+        "settlement_date": "2026-09-28",
+        "option_type": "call",
+        "spot_quote_id": "EURUSD",
+        "volatility_quote_id": "EURUSD_VOL_6M_ATM"
+      }
+    },
+    {
+      "id": "ggm_usd_swaption_001",
+      "asset_class": "rates",
+      "type": "european_swaption",
+      "currency": "USD",
+      "direction": "payer",
+      "book": "BOOK:GROWTH:GLOBAL_MACRO_RATES",
+      "strategy": "USD_RATE_CONVEXITY",
+      "notional": 3000000,
+      "start_date": "2027-03-24",
+      "maturity_date": "2031-03-24",
+      "details": {
+        "option_expiry_date": "2027-03-24",
+        "fixed_rate": 0.055,
+        "floating_index": "USD_LIBOR_3M",
+        "volatility_quote_id": "USD_SWAPTION_VOL_1Y_5Y"
+      }
+    },
+    {
+      "id": "ggm_usd_swap_001",
+      "asset_class": "rates",
+      "type": "vanilla_swap",
+      "currency": "USD",
+      "direction": "pay_fixed",
+      "book": "BOOK:GROWTH:GLOBAL_MACRO_RATES",
+      "strategy": "USD_CURVE_VIEW",
+      "notional": 4000000,
+      "start_date": "2026-03-26",
+      "maturity_date": "2031-03-26",
+      "details": {
+        "fixed_rate": 0.0525,
+        "floating_index": "USD_LIBOR_3M"
       }
     }
   ]

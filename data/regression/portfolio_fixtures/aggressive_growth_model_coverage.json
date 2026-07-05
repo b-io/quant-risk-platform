@@ -27,16 +27,28 @@
     ]
   },
   "trades": {
-    "ag_aapl_call_001": {
-      "asset_class": "equity",
-      "book": "BOOK:AGGRESSIVE_GROWTH:EQUITY_VOLATILITY",
-      "product_type": "equity_option",
+    "ag_wti_calendar_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:AGGRESSIVE_GROWTH:COMMODITY_VOLATILITY",
+      "product_type": "commodity_calendar_spread_option",
+      "support_status": "supported"
+    },
+    "ag_wti_option_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:AGGRESSIVE_GROWTH:COMMODITY_VOLATILITY",
+      "product_type": "commodity_future_option",
       "support_status": "supported"
     },
     "ag_cdx_option_001": {
       "asset_class": "credit",
       "book": "BOOK:AGGRESSIVE_GROWTH:CREDIT_VOLATILITY",
       "product_type": "credit_index_option",
+      "support_status": "supported"
+    },
+    "ag_aapl_call_001": {
+      "asset_class": "equity",
+      "book": "BOOK:AGGRESSIVE_GROWTH:EQUITY_VOLATILITY",
+      "product_type": "equity_option",
       "support_status": "supported"
     },
     "ag_eurusd_swap_001": {
@@ -49,18 +61,6 @@
       "asset_class": "rates",
       "book": "BOOK:AGGRESSIVE_GROWTH:RATES_OPTION_HEDGE",
       "product_type": "bermudan_swaption",
-      "support_status": "supported"
-    },
-    "ag_wti_calendar_001": {
-      "asset_class": "commodity",
-      "book": "BOOK:AGGRESSIVE_GROWTH:COMMODITY_VOLATILITY",
-      "product_type": "commodity_calendar_spread_option",
-      "support_status": "supported"
-    },
-    "ag_wti_option_001": {
-      "asset_class": "commodity",
-      "book": "BOOK:AGGRESSIVE_GROWTH:COMMODITY_VOLATILITY",
-      "product_type": "commodity_future_option",
       "support_status": "supported"
     }
   }

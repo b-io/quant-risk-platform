@@ -71,6 +71,18 @@ def book(risk_key: str, sleeve: str) -> str:
     return f"BOOK:{RISK[risk_key]}:{sleeve}"
 
 
+def sort_text(value) -> str:
+    return str(value or "").casefold()
+
+
+def hierarchy_key(*layers) -> tuple[str, ...]:
+    return tuple(sort_text(layer) for layer in layers)
+
+
+def trade_hierarchy_key(trade: dict) -> tuple[str, str, str]:
+    return hierarchy_key(trade["asset_class"], trade["type"], trade["id"])
+
+
 def base(
     trade_id: str,
     asset_class: str,
@@ -715,7 +727,8 @@ def eqopt(
 
 def make_portfolio(portfolio_id, name, defensive, growth, style, description, trades):
     by_book = defaultdict(list)
-    for trade in trades:
+    ordered_trades = sorted(trades, key=trade_hierarchy_key)
+    for trade in ordered_trades:
         by_book[trade["book"]].append(trade["id"])
     portfolio = {
         "portfolio_id": portfolio_id,
@@ -735,7 +748,7 @@ def make_portfolio(portfolio_id, name, defensive, growth, style, description, tr
             }
             for book_id, ids in sorted(by_book.items())
         ],
-        "trades": trades,
+        "trades": ordered_trades,
     }
     if portfolio_id == "adventurous_model":
         portfolio["asset_mix"]["defensive_assets_pct_range"] = [0, 5]
@@ -960,6 +973,12 @@ def manifest_for(portfolio):
             "product_type": trade["type"],
             "support_status": STATUS_BY_TYPE[trade["type"]],
         }
+    ordered_trades = sorted(
+        trades.items(),
+        key=lambda item: hierarchy_key(
+            item[1]["asset_class"], item[1]["product_type"], item[0]
+        ),
+    )
     return {
         "fixture_id": f"{portfolio['portfolio_id']}_coverage",
         "description": f"Portfolio-backed structural golden coverage for {portfolio['portfolio_name']}.",
@@ -970,7 +989,7 @@ def manifest_for(portfolio):
         "expected_books": {
             book_id: sorted(ids) for book_id, ids in sorted(by_book.items())
         },
-        "trades": {trade_id: trades[trade_id] for trade_id in sorted(trades)},
+        "trades": {trade_id: trade for trade_id, trade in ordered_trades},
     }
 
 

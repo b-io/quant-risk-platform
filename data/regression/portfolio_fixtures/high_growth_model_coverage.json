@@ -29,6 +29,18 @@
     ]
   },
   "trades": {
+    "hg_wti_calendar_001": {
+      "asset_class": "commodity",
+      "book": "BOOK:HIGH_GROWTH:COMMODITY_VOLATILITY",
+      "product_type": "commodity_calendar_spread_option",
+      "support_status": "supported"
+    },
+    "hg_acme_cds_option_001": {
+      "asset_class": "credit",
+      "book": "BOOK:HIGH_GROWTH:CREDIT_VOLATILITY",
+      "product_type": "cds_option",
+      "support_status": "supported"
+    },
     "hg_aapl_forward_001": {
       "asset_class": "equity",
       "book": "BOOK:HIGH_GROWTH:EQUITY_DERIVATIVES",
@@ -41,12 +53,6 @@
       "product_type": "equity_option",
       "support_status": "supported"
     },
-    "hg_acme_cds_option_001": {
-      "asset_class": "credit",
-      "book": "BOOK:HIGH_GROWTH:CREDIT_VOLATILITY",
-      "product_type": "cds_option",
-      "support_status": "supported"
-    },
     "hg_eurusd_forward_001": {
       "asset_class": "fx",
       "book": "BOOK:HIGH_GROWTH:FX_CARRY",
@@ -57,12 +63,6 @@
       "asset_class": "rates",
       "book": "BOOK:HIGH_GROWTH:RATES_HEDGE",
       "product_type": "ois_swap",
-      "support_status": "supported"
-    },
-    "hg_wti_calendar_001": {
-      "asset_class": "commodity",
-      "book": "BOOK:HIGH_GROWTH:COMMODITY_VOLATILITY",
-      "product_type": "commodity_calendar_spread_option",
       "support_status": "supported"
     }
   }

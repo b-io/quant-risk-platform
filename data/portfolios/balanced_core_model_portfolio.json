@@ -54,6 +54,73 @@
   ],
   "trades": [
     {
+      "id": "bc_wti_future_001",
+      "asset_class": "commodity",
+      "type": "commodity_future",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:BALANCED_CORE:REAL_ASSETS",
+      "strategy": "WTI_FUTURE",
+      "quantity": 1,
+      "maturity_date": "2026-09-24",
+      "details": {
+        "underlier": "WTI",
+        "contract_size": 1000,
+        "reference_price": 78.0,
+        "future_quote_id": "WTI_FUT_6M",
+        "tenor": "6M",
+        "unit": "bbl"
+      }
+    },
+    {
+      "id": "bc_acme_credit_bond_001",
+      "asset_class": "credit",
+      "type": "credit_bond",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:BALANCED_CORE:CREDIT_INCOME",
+      "strategy": "INVESTMENT_GRADE_CREDIT",
+      "notional": 1000000,
+      "start_date": "2026-03-24",
+      "maturity_date": "2031-03-24",
+      "details": {
+        "coupon_rate": 0.056,
+        "frequency": "Annual",
+        "issuer": "ACME",
+        "spread_quote_id": "ACME_BOND_SPREAD_5Y"
+      }
+    },
+    {
+      "id": "bc_aapl_equity_001",
+      "asset_class": "equity",
+      "type": "equity_spot",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:BALANCED_CORE:QUALITY_EQUITY",
+      "strategy": "QUALITY_EQUITY",
+      "quantity": 200,
+      "details": {
+        "underlier": "AAPL",
+        "reference_price": 180.0
+      }
+    },
+    {
+      "id": "bc_eurusd_spot_001",
+      "asset_class": "fx",
+      "type": "fx_spot",
+      "currency": "USD",
+      "direction": "buy_base",
+      "book": "BOOK:BALANCED_CORE:FX",
+      "strategy": "EURUSD_CASH",
+      "notional": 500000,
+      "details": {
+        "base_currency": "EUR",
+        "quote_currency": "USD",
+        "reference_rate": 1.08,
+        "spot_quote_id": "EURUSD"
+      }
+    },
+    {
       "id": "bc_usd_deposit_001",
       "asset_class": "rates",
       "type": "deposit",
@@ -82,73 +149,6 @@
       "details": {
         "coupon_rate": 0.055,
         "frequency": "Annual"
-      }
-    },
-    {
-      "id": "bc_acme_credit_bond_001",
-      "asset_class": "credit",
-      "type": "credit_bond",
-      "currency": "USD",
-      "direction": "long",
-      "book": "BOOK:BALANCED_CORE:CREDIT_INCOME",
-      "strategy": "INVESTMENT_GRADE_CREDIT",
-      "notional": 1000000,
-      "start_date": "2026-03-24",
-      "maturity_date": "2031-03-24",
-      "details": {
-        "coupon_rate": 0.056,
-        "frequency": "Annual",
-        "issuer": "ACME",
-        "spread_quote_id": "ACME_BOND_SPREAD_5Y"
-      }
-    },
-    {
-      "id": "bc_eurusd_spot_001",
-      "asset_class": "fx",
-      "type": "fx_spot",
-      "currency": "USD",
-      "direction": "buy_base",
-      "book": "BOOK:BALANCED_CORE:FX",
-      "strategy": "EURUSD_CASH",
-      "notional": 500000,
-      "details": {
-        "base_currency": "EUR",
-        "quote_currency": "USD",
-        "reference_rate": 1.08,
-        "spot_quote_id": "EURUSD"
-      }
-    },
-    {
-      "id": "bc_wti_future_001",
-      "asset_class": "commodity",
-      "type": "commodity_future",
-      "currency": "USD",
-      "direction": "long",
-      "book": "BOOK:BALANCED_CORE:REAL_ASSETS",
-      "strategy": "WTI_FUTURE",
-      "quantity": 1,
-      "maturity_date": "2026-09-24",
-      "details": {
-        "underlier": "WTI",
-        "contract_size": 1000,
-        "reference_price": 78.0,
-        "future_quote_id": "WTI_FUT_6M",
-        "tenor": "6M",
-        "unit": "bbl"
-      }
-    },
-    {
-      "id": "bc_aapl_equity_001",
-      "asset_class": "equity",
-      "type": "equity_spot",
-      "currency": "USD",
-      "direction": "long",
-      "book": "BOOK:BALANCED_CORE:QUALITY_EQUITY",
-      "strategy": "QUALITY_EQUITY",
-      "quantity": 200,
-      "details": {
-        "underlier": "AAPL",
-        "reference_price": 180.0
       }
     }
   ]

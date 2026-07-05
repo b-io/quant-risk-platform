@@ -62,6 +62,95 @@
   ],
   "trades": [
     {
+      "id": "bmai_wti_forward_001",
+      "asset_class": "commodity",
+      "type": "commodity_forward",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:BALANCED_CORE:REAL_ASSETS",
+      "strategy": "WTI_FORWARD",
+      "quantity": 500,
+      "maturity_date": "2026-09-24",
+      "details": {
+        "underlier": "WTI",
+        "contract_price": 78.1,
+        "forward_quote_id": "WTI_FUT_6M",
+        "tenor": "6M",
+        "unit": "bbl"
+      }
+    },
+    {
+      "id": "bmai_cdx_index_001",
+      "asset_class": "credit",
+      "type": "cds_index",
+      "currency": "USD",
+      "direction": "sell_protection",
+      "book": "BOOK:BALANCED_CORE:CREDIT_BETA",
+      "strategy": "CDX_IG_OVERLAY",
+      "notional": 3000000,
+      "start_date": "2026-03-24",
+      "maturity_date": "2031-03-24",
+      "details": {
+        "coupon_rate": 0.009,
+        "frequency": "Quarterly",
+        "index_factor": 0.98,
+        "index_name": "CDX_IG",
+        "recovery_quote_id": "CDX_IG_RECOVERY",
+        "spread_quote_id": "CDX_IG_5Y"
+      }
+    },
+    {
+      "id": "bmai_credit_bond_001",
+      "asset_class": "credit",
+      "type": "credit_bond",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:BALANCED_CORE:CREDIT_INCOME",
+      "strategy": "INVESTMENT_GRADE_CREDIT",
+      "notional": 1500000,
+      "start_date": "2026-03-24",
+      "maturity_date": "2031-03-24",
+      "details": {
+        "coupon_rate": 0.056,
+        "frequency": "Annual",
+        "issuer": "ACME",
+        "spread_quote_id": "ACME_BOND_SPREAD_5Y"
+      }
+    },
+    {
+      "id": "bmai_aapl_equity_001",
+      "asset_class": "equity",
+      "type": "equity_spot",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:BALANCED_CORE:QUALITY_EQUITY",
+      "strategy": "QUALITY_EQUITY",
+      "quantity": 150,
+      "details": {
+        "underlier": "AAPL",
+        "reference_price": 181.0
+      }
+    },
+    {
+      "id": "bmai_eurusd_hedge_001",
+      "asset_class": "fx",
+      "type": "fx_forward",
+      "currency": "USD",
+      "direction": "sell_base",
+      "book": "BOOK:BALANCED_CORE:FX_HEDGE",
+      "strategy": "EURUSD_HEDGE",
+      "notional": 750000,
+      "start_date": "2026-03-24",
+      "maturity_date": "2026-09-24",
+      "details": {
+        "base_currency": "EUR",
+        "quote_currency": "USD",
+        "forward_rate": 1.102,
+        "spot_quote_id": "EURUSD",
+        "forward_points_quote_id": "EURUSD_FWDPTS_6M"
+      }
+    },
+    {
       "id": "bmai_deposit_001",
       "asset_class": "rates",
       "type": "deposit",
@@ -107,95 +196,6 @@
         "floating_index": "USD_LIBOR_3M",
         "frequency": "Quarterly",
         "spread": 0.001
-      }
-    },
-    {
-      "id": "bmai_credit_bond_001",
-      "asset_class": "credit",
-      "type": "credit_bond",
-      "currency": "USD",
-      "direction": "long",
-      "book": "BOOK:BALANCED_CORE:CREDIT_INCOME",
-      "strategy": "INVESTMENT_GRADE_CREDIT",
-      "notional": 1500000,
-      "start_date": "2026-03-24",
-      "maturity_date": "2031-03-24",
-      "details": {
-        "coupon_rate": 0.056,
-        "frequency": "Annual",
-        "issuer": "ACME",
-        "spread_quote_id": "ACME_BOND_SPREAD_5Y"
-      }
-    },
-    {
-      "id": "bmai_cdx_index_001",
-      "asset_class": "credit",
-      "type": "cds_index",
-      "currency": "USD",
-      "direction": "sell_protection",
-      "book": "BOOK:BALANCED_CORE:CREDIT_BETA",
-      "strategy": "CDX_IG_OVERLAY",
-      "notional": 3000000,
-      "start_date": "2026-03-24",
-      "maturity_date": "2031-03-24",
-      "details": {
-        "coupon_rate": 0.009,
-        "frequency": "Quarterly",
-        "index_factor": 0.98,
-        "index_name": "CDX_IG",
-        "recovery_quote_id": "CDX_IG_RECOVERY",
-        "spread_quote_id": "CDX_IG_5Y"
-      }
-    },
-    {
-      "id": "bmai_eurusd_hedge_001",
-      "asset_class": "fx",
-      "type": "fx_forward",
-      "currency": "USD",
-      "direction": "sell_base",
-      "book": "BOOK:BALANCED_CORE:FX_HEDGE",
-      "strategy": "EURUSD_HEDGE",
-      "notional": 750000,
-      "start_date": "2026-03-24",
-      "maturity_date": "2026-09-24",
-      "details": {
-        "base_currency": "EUR",
-        "quote_currency": "USD",
-        "forward_rate": 1.102,
-        "spot_quote_id": "EURUSD",
-        "forward_points_quote_id": "EURUSD_FWDPTS_6M"
-      }
-    },
-    {
-      "id": "bmai_wti_forward_001",
-      "asset_class": "commodity",
-      "type": "commodity_forward",
-      "currency": "USD",
-      "direction": "long",
-      "book": "BOOK:BALANCED_CORE:REAL_ASSETS",
-      "strategy": "WTI_FORWARD",
-      "quantity": 500,
-      "maturity_date": "2026-09-24",
-      "details": {
-        "underlier": "WTI",
-        "contract_price": 78.1,
-        "forward_quote_id": "WTI_FUT_6M",
-        "tenor": "6M",
-        "unit": "bbl"
-      }
-    },
-    {
-      "id": "bmai_aapl_equity_001",
-      "asset_class": "equity",
-      "type": "equity_spot",
-      "currency": "USD",
-      "direction": "long",
-      "book": "BOOK:BALANCED_CORE:QUALITY_EQUITY",
-      "strategy": "QUALITY_EQUITY",
-      "quantity": 150,
-      "details": {
-        "underlier": "AAPL",
-        "reference_price": 181.0
       }
     }
   ]

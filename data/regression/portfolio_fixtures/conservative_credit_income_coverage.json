@@ -30,6 +30,12 @@
       "product_type": "cds",
       "support_status": "supported"
     },
+    "cci_cdx_index_001": {
+      "asset_class": "credit",
+      "book": "BOOK:CONSERVATIVE_INCOME:CREDIT_BETA",
+      "product_type": "cds_index",
+      "support_status": "supported"
+    },
     "cci_acme_cds_option_001": {
       "asset_class": "credit",
       "book": "BOOK:CONSERVATIVE_INCOME:CREDIT_VOLATILITY",
@@ -40,12 +46,6 @@
       "asset_class": "credit",
       "book": "BOOK:CONSERVATIVE_INCOME:CREDIT_INCOME",
       "product_type": "credit_bond",
-      "support_status": "supported"
-    },
-    "cci_cdx_index_001": {
-      "asset_class": "credit",
-      "book": "BOOK:CONSERVATIVE_INCOME:CREDIT_BETA",
-      "product_type": "cds_index",
       "support_status": "supported"
     },
     "cci_cdx_option_001": {

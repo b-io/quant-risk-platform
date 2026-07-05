@@ -52,6 +52,48 @@
   ],
   "trades": [
     {
+      "id": "sbrh_bermudan_swaption_001",
+      "asset_class": "rates",
+      "type": "bermudan_swaption",
+      "currency": "USD",
+      "direction": "payer",
+      "book": "BOOK:STABLE_BALANCED:RATES_VOLATILITY",
+      "strategy": "USD_BERMUDAN_SWAPTION",
+      "notional": 4000000,
+      "start_date": "2026-06-24",
+      "maturity_date": "2031-06-24",
+      "details": {
+        "fixed_rate": 0.055,
+        "floating_index": "USD_LIBOR_3M",
+        "volatility": 0.012,
+        "mean_reversion": 0.03,
+        "exercise_dates": [
+          "2026-06-24",
+          "2027-06-24",
+          "2028-06-24",
+          "2029-06-24"
+        ]
+      }
+    },
+    {
+      "id": "sbrh_cap_001",
+      "asset_class": "rates",
+      "type": "cap_floor",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:STABLE_BALANCED:RATES_VOLATILITY",
+      "strategy": "USD_CAP",
+      "notional": 3000000,
+      "start_date": "2026-06-24",
+      "maturity_date": "2027-06-24",
+      "details": {
+        "strike_rate": 0.055,
+        "cap_floor_type": "cap",
+        "floating_index": "USD_LIBOR_3M",
+        "volatility_quote_id": "USD_CAP_VOL_1Y"
+      }
+    },
+    {
       "id": "sbrh_deposit_001",
       "asset_class": "rates",
       "type": "deposit",
@@ -64,6 +106,57 @@
       "maturity_date": "2026-06-26",
       "details": {
         "deposit_rate": 0.052
+      }
+    },
+    {
+      "id": "sbrh_european_swaption_001",
+      "asset_class": "rates",
+      "type": "european_swaption",
+      "currency": "USD",
+      "direction": "payer",
+      "book": "BOOK:STABLE_BALANCED:RATES_VOLATILITY",
+      "strategy": "USD_PAYER_SWAPTION",
+      "notional": 4000000,
+      "start_date": "2027-03-24",
+      "maturity_date": "2031-03-24",
+      "details": {
+        "option_expiry_date": "2027-03-24",
+        "fixed_rate": 0.055,
+        "floating_index": "USD_LIBOR_3M",
+        "volatility_quote_id": "USD_SWAPTION_VOL_1Y_5Y"
+      }
+    },
+    {
+      "id": "sbrh_fixed_bond_001",
+      "asset_class": "rates",
+      "type": "fixed_rate_bond",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:STABLE_BALANCED:RATES_INCOME",
+      "strategy": "USD_FIXED_BOND",
+      "notional": 2000000,
+      "start_date": "2026-03-26",
+      "maturity_date": "2031-03-26",
+      "details": {
+        "coupon_rate": 0.055,
+        "frequency": "Annual"
+      }
+    },
+    {
+      "id": "sbrh_frn_001",
+      "asset_class": "rates",
+      "type": "floating_rate_note",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:STABLE_BALANCED:RATES_INCOME",
+      "strategy": "USD_FRN",
+      "notional": 2000000,
+      "start_date": "2026-03-26",
+      "maturity_date": "2029-03-26",
+      "details": {
+        "floating_index": "USD_LIBOR_3M",
+        "frequency": "Quarterly",
+        "spread": 0.001
       }
     },
     {
@@ -101,22 +194,6 @@
       }
     },
     {
-      "id": "sbrh_swap_001",
-      "asset_class": "rates",
-      "type": "vanilla_swap",
-      "currency": "USD",
-      "direction": "pay_fixed",
-      "book": "BOOK:STABLE_BALANCED:RATES_HEDGE",
-      "strategy": "USD_SWAP",
-      "notional": 5000000,
-      "start_date": "2026-03-26",
-      "maturity_date": "2031-03-26",
-      "details": {
-        "fixed_rate": 0.052,
-        "floating_index": "USD_LIBOR_3M"
-      }
-    },
-    {
       "id": "sbrh_ois_001",
       "asset_class": "rates",
       "type": "ois_swap",
@@ -134,96 +211,19 @@
       }
     },
     {
-      "id": "sbrh_fixed_bond_001",
+      "id": "sbrh_swap_001",
       "asset_class": "rates",
-      "type": "fixed_rate_bond",
+      "type": "vanilla_swap",
       "currency": "USD",
-      "direction": "long",
-      "book": "BOOK:STABLE_BALANCED:RATES_INCOME",
-      "strategy": "USD_FIXED_BOND",
-      "notional": 2000000,
+      "direction": "pay_fixed",
+      "book": "BOOK:STABLE_BALANCED:RATES_HEDGE",
+      "strategy": "USD_SWAP",
+      "notional": 5000000,
       "start_date": "2026-03-26",
       "maturity_date": "2031-03-26",
       "details": {
-        "coupon_rate": 0.055,
-        "frequency": "Annual"
-      }
-    },
-    {
-      "id": "sbrh_frn_001",
-      "asset_class": "rates",
-      "type": "floating_rate_note",
-      "currency": "USD",
-      "direction": "long",
-      "book": "BOOK:STABLE_BALANCED:RATES_INCOME",
-      "strategy": "USD_FRN",
-      "notional": 2000000,
-      "start_date": "2026-03-26",
-      "maturity_date": "2029-03-26",
-      "details": {
-        "floating_index": "USD_LIBOR_3M",
-        "frequency": "Quarterly",
-        "spread": 0.001
-      }
-    },
-    {
-      "id": "sbrh_cap_001",
-      "asset_class": "rates",
-      "type": "cap_floor",
-      "currency": "USD",
-      "direction": "long",
-      "book": "BOOK:STABLE_BALANCED:RATES_VOLATILITY",
-      "strategy": "USD_CAP",
-      "notional": 3000000,
-      "start_date": "2026-06-24",
-      "maturity_date": "2027-06-24",
-      "details": {
-        "strike_rate": 0.055,
-        "cap_floor_type": "cap",
-        "floating_index": "USD_LIBOR_3M",
-        "volatility_quote_id": "USD_CAP_VOL_1Y"
-      }
-    },
-    {
-      "id": "sbrh_european_swaption_001",
-      "asset_class": "rates",
-      "type": "european_swaption",
-      "currency": "USD",
-      "direction": "payer",
-      "book": "BOOK:STABLE_BALANCED:RATES_VOLATILITY",
-      "strategy": "USD_PAYER_SWAPTION",
-      "notional": 4000000,
-      "start_date": "2027-03-24",
-      "maturity_date": "2031-03-24",
-      "details": {
-        "option_expiry_date": "2027-03-24",
-        "fixed_rate": 0.055,
-        "floating_index": "USD_LIBOR_3M",
-        "volatility_quote_id": "USD_SWAPTION_VOL_1Y_5Y"
-      }
-    },
-    {
-      "id": "sbrh_bermudan_swaption_001",
-      "asset_class": "rates",
-      "type": "bermudan_swaption",
-      "currency": "USD",
-      "direction": "payer",
-      "book": "BOOK:STABLE_BALANCED:RATES_VOLATILITY",
-      "strategy": "USD_BERMUDAN_SWAPTION",
-      "notional": 4000000,
-      "start_date": "2026-06-24",
-      "maturity_date": "2031-06-24",
-      "details": {
-        "fixed_rate": 0.055,
-        "floating_index": "USD_LIBOR_3M",
-        "volatility": 0.012,
-        "mean_reversion": 0.03,
-        "exercise_dates": [
-          "2026-06-24",
-          "2027-06-24",
-          "2028-06-24",
-          "2029-06-24"
-        ]
+        "fixed_rate": 0.052,
+        "floating_index": "USD_LIBOR_3M"
       }
     }
   ]

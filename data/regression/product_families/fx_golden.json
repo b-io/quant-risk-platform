@@ -7,38 +7,38 @@
     "valuation": 1.0
   },
   "trades": {
-    "demo_eurusd_ndf_001": {
+    "fx_fwd_eurusd_001": {
       "pnl_explain": {
-        "carry_pnl": -3.48,
+        "carry_pnl": -4.5,
         "cash_pnl": 0.0,
-        "market_move_pnl": 15845.18,
+        "market_move_pnl": 21126.66,
         "residual_pnl": 0.0,
-        "total_pnl": 15841.7
+        "total_pnl": 21122.17
       },
-      "product_type": "ndf",
+      "product_type": "fx_forward",
       "risk": {
         "bucketed_risk": {
-          "6M": 1.13,
-          "SPOT": 158.42
+          "6M": 1.46,
+          "SPOT": 211.22
         },
         "cs01": 0.0,
-        "fx_delta": 158.42,
+        "fx_delta": 211.22,
         "fx_vega": 0.0,
-        "pv01": 1.17
+        "pv01": 1.51
       },
       "stress": {
-        "FX_CARRY_UNWIND": -64824.02,
-        "GLOBAL_RISK_OFF": -39602.51,
-        "GLOBAL_RISK_ON": 23940.61,
-        "USD_CURVE_BEAR_FLATTENER": 86.81,
-        "USD_CURVE_BULL_STEEPENER": -87.45,
-        "USD_FUNDING_STRESS": 57.96,
-        "USD_STRENGTH": -77257.49,
-        "USD_WEAKNESS": 81218.57
+        "FX_CARRY_UNWIND": -86432.03,
+        "GLOBAL_RISK_OFF": -52803.35,
+        "GLOBAL_RISK_ON": 31920.82,
+        "USD_CURVE_BEAR_FLATTENER": 112.15,
+        "USD_CURVE_BULL_STEEPENER": -112.98,
+        "USD_FUNDING_STRESS": 74.88,
+        "USD_STRENGTH": -103009.99,
+        "USD_WEAKNESS": 108291.43
       },
       "support_status": "supported",
       "valuation": {
-        "npv": -23506.01
+        "npv": -30368.01
       }
     },
     "demo_eurusd_option_001": {
@@ -143,38 +143,38 @@
         "npv": -2219.65
       }
     },
-    "fx_fwd_eurusd_001": {
+    "demo_eurusd_ndf_001": {
       "pnl_explain": {
-        "carry_pnl": -4.5,
+        "carry_pnl": -3.48,
         "cash_pnl": 0.0,
-        "market_move_pnl": 21126.66,
+        "market_move_pnl": 15845.18,
         "residual_pnl": 0.0,
-        "total_pnl": 21122.17
+        "total_pnl": 15841.7
       },
-      "product_type": "fx_forward",
+      "product_type": "ndf",
       "risk": {
         "bucketed_risk": {
-          "6M": 1.46,
-          "SPOT": 211.22
+          "6M": 1.13,
+          "SPOT": 158.42
         },
         "cs01": 0.0,
-        "fx_delta": 211.22,
+        "fx_delta": 158.42,
         "fx_vega": 0.0,
-        "pv01": 1.51
+        "pv01": 1.17
       },
       "stress": {
-        "FX_CARRY_UNWIND": -86432.03,
-        "GLOBAL_RISK_OFF": -52803.35,
-        "GLOBAL_RISK_ON": 31920.82,
-        "USD_CURVE_BEAR_FLATTENER": 112.15,
-        "USD_CURVE_BULL_STEEPENER": -112.98,
-        "USD_FUNDING_STRESS": 74.88,
-        "USD_STRENGTH": -103009.99,
-        "USD_WEAKNESS": 108291.43
+        "FX_CARRY_UNWIND": -64824.02,
+        "GLOBAL_RISK_OFF": -39602.51,
+        "GLOBAL_RISK_ON": 23940.61,
+        "USD_CURVE_BEAR_FLATTENER": 86.81,
+        "USD_CURVE_BULL_STEEPENER": -87.45,
+        "USD_FUNDING_STRESS": 57.96,
+        "USD_STRENGTH": -77257.49,
+        "USD_WEAKNESS": 81218.57
       },
       "support_status": "supported",
       "valuation": {
-        "npv": -30368.01
+        "npv": -23506.01
       }
     }
   }

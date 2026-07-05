@@ -23,6 +23,18 @@
     ]
   },
   "trades": {
+    "hgev_aapl_forward_001": {
+      "asset_class": "equity",
+      "book": "BOOK:HIGH_GROWTH:EQUITY_DERIVATIVES",
+      "product_type": "equity_forward",
+      "support_status": "supported"
+    },
+    "hgev_spx_future_001": {
+      "asset_class": "equity",
+      "book": "BOOK:HIGH_GROWTH:EQUITY_DERIVATIVES",
+      "product_type": "equity_future",
+      "support_status": "supported"
+    },
     "hgev_aapl_american_put_001": {
       "asset_class": "equity",
       "book": "BOOK:HIGH_GROWTH:EQUITY_VOLATILITY",
@@ -41,22 +53,10 @@
       "product_type": "equity_option",
       "support_status": "supported"
     },
-    "hgev_aapl_forward_001": {
-      "asset_class": "equity",
-      "book": "BOOK:HIGH_GROWTH:EQUITY_DERIVATIVES",
-      "product_type": "equity_forward",
-      "support_status": "supported"
-    },
     "hgev_aapl_spot_001": {
       "asset_class": "equity",
       "book": "BOOK:HIGH_GROWTH:EQUITY_DELTA",
       "product_type": "equity_spot",
-      "support_status": "supported"
-    },
-    "hgev_spx_future_001": {
-      "asset_class": "equity",
-      "book": "BOOK:HIGH_GROWTH:EQUITY_DERIVATIVES",
-      "product_type": "equity_future",
       "support_status": "supported"
     }
   }

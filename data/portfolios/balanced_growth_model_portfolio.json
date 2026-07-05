@@ -47,63 +47,6 @@
   ],
   "trades": [
     {
-      "id": "bg_usd_cap_001",
-      "asset_class": "rates",
-      "type": "cap_floor",
-      "currency": "USD",
-      "direction": "long",
-      "book": "BOOK:BALANCED_GROWTH:RATES_OPTION_HEDGE",
-      "strategy": "USD_RATE_CAP",
-      "notional": 2000000,
-      "start_date": "2026-06-24",
-      "maturity_date": "2027-06-24",
-      "details": {
-        "strike_rate": 0.055,
-        "cap_floor_type": "cap",
-        "floating_index": "USD_LIBOR_3M",
-        "volatility_quote_id": "USD_CAP_VOL_1Y"
-      }
-    },
-    {
-      "id": "bg_acme_cds_001",
-      "asset_class": "credit",
-      "type": "cds",
-      "currency": "USD",
-      "direction": "buy_protection",
-      "book": "BOOK:BALANCED_GROWTH:CREDIT_HEDGE",
-      "strategy": "CREDIT_PROTECTION",
-      "notional": 1000000,
-      "start_date": "2026-03-24",
-      "maturity_date": "2031-03-24",
-      "details": {
-        "coupon_rate": 0.01,
-        "frequency": "Quarterly",
-        "issuer": "ACME",
-        "recovery_quote_id": "ACME_RECOVERY",
-        "spread_quote_id": "ACME_CDS_5Y"
-      }
-    },
-    {
-      "id": "bg_eurusd_option_001",
-      "asset_class": "fx",
-      "type": "fx_option",
-      "currency": "USD",
-      "direction": "long",
-      "book": "BOOK:BALANCED_GROWTH:FX_VOLATILITY",
-      "strategy": "EURUSD_CALL",
-      "notional": 750000,
-      "details": {
-        "base_currency": "EUR",
-        "quote_currency": "USD",
-        "strike_rate": 1.1,
-        "expiry_date": "2026-09-24",
-        "settlement_date": "2026-09-28",
-        "option_type": "call",
-        "spot_quote_id": "EURUSD",
-        "volatility_quote_id": "EURUSD_VOL_6M_ATM"
-      }
-    },
-    {
       "id": "bg_wti_strip_001",
       "asset_class": "commodity",
       "type": "commodity_future_strip",
@@ -130,6 +73,25 @@
       }
     },
     {
+      "id": "bg_acme_cds_001",
+      "asset_class": "credit",
+      "type": "cds",
+      "currency": "USD",
+      "direction": "buy_protection",
+      "book": "BOOK:BALANCED_GROWTH:CREDIT_HEDGE",
+      "strategy": "CREDIT_PROTECTION",
+      "notional": 1000000,
+      "start_date": "2026-03-24",
+      "maturity_date": "2031-03-24",
+      "details": {
+        "coupon_rate": 0.01,
+        "frequency": "Quarterly",
+        "issuer": "ACME",
+        "recovery_quote_id": "ACME_RECOVERY",
+        "spread_quote_id": "ACME_CDS_5Y"
+      }
+    },
+    {
       "id": "bg_aapl_forward_001",
       "asset_class": "equity",
       "type": "equity_forward",
@@ -145,6 +107,44 @@
         "spot_quote_id": "AAPL",
         "dividend_yield_quote_id": "AAPL_DIVYLD_1Y",
         "borrow_rate_quote_id": "AAPL_BORROW_1Y"
+      }
+    },
+    {
+      "id": "bg_eurusd_option_001",
+      "asset_class": "fx",
+      "type": "fx_option",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:BALANCED_GROWTH:FX_VOLATILITY",
+      "strategy": "EURUSD_CALL",
+      "notional": 750000,
+      "details": {
+        "base_currency": "EUR",
+        "quote_currency": "USD",
+        "strike_rate": 1.1,
+        "expiry_date": "2026-09-24",
+        "settlement_date": "2026-09-28",
+        "option_type": "call",
+        "spot_quote_id": "EURUSD",
+        "volatility_quote_id": "EURUSD_VOL_6M_ATM"
+      }
+    },
+    {
+      "id": "bg_usd_cap_001",
+      "asset_class": "rates",
+      "type": "cap_floor",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:BALANCED_GROWTH:RATES_OPTION_HEDGE",
+      "strategy": "USD_RATE_CAP",
+      "notional": 2000000,
+      "start_date": "2026-06-24",
+      "maturity_date": "2027-06-24",
+      "details": {
+        "strike_rate": 0.055,
+        "cap_floor_type": "cap",
+        "floating_index": "USD_LIBOR_3M",
+        "volatility_quote_id": "USD_CAP_VOL_1Y"
       }
     }
   ]

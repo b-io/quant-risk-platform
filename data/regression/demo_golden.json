@@ -16,26 +16,54 @@
     }
   },
   "pnl_explain": {
-    "bond_usd_001": {
-      "carry_pnl": 296.26,
+    "demo_wti_calendar_option_001": {
+      "carry_pnl": 1.02,
       "cash_pnl": 0.0,
-      "market_move_pnl": -4328.85,
+      "market_move_pnl": -1.68,
       "residual_pnl": 0.0,
-      "total_pnl": -4032.59
+      "total_pnl": -0.66
     },
-    "demo_aapl_forward_001": {
-      "carry_pnl": -5.3,
+    "demo_wti_forward_001": {
+      "carry_pnl": 0.04,
       "cash_pnl": 0.0,
-      "market_move_pnl": -361.58,
+      "market_move_pnl": -0.06,
       "residual_pnl": 0.0,
-      "total_pnl": -366.89
+      "total_pnl": -0.02
     },
-    "demo_aapl_option_001": {
-      "carry_pnl": -2.82,
+    "demo_wti_future_001": {
+      "carry_pnl": 0.0,
       "cash_pnl": 0.0,
-      "market_move_pnl": -212.7,
+      "market_move_pnl": 0.0,
       "residual_pnl": 0.0,
-      "total_pnl": -215.52
+      "total_pnl": 0.0
+    },
+    "demo_wti_future_option_001": {
+      "carry_pnl": 0.88,
+      "cash_pnl": 0.0,
+      "market_move_pnl": -1.45,
+      "residual_pnl": 0.0,
+      "total_pnl": -0.57
+    },
+    "demo_wti_strip_001": {
+      "carry_pnl": 0.02,
+      "cash_pnl": 0.0,
+      "market_move_pnl": -0.06,
+      "residual_pnl": 0.0,
+      "total_pnl": -0.04
+    },
+    "demo_wti_spot_001": {
+      "carry_pnl": 0.0,
+      "cash_pnl": 0.0,
+      "market_move_pnl": 0.0,
+      "residual_pnl": 0.0,
+      "total_pnl": 0.0
+    },
+    "demo_ttf_swing_001": {
+      "carry_pnl": 0.19,
+      "cash_pnl": 0.0,
+      "market_move_pnl": -0.47,
+      "residual_pnl": 0.0,
+      "total_pnl": -0.28
     },
     "demo_acme_cds_001": {
       "carry_pnl": 6.0,
@@ -43,6 +71,13 @@
       "market_move_pnl": -53.23,
       "residual_pnl": 0.0,
       "total_pnl": -47.24
+    },
+    "demo_cdx_index_001": {
+      "carry_pnl": 2.46,
+      "cash_pnl": 0.0,
+      "market_move_pnl": -19.89,
+      "residual_pnl": 0.0,
+      "total_pnl": -17.43
     },
     "demo_acme_cds_option_001": {
       "carry_pnl": 1.28,
@@ -58,13 +93,6 @@
       "residual_pnl": 0.0,
       "total_pnl": -2825.72
     },
-    "demo_cdx_index_001": {
-      "carry_pnl": 2.46,
-      "cash_pnl": 0.0,
-      "market_move_pnl": -19.89,
-      "residual_pnl": 0.0,
-      "total_pnl": -17.43
-    },
     "demo_cdx_index_option_001": {
       "carry_pnl": 3.98,
       "cash_pnl": 0.0,
@@ -72,12 +100,40 @@
       "residual_pnl": 0.0,
       "total_pnl": -35.08
     },
-    "demo_eurusd_ndf_001": {
-      "carry_pnl": -3.48,
+    "demo_aapl_forward_001": {
+      "carry_pnl": -5.3,
       "cash_pnl": 0.0,
-      "market_move_pnl": 15845.18,
+      "market_move_pnl": -361.58,
       "residual_pnl": 0.0,
-      "total_pnl": 15841.7
+      "total_pnl": -366.89
+    },
+    "demo_spx_future_001": {
+      "carry_pnl": 0.07,
+      "cash_pnl": 0.0,
+      "market_move_pnl": -0.12,
+      "residual_pnl": 0.0,
+      "total_pnl": -0.05
+    },
+    "demo_aapl_option_001": {
+      "carry_pnl": -2.82,
+      "cash_pnl": 0.0,
+      "market_move_pnl": -212.7,
+      "residual_pnl": 0.0,
+      "total_pnl": -215.52
+    },
+    "equity_spot_aapl_001": {
+      "carry_pnl": 0.0,
+      "cash_pnl": 0.0,
+      "market_move_pnl": -463.75,
+      "residual_pnl": 0.0,
+      "total_pnl": -463.75
+    },
+    "fx_fwd_eurusd_001": {
+      "carry_pnl": -4.5,
+      "cash_pnl": 0.0,
+      "market_move_pnl": 21126.66,
+      "residual_pnl": 0.0,
+      "total_pnl": 21122.17
     },
     "demo_eurusd_option_001": {
       "carry_pnl": -16.39,
@@ -100,19 +156,12 @@
       "residual_pnl": 0.0,
       "total_pnl": 626.41
     },
-    "demo_spx_future_001": {
-      "carry_pnl": 0.07,
+    "demo_eurusd_ndf_001": {
+      "carry_pnl": -3.48,
       "cash_pnl": 0.0,
-      "market_move_pnl": -0.12,
+      "market_move_pnl": 15845.18,
       "residual_pnl": 0.0,
-      "total_pnl": -0.05
-    },
-    "demo_ttf_swing_001": {
-      "carry_pnl": 0.19,
-      "cash_pnl": 0.0,
-      "market_move_pnl": -0.47,
-      "residual_pnl": 0.0,
-      "total_pnl": -0.28
+      "total_pnl": 15841.7
     },
     "demo_usd_bermudan_swaption_001": {
       "carry_pnl": 0.0,
@@ -142,12 +191,12 @@
       "residual_pnl": 0.0,
       "total_pnl": 1959.52
     },
-    "demo_usd_fra_001": {
-      "carry_pnl": 0.04,
+    "bond_usd_001": {
+      "carry_pnl": 296.26,
       "cash_pnl": 0.0,
-      "market_move_pnl": 248.59,
+      "market_move_pnl": -4328.85,
       "residual_pnl": 0.0,
-      "total_pnl": 248.63
+      "total_pnl": -4032.59
     },
     "demo_usd_frn_001": {
       "carry_pnl": 223.61,
@@ -155,6 +204,13 @@
       "market_move_pnl": -166.15,
       "residual_pnl": 0.0,
       "total_pnl": 57.46
+    },
+    "demo_usd_fra_001": {
+      "carry_pnl": 0.04,
+      "cash_pnl": 0.0,
+      "market_move_pnl": 248.59,
+      "residual_pnl": 0.0,
+      "total_pnl": 248.63
     },
     "demo_usd_ir_future_001": {
       "carry_pnl": 0.0,
@@ -170,62 +226,6 @@
       "residual_pnl": 0.0,
       "total_pnl": -6380.34
     },
-    "demo_wti_calendar_option_001": {
-      "carry_pnl": 1.02,
-      "cash_pnl": 0.0,
-      "market_move_pnl": -1.68,
-      "residual_pnl": 0.0,
-      "total_pnl": -0.66
-    },
-    "demo_wti_forward_001": {
-      "carry_pnl": 0.04,
-      "cash_pnl": 0.0,
-      "market_move_pnl": -0.06,
-      "residual_pnl": 0.0,
-      "total_pnl": -0.02
-    },
-    "demo_wti_future_001": {
-      "carry_pnl": 0.0,
-      "cash_pnl": 0.0,
-      "market_move_pnl": 0.0,
-      "residual_pnl": 0.0,
-      "total_pnl": 0.0
-    },
-    "demo_wti_future_option_001": {
-      "carry_pnl": 0.88,
-      "cash_pnl": 0.0,
-      "market_move_pnl": -1.45,
-      "residual_pnl": 0.0,
-      "total_pnl": -0.57
-    },
-    "demo_wti_spot_001": {
-      "carry_pnl": 0.0,
-      "cash_pnl": 0.0,
-      "market_move_pnl": 0.0,
-      "residual_pnl": 0.0,
-      "total_pnl": 0.0
-    },
-    "demo_wti_strip_001": {
-      "carry_pnl": 0.02,
-      "cash_pnl": 0.0,
-      "market_move_pnl": -0.06,
-      "residual_pnl": 0.0,
-      "total_pnl": -0.04
-    },
-    "equity_spot_aapl_001": {
-      "carry_pnl": 0.0,
-      "cash_pnl": 0.0,
-      "market_move_pnl": -463.75,
-      "residual_pnl": 0.0,
-      "total_pnl": -463.75
-    },
-    "fx_fwd_eurusd_001": {
-      "carry_pnl": -4.5,
-      "cash_pnl": 0.0,
-      "market_move_pnl": 21126.66,
-      "residual_pnl": 0.0,
-      "total_pnl": 21122.17
-    },
     "swap_usd_001": {
       "carry_pnl": 12.97,
       "cash_pnl": 0.0,
@@ -236,31 +236,54 @@
     "tolerance": 1.0
   },
   "risk": {
-    "bond_usd_001": {
-      "bucketed_risk": {
-        "1D": -1.11,
-        "5Y": -867.07
-      },
+    "demo_wti_calendar_option_001": {
+      "bucketed_risk": {},
       "cs01": -0.0,
       "fx_delta": -0.0,
       "fx_vega": -0.0,
-      "pv01": -868.24
+      "pv01": -0.34
     },
-    "demo_aapl_forward_001": {
-      "bucketed_risk": {
-        "6M": 1.72
-      },
-      "cs01": 0.0,
-      "fx_delta": 0.0,
-      "fx_vega": 0.0,
-      "pv01": 1.78
+    "demo_wti_forward_001": {
+      "bucketed_risk": {},
+      "cs01": -0.0,
+      "fx_delta": -0.0,
+      "fx_vega": -0.0,
+      "pv01": -0.01
     },
-    "demo_aapl_option_001": {
+    "demo_wti_future_001": {
       "bucketed_risk": {},
       "cs01": 0.0,
       "fx_delta": 0.0,
       "fx_vega": 0.0,
-      "pv01": 0.95
+      "pv01": 0.0
+    },
+    "demo_wti_future_option_001": {
+      "bucketed_risk": {},
+      "cs01": -0.0,
+      "fx_delta": -0.0,
+      "fx_vega": -0.0,
+      "pv01": -0.3
+    },
+    "demo_wti_strip_001": {
+      "bucketed_risk": {},
+      "cs01": 0.0,
+      "fx_delta": 0.0,
+      "fx_vega": 0.0,
+      "pv01": -0.01
+    },
+    "demo_wti_spot_001": {
+      "bucketed_risk": {},
+      "cs01": 0.0,
+      "fx_delta": 0.0,
+      "fx_vega": 0.0,
+      "pv01": 0.0
+    },
+    "demo_ttf_swing_001": {
+      "bucketed_risk": {},
+      "cs01": 0.0,
+      "fx_delta": 0.0,
+      "fx_vega": 0.0,
+      "pv01": -0.1
     },
     "demo_acme_cds_001": {
       "bucketed_risk": {
@@ -273,6 +296,16 @@
       "fx_delta": -0.0,
       "fx_vega": -0.0,
       "pv01": -10.69
+    },
+    "demo_cdx_index_001": {
+      "bucketed_risk": {
+        "2Y": -1.21,
+        "5Y": 1637.25
+      },
+      "cs01": 1639.72,
+      "fx_delta": -0.0,
+      "fx_vega": -0.0,
+      "pv01": -4.0
     },
     "demo_acme_cds_option_001": {
       "bucketed_risk": {
@@ -297,16 +330,6 @@
       "fx_vega": -0.0,
       "pv01": -608.62
     },
-    "demo_cdx_index_001": {
-      "bucketed_risk": {
-        "2Y": -1.21,
-        "5Y": 1637.25
-      },
-      "cs01": 1639.72,
-      "fx_delta": -0.0,
-      "fx_vega": -0.0,
-      "pv01": -4.0
-    },
     "demo_cdx_index_option_001": {
       "bucketed_risk": {
         "2Y": -2.52,
@@ -317,15 +340,45 @@
       "fx_vega": -0.0,
       "pv01": -7.85
     },
-    "demo_eurusd_ndf_001": {
+    "demo_aapl_forward_001": {
       "bucketed_risk": {
-        "6M": 1.13,
-        "SPOT": 158.42
+        "6M": 1.72
       },
       "cs01": 0.0,
-      "fx_delta": 158.42,
+      "fx_delta": 0.0,
       "fx_vega": 0.0,
-      "pv01": 1.17
+      "pv01": 1.78
+    },
+    "demo_spx_future_001": {
+      "bucketed_risk": {},
+      "cs01": -0.0,
+      "fx_delta": -0.0,
+      "fx_vega": -0.0,
+      "pv01": -0.02
+    },
+    "demo_aapl_option_001": {
+      "bucketed_risk": {},
+      "cs01": 0.0,
+      "fx_delta": 0.0,
+      "fx_vega": 0.0,
+      "pv01": 0.95
+    },
+    "equity_spot_aapl_001": {
+      "bucketed_risk": {},
+      "cs01": 0.0,
+      "fx_delta": 0.0,
+      "fx_vega": 0.0,
+      "pv01": 0.0
+    },
+    "fx_fwd_eurusd_001": {
+      "bucketed_risk": {
+        "6M": 1.46,
+        "SPOT": 211.22
+      },
+      "cs01": 0.0,
+      "fx_delta": 211.22,
+      "fx_vega": 0.0,
+      "pv01": 1.51
     },
     "demo_eurusd_option_001": {
       "bucketed_risk": {
@@ -355,19 +408,15 @@
       "fx_vega": -0.0,
       "pv01": 0.06
     },
-    "demo_spx_future_001": {
-      "bucketed_risk": {},
-      "cs01": -0.0,
-      "fx_delta": -0.0,
-      "fx_vega": -0.0,
-      "pv01": -0.02
-    },
-    "demo_ttf_swing_001": {
-      "bucketed_risk": {},
+    "demo_eurusd_ndf_001": {
+      "bucketed_risk": {
+        "6M": 1.13,
+        "SPOT": 158.42
+      },
       "cs01": 0.0,
-      "fx_delta": 0.0,
+      "fx_delta": 158.42,
       "fx_vega": 0.0,
-      "pv01": -0.1
+      "pv01": 1.17
     },
     "demo_usd_bermudan_swaption_001": {
       "bucketed_risk": {},
@@ -404,14 +453,15 @@
       "fx_vega": 0.0,
       "pv01": 404.01
     },
-    "demo_usd_fra_001": {
+    "bond_usd_001": {
       "bucketed_risk": {
-        "3M": 49.71
+        "1D": -1.11,
+        "5Y": -867.07
       },
-      "cs01": 0.0,
-      "fx_delta": 0.0,
-      "fx_vega": 0.0,
-      "pv01": 49.71
+      "cs01": -0.0,
+      "fx_delta": -0.0,
+      "fx_vega": -0.0,
+      "pv01": -868.24
     },
     "demo_usd_frn_001": {
       "bucketed_risk": {
@@ -423,6 +473,15 @@
       "fx_delta": -0.0,
       "fx_vega": -0.0,
       "pv01": 1.88
+    },
+    "demo_usd_fra_001": {
+      "bucketed_risk": {
+        "3M": 49.71
+      },
+      "cs01": 0.0,
+      "fx_delta": 0.0,
+      "fx_vega": 0.0,
+      "pv01": 49.71
     },
     "demo_usd_ir_future_001": {
       "bucketed_risk": {},
@@ -443,65 +502,6 @@
       "fx_vega": -0.0,
       "pv01": -1275.44
     },
-    "demo_wti_calendar_option_001": {
-      "bucketed_risk": {},
-      "cs01": -0.0,
-      "fx_delta": -0.0,
-      "fx_vega": -0.0,
-      "pv01": -0.34
-    },
-    "demo_wti_forward_001": {
-      "bucketed_risk": {},
-      "cs01": -0.0,
-      "fx_delta": -0.0,
-      "fx_vega": -0.0,
-      "pv01": -0.01
-    },
-    "demo_wti_future_001": {
-      "bucketed_risk": {},
-      "cs01": 0.0,
-      "fx_delta": 0.0,
-      "fx_vega": 0.0,
-      "pv01": 0.0
-    },
-    "demo_wti_future_option_001": {
-      "bucketed_risk": {},
-      "cs01": -0.0,
-      "fx_delta": -0.0,
-      "fx_vega": -0.0,
-      "pv01": -0.3
-    },
-    "demo_wti_spot_001": {
-      "bucketed_risk": {},
-      "cs01": 0.0,
-      "fx_delta": 0.0,
-      "fx_vega": 0.0,
-      "pv01": 0.0
-    },
-    "demo_wti_strip_001": {
-      "bucketed_risk": {},
-      "cs01": 0.0,
-      "fx_delta": 0.0,
-      "fx_vega": 0.0,
-      "pv01": -0.01
-    },
-    "equity_spot_aapl_001": {
-      "bucketed_risk": {},
-      "cs01": 0.0,
-      "fx_delta": 0.0,
-      "fx_vega": 0.0,
-      "pv01": 0.0
-    },
-    "fx_fwd_eurusd_001": {
-      "bucketed_risk": {
-        "6M": 1.46,
-        "SPOT": 211.22
-      },
-      "cs01": 0.0,
-      "fx_delta": 211.22,
-      "fx_vega": 0.0,
-      "pv01": 1.51
-    },
     "swap_usd_001": {
       "bucketed_risk": {
         "2Y": -10.72,
@@ -520,43 +520,43 @@
     "COMMODITY_ENERGY_SUPPLY_SHOCK": {
       "total_pnl": 34107.31,
       "trade_pnls": {
-        "demo_ttf_swing_001": 959.99,
         "demo_wti_calendar_option_001": 1446.61,
         "demo_wti_forward_001": 5331.44,
         "demo_wti_future_001": 10955.0,
         "demo_wti_future_option_001": 4113.48,
+        "demo_wti_strip_001": 5100.8,
         "demo_wti_spot_001": 6200.0,
-        "demo_wti_strip_001": 5100.8
+        "demo_ttf_swing_001": 959.99
       }
     },
     "CREDIT_RECESSION": {
       "total_pnl": 196391.87,
       "trade_pnls": {
         "demo_acme_cds_001": 57611.39,
+        "demo_cdx_index_001": 72746.25,
         "demo_acme_cds_option_001": 35434.59,
         "demo_acme_credit_bond_001": -29737.92,
-        "demo_cdx_index_001": 72746.25,
         "demo_cdx_index_option_001": 60337.56
       }
     },
     "CROSS_ASSET_REPRICING": {
       "total_pnl": -158158.99,
       "trade_pnls": {
-        "bond_usd_001": -41041.52,
-        "demo_aapl_forward_001": -1111.04,
-        "demo_aapl_option_001": -626.32,
+        "demo_ttf_swing_001": -3.61,
         "demo_acme_cds_001": -543.14,
+        "demo_cdx_index_001": -201.42,
         "demo_acme_cds_option_001": -129.82,
         "demo_acme_credit_bond_001": -28784.5,
-        "demo_cdx_index_001": -201.42,
         "demo_cdx_index_option_001": -403.35,
+        "demo_aapl_forward_001": -1111.04,
+        "demo_aapl_option_001": -626.32,
+        "equity_spot_aapl_001": -1391.25,
         "demo_eurusd_option_001": -673.63,
-        "demo_ttf_swing_001": -3.61,
         "demo_usd_cap_001": -24.48,
         "demo_usd_european_swaption_001": -380.27,
+        "bond_usd_001": -41041.52,
         "demo_usd_frn_001": -21235.33,
         "demo_usd_ois_001": -61108.86,
-        "equity_spot_aapl_001": -1391.25,
         "swap_usd_001": -499.99
       }
     },
@@ -572,8 +572,8 @@
       "total_pnl": -95196.62,
       "trade_pnls": {
         "demo_aapl_forward_001": -6620.27,
-        "demo_aapl_option_001": -2045.83,
         "demo_spx_future_001": -78183.03,
+        "demo_aapl_option_001": -2045.83,
         "equity_spot_aapl_001": -8347.5
       }
     },
@@ -600,100 +600,100 @@
     "FX_CARRY_UNWIND": {
       "total_pnl": -203596.28,
       "trade_pnls": {
-        "demo_eurusd_ndf_001": -64824.02,
+        "fx_fwd_eurusd_001": -86432.03,
         "demo_eurusd_option_001": -7850.73,
         "demo_eurusd_spot_001": -43400.0,
         "demo_eurusd_swap_001": -1089.51,
-        "fx_fwd_eurusd_001": -86432.03
+        "demo_eurusd_ndf_001": -64824.02
       }
     },
     "GLOBAL_RISK_OFF": {
       "total_pnl": -47692.1,
       "trade_pnls": {
-        "bond_usd_001": 24493.28,
-        "demo_aapl_forward_001": -2962.77,
-        "demo_aapl_option_001": -1494.73,
+        "demo_ttf_swing_001": 2.12,
         "demo_acme_cds_001": 322.6,
+        "demo_cdx_index_001": 119.62,
         "demo_acme_cds_option_001": 77.12,
         "demo_acme_credit_bond_001": 17177.6,
-        "demo_cdx_index_001": 119.62,
         "demo_cdx_index_option_001": 239.63,
-        "demo_eurusd_ndf_001": -39602.51,
+        "demo_aapl_forward_001": -2962.77,
+        "demo_aapl_option_001": -1494.73,
+        "equity_spot_aapl_001": -3710.0,
+        "fx_fwd_eurusd_001": -52803.35,
         "demo_eurusd_option_001": -10605.37,
         "demo_eurusd_spot_001": -27125.0,
         "demo_eurusd_swap_001": -1424.45,
-        "demo_ttf_swing_001": 2.12,
+        "demo_eurusd_ndf_001": -39602.51,
         "demo_usd_cap_001": 14.42,
         "demo_usd_european_swaption_001": 225.45,
+        "bond_usd_001": 24493.28,
         "demo_usd_frn_001": 12598.45,
         "demo_usd_ois_001": 36470.52,
-        "equity_spot_aapl_001": -3710.0,
-        "fx_fwd_eurusd_001": -52803.35,
         "swap_usd_001": 294.99
       }
     },
     "GLOBAL_RISK_ON": {
       "total_pnl": -13047.54,
       "trade_pnls": {
-        "bond_usd_001": -27491.98,
-        "demo_aapl_forward_001": 2962.77,
-        "demo_aapl_option_001": 2014.97,
+        "demo_ttf_swing_001": -2.41,
         "demo_acme_cds_001": -363.46,
+        "demo_cdx_index_001": -134.78,
         "demo_acme_cds_option_001": -86.88,
         "demo_acme_credit_bond_001": -19281.34,
-        "demo_cdx_index_001": -134.78,
         "demo_cdx_index_option_001": -269.93,
-        "demo_eurusd_ndf_001": 23940.61,
+        "demo_aapl_forward_001": 2962.77,
+        "demo_aapl_option_001": 2014.97,
+        "equity_spot_aapl_001": 3710.0,
+        "fx_fwd_eurusd_001": 31920.82,
         "demo_eurusd_option_001": 8357.32,
         "demo_eurusd_spot_001": 16397.68,
         "demo_eurusd_swap_001": 1025.91,
-        "demo_ttf_swing_001": -2.41,
+        "demo_eurusd_ndf_001": 23940.61,
         "demo_usd_cap_001": -16.35,
         "demo_usd_european_swaption_001": -254.38,
+        "bond_usd_001": -27491.98,
         "demo_usd_frn_001": -14207.12,
         "demo_usd_ois_001": -40934.53,
-        "equity_spot_aapl_001": 3710.0,
-        "fx_fwd_eurusd_001": 31920.82,
         "swap_usd_001": -334.12
       }
     },
     "USD_CURVE_BEAR_FLATTENER": {
       "total_pnl": -64071.74,
       "trade_pnls": {
-        "bond_usd_001": -17218.19,
-        "demo_aapl_forward_001": 132.28,
-        "demo_aapl_option_001": 70.97,
-        "demo_acme_cds_001": -299.84,
-        "demo_acme_cds_option_001": -68.24,
-        "demo_acme_credit_bond_001": -12111.98,
-        "demo_cdx_index_001": -117.15,
-        "demo_cdx_index_option_001": -211.68,
-        "demo_eurusd_ndf_001": 86.81,
-        "demo_eurusd_option_001": 1847.84,
-        "demo_eurusd_swap_001": 4.92,
-        "demo_spx_future_001": -1.8,
-        "demo_ttf_swing_001": -6.17,
-        "demo_usd_cap_001": -28.51,
-        "demo_usd_european_swaption_001": -228.41,
-        "demo_usd_frn_001": -11666.45,
-        "demo_usd_ois_001": -23939.89,
         "demo_wti_calendar_option_001": -25.47,
         "demo_wti_future_option_001": -21.9,
+        "demo_ttf_swing_001": -6.17,
+        "demo_acme_cds_001": -299.84,
+        "demo_cdx_index_001": -117.15,
+        "demo_acme_cds_option_001": -68.24,
+        "demo_acme_credit_bond_001": -12111.98,
+        "demo_cdx_index_option_001": -211.68,
+        "demo_aapl_forward_001": 132.28,
+        "demo_spx_future_001": -1.8,
+        "demo_aapl_option_001": 70.97,
         "fx_fwd_eurusd_001": 112.15,
+        "demo_eurusd_option_001": 1847.84,
+        "demo_eurusd_swap_001": 4.92,
+        "demo_eurusd_ndf_001": 86.81,
+        "demo_usd_cap_001": -28.51,
+        "demo_usd_european_swaption_001": -228.41,
+        "bond_usd_001": -17218.19,
+        "demo_usd_frn_001": -11666.45,
+        "demo_usd_ois_001": -23939.89,
         "swap_usd_001": -378.79
       }
     },
     "USD_CURVE_BEAR_STEEPENER": {
       "total_pnl": -21846.17,
       "trade_pnls": {
-        "bond_usd_001": -34369.72,
         "demo_acme_cds_001": -355.84,
+        "demo_cdx_index_001": -128.46,
         "demo_acme_cds_option_001": -85.96,
         "demo_acme_credit_bond_001": -24059.59,
-        "demo_cdx_index_001": -128.46,
         "demo_cdx_index_option_001": -267.61,
         "demo_usd_cap_001": -2.11,
         "demo_usd_european_swaption_001": 19666.13,
+        "bond_usd_001": -34369.72,
         "demo_usd_frn_001": -5501.4,
         "demo_usd_ois_001": -51293.05,
         "swap_usd_001": 74551.44
@@ -702,66 +702,66 @@
     "USD_CURVE_BULL_STEEPENER": {
       "total_pnl": 65181.67,
       "trade_pnls": {
-        "bond_usd_001": 17485.72,
-        "demo_aapl_forward_001": -133.26,
-        "demo_aapl_option_001": -70.36,
-        "demo_acme_cds_001": 304.03,
-        "demo_acme_cds_option_001": 69.22,
-        "demo_acme_credit_bond_001": 12299.93,
-        "demo_cdx_index_001": 118.75,
-        "demo_cdx_index_option_001": 214.72,
-        "demo_eurusd_ndf_001": -87.45,
-        "demo_eurusd_option_001": -1769.38,
-        "demo_eurusd_swap_001": -4.94,
-        "demo_spx_future_001": 1.81,
-        "demo_ttf_swing_001": 6.23,
-        "demo_usd_cap_001": 28.83,
-        "demo_usd_european_swaption_001": 231.53,
-        "demo_usd_frn_001": 11831.15,
-        "demo_usd_ois_001": 24335.18,
         "demo_wti_calendar_option_001": 25.66,
         "demo_wti_future_option_001": 22.07,
+        "demo_ttf_swing_001": 6.23,
+        "demo_acme_cds_001": 304.03,
+        "demo_cdx_index_001": 118.75,
+        "demo_acme_cds_option_001": 69.22,
+        "demo_acme_credit_bond_001": 12299.93,
+        "demo_cdx_index_option_001": 214.72,
+        "demo_aapl_forward_001": -133.26,
+        "demo_spx_future_001": 1.81,
+        "demo_aapl_option_001": -70.36,
         "fx_fwd_eurusd_001": -112.98,
+        "demo_eurusd_option_001": -1769.38,
+        "demo_eurusd_swap_001": -4.94,
+        "demo_eurusd_ndf_001": -87.45,
+        "demo_usd_cap_001": 28.83,
+        "demo_usd_european_swaption_001": 231.53,
+        "bond_usd_001": 17485.72,
+        "demo_usd_frn_001": 11831.15,
+        "demo_usd_ois_001": 24335.18,
         "swap_usd_001": 382.98
       }
     },
     "USD_FUNDING_STRESS": {
       "total_pnl": 49614.31,
       "trade_pnls": {
-        "bond_usd_001": -34312.99,
-        "demo_aapl_forward_001": 88.31,
-        "demo_aapl_option_001": 47.26,
-        "demo_acme_cds_001": -462.71,
-        "demo_acme_cds_option_001": -108.77,
-        "demo_acme_credit_bond_001": -24071.65,
-        "demo_cdx_index_001": -174.21,
-        "demo_cdx_index_option_001": -337.93,
-        "demo_eurusd_ndf_001": 57.96,
-        "demo_eurusd_option_001": 1231.48,
-        "demo_eurusd_swap_001": 2.49,
-        "demo_spx_future_001": -1.2,
-        "demo_ttf_swing_001": -5.04,
-        "demo_usd_cap_001": 7988.91,
-        "demo_usd_european_swaption_001": 25034.74,
-        "demo_usd_fra_001": 3222.2,
-        "demo_usd_frn_001": 5273.09,
-        "demo_usd_ois_001": -50375.8,
         "demo_wti_calendar_option_001": -17.0,
         "demo_wti_future_option_001": -14.62,
+        "demo_ttf_swing_001": -5.04,
+        "demo_acme_cds_001": -462.71,
+        "demo_cdx_index_001": -174.21,
+        "demo_acme_cds_option_001": -108.77,
+        "demo_acme_credit_bond_001": -24071.65,
+        "demo_cdx_index_option_001": -337.93,
+        "demo_aapl_forward_001": 88.31,
+        "demo_spx_future_001": -1.2,
+        "demo_aapl_option_001": 47.26,
         "fx_fwd_eurusd_001": 74.88,
+        "demo_eurusd_option_001": 1231.48,
+        "demo_eurusd_swap_001": 2.49,
+        "demo_eurusd_ndf_001": 57.96,
+        "demo_usd_cap_001": 7988.91,
+        "demo_usd_european_swaption_001": 25034.74,
+        "bond_usd_001": -34312.99,
+        "demo_usd_frn_001": 5273.09,
+        "demo_usd_fra_001": 3222.2,
+        "demo_usd_ois_001": -50375.8,
         "swap_usd_001": 116476.17
       }
     },
     "USD_LIBOR_OIS_WIDENING": {
       "total_pnl": 259107.68,
       "trade_pnls": {
-        "bond_usd_001": 8688.71,
         "demo_acme_cds_001": 68.11,
+        "demo_cdx_index_001": 24.79,
         "demo_acme_cds_option_001": 16.55,
         "demo_acme_credit_bond_001": 6072.92,
-        "demo_cdx_index_001": 24.79,
         "demo_cdx_index_option_001": 51.65,
         "demo_usd_european_swaption_001": 48327.39,
+        "bond_usd_001": 8688.71,
         "demo_usd_frn_001": 19407.23,
         "demo_usd_ois_001": 12979.8,
         "swap_usd_001": 163470.51
@@ -770,15 +770,15 @@
     "USD_RATES_PARALLEL_DOWN_100BP": {
       "total_pnl": 266980.29,
       "trade_pnls": {
-        "bond_usd_001": 71095.01,
+        "demo_ttf_swing_001": 6.09,
         "demo_acme_cds_001": 933.3,
+        "demo_cdx_index_001": 346.02,
         "demo_acme_cds_option_001": 223.15,
         "demo_acme_credit_bond_001": 49858.73,
-        "demo_cdx_index_001": 346.02,
         "demo_cdx_index_option_001": 693.37,
-        "demo_ttf_swing_001": 6.09,
         "demo_usd_cap_001": 41.46,
         "demo_usd_european_swaption_001": 651.42,
+        "bond_usd_001": 71095.01,
         "demo_usd_frn_001": 36418.53,
         "demo_usd_ois_001": 105862.97,
         "swap_usd_001": 849.45
@@ -787,15 +787,15 @@
     "USD_RATES_PARALLEL_UP_100BP": {
       "total_pnl": -254922.31,
       "trade_pnls": {
-        "bond_usd_001": -67755.25,
+        "demo_ttf_swing_001": -6.01,
         "demo_acme_cds_001": -898.44,
+        "demo_cdx_index_001": -333.2,
         "demo_acme_cds_option_001": -214.72,
         "demo_acme_credit_bond_001": -47521.08,
-        "demo_cdx_index_001": -333.2,
         "demo_cdx_index_option_001": -667.14,
-        "demo_ttf_swing_001": -6.01,
         "demo_usd_cap_001": -40.65,
         "demo_usd_european_swaption_001": -629.51,
+        "bond_usd_001": -67755.25,
         "demo_usd_frn_001": -35143.27,
         "demo_usd_ois_001": -100882.94,
         "swap_usd_001": -829.34
@@ -804,21 +804,21 @@
     "USD_STRENGTH": {
       "total_pnl": -253443.77,
       "trade_pnls": {
-        "demo_eurusd_ndf_001": -77257.49,
+        "fx_fwd_eurusd_001": -103009.99,
         "demo_eurusd_option_001": -17232.24,
         "demo_eurusd_spot_001": -52916.07,
         "demo_eurusd_swap_001": -3027.97,
-        "fx_fwd_eurusd_001": -103009.99
+        "demo_eurusd_ndf_001": -77257.49
       }
     },
     "USD_WEAKNESS": {
       "total_pnl": 282290.7,
       "trade_pnls": {
-        "demo_eurusd_ndf_001": 81218.57,
+        "fx_fwd_eurusd_001": 108291.43,
         "demo_eurusd_option_001": 33968.34,
         "demo_eurusd_spot_001": 55629.14,
         "demo_eurusd_swap_001": 3183.22,
-        "fx_fwd_eurusd_001": 108291.43
+        "demo_eurusd_ndf_001": 81218.57
       }
     },
     "VOL_CRUSH": {
@@ -839,28 +839,58 @@
     "tolerance": 1.0,
     "total_npv": 5157206.09,
     "trades": {
-      "bond_usd_001": {
-        "asset_class": "rates",
-        "npv": 2001275.27,
-        "product_type": "fixed_rate_bond",
+      "demo_wti_calendar_option_001": {
+        "asset_class": "commodity",
+        "npv": 6895.78,
+        "product_type": "commodity_calendar_spread_option",
         "support_status": "supported"
       },
-      "demo_aapl_forward_001": {
-        "asset_class": "equity",
-        "npv": 1215.92,
-        "product_type": "equity_forward",
+      "demo_wti_forward_001": {
+        "asset_class": "commodity",
+        "npv": 243.33,
+        "product_type": "commodity_forward",
         "support_status": "supported"
       },
-      "demo_aapl_option_001": {
-        "asset_class": "equity",
-        "npv": 3074.63,
-        "product_type": "equity_option",
+      "demo_wti_future_001": {
+        "asset_class": "commodity",
+        "npv": 500.0,
+        "product_type": "commodity_future",
         "support_status": "supported"
+      },
+      "demo_wti_future_option_001": {
+        "asset_class": "commodity",
+        "npv": 5931.15,
+        "product_type": "commodity_future_option",
+        "support_status": "supported"
+      },
+      "demo_wti_strip_001": {
+        "asset_class": "commodity",
+        "npv": 168.12,
+        "product_type": "commodity_future_strip",
+        "support_status": "supported"
+      },
+      "demo_wti_spot_001": {
+        "asset_class": "commodity",
+        "npv": 500.0,
+        "product_type": "commodity_spot",
+        "support_status": "supported"
+      },
+      "demo_ttf_swing_001": {
+        "asset_class": "commodity",
+        "npv": 1305.89,
+        "product_type": "commodity_swing",
+        "support_status": "partially_supported"
       },
       "demo_acme_cds_001": {
         "asset_class": "credit",
         "npv": 40619.05,
         "product_type": "cds",
+        "support_status": "supported"
+      },
+      "demo_cdx_index_001": {
+        "asset_class": "credit",
+        "npv": 16746.98,
+        "product_type": "cds_index",
         "support_status": "supported"
       },
       "demo_acme_cds_option_001": {
@@ -875,22 +905,40 @@
         "product_type": "credit_bond",
         "support_status": "supported"
       },
-      "demo_cdx_index_001": {
-        "asset_class": "credit",
-        "npv": 16746.98,
-        "product_type": "cds_index",
-        "support_status": "supported"
-      },
       "demo_cdx_index_option_001": {
         "asset_class": "credit",
         "npv": 26904.55,
         "product_type": "credit_index_option",
         "support_status": "supported"
       },
-      "demo_eurusd_ndf_001": {
+      "demo_aapl_forward_001": {
+        "asset_class": "equity",
+        "npv": 1215.92,
+        "product_type": "equity_forward",
+        "support_status": "supported"
+      },
+      "demo_spx_future_001": {
+        "asset_class": "equity",
+        "npv": 486.67,
+        "product_type": "equity_future",
+        "support_status": "supported"
+      },
+      "demo_aapl_option_001": {
+        "asset_class": "equity",
+        "npv": 3074.63,
+        "product_type": "equity_option",
+        "support_status": "supported"
+      },
+      "equity_spot_aapl_001": {
+        "asset_class": "equity",
+        "npv": 1375.0,
+        "product_type": "equity_spot",
+        "support_status": "supported"
+      },
+      "fx_fwd_eurusd_001": {
         "asset_class": "fx",
-        "npv": -23506.01,
-        "product_type": "ndf",
+        "npv": -30368.01,
+        "product_type": "fx_forward",
         "support_status": "supported"
       },
       "demo_eurusd_option_001": {
@@ -911,17 +959,11 @@
         "product_type": "fx_swap",
         "support_status": "supported"
       },
-      "demo_spx_future_001": {
-        "asset_class": "equity",
-        "npv": 486.67,
-        "product_type": "equity_future",
+      "demo_eurusd_ndf_001": {
+        "asset_class": "fx",
+        "npv": -23506.01,
+        "product_type": "ndf",
         "support_status": "supported"
-      },
-      "demo_ttf_swing_001": {
-        "asset_class": "commodity",
-        "npv": 1305.89,
-        "product_type": "commodity_swing",
-        "support_status": "partially_supported"
       },
       "demo_usd_bermudan_swaption_001": {
         "asset_class": "rates",
@@ -947,16 +989,22 @@
         "product_type": "european_swaption",
         "support_status": "supported"
       },
-      "demo_usd_fra_001": {
+      "bond_usd_001": {
         "asset_class": "rates",
-        "npv": 244.67,
-        "product_type": "fra",
+        "npv": 2001275.27,
+        "product_type": "fixed_rate_bond",
         "support_status": "supported"
       },
       "demo_usd_frn_001": {
         "asset_class": "rates",
         "npv": 1510135.89,
         "product_type": "floating_rate_note",
+        "support_status": "supported"
+      },
+      "demo_usd_fra_001": {
+        "asset_class": "rates",
+        "npv": 244.67,
+        "product_type": "fra",
         "support_status": "supported"
       },
       "demo_usd_ir_future_001": {
@@ -969,54 +1017,6 @@
         "asset_class": "rates",
         "npv": -25398.01,
         "product_type": "ois_swap",
-        "support_status": "supported"
-      },
-      "demo_wti_calendar_option_001": {
-        "asset_class": "commodity",
-        "npv": 6895.78,
-        "product_type": "commodity_calendar_spread_option",
-        "support_status": "supported"
-      },
-      "demo_wti_forward_001": {
-        "asset_class": "commodity",
-        "npv": 243.33,
-        "product_type": "commodity_forward",
-        "support_status": "supported"
-      },
-      "demo_wti_future_001": {
-        "asset_class": "commodity",
-        "npv": 500.0,
-        "product_type": "commodity_future",
-        "support_status": "supported"
-      },
-      "demo_wti_future_option_001": {
-        "asset_class": "commodity",
-        "npv": 5931.15,
-        "product_type": "commodity_future_option",
-        "support_status": "supported"
-      },
-      "demo_wti_spot_001": {
-        "asset_class": "commodity",
-        "npv": 500.0,
-        "product_type": "commodity_spot",
-        "support_status": "supported"
-      },
-      "demo_wti_strip_001": {
-        "asset_class": "commodity",
-        "npv": 168.12,
-        "product_type": "commodity_future_strip",
-        "support_status": "supported"
-      },
-      "equity_spot_aapl_001": {
-        "asset_class": "equity",
-        "npv": 1375.0,
-        "product_type": "equity_spot",
-        "support_status": "supported"
-      },
-      "fx_fwd_eurusd_001": {
-        "asset_class": "fx",
-        "npv": -30368.01,
-        "product_type": "fx_forward",
         "support_status": "supported"
       },
       "swap_usd_001": {

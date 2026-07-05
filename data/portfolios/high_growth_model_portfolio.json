@@ -54,20 +54,24 @@
   ],
   "trades": [
     {
-      "id": "hg_usd_ois_001",
-      "asset_class": "rates",
-      "type": "ois_swap",
+      "id": "hg_wti_calendar_001",
+      "asset_class": "commodity",
+      "type": "commodity_calendar_spread_option",
       "currency": "USD",
-      "direction": "receive_fixed",
-      "book": "BOOK:HIGH_GROWTH:RATES_HEDGE",
-      "strategy": "USD_OIS_HEDGE",
-      "notional": 1000000,
-      "start_date": "2026-03-26",
-      "maturity_date": "2031-03-26",
+      "direction": "long",
+      "book": "BOOK:HIGH_GROWTH:COMMODITY_VOLATILITY",
+      "strategy": "WTI_CALENDAR_VOL",
+      "quantity": 1,
       "details": {
-        "fixed_rate": 0.052,
-        "overnight_index": "SOFR",
-        "spread": 0.0
+        "underlier": "WTI",
+        "contract_size": 1000,
+        "strike_spread": 0.5,
+        "expiry_date": "2026-09-24",
+        "near_future_quote_id": "WTI_FUT_6M",
+        "far_future_quote_id": "WTI_FUT_9M",
+        "volatility_quote_id": "WTI_VOL_6M_ATM",
+        "option_type": "call",
+        "unit": "bbl"
       }
     },
     {
@@ -89,46 +93,6 @@
         "recovery_quote_id": "ACME_RECOVERY",
         "spread_quote_id": "ACME_CDS_5Y",
         "volatility_quote_id": "ACME_CDS_OPTION_VOL_1Y_5Y"
-      }
-    },
-    {
-      "id": "hg_eurusd_forward_001",
-      "asset_class": "fx",
-      "type": "fx_forward",
-      "currency": "USD",
-      "direction": "buy_base",
-      "book": "BOOK:HIGH_GROWTH:FX_CARRY",
-      "strategy": "EURUSD_CARRY",
-      "notional": 1000000,
-      "start_date": "2026-03-24",
-      "maturity_date": "2026-09-24",
-      "details": {
-        "base_currency": "EUR",
-        "quote_currency": "USD",
-        "forward_rate": 1.103,
-        "spot_quote_id": "EURUSD",
-        "forward_points_quote_id": "EURUSD_FWDPTS_6M"
-      }
-    },
-    {
-      "id": "hg_wti_calendar_001",
-      "asset_class": "commodity",
-      "type": "commodity_calendar_spread_option",
-      "currency": "USD",
-      "direction": "long",
-      "book": "BOOK:HIGH_GROWTH:COMMODITY_VOLATILITY",
-      "strategy": "WTI_CALENDAR_VOL",
-      "quantity": 1,
-      "details": {
-        "underlier": "WTI",
-        "contract_size": 1000,
-        "strike_spread": 0.5,
-        "expiry_date": "2026-09-24",
-        "near_future_quote_id": "WTI_FUT_6M",
-        "far_future_quote_id": "WTI_FUT_9M",
-        "volatility_quote_id": "WTI_VOL_6M_ATM",
-        "option_type": "call",
-        "unit": "bbl"
       }
     },
     {
@@ -169,6 +133,42 @@
         "volatility_quote_id": "AAPL_VOL_6M_ATM",
         "exercise_style": "american",
         "option_type": "put"
+      }
+    },
+    {
+      "id": "hg_eurusd_forward_001",
+      "asset_class": "fx",
+      "type": "fx_forward",
+      "currency": "USD",
+      "direction": "buy_base",
+      "book": "BOOK:HIGH_GROWTH:FX_CARRY",
+      "strategy": "EURUSD_CARRY",
+      "notional": 1000000,
+      "start_date": "2026-03-24",
+      "maturity_date": "2026-09-24",
+      "details": {
+        "base_currency": "EUR",
+        "quote_currency": "USD",
+        "forward_rate": 1.103,
+        "spot_quote_id": "EURUSD",
+        "forward_points_quote_id": "EURUSD_FWDPTS_6M"
+      }
+    },
+    {
+      "id": "hg_usd_ois_001",
+      "asset_class": "rates",
+      "type": "ois_swap",
+      "currency": "USD",
+      "direction": "receive_fixed",
+      "book": "BOOK:HIGH_GROWTH:RATES_HEDGE",
+      "strategy": "USD_OIS_HEDGE",
+      "notional": 1000000,
+      "start_date": "2026-03-26",
+      "maturity_date": "2031-03-26",
+      "details": {
+        "fixed_rate": 0.052,
+        "overnight_index": "SOFR",
+        "spread": 0.0
       }
     }
   ]

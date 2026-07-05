@@ -26,12 +26,6 @@
     ]
   },
   "trades": {
-    "ci_aapl_income_equity_001": {
-      "asset_class": "equity",
-      "book": "BOOK:CONSERVATIVE_INCOME:EQUITY_INCOME",
-      "product_type": "equity_spot",
-      "support_status": "supported"
-    },
     "ci_acme_cds_hedge_001": {
       "asset_class": "credit",
       "book": "BOOK:CONSERVATIVE_INCOME:CREDIT_HEDGE",
@@ -42,6 +36,12 @@
       "asset_class": "credit",
       "book": "BOOK:CONSERVATIVE_INCOME:CREDIT_INCOME",
       "product_type": "credit_bond",
+      "support_status": "supported"
+    },
+    "ci_aapl_income_equity_001": {
+      "asset_class": "equity",
+      "book": "BOOK:CONSERVATIVE_INCOME:EQUITY_INCOME",
+      "product_type": "equity_spot",
       "support_status": "supported"
     },
     "ci_eurusd_income_hedge_001": {

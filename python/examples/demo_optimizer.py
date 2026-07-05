@@ -12,18 +12,18 @@ REPORT_PATH = PROJECT_ROOT / "reports" / "demo_optimizer_result.json"
 
 ASSETS = [
     {
-        "id": "USD_LIQUIDITY",
-        "asset_class": "rates",
-        "expected_return": 0.042,
-        "current_weight": 0.10,
-        "ub": 0.25,
+        "id": "TTF_OPTIONALITY",
+        "asset_class": "commodity",
+        "expected_return": 0.090,
+        "current_weight": 0.04,
+        "ub": 0.10,
     },
     {
-        "id": "USD_CORE_BONDS",
-        "asset_class": "rates",
-        "expected_return": 0.052,
-        "current_weight": 0.20,
-        "ub": 0.35,
+        "id": "WTI_ENERGY",
+        "asset_class": "commodity",
+        "expected_return": 0.075,
+        "current_weight": 0.06,
+        "ub": 0.12,
     },
     {
         "id": "IG_CREDIT",
@@ -31,13 +31,6 @@ ASSETS = [
         "expected_return": 0.065,
         "current_weight": 0.18,
         "ub": 0.30,
-    },
-    {
-        "id": "EURUSD_CARRY",
-        "asset_class": "fx",
-        "expected_return": 0.045,
-        "current_weight": 0.08,
-        "ub": 0.15,
     },
     {
         "id": "AAPL_EQUITY",
@@ -54,41 +47,48 @@ ASSETS = [
         "ub": 0.30,
     },
     {
-        "id": "WTI_ENERGY",
-        "asset_class": "commodity",
-        "expected_return": 0.075,
-        "current_weight": 0.06,
-        "ub": 0.12,
+        "id": "EURUSD_CARRY",
+        "asset_class": "fx",
+        "expected_return": 0.045,
+        "current_weight": 0.08,
+        "ub": 0.15,
     },
     {
-        "id": "TTF_OPTIONALITY",
-        "asset_class": "commodity",
-        "expected_return": 0.090,
-        "current_weight": 0.04,
-        "ub": 0.10,
+        "id": "USD_CORE_BONDS",
+        "asset_class": "rates",
+        "expected_return": 0.052,
+        "current_weight": 0.20,
+        "ub": 0.35,
+    },
+    {
+        "id": "USD_LIQUIDITY",
+        "asset_class": "rates",
+        "expected_return": 0.042,
+        "current_weight": 0.10,
+        "ub": 0.25,
     },
 ]
 
 FACTOR_VOLS = [0.04, 0.06, 0.16, 0.08, 0.22]
 LOADINGS = {
-    "USD_LIQUIDITY": [0.25, 0.00, 0.00, 0.00, 0.00],
-    "USD_CORE_BONDS": [1.10, 0.10, -0.10, 0.00, 0.00],
+    "TTF_OPTIONALITY": [0.00, 0.05, 0.15, 0.05, 1.15],
+    "WTI_ENERGY": [0.00, 0.10, 0.25, 0.05, 1.00],
     "IG_CREDIT": [0.45, 0.85, 0.20, 0.00, 0.00],
-    "EURUSD_CARRY": [0.15, 0.00, 0.10, 0.95, 0.00],
     "AAPL_EQUITY": [0.05, 0.10, 1.10, 0.00, 0.05],
     "SPX_FUTURE": [0.05, 0.05, 1.00, 0.00, 0.00],
-    "WTI_ENERGY": [0.00, 0.10, 0.25, 0.05, 1.00],
-    "TTF_OPTIONALITY": [0.00, 0.05, 0.15, 0.05, 1.15],
+    "EURUSD_CARRY": [0.15, 0.00, 0.10, 0.95, 0.00],
+    "USD_CORE_BONDS": [1.10, 0.10, -0.10, 0.00, 0.00],
+    "USD_LIQUIDITY": [0.25, 0.00, 0.00, 0.00, 0.00],
 }
 SPECIFIC_VOLS = {
-    "USD_LIQUIDITY": 0.005,
-    "USD_CORE_BONDS": 0.015,
+    "TTF_OPTIONALITY": 0.140,
+    "WTI_ENERGY": 0.120,
     "IG_CREDIT": 0.025,
-    "EURUSD_CARRY": 0.035,
     "AAPL_EQUITY": 0.100,
     "SPX_FUTURE": 0.060,
-    "WTI_ENERGY": 0.120,
-    "TTF_OPTIONALITY": 0.140,
+    "EURUSD_CARRY": 0.035,
+    "USD_CORE_BONDS": 0.015,
+    "USD_LIQUIDITY": 0.005,
 }
 
 
@@ -105,17 +105,33 @@ def import_worker():
     return cvxpy_worker
 
 
+def sort_text(value):
+    return str(value or "").casefold()
+
+
+def asset_sort_key(asset):
+    return (sort_text(asset["asset_class"]), sort_text(asset["id"]))
+
+
+def sorted_assets():
+    return sorted(ASSETS, key=asset_sort_key)
+
+
 def asset_ids():
-    return [asset["id"] for asset in ASSETS]
+    return [asset["id"] for asset in sorted_assets()]
 
 
 def mapping(field):
-    return {asset["id"]: asset[field] for asset in ASSETS}
+    return {asset["id"]: asset[field] for asset in sorted_assets()}
 
 
 def class_coefficients(*asset_classes):
     selected = set(asset_classes)
-    return {asset["id"]: 1.0 for asset in ASSETS if asset["asset_class"] in selected}
+    return {
+        asset["id"]: 1.0
+        for asset in sorted_assets()
+        if asset["asset_class"] in selected
+    }
 
 
 def covariance_matrix():
@@ -146,7 +162,7 @@ def build_request():
         "name": "Demo multi-asset mean-variance allocation",
         "variables": [
             {"id": asset["id"], "lb": 0.0, "ub": asset["ub"], "integer": False}
-            for asset in ASSETS
+            for asset in sorted_assets()
         ],
         "objectives": [
             {
@@ -219,7 +235,7 @@ def portfolio_metrics(weights, covariance):
         for j, right_weight in enumerate(ordered_weights):
             variance += left_weight * covariance[i][j] * right_weight
     turnover = sum(
-        abs(weights[asset["id"]] - asset["current_weight"]) for asset in ASSETS
+        abs(weights[asset["id"]] - asset["current_weight"]) for asset in sorted_assets()
     )
     return {
         "expected_return": expected_return,
@@ -256,7 +272,7 @@ def print_result(result, covariance):
         f"{'Change':>9} {'Exp Ret':>9} {'Vol':>9}"
     )
     print("-" * 82)
-    for asset in ASSETS:
+    for asset in sorted_assets():
         asset_id = asset["id"]
         current_weight = asset["current_weight"]
         optimized_weight = weights[asset_id]
