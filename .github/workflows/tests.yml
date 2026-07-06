@@ -88,7 +88,15 @@ jobs:
             vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-
 
       - name: Configure dev build
-        run: cmake --preset dev -DQRP_WARNINGS_AS_ERRORS=ON
+        run: |
+          set +e
+          log_path="$PWD/build/linux-dev-configure.log"
+          cmake --preset dev -DQRP_WARNINGS_AS_ERRORS=ON 2>&1 | tee "$log_path"
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            python scripts/emit_ci_error_tail.py "$log_path" "Configure dev build failed"
+          fi
+          exit "$status"
 
       - name: Run dev tests
         run: |
@@ -98,18 +106,30 @@ jobs:
             | tee "$log_path"
           status=${PIPESTATUS[0]}
           if [ "$status" -ne 0 ]; then
-            python - "$log_path" "Run dev tests failed" <<'PY'
-          import sys
-          from pathlib import Path
+            python scripts/emit_ci_error_tail.py "$log_path" "Run dev tests failed"
+          fi
+          exit "$status"
 
-          log_path = Path(sys.argv[1])
-          title = sys.argv[2]
-          lines = log_path.read_text(encoding="utf-8", errors="replace").splitlines()[-80:]
-          message = "\n".join(lines)
-          message = message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-          title = title.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-          print(f"::error title={title}::{message}")
-          PY
+      - name: Configure release build
+        run: |
+          set +e
+          log_path="$PWD/build/linux-release-configure.log"
+          cmake --preset release -DQRP_WARNINGS_AS_ERRORS=ON 2>&1 | tee "$log_path"
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            python scripts/emit_ci_error_tail.py "$log_path" "Configure release build failed"
+          fi
+          exit "$status"
+
+      - name: Run release smoke tests
+        run: |
+          set +e
+          log_path="$PWD/build/linux-release-smoke.log"
+          bash scripts/test.sh -BuildDir build/release -Config Release -SkipCppCoverage -SkipPythonCoverage 2>&1 \
+            | tee "$log_path"
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            python scripts/emit_ci_error_tail.py "$log_path" "Run release smoke tests failed"
           fi
           exit "$status"
 
@@ -228,7 +248,15 @@ jobs:
             vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-
 
       - name: Configure C++ coverage build
-        run: cmake --preset coverage -DQRP_WARNINGS_AS_ERRORS=ON -DQRP_COVERAGE_MIN_LINE=95
+        run: |
+          set +e
+          log_path="$PWD/build/linux-coverage-configure.log"
+          cmake --preset coverage -DQRP_WARNINGS_AS_ERRORS=ON -DQRP_COVERAGE_MIN_LINE=95 2>&1 | tee "$log_path"
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            python scripts/emit_ci_error_tail.py "$log_path" "Configure C++ coverage build failed"
+          fi
+          exit "$status"
 
       - name: Run C++ tests and coverage
         run: |
@@ -237,18 +265,7 @@ jobs:
           cmake --build build/coverage --target coverage 2>&1 | tee "$log_path"
           status=${PIPESTATUS[0]}
           if [ "$status" -ne 0 ]; then
-            python - "$log_path" "Run C++ tests and coverage failed" <<'PY'
-          import sys
-          from pathlib import Path
-
-          log_path = Path(sys.argv[1])
-          title = sys.argv[2]
-          lines = log_path.read_text(encoding="utf-8", errors="replace").splitlines()[-80:]
-          message = "\n".join(lines)
-          message = message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-          title = title.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-          print(f"::error title={title}::{message}")
-          PY
+            python scripts/emit_ci_error_tail.py "$log_path" "Run C++ tests and coverage failed"
           fi
           exit "$status"
 
@@ -287,85 +304,3 @@ jobs:
             git commit -m "Update coverage summary [skip ci]"
             git push origin HEAD:${GITHUB_REF_NAME}
           fi
-
-  linux-release-smoke:
-    name: Linux Release Smoke
-    if: github.event_name != 'pull_request'
-    needs: quality
-    runs-on: ubuntu-latest
-    env:
-      VCPKG_ROOT: ${{ github.workspace }}/.vcpkg
-      VCPKG_TARGET_TRIPLET: x64-linux
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install system packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            autoconf \
-            autoconf-archive \
-            automake \
-            libtool \
-            linux-libc-dev \
-            ninja-build \
-            pkg-config
-
-      - name: Bootstrap vcpkg
-        run: |
-          VCPKG_BASELINE="$(
-            python - <<'PY'
-          import json
-          from pathlib import Path
-
-          print(json.loads(Path("vcpkg.json").read_text(encoding="utf-8"))["builtin-baseline"])
-          PY
-          )"
-          git clone --filter=blob:none https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
-          git -C "$VCPKG_ROOT" checkout --detach "$VCPKG_BASELINE"
-          "$VCPKG_ROOT/bootstrap-vcpkg.sh"
-
-      - name: Cache vcpkg artifacts
-        uses: actions/cache@v4
-        with:
-          path: |
-            ${{ env.VCPKG_ROOT }}/archives
-            ${{ env.VCPKG_ROOT }}/buildtrees
-            ${{ env.VCPKG_ROOT }}/downloads
-            ${{ env.VCPKG_ROOT }}/installed
-            ${{ env.VCPKG_ROOT }}/packages
-          key: vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-${{ hashFiles('vcpkg.json') }}
-          restore-keys: |
-            vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-
-
-      - name: Configure release build
-        run: cmake --preset release -DQRP_WARNINGS_AS_ERRORS=ON
-
-      - name: Run release smoke tests
-        run: |
-          set +e
-          log_path="$PWD/build/linux-release-smoke.log"
-          bash scripts/test.sh -BuildDir build/release -Config Release -SkipCppCoverage -SkipPythonCoverage 2>&1 \
-            | tee "$log_path"
-          status=${PIPESTATUS[0]}
-          if [ "$status" -ne 0 ]; then
-            python - "$log_path" "Run release smoke tests failed" <<'PY'
-          import sys
-          from pathlib import Path
-
-          log_path = Path(sys.argv[1])
-          title = sys.argv[2]
-          lines = log_path.read_text(encoding="utf-8", errors="replace").splitlines()[-80:]
-          message = "\n".join(lines)
-          message = message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-          title = title.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-          print(f"::error title={title}::{message}")
-          PY
-          fi
-          exit "$status"
