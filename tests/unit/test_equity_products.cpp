@@ -15,13 +15,12 @@
 
 namespace {
 
-qrp::domain::MarketQuote make_quote(
-    const std::string& id,
-    qrp::domain::QuoteInstrumentType instrument_type,
-    qrp::domain::QuoteType quote_type,
-    const std::string& tenor,
-    double value,
-    const std::string& underlier = {}) {
+qrp::domain::MarketQuote make_quote(const std::string& id,
+                                    qrp::domain::QuoteInstrumentType instrument_type,
+                                    qrp::domain::QuoteType quote_type,
+                                    const std::string& tenor,
+                                    double value,
+                                    const std::string& underlier = {}) {
     qrp::domain::MarketQuote quote;
     quote.id = id;
     quote.instrument_type = instrument_type;
@@ -56,13 +55,42 @@ qrp::domain::MarketSnapshot make_equity_market() {
     market.quotes = {
         make_quote("USD_ON", qrp::domain::QuoteInstrumentType::Deposit, qrp::domain::QuoteType::Deposit, "1D", 0.0525),
         make_quote("USD_OIS_1Y", qrp::domain::QuoteInstrumentType::OIS, qrp::domain::QuoteType::OIS, "1Y", 0.0535),
-        make_quote("AAPL", qrp::domain::QuoteInstrumentType::EquitySpot, qrp::domain::QuoteType::EquitySpot, "SPOT", 185.50, "AAPL"),
-        make_quote("AAPL_DIVYLD_1Y", qrp::domain::QuoteInstrumentType::DividendYield, qrp::domain::QuoteType::DividendYield, "1Y", 0.0050, "AAPL"),
-        make_quote("AAPL_BORROW_1Y", qrp::domain::QuoteInstrumentType::BorrowRate, qrp::domain::QuoteType::BorrowRate, "1Y", 0.0020, "AAPL"),
-        make_quote("AAPL_VOL_6M_ATM", qrp::domain::QuoteInstrumentType::EquityVol, qrp::domain::QuoteType::Volatility, "6M", 0.2450, "AAPL"),
-        make_quote("SPX", qrp::domain::QuoteInstrumentType::EquitySpot, qrp::domain::QuoteType::EquitySpot, "SPOT", 5350.0, "SPX"),
-        make_quote("ES_FUT_6M", qrp::domain::QuoteInstrumentType::Future, qrp::domain::QuoteType::Future, "6M", 5355.0, "SPX")
-    };
+        make_quote("AAPL",
+                   qrp::domain::QuoteInstrumentType::EquitySpot,
+                   qrp::domain::QuoteType::EquitySpot,
+                   "SPOT",
+                   185.50,
+                   "AAPL"),
+        make_quote("AAPL_DIVYLD_1Y",
+                   qrp::domain::QuoteInstrumentType::DividendYield,
+                   qrp::domain::QuoteType::DividendYield,
+                   "1Y",
+                   0.0050,
+                   "AAPL"),
+        make_quote("AAPL_BORROW_1Y",
+                   qrp::domain::QuoteInstrumentType::BorrowRate,
+                   qrp::domain::QuoteType::BorrowRate,
+                   "1Y",
+                   0.0020,
+                   "AAPL"),
+        make_quote("AAPL_VOL_6M_ATM",
+                   qrp::domain::QuoteInstrumentType::EquityVol,
+                   qrp::domain::QuoteType::Volatility,
+                   "6M",
+                   0.2450,
+                   "AAPL"),
+        make_quote("SPX",
+                   qrp::domain::QuoteInstrumentType::EquitySpot,
+                   qrp::domain::QuoteType::EquitySpot,
+                   "SPOT",
+                   5350.0,
+                   "SPX"),
+        make_quote("ES_FUT_6M",
+                   qrp::domain::QuoteInstrumentType::Future,
+                   qrp::domain::QuoteType::Future,
+                   "6M",
+                   5355.0,
+                   "SPX")};
     market.quotes[5].expiry = "6M";
     market.quotes[5].strike = "ATM";
     market.curves = {make_usd_ois_curve()};
@@ -180,9 +208,7 @@ TEST(EquityProductsTest, PricesEquityProducts) {
     EXPECT_GT(by_trade.at("equity_forward_aapl").npv, 0.0);
     EXPECT_GT(by_trade.at("equity_future_spx").npv, 0.0);
     EXPECT_GT(by_trade.at("equity_option_aapl_call").npv, 0.0);
-    EXPECT_GE(
-        by_trade.at("equity_option_aapl_american_put").npv,
-        by_trade.at("equity_option_aapl_euro_put").npv);
+    EXPECT_GE(by_trade.at("equity_option_aapl_american_put").npv, by_trade.at("equity_option_aapl_euro_put").npv);
 }
 
 TEST(EquityProductsTest, FactoriesReturnNullWhenEquityQuotesAreMissing) {
@@ -210,13 +236,12 @@ TEST(EquityProductsTest, FactoriesReturnNullWhenEquityQuotesAreMissing) {
 
 TEST(EquityProductsTest, PricesFallbackFutureAndExpiredOptionBranches) {
     auto market_dto = make_equity_market();
-    market_dto.quotes.push_back(make_quote(
-        "AAPL_ZERO_VOL",
-        qrp::domain::QuoteInstrumentType::EquityVol,
-        qrp::domain::QuoteType::Volatility,
-        "6M",
-        0.0,
-        "AAPL"));
+    market_dto.quotes.push_back(make_quote("AAPL_ZERO_VOL",
+                                           qrp::domain::QuoteInstrumentType::EquityVol,
+                                           qrp::domain::QuoteType::Volatility,
+                                           "6M",
+                                           0.0,
+                                           "AAPL"));
     qrp::market::MarketSnapshot market(market_dto);
     qrp::analytics::PricingContext context(market.built_state());
 

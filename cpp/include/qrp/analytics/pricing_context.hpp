@@ -24,12 +24,16 @@ public:
     /**
      * @brief Returns the referenced market state.
      */
-    const market::MarketState& market_state() const { return *market_state_; }
+    const market::MarketState& market_state() const {
+        return *market_state_;
+    }
 
     /**
      * @brief Returns the shared market-state handle for downstream builders.
      */
-    std::shared_ptr<market::MarketState> market_state_ptr() const { return market_state_; }
+    std::shared_ptr<market::MarketState> market_state_ptr() const {
+        return market_state_;
+    }
 
     /**
      * @brief Resolves the standard discount curve for a currency.

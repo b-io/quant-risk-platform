@@ -37,12 +37,11 @@ public:
      * @brief Binding-aware scenario application.
      * Resolves factor shocks into absolute quote values using the provided bindings.
      */
-    static void apply_scenario_to_state(
-        MarketState& state,
-        const domain::MarketSnapshot& reference_snapshot,
-        const ScenarioDefinition& scenario,
-        const std::vector<domain::FactorDefinition>& factors,
-        const std::vector<domain::FactorBinding>& bindings);
+    static void apply_scenario_to_state(MarketState& state,
+                                        const domain::MarketSnapshot& reference_snapshot,
+                                        const ScenarioDefinition& scenario,
+                                        const std::vector<domain::FactorDefinition>& factors,
+                                        const std::vector<domain::FactorBinding>& bindings);
 };
 
 } // namespace qrp::market

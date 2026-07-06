@@ -38,7 +38,9 @@ public:
     /**
      * @brief Returns the stable adapter name.
      */
-    std::string name() const override { return "CVXPY+OSQP"; }
+    std::string name() const override {
+        return "CVXPY+OSQP";
+    }
 
 private:
     /**

@@ -14,12 +14,12 @@ namespace qrp::analytics {
 class CashflowExtractor {
 public:
     /**
-     * @brief Returns realized cashflow diagnostics for the interval bounded by two market snapshots.
+     * @brief Returns realized cashflow diagnostics for the interval bounded by two market
+     * snapshots.
      */
-    static CashflowExtractionResult extract_realized_cashflows(
-        const domain::Trade& trade,
-        const domain::MarketSnapshot& previous_market,
-        const domain::MarketSnapshot& current_market);
+    static CashflowExtractionResult extract_realized_cashflows(const domain::Trade& trade,
+                                                               const domain::MarketSnapshot& previous_market,
+                                                               const domain::MarketSnapshot& current_market);
 };
 
 } // namespace qrp::analytics

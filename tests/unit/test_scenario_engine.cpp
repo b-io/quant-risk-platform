@@ -58,9 +58,7 @@ TEST(ScenarioEngineTest, ThrowsWhenScenarioFactorIsUndefined) {
     MarketSnapshot snapshot(base);
     auto state = snapshot.built_state();
 
-    EXPECT_THROW(
-        ScenarioEngine::apply_scenario_to_state(*state, base, scenario, {}, {}),
-        std::invalid_argument);
+    EXPECT_THROW(ScenarioEngine::apply_scenario_to_state(*state, base, scenario, {}, {}), std::invalid_argument);
 }
 
 TEST(ScenarioEngineTest, ThrowsWhenBindingTargetsMissingQuote) {
@@ -86,9 +84,7 @@ TEST(ScenarioEngineTest, ThrowsWhenBindingTargetsMissingQuote) {
     MarketSnapshot snapshot(base);
     auto state = snapshot.built_state();
 
-    EXPECT_THROW(
-        ScenarioEngine::apply_scenario_to_state(*state, base, scenario, {f1}, {b1}),
-        std::invalid_argument);
+    EXPECT_THROW(ScenarioEngine::apply_scenario_to_state(*state, base, scenario, {f1}, {b1}), std::invalid_argument);
 }
 
 TEST(ScenarioEngineTest, AppliesRelativeLogReturnBasisPointAndVolPointShocks) {
@@ -168,7 +164,5 @@ TEST(ScenarioEngineTest, ThrowsWhenDefinedFactorHasNoBinding) {
     MarketSnapshot snapshot(base);
     auto state = snapshot.built_state();
 
-    EXPECT_THROW(
-        ScenarioEngine::apply_scenario_to_state(*state, base, scenario, {factor}, {}),
-        std::invalid_argument);
+    EXPECT_THROW(ScenarioEngine::apply_scenario_to_state(*state, base, scenario, {factor}, {}), std::invalid_argument);
 }

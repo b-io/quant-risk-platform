@@ -19,7 +19,9 @@ public:
     /**
      * @brief Returns the solver-facing objective type identifier.
      */
-    std::string type() const override { return "MeanVariance"; }
+    std::string type() const override {
+        return "MeanVariance";
+    }
 
     std::map<std::string, double> expected_returns; // Asset id to expected return.
     double risk_aversion = 1.0;                     // Mean-variance risk-aversion gamma.
@@ -33,7 +35,9 @@ public:
     /**
      * @brief Returns the solver-facing objective type identifier.
      */
-    std::string type() const override { return "MinimumVariance"; }
+    std::string type() const override {
+        return "MinimumVariance";
+    }
 };
 
 /**
@@ -44,7 +48,9 @@ public:
     /**
      * @brief Returns the solver-facing objective type identifier.
      */
-    std::string type() const override { return "MaximizeReturn"; }
+    std::string type() const override {
+        return "MaximizeReturn";
+    }
 
     std::map<std::string, double> expected_returns; // Asset id to expected return.
 };
@@ -57,7 +63,9 @@ public:
     /**
      * @brief Returns the solver-facing objective type identifier.
      */
-    std::string type() const override { return "TrackingError"; }
+    std::string type() const override {
+        return "TrackingError";
+    }
 
     std::map<std::string, double> benchmark_weights; // Asset id to benchmark weight.
 };
@@ -70,7 +78,9 @@ public:
     /**
      * @brief Returns the solver-facing constraint type identifier.
      */
-    std::string type() const override { return "LinearEquality"; }
+    std::string type() const override {
+        return "LinearEquality";
+    }
 
     std::map<std::string, double> coefficients; // Asset id to linear coefficient.
     double target_value = 0.0;                  // Required linear target value.
@@ -84,7 +94,9 @@ public:
     /**
      * @brief Returns the solver-facing constraint type identifier.
      */
-    std::string type() const override { return "LinearInequality"; }
+    std::string type() const override {
+        return "LinearInequality";
+    }
 
     std::map<std::string, double> coefficients; // Asset id to linear coefficient.
     std::optional<double> lower_bound;          // Optional lower bound on the linear expression.
@@ -99,7 +111,9 @@ public:
     /**
      * @brief Returns the solver-facing constraint type identifier.
      */
-    std::string type() const override { return "Turnover"; }
+    std::string type() const override {
+        return "Turnover";
+    }
 
     std::map<std::string, double> current_weights; // Asset id to current portfolio weight.
     double max_turnover = 1.0;                     // Maximum absolute weight turnover.

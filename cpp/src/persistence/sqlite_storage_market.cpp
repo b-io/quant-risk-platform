@@ -25,24 +25,42 @@ void apply_quote_metadata_json(const std::string& metadata_json, domain::MarketQ
     }
 
     const auto j = nlohmann::json::parse(metadata_json);
-    if (j.contains("instrument_type")) q.instrument_type = j.at("instrument_type").get<domain::QuoteInstrumentType>();
-    if (j.contains("risk_factor_id")) j.at("risk_factor_id").get_to(q.risk_factor_id);
-    if (j.contains("quote_type")) q.quote_type = j.at("quote_type").get<domain::QuoteType>();
-    if (j.contains("underlier")) j.at("underlier").get_to(q.underlier);
-    if (j.contains("expiry")) j.at("expiry").get_to(q.expiry);
-    if (j.contains("strike")) j.at("strike").get_to(q.strike);
-    if (j.contains("tenor")) j.at("tenor").get_to(q.tenor);
-    if (j.contains("instrument_family")) j.at("instrument_family").get_to(q.instrument_family);
-    if (j.contains("index_family")) j.at("index_family").get_to(q.index_family);
-    if (j.contains("day_count")) q.day_count = j.at("day_count").get<domain::DayCount>();
-    if (j.contains("calendar")) q.calendar = j.at("calendar").get<domain::BusinessCalendar>();
-    if (j.contains("bdc")) q.bdc = j.at("bdc").get<domain::BusinessDayConvention>();
-    if (j.contains("settlement_days")) j.at("settlement_days").get_to(q.settlement_days);
-    if (j.contains("market_ts")) j.at("market_ts").get_to(q.market_ts);
-    if (j.contains("recorded_ts")) j.at("recorded_ts").get_to(q.recorded_ts);
-    if (j.contains("source_name")) j.at("source_name").get_to(q.source_name);
-    if (j.contains("source_ts")) j.at("source_ts").get_to(q.source_ts);
-    if (j.contains("stale_after_days")) j.at("stale_after_days").get_to(q.stale_after_days);
+    if (j.contains("instrument_type"))
+        q.instrument_type = j.at("instrument_type").get<domain::QuoteInstrumentType>();
+    if (j.contains("risk_factor_id"))
+        j.at("risk_factor_id").get_to(q.risk_factor_id);
+    if (j.contains("quote_type"))
+        q.quote_type = j.at("quote_type").get<domain::QuoteType>();
+    if (j.contains("underlier"))
+        j.at("underlier").get_to(q.underlier);
+    if (j.contains("expiry"))
+        j.at("expiry").get_to(q.expiry);
+    if (j.contains("strike"))
+        j.at("strike").get_to(q.strike);
+    if (j.contains("tenor"))
+        j.at("tenor").get_to(q.tenor);
+    if (j.contains("instrument_family"))
+        j.at("instrument_family").get_to(q.instrument_family);
+    if (j.contains("index_family"))
+        j.at("index_family").get_to(q.index_family);
+    if (j.contains("day_count"))
+        q.day_count = j.at("day_count").get<domain::DayCount>();
+    if (j.contains("calendar"))
+        q.calendar = j.at("calendar").get<domain::BusinessCalendar>();
+    if (j.contains("bdc"))
+        q.bdc = j.at("bdc").get<domain::BusinessDayConvention>();
+    if (j.contains("settlement_days"))
+        j.at("settlement_days").get_to(q.settlement_days);
+    if (j.contains("market_ts"))
+        j.at("market_ts").get_to(q.market_ts);
+    if (j.contains("recorded_ts"))
+        j.at("recorded_ts").get_to(q.recorded_ts);
+    if (j.contains("source_name"))
+        j.at("source_name").get_to(q.source_name);
+    if (j.contains("source_ts"))
+        j.at("source_ts").get_to(q.source_ts);
+    if (j.contains("stale_after_days"))
+        j.at("stale_after_days").get_to(q.stale_after_days);
 }
 
 } // namespace
@@ -99,11 +117,10 @@ void SQLiteStorageBackend::store_market_quote_event(const domain::MarketQuoteEve
 /**
  * @brief Reconstructs the latest known quote set satisfying market-time and recorded-time cutoffs.
  */
-domain::MarketSnapshot SQLiteStorageBackend::load_market_snapshot_asof(
-    const std::string& market_ts,
-    const std::string& recorded_ts,
-    const std::string& base_ccy,
-    const std::string& overlay_set_id) {
+domain::MarketSnapshot SQLiteStorageBackend::load_market_snapshot_asof(const std::string& market_ts,
+                                                                       const std::string& recorded_ts,
+                                                                       const std::string& base_ccy,
+                                                                       const std::string& overlay_set_id) {
 
     domain::MarketSnapshot snapshot;
     snapshot.base_currency = domain::from_string(base_ccy);
@@ -175,11 +192,10 @@ domain::MarketSnapshot SQLiteStorageBackend::load_market_snapshot_asof(
 /**
  * @brief Stores market snapshot-level metadata and curve construction specifications.
  */
-void SQLiteStorageBackend::store_market_snapshot(
-    const std::string& snapshot_id,
-    const std::string& as_of_date,
-    const std::string& base_ccy,
-    const std::string& curves_json) {
+void SQLiteStorageBackend::store_market_snapshot(const std::string& snapshot_id,
+                                                 const std::string& as_of_date,
+                                                 const std::string& base_ccy,
+                                                 const std::string& curves_json) {
 
     const char* sql = R"(
         INSERT OR REPLACE INTO market_snapshots (
@@ -219,12 +235,11 @@ void SQLiteStorageBackend::store_market_snapshot(
 /**
  * @brief Stores a typed market quote and selected metadata as indexed columns.
  */
-void SQLiteStorageBackend::store_market_quote(
-    const std::string& snapshot_id,
-    const std::string& quote_id,
-    double value,
-    const std::string& ccy,
-    const std::string& metadata_json) {
+void SQLiteStorageBackend::store_market_quote(const std::string& snapshot_id,
+                                              const std::string& quote_id,
+                                              double value,
+                                              const std::string& ccy,
+                                              const std::string& metadata_json) {
 
     domain::MarketQuote q;
     q.id = quote_id;
@@ -331,7 +346,8 @@ domain::MarketSnapshot SQLiteStorageBackend::load_market_snapshot(const std::str
 
         const auto diagnostics_json = column_text(stmt, 8);
         if (!diagnostics_json.empty()) {
-            snapshot.diagnostics = nlohmann::json::parse(diagnostics_json).get<std::vector<domain::MarketDataDiagnostic>>();
+            snapshot.diagnostics =
+                nlohmann::json::parse(diagnostics_json).get<std::vector<domain::MarketDataDiagnostic>>();
         }
     } else {
         sqlite3_finalize(stmt);

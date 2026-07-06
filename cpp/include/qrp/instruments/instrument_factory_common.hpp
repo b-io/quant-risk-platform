@@ -7,6 +7,11 @@
 #include <qrp/conventions/market_convention_registry.hpp>
 #include <qrp/market/market_snapshot.hpp>
 
+#include <algorithm>
+#include <cctype>
+#include <cmath>
+#include <initializer_list>
+#include <limits>
 #include <ql/cashflows/couponpricer.hpp>
 #include <ql/cashflows/iborcoupon.hpp>
 #include <ql/exercise.hpp>
@@ -25,12 +30,6 @@
 #include <ql/quotes/simplequote.hpp>
 #include <ql/settings.hpp>
 #include <ql/time/daycounters/actual365fixed.hpp>
-
-#include <algorithm>
-#include <cctype>
-#include <cmath>
-#include <initializer_list>
-#include <limits>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -57,10 +56,8 @@ std::string normalize_index_family(const std::string& index_name) {
     if (lowered.empty()) {
         return "IBOR_3M";
     }
-    if (lowered.find("ois") != std::string::npos ||
-        lowered.find("sofr") != std::string::npos ||
-        lowered.find("estr") != std::string::npos ||
-        lowered.find("sonia") != std::string::npos ||
+    if (lowered.find("ois") != std::string::npos || lowered.find("sofr") != std::string::npos ||
+        lowered.find("estr") != std::string::npos || lowered.find("sonia") != std::string::npos ||
         lowered.find("saron") != std::string::npos) {
         return "OIS";
     }
@@ -78,10 +75,14 @@ std::string normalize_index_family(const std::string& index_name) {
  */
 domain::Frequency parse_frequency_string(const std::string& value, domain::Frequency fallback) {
     const auto lowered = lower_copy(value);
-    if (lowered == "annual" || lowered == "yearly") return domain::Frequency::Annual;
-    if (lowered == "monthly") return domain::Frequency::Monthly;
-    if (lowered == "once") return domain::Frequency::Once;
-    if (lowered == "quarterly") return domain::Frequency::Quarterly;
+    if (lowered == "annual" || lowered == "yearly")
+        return domain::Frequency::Annual;
+    if (lowered == "monthly")
+        return domain::Frequency::Monthly;
+    if (lowered == "once")
+        return domain::Frequency::Once;
+    if (lowered == "quarterly")
+        return domain::Frequency::Quarterly;
     if (lowered == "semiannual" || lowered == "semi_annually" || lowered == "semi-annual") {
         return domain::Frequency::Semiannual;
     }
@@ -167,10 +168,7 @@ double credit_option_direction_sign(const std::string& direction) {
  */
 double credit_protection_direction_sign(const std::string& direction) {
     const auto lowered = lower_copy(direction);
-    if (lowered == "sell" ||
-        lowered == "sell_protection" ||
-        lowered == "seller" ||
-        lowered == "short" ||
+    if (lowered == "sell" || lowered == "sell_protection" || lowered == "seller" || lowered == "short" ||
         lowered == "short_protection") {
         return -1.0;
     }
@@ -235,19 +233,16 @@ conventions::RatesConvention rates_convention(domain::Currency currency, const s
 /**
  * @brief Fetches the discount curve selected by the pricing context.
  */
-QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> discount_curve(
-    const analytics::PricingContext& context,
-    domain::Currency currency) {
+QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> discount_curve(const analytics::PricingContext& context,
+                                                                       domain::Currency currency) {
     return context.market_state().get_curve(context.get_discount_curve_id(currency));
 }
 
 /**
  * @brief Fetches the forecast curve, using the discount curve when no forecast curve is configured.
  */
-QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> forecast_curve(
-    const analytics::PricingContext& context,
-    domain::Currency currency,
-    const std::string& index_family) {
+QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure>
+forecast_curve(const analytics::PricingContext& context, domain::Currency currency, const std::string& index_family) {
     auto curve = context.market_state().get_curve(context.get_forecast_curve_id(currency, index_family));
     return curve ? curve : discount_curve(context, currency);
 }
@@ -255,10 +250,9 @@ QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> forecast_curve(
 /**
  * @brief Adds historical IBOR fixings for any of the supplied index aliases.
  */
-void apply_ibor_fixings(
-    const QuantLib::ext::shared_ptr<QuantLib::IborIndex>& index,
-    const analytics::PricingContext& context,
-    const std::vector<std::string>& aliases) {
+void apply_ibor_fixings(const QuantLib::ext::shared_ptr<QuantLib::IborIndex>& index,
+                        const analytics::PricingContext& context,
+                        const std::vector<std::string>& aliases) {
     for (const auto& [index_name, date_fixings] : context.market_state().fixings()) {
         if (std::find(aliases.begin(), aliases.end(), index_name) == aliases.end()) {
             continue;
@@ -272,10 +266,9 @@ void apply_ibor_fixings(
 /**
  * @brief Adds historical overnight fixings for any of the supplied index aliases.
  */
-void apply_overnight_fixings(
-    const QuantLib::ext::shared_ptr<QuantLib::OvernightIndex>& index,
-    const analytics::PricingContext& context,
-    const std::vector<std::string>& aliases) {
+void apply_overnight_fixings(const QuantLib::ext::shared_ptr<QuantLib::OvernightIndex>& index,
+                             const analytics::PricingContext& context,
+                             const std::vector<std::string>& aliases) {
     for (const auto& [index_name, date_fixings] : context.market_state().fixings()) {
         if (std::find(aliases.begin(), aliases.end(), index_name) == aliases.end()) {
             continue;
@@ -289,26 +282,26 @@ void apply_overnight_fixings(
 /**
  * @brief Creates a standard QuantLib schedule with matching accrual and payment adjustment.
  */
-QuantLib::Schedule make_schedule(
-    const QuantLib::Date& start,
-    const QuantLib::Date& maturity,
-    QuantLib::Frequency frequency,
-    const QuantLib::Calendar& calendar,
-    QuantLib::BusinessDayConvention bdc,
-    QuantLib::DateGeneration::Rule rule = QuantLib::DateGeneration::Forward) {
+QuantLib::Schedule make_schedule(const QuantLib::Date& start,
+                                 const QuantLib::Date& maturity,
+                                 QuantLib::Frequency frequency,
+                                 const QuantLib::Calendar& calendar,
+                                 QuantLib::BusinessDayConvention bdc,
+                                 QuantLib::DateGeneration::Rule rule = QuantLib::DateGeneration::Forward) {
     return QuantLib::Schedule(start, maturity, QuantLib::Period(frequency), calendar, bdc, bdc, rule, false);
 }
 
 /**
  * @brief Creates an IBOR index and attaches relevant historical fixings.
  */
-QuantLib::ext::shared_ptr<QuantLib::IborIndex> make_ibor_index(
-    domain::Currency currency,
-    const std::string& index_family,
-    const QuantLib::Handle<QuantLib::YieldTermStructure>& forecast_handle,
-    const analytics::PricingContext& context,
-    const std::string& trade_alias) {
-    auto index = market::CurveBuilder::create_ibor_index(currency, index_tenor_from_family(index_family), forecast_handle);
+QuantLib::ext::shared_ptr<QuantLib::IborIndex>
+make_ibor_index(domain::Currency currency,
+                const std::string& index_family,
+                const QuantLib::Handle<QuantLib::YieldTermStructure>& forecast_handle,
+                const analytics::PricingContext& context,
+                const std::string& trade_alias) {
+    auto index =
+        market::CurveBuilder::create_ibor_index(currency, index_tenor_from_family(index_family), forecast_handle);
     apply_ibor_fixings(index, context, {index_family, trade_alias, "IBOR_3M"});
     return index;
 }
@@ -316,11 +309,11 @@ QuantLib::ext::shared_ptr<QuantLib::IborIndex> make_ibor_index(
 /**
  * @brief Creates an overnight index and attaches relevant historical fixings.
  */
-QuantLib::ext::shared_ptr<QuantLib::OvernightIndex> make_overnight_index(
-    domain::Currency currency,
-    const QuantLib::Handle<QuantLib::YieldTermStructure>& forecast_handle,
-    const analytics::PricingContext& context,
-    const std::string& trade_alias) {
+QuantLib::ext::shared_ptr<QuantLib::OvernightIndex>
+make_overnight_index(domain::Currency currency,
+                     const QuantLib::Handle<QuantLib::YieldTermStructure>& forecast_handle,
+                     const analytics::PricingContext& context,
+                     const std::string& trade_alias) {
     auto index = market::CurveBuilder::create_overnight_index(currency, forecast_handle);
     apply_overnight_fixings(index, context, {"OIS", trade_alias});
     return index;
@@ -329,11 +322,10 @@ QuantLib::ext::shared_ptr<QuantLib::OvernightIndex> make_overnight_index(
 /**
  * @brief Reads volatility from a market quote, then trade input, then a model default.
  */
-double quote_or_default_volatility(
-    const analytics::PricingContext& context,
-    const std::string& quote_id,
-    double trade_volatility,
-    double fallback) {
+double quote_or_default_volatility(const analytics::PricingContext& context,
+                                   const std::string& quote_id,
+                                   double trade_volatility,
+                                   double fallback) {
     if (!quote_id.empty()) {
         if (auto quote = context.market_state().get_quote_handle(quote_id)) {
             return quote->value();
@@ -367,9 +359,8 @@ double normal_pdf(double value) {
 /**
  * @brief Returns a discount factor from a curve, or one when discounting is unavailable.
  */
-double discount_factor_or_one(
-    const QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure>& curve,
-    const QuantLib::Date& date) {
+double discount_factor_or_one(const QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure>& curve,
+                              const QuantLib::Date& date) {
     return curve ? curve->discount(date) : 1.0;
 }
 
@@ -386,9 +377,8 @@ struct CreditSpreadNode {
 /**
  * @brief Checks whether a quote instrument type belongs to an accepted type set.
  */
-bool contains_quote_type(
-    domain::QuoteInstrumentType type,
-    std::initializer_list<domain::QuoteInstrumentType> accepted_types) {
+bool contains_quote_type(domain::QuoteInstrumentType type,
+                         std::initializer_list<domain::QuoteInstrumentType> accepted_types) {
     return std::find(accepted_types.begin(), accepted_types.end(), type) != accepted_types.end();
 }
 
@@ -409,10 +399,9 @@ double tenor_years_or_fallback(const std::string& tenor, double fallback_years) 
 /**
  * @brief Checks whether a credit quote can contribute to an underlier spread curve.
  */
-bool quote_matches_credit_underlier(
-    const domain::MarketQuote& quote,
-    const std::string& underlier,
-    std::initializer_list<domain::QuoteInstrumentType> accepted_types) {
+bool quote_matches_credit_underlier(const domain::MarketQuote& quote,
+                                    const std::string& underlier,
+                                    std::initializer_list<domain::QuoteInstrumentType> accepted_types) {
     if (!contains_quote_type(quote.instrument_type, accepted_types)) {
         return false;
     }
@@ -426,11 +415,10 @@ bool quote_matches_credit_underlier(
 /**
  * @brief Checks whether a quote matches underlier, tenor, and instrument-type criteria.
  */
-bool quote_matches_underlier_and_tenor(
-    const domain::MarketQuote& quote,
-    const std::string& underlier,
-    const std::string& tenor,
-    std::initializer_list<domain::QuoteInstrumentType> accepted_types) {
+bool quote_matches_underlier_and_tenor(const domain::MarketQuote& quote,
+                                       const std::string& underlier,
+                                       const std::string& tenor,
+                                       std::initializer_list<domain::QuoteInstrumentType> accepted_types) {
     if (!contains_quote_type(quote.instrument_type, accepted_types)) {
         return false;
     }
@@ -443,12 +431,12 @@ bool quote_matches_underlier_and_tenor(
 /**
  * @brief Finds a live quote handle by explicit id or by underlier/tenor/type metadata.
  */
-QuantLib::ext::shared_ptr<QuantLib::SimpleQuote> find_quote_handle(
-    const analytics::PricingContext& context,
-    const std::string& quote_id,
-    const std::string& underlier,
-    const std::string& tenor,
-    std::initializer_list<domain::QuoteInstrumentType> accepted_types) {
+QuantLib::ext::shared_ptr<QuantLib::SimpleQuote>
+find_quote_handle(const analytics::PricingContext& context,
+                  const std::string& quote_id,
+                  const std::string& underlier,
+                  const std::string& tenor,
+                  std::initializer_list<domain::QuoteInstrumentType> accepted_types) {
 
     if (!quote_id.empty()) {
         if (auto quote = context.market_state().get_quote_handle(quote_id)) {
@@ -468,14 +456,15 @@ QuantLib::ext::shared_ptr<QuantLib::SimpleQuote> find_quote_handle(
 }
 
 /**
- * @brief Returns a matching market quote handle or a constant quote with the supplied default value.
+ * @brief Returns a matching market quote handle or a constant quote with the supplied default
+ * value.
  */
-QuantLib::ext::shared_ptr<QuantLib::SimpleQuote> quote_or_constant(
-    const analytics::PricingContext& context,
-    const std::string& quote_id,
-    const std::string& underlier,
-    std::initializer_list<domain::QuoteInstrumentType> accepted_types,
-    double fallback) {
+QuantLib::ext::shared_ptr<QuantLib::SimpleQuote>
+quote_or_constant(const analytics::PricingContext& context,
+                  const std::string& quote_id,
+                  const std::string& underlier,
+                  std::initializer_list<domain::QuoteInstrumentType> accepted_types,
+                  double fallback) {
 
     auto quote = find_quote_handle(context, quote_id, underlier, {}, accepted_types);
     return quote ? quote : QuantLib::ext::make_shared<QuantLib::SimpleQuote>(fallback);
@@ -484,13 +473,13 @@ QuantLib::ext::shared_ptr<QuantLib::SimpleQuote> quote_or_constant(
 /**
  * @brief Builds a sorted spread curve from primary and underlier-matched credit quotes.
  */
-std::vector<CreditSpreadNode> make_credit_spread_curve(
-    const analytics::PricingContext& context,
-    const std::string& underlier,
-    const std::string& primary_quote_id,
-    double fallback_spread,
-    std::initializer_list<domain::QuoteInstrumentType> accepted_types,
-    double fallback_years) {
+std::vector<CreditSpreadNode>
+make_credit_spread_curve(const analytics::PricingContext& context,
+                         const std::string& underlier,
+                         const std::string& primary_quote_id,
+                         double fallback_spread,
+                         std::initializer_list<domain::QuoteInstrumentType> accepted_types,
+                         double fallback_years) {
 
     std::vector<CreditSpreadNode> nodes;
     std::vector<std::string> added_quote_ids;
@@ -527,25 +516,22 @@ std::vector<CreditSpreadNode> make_credit_spread_curve(
     }
 
     if (nodes.empty()) {
-        nodes.push_back(CreditSpreadNode{
-            std::max(fallback_years, 1.0e-8),
-            QuantLib::ext::make_shared<QuantLib::SimpleQuote>(std::max(fallback_spread, 0.0))});
+        nodes.push_back(
+            CreditSpreadNode{std::max(fallback_years, 1.0e-8),
+                             QuantLib::ext::make_shared<QuantLib::SimpleQuote>(std::max(fallback_spread, 0.0))});
     }
 
-    std::sort(nodes.begin(), nodes.end(), [](const auto& lhs, const auto& rhs) {
-        return lhs.years < rhs.years;
-    });
+    std::sort(nodes.begin(), nodes.end(), [](const auto& lhs, const auto& rhs) { return lhs.years < rhs.years; });
     return nodes;
 }
 
 /**
  * @brief Resolves a live recovery quote for an underlier or creates a constant recovery input.
  */
-QuantLib::ext::shared_ptr<QuantLib::SimpleQuote> make_recovery_quote(
-    const analytics::PricingContext& context,
-    const std::string& underlier,
-    const std::string& recovery_quote_id,
-    double recovery_rate) {
+QuantLib::ext::shared_ptr<QuantLib::SimpleQuote> make_recovery_quote(const analytics::PricingContext& context,
+                                                                     const std::string& underlier,
+                                                                     const std::string& recovery_quote_id,
+                                                                     double recovery_rate) {
 
     if (!recovery_quote_id.empty()) {
         if (auto quote = context.market_state().get_quote_handle(recovery_quote_id)) {
@@ -628,10 +614,7 @@ double spread_discount_factor(const std::vector<CreditSpreadNode>& nodes, double
 /**
  * @brief Converts integrated spread and recovery into a simple survival probability.
  */
-double survival_probability(
-    const std::vector<CreditSpreadNode>& nodes,
-    double recovery,
-    double years) {
+double survival_probability(const std::vector<CreditSpreadNode>& nodes, double recovery, double years) {
     const double loss_given_default = std::max(1.0 - bounded_recovery(recovery), 1.0e-8);
     return std::exp(-integrated_credit_spread(nodes, years) / loss_given_default);
 }
@@ -639,13 +622,12 @@ double survival_probability(
 /**
  * @brief Resolves an FX forward rate from outright quote, points quote, or interest-rate parity.
  */
-double forward_rate_from_quotes(
-    const QuantLib::ext::shared_ptr<QuantLib::SimpleQuote>& spot_quote,
-    const QuantLib::ext::shared_ptr<QuantLib::SimpleQuote>& forward_quote,
-    const QuantLib::ext::shared_ptr<QuantLib::SimpleQuote>& forward_points_quote,
-    const QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure>& domestic_curve,
-    const QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure>& foreign_curve,
-    const QuantLib::Date& maturity_date) {
+double forward_rate_from_quotes(const QuantLib::ext::shared_ptr<QuantLib::SimpleQuote>& spot_quote,
+                                const QuantLib::ext::shared_ptr<QuantLib::SimpleQuote>& forward_quote,
+                                const QuantLib::ext::shared_ptr<QuantLib::SimpleQuote>& forward_points_quote,
+                                const QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure>& domestic_curve,
+                                const QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure>& foreign_curve,
+                                const QuantLib::Date& maturity_date) {
     if (forward_quote) {
         return forward_quote->value();
     }
@@ -663,12 +645,11 @@ double forward_rate_from_quotes(
 /**
  * @brief Computes the fixed par rate of a swap over the remaining fixed schedule.
  */
-double par_swap_rate(
-    const QuantLib::Date& start,
-    const QuantLib::Date& maturity,
-    const QuantLib::Schedule& fixed_schedule,
-    const QuantLib::DayCounter& fixed_day_count,
-    const QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure>& curve) {
+double par_swap_rate(const QuantLib::Date& start,
+                     const QuantLib::Date& maturity,
+                     const QuantLib::Schedule& fixed_schedule,
+                     const QuantLib::DayCounter& fixed_day_count,
+                     const QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure>& curve) {
     if (!curve) {
         return 0.0;
     }
@@ -691,12 +672,11 @@ double par_swap_rate(
 /**
  * @brief Computes exercise-date swap annuity for Bermudan swaption intrinsic values.
  */
-double swap_annuity_at_exercise(
-    const QuantLib::Date& exercise_date,
-    const QuantLib::Schedule& fixed_schedule,
-    const QuantLib::DayCounter& fixed_day_count,
-    const QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure>& curve,
-    double notional) {
+double swap_annuity_at_exercise(const QuantLib::Date& exercise_date,
+                                const QuantLib::Schedule& fixed_schedule,
+                                const QuantLib::DayCounter& fixed_day_count,
+                                const QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure>& curve,
+                                double notional) {
     if (!curve) {
         return 0.0;
     }
@@ -717,7 +697,6 @@ double swap_annuity_at_exercise(
     }
     return notional * annuity;
 }
-
 
 } // namespace
 } // namespace qrp::instruments

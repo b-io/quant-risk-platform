@@ -55,9 +55,12 @@ TEST(ValuationIntegrationTest, PriceSamplePortfolio) {
         ASSERT_TRUE(by_trade.contains(trade_id)) << "Missing valuation result for " << trade_id;
         const auto& actual = by_trade.at(trade_id);
 
-        EXPECT_EQ(qrp::domain::to_string(actual.asset_class), expected.at("asset_class").get<std::string>()) << trade_id;
-        EXPECT_EQ(qrp::domain::to_string(actual.product_type), expected.at("product_type").get<std::string>()) << trade_id;
-        EXPECT_EQ(qrp::domain::to_string(actual.support_status), expected.at("support_status").get<std::string>()) << trade_id;
+        EXPECT_EQ(qrp::domain::to_string(actual.asset_class), expected.at("asset_class").get<std::string>())
+            << trade_id;
+        EXPECT_EQ(qrp::domain::to_string(actual.product_type), expected.at("product_type").get<std::string>())
+            << trade_id;
+        EXPECT_EQ(qrp::domain::to_string(actual.support_status), expected.at("support_status").get<std::string>())
+            << trade_id;
         EXPECT_NEAR(actual.npv, expected.at("npv").get<double>(), tolerance) << trade_id;
     }
 }

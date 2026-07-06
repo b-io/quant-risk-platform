@@ -95,11 +95,32 @@ public:
 - Indent with 4 spaces. Do not use tabs.
 - Put opening braces on the same line for functions, classes, control flow, and
   namespaces.
-- Keep lines readable; prefer breaking long expressions around function arguments
-  or logical clauses.
+- Keep lines readable; the formatter line length is 120 characters for C++ and
+  Python. Prefer breaking long expressions around function arguments or logical
+  clauses when that remains clearer than a single dense line.
+- Keep comments as complete sentences on one line when they fit within the line
+  length. When a comment must wrap, prefer sentence-boundary breaks and avoid
+  leaving short orphan fragments such as a final word plus punctuation.
 - Use blank lines to separate conceptual blocks, not every statement.
 - Keep namespace close comments, for example `} // namespace qrp::analytics`.
 - Prefer early validation and clear guard clauses over deeply nested control flow.
+- Use `clang-format` as the C++ formatting authority. The project configuration
+  lives in `.clang-format` and intentionally follows an LLVM-derived C++20 style
+  with 4-space indentation, attached braces, and a 120-character column limit.
+- Use Ruff as the Python import-ordering, lint, and formatting authority. The
+  project configuration lives in `ruff.toml`; Black-compatible line length is
+  mirrored in `python/pyproject.toml`.
+- Use `.yml` for YAML files.
+  Pre-commit supports a custom config path, so local commands must pass
+  `--config .pre-commit-config.yml`.
+- For manual local runs, install the pinned formatter tools with
+  `python -m pip install -r requirements-dev.txt`, then run
+  `python scripts/format.py --fix` before committing.
+- To install repository hooks, install `pre-commit` and run
+  `pre-commit install --config .pre-commit-config.yml --install-hooks --overwrite`.
+  The hooks install the pinned C++ and Python formatter versions declared in
+  `.pre-commit-config.yml` and run before each commit.
+- CI runs `python scripts/format.py --check` before build and coverage jobs.
 
 ## Types And Ownership
 

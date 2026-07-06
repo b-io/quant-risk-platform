@@ -196,13 +196,23 @@ def solve_optimization(request):
             ctype = c["type"]
             if ctype == "LinearEquality":
                 coeffs = _vector_from_mapping(
-                    c["coefficients"], asset_id_to_idx, n_assets, "LinearEquality.coefficients", require_non_empty=True)
+                    c["coefficients"],
+                    asset_id_to_idx,
+                    n_assets,
+                    "LinearEquality.coefficients",
+                    require_non_empty=True,
+                )
                 target = _require_finite(c["target"], "LinearEquality.target")
                 cvx_constraints.append(coeffs @ w == target)
 
             elif ctype == "LinearInequality":
                 coeffs = _vector_from_mapping(
-                    c["coefficients"], asset_id_to_idx, n_assets, "LinearInequality.coefficients", require_non_empty=True)
+                    c["coefficients"],
+                    asset_id_to_idx,
+                    n_assets,
+                    "LinearInequality.coefficients",
+                    require_non_empty=True,
+                )
                 if "lb" not in c and "ub" not in c:
                     raise ValueError("LinearInequality must define at least one bound")
                 lower_bound = _require_finite(c["lb"], "LinearInequality.lb") if "lb" in c else None
@@ -215,7 +225,9 @@ def solve_optimization(request):
                     cvx_constraints.append(coeffs @ w <= upper_bound)
 
             elif ctype == "Turnover":
-                w_curr = _vector_from_mapping(c["current_weights"], asset_id_to_idx, n_assets, "Turnover.current_weights")
+                w_curr = _vector_from_mapping(
+                    c["current_weights"], asset_id_to_idx, n_assets, "Turnover.current_weights"
+                )
                 max_turnover = _require_finite(c["max_turnover"], "Turnover.max_turnover")
                 if max_turnover < 0:
                     raise ValueError("Turnover.max_turnover must be non-negative")
@@ -226,13 +238,20 @@ def solve_optimization(request):
         # 3. Build Objective
         obj_expr = 0
         needs_risk_expression = any(_objective_needs_risk(objective) for objective in objectives_data)
-        risk_expression = _build_risk_expression(risk_model_data, asset_ids, asset_id_to_idx) if needs_risk_expression else None
+        risk_expression = (
+            _build_risk_expression(risk_model_data, asset_ids, asset_id_to_idx) if needs_risk_expression else None
+        )
 
         for o in objectives_data:
             otype = o["type"]
             if otype == "MeanVariance":
                 mu = _vector_from_mapping(
-                    o["expected_returns"], asset_id_to_idx, n_assets, "MeanVariance.expected_returns", require_non_empty=True)
+                    o["expected_returns"],
+                    asset_id_to_idx,
+                    n_assets,
+                    "MeanVariance.expected_returns",
+                    require_non_empty=True,
+                )
                 gamma = _require_finite(o.get("risk_aversion", 1.0), "MeanVariance.risk_aversion")
                 if gamma < 0:
                     raise ValueError("MeanVariance.risk_aversion must be non-negative")
@@ -249,14 +268,24 @@ def solve_optimization(request):
 
             elif otype == "MaximizeReturn":
                 mu = _vector_from_mapping(
-                    o["expected_returns"], asset_id_to_idx, n_assets, "MaximizeReturn.expected_returns", require_non_empty=True)
+                    o["expected_returns"],
+                    asset_id_to_idx,
+                    n_assets,
+                    "MaximizeReturn.expected_returns",
+                    require_non_empty=True,
+                )
                 obj_expr += mu @ w
 
             elif otype == "TrackingError":
                 if risk_expression is None:
                     raise ValueError("TrackingError requires a risk model")
                 benchmark = _vector_from_mapping(
-                    o["benchmark_weights"], asset_id_to_idx, n_assets, "TrackingError.benchmark_weights", require_non_empty=True)
+                    o["benchmark_weights"],
+                    asset_id_to_idx,
+                    n_assets,
+                    "TrackingError.benchmark_weights",
+                    require_non_empty=True,
+                )
                 obj_expr -= risk_expression(w - benchmark)
 
             else:
@@ -276,7 +305,11 @@ def solve_optimization(request):
         end_time = time.time()
 
         # 5. Format Result
-        result = {"status": prob.status, "objective_value": prob.value, "solve_time_ms": (end_time - start_time) * 1000}
+        result = {
+            "status": prob.status,
+            "objective_value": prob.value,
+            "solve_time_ms": (end_time - start_time) * 1000,
+        }
 
         if prob.status in {cp.OPTIMAL, cp.OPTIMAL_INACCURATE} and w.value is not None:
             opt_vals = {}

@@ -5,7 +5,6 @@
 #include <qrp/persistence/storage_backend.hpp>
 
 #include <sqlite3.h>
-
 #include <stdexcept>
 #include <string>
 
@@ -38,7 +37,8 @@ public:
     /**
      * @brief Stores a portfolio header.
      */
-    void store_portfolio(const std::string& portfolio_id, const std::string& name, const std::string& base_ccy) override;
+    void
+    store_portfolio(const std::string& portfolio_id, const std::string& name, const std::string& base_ccy) override;
 
     /**
      * @brief Stores a book header associated with a portfolio.
@@ -48,20 +48,34 @@ public:
     /**
      * @brief Stores a normalized trade row and economics JSON.
      */
-    void store_trade(const std::string& trade_id, const std::string& portfolio_id, const std::string& book_id,
-                     const std::string& asset_class, const std::string& trade_type, const std::string& ccy,
-                     double notional, const std::string& start_date, const std::string& maturity_date,
-                     const std::string& direction, const std::string& economics_json) override;
+    void store_trade(const std::string& trade_id,
+                     const std::string& portfolio_id,
+                     const std::string& book_id,
+                     const std::string& asset_class,
+                     const std::string& trade_type,
+                     const std::string& ccy,
+                     double notional,
+                     const std::string& start_date,
+                     const std::string& maturity_date,
+                     const std::string& direction,
+                     const std::string& economics_json) override;
 
     /**
      * @brief Stores a market snapshot header and curve specification payload.
      */
-    void store_market_snapshot(const std::string& snapshot_id, const std::string& as_of_date, const std::string& base_ccy, const std::string& curves_json = "[]") override;
+    void store_market_snapshot(const std::string& snapshot_id,
+                               const std::string& as_of_date,
+                               const std::string& base_ccy,
+                               const std::string& curves_json = "[]") override;
 
     /**
      * @brief Stores a raw quote attached to a market snapshot.
      */
-    void store_market_quote(const std::string& snapshot_id, const std::string& quote_id, double value, const std::string& ccy, const std::string& metadata_json = "{}") override;
+    void store_market_quote(const std::string& snapshot_id,
+                            const std::string& quote_id,
+                            double value,
+                            const std::string& ccy,
+                            const std::string& metadata_json = "{}") override;
 
     /**
      * @brief Stores one bitemporal market quote event.
@@ -71,11 +85,10 @@ public:
     /**
      * @brief Reconstructs a market snapshot as of market and knowledge timestamps.
      */
-    domain::MarketSnapshot load_market_snapshot_asof(
-        const std::string& market_ts,
-        const std::string& recorded_ts,
-        const std::string& base_ccy,
-        const std::string& overlay_set_id = "") override;
+    domain::MarketSnapshot load_market_snapshot_asof(const std::string& market_ts,
+                                                     const std::string& recorded_ts,
+                                                     const std::string& base_ccy,
+                                                     const std::string& overlay_set_id = "") override;
 
     /**
      * @brief Stores a risk-factor definition.
@@ -105,10 +118,9 @@ public:
     /**
      * @brief Loads historical observations for requested factors over a date range.
      */
-    std::vector<domain::FactorObservation> load_factor_history(
-        const std::vector<std::string>& factor_ids,
-        const std::string& start_date,
-        const std::string& end_date) override;
+    std::vector<domain::FactorObservation> load_factor_history(const std::vector<std::string>& factor_ids,
+                                                               const std::string& start_date,
+                                                               const std::string& end_date) override;
 
     /**
      * @brief Loads all trades for a given portfolio from storage.
@@ -125,40 +137,52 @@ public:
     /**
      * @brief Stores an analysis run header.
      */
-    void store_analysis_run(const std::string& run_id, const std::string& type, const std::string& portfolio_id, const std::string& snapshot_id) override;
+    void store_analysis_run(const std::string& run_id,
+                            const std::string& type,
+                            const std::string& portfolio_id,
+                            const std::string& snapshot_id) override;
 
     /**
      * @brief Stores aggregate PnL for one scenario in a run.
      */
-    void store_scenario_result(const std::string& run_id, const std::string& scenario_name, double portfolio_pnl) override;
+    void
+    store_scenario_result(const std::string& run_id, const std::string& scenario_name, double portfolio_pnl) override;
 
     /**
      * @brief Stores the result of a single trade valuation.
      * Includes NPV, currency, and any error message if valuation failed.
      */
-    void store_valuation_result(
-        const std::string& run_id,
-        const std::string& trade_id,
-        double npv,
-        const std::string& ccy,
-        const std::string& status,
-        const std::string& error,
-        const std::string& asset_class,
-        const std::string& product_type,
-        const std::string& support_status,
-        const std::string& model_name,
-        const std::string& status_message) override;
+    void store_valuation_result(const std::string& run_id,
+                                const std::string& trade_id,
+                                double npv,
+                                const std::string& ccy,
+                                const std::string& status,
+                                const std::string& error,
+                                const std::string& asset_class,
+                                const std::string& product_type,
+                                const std::string& support_status,
+                                const std::string& model_name,
+                                const std::string& status_message) override;
 
     /**
      * @brief Stores aggregate VaR and ES metrics for a run.
      */
-    void store_var_result(const std::string& run_id, const std::string& method, double confidence_level, double var_value, double expected_shortfall, int scenario_count) override;
+    void store_var_result(const std::string& run_id,
+                          const std::string& method,
+                          double confidence_level,
+                          double var_value,
+                          double expected_shortfall,
+                          int scenario_count) override;
 
     /**
      * @brief Stores a single risk measure result (e.g., PV01, Delta).
      * Maps the result to a specific risk factor (or 'ALL' for aggregate risk).
      */
-    void store_risk_result(const std::string& run_id, const std::string& trade_id, const std::string& measure, const std::string& rf_id, double value) override;
+    void store_risk_result(const std::string& run_id,
+                           const std::string& trade_id,
+                           const std::string& measure,
+                           const std::string& rf_id,
+                           double value) override;
 
     /**
      * @brief Stores a scenario set header.
@@ -168,7 +192,10 @@ public:
     /**
      * @brief Stores one factor shock within a named scenario.
      */
-    void store_scenario_factor_shock(const std::string& set_id, const std::string& scenario_name, const std::string& factor_id, double shock) override;
+    void store_scenario_factor_shock(const std::string& set_id,
+                                     const std::string& scenario_name,
+                                     const std::string& factor_id,
+                                     double shock) override;
 
     /**
      * @brief Loads a scenario set as scenario-name to factor-shock maps.

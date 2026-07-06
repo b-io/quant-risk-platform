@@ -1,15 +1,13 @@
 // Implements deterministic scenario stress revaluation and trade-level PnL aggregation.
 
-#include <qrp/analytics/stress_engine.hpp>
-
 #include <qrp/analytics/pricing_context.hpp>
+#include <qrp/analytics/stress_engine.hpp>
 #include <qrp/instruments/instrument_factory.hpp>
 #include <qrp/market/market_snapshot.hpp>
 
-#include <ql/instrument.hpp>
-
 #include <map>
 #include <memory>
+#include <ql/instrument.hpp>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -25,12 +23,12 @@ struct StressInstrument {
 
 } // namespace
 
-std::vector<StressResult> StressEngine::run_historical_stress(
-    const domain::Portfolio& portfolio,
-    const domain::MarketSnapshot& base_market_dto,
-    const std::vector<market::ScenarioDefinition>& historical_scenarios,
-    const std::vector<domain::FactorDefinition>& factors,
-    const std::vector<domain::FactorBinding>& bindings) {
+std::vector<StressResult>
+StressEngine::run_historical_stress(const domain::Portfolio& portfolio,
+                                    const domain::MarketSnapshot& base_market_dto,
+                                    const std::vector<market::ScenarioDefinition>& historical_scenarios,
+                                    const std::vector<domain::FactorDefinition>& factors,
+                                    const std::vector<domain::FactorBinding>& bindings) {
 
     std::vector<StressResult> results;
 

@@ -14,13 +14,12 @@
 
 namespace {
 
-qrp::domain::MarketQuote make_quote(
-    const std::string& id,
-    qrp::domain::QuoteInstrumentType instrument_type,
-    qrp::domain::QuoteType quote_type,
-    const std::string& tenor,
-    double value,
-    const std::string& index_family = {}) {
+qrp::domain::MarketQuote make_quote(const std::string& id,
+                                    qrp::domain::QuoteInstrumentType instrument_type,
+                                    qrp::domain::QuoteType quote_type,
+                                    const std::string& tenor,
+                                    double value,
+                                    const std::string& index_family = {}) {
     qrp::domain::MarketQuote quote;
     quote.id = id;
     quote.instrument_type = instrument_type;
@@ -50,13 +49,40 @@ qrp::domain::MarketSnapshot make_rates_market() {
         make_quote("USD_OIS_2Y", qrp::domain::QuoteInstrumentType::OIS, qrp::domain::QuoteType::OIS, "2Y", 0.0537),
         make_quote("USD_OIS_5Y", qrp::domain::QuoteInstrumentType::OIS, qrp::domain::QuoteType::OIS, "5Y", 0.0540),
         make_quote("USD_OIS_10Y", qrp::domain::QuoteInstrumentType::OIS, qrp::domain::QuoteType::OIS, "10Y", 0.0545),
-        make_quote("USD_LIBOR_3M_FRA_3M", qrp::domain::QuoteInstrumentType::FRA, qrp::domain::QuoteType::FRA, "3M", 0.0540, "IBOR_3M"),
-        make_quote("USD_LIBOR_3M_IRS_2Y", qrp::domain::QuoteInstrumentType::IRS, qrp::domain::QuoteType::IRS, "2Y", 0.0550, "IBOR_3M"),
-        make_quote("USD_LIBOR_3M_IRS_5Y", qrp::domain::QuoteInstrumentType::IRS, qrp::domain::QuoteType::IRS, "5Y", 0.0560, "IBOR_3M"),
-        make_quote("USD_IR_FUT_JUN26", qrp::domain::QuoteInstrumentType::InterestRateFuture, qrp::domain::QuoteType::InterestRateFuture, "3M", 94.50, "IBOR_3M"),
-        make_quote("USD_CAP_VOL_2Y", qrp::domain::QuoteInstrumentType::CapFloorVol, qrp::domain::QuoteType::Volatility, "2Y", 0.20),
-        make_quote("USD_SWAPTION_VOL_1Y_5Y", qrp::domain::QuoteInstrumentType::SwaptionVol, qrp::domain::QuoteType::Volatility, "5Y", 0.18)
-    };
+        make_quote("USD_LIBOR_3M_FRA_3M",
+                   qrp::domain::QuoteInstrumentType::FRA,
+                   qrp::domain::QuoteType::FRA,
+                   "3M",
+                   0.0540,
+                   "IBOR_3M"),
+        make_quote("USD_LIBOR_3M_IRS_2Y",
+                   qrp::domain::QuoteInstrumentType::IRS,
+                   qrp::domain::QuoteType::IRS,
+                   "2Y",
+                   0.0550,
+                   "IBOR_3M"),
+        make_quote("USD_LIBOR_3M_IRS_5Y",
+                   qrp::domain::QuoteInstrumentType::IRS,
+                   qrp::domain::QuoteType::IRS,
+                   "5Y",
+                   0.0560,
+                   "IBOR_3M"),
+        make_quote("USD_IR_FUT_JUN26",
+                   qrp::domain::QuoteInstrumentType::InterestRateFuture,
+                   qrp::domain::QuoteType::InterestRateFuture,
+                   "3M",
+                   94.50,
+                   "IBOR_3M"),
+        make_quote("USD_CAP_VOL_2Y",
+                   qrp::domain::QuoteInstrumentType::CapFloorVol,
+                   qrp::domain::QuoteType::Volatility,
+                   "2Y",
+                   0.20),
+        make_quote("USD_SWAPTION_VOL_1Y_5Y",
+                   qrp::domain::QuoteInstrumentType::SwaptionVol,
+                   qrp::domain::QuoteType::Volatility,
+                   "5Y",
+                   0.18)};
     market.quotes[11].expiry = "2026-06-17";
     market.quotes[12].expiry = "2Y";
     market.quotes[12].strike = "ATM";
@@ -74,7 +100,8 @@ qrp::domain::MarketSnapshot make_rates_market() {
     qrp::domain::CurveSpec ois;
     ois.id = {qrp::domain::Currency::USD, "OIS"};
     ois.purpose = qrp::domain::CurvePurpose::OISDiscount;
-    ois.quote_ids = {"USD_ON", "USD_OIS_1M", "USD_OIS_3M", "USD_OIS_6M", "USD_OIS_1Y", "USD_OIS_2Y", "USD_OIS_5Y", "USD_OIS_10Y"};
+    ois.quote_ids =
+        {"USD_ON", "USD_OIS_1M", "USD_OIS_3M", "USD_OIS_6M", "USD_OIS_1Y", "USD_OIS_2Y", "USD_OIS_5Y", "USD_OIS_10Y"};
     ois.day_count = qrp::domain::DayCount::ACT360;
     ois.calendar = qrp::domain::BusinessCalendar::US;
     ois.interpolation = qrp::domain::InterpolationType::LogLinear;
@@ -230,13 +257,12 @@ TEST(RatesProductsTest, PricesRatesProducts) {
 
 TEST(RatesProductsTest, PricesAlternativeDirectionsAndFallbackInputs) {
     auto market_dto = make_rates_market();
-    market_dto.quotes.push_back(make_quote(
-        "USD_IR_FUT_DEC26",
-        qrp::domain::QuoteInstrumentType::InterestRateFuture,
-        qrp::domain::QuoteType::InterestRateFuture,
-        "3M",
-        0.0550,
-        "IBOR_3M"));
+    market_dto.quotes.push_back(make_quote("USD_IR_FUT_DEC26",
+                                           qrp::domain::QuoteInstrumentType::InterestRateFuture,
+                                           qrp::domain::QuoteType::InterestRateFuture,
+                                           "3M",
+                                           0.0550,
+                                           "IBOR_3M"));
     market_dto.fixings["USD_LIBOR_1M"]["2026-03-24"] = 0.0535;
     market_dto.fixings["USD_LIBOR_6M"]["2026-03-24"] = 0.0545;
     market_dto.fixings["OIS"]["2026-03-24"] = 0.0525;
@@ -263,7 +289,8 @@ TEST(RatesProductsTest, PricesAlternativeDirectionsAndFallbackInputs) {
     implied_future->floating_index = "USD_LIBOR_3M";
     portfolio.trades.push_back(implied_future);
 
-    auto quoted_rate_future = make_rates_trade<qrp::domain::InterestRateFutureTrade>("future_decimal_quote_usd", "long");
+    auto quoted_rate_future =
+        make_rates_trade<qrp::domain::InterestRateFutureTrade>("future_decimal_quote_usd", "long");
     quoted_rate_future->quantity = 5.0;
     quoted_rate_future->contract_size = 2500.0;
     quoted_rate_future->reference_price = 94.25;
@@ -324,7 +351,8 @@ TEST(RatesProductsTest, PricesAlternativeDirectionsAndFallbackInputs) {
     floor->floating_index = "USD_LIBOR_3M";
     portfolio.trades.push_back(floor);
 
-    auto bermudan_default_exercise = make_rates_trade<qrp::domain::BermudanSwaptionTrade>("bermudan_default_exercise_usd", "receiver");
+    auto bermudan_default_exercise =
+        make_rates_trade<qrp::domain::BermudanSwaptionTrade>("bermudan_default_exercise_usd", "receiver");
     bermudan_default_exercise->notional = 1'000'000.0;
     bermudan_default_exercise->start_date = "2026-06-24";
     bermudan_default_exercise->maturity_date = "2029-06-24";

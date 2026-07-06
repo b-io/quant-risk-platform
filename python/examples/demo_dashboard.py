@@ -6,7 +6,6 @@ import math
 from collections import defaultdict
 from datetime import date, datetime, timedelta
 
-
 FINANCE_FONT = '"IBM Plex Sans", "Aptos", "Bahnschrift", sans-serif'
 MONO_FONT = '"IBM Plex Mono", "Cascadia Mono", "SFMono-Regular", monospace'
 CATEGORY_TICKANGLE = -35
@@ -161,9 +160,7 @@ def optional_plotly_modules():
         import plotly.io as pio
         from plotly.subplots import make_subplots
     except ImportError as exc:
-        print(
-            f"Skipped: Plotly dashboard dependencies are not available in this Python environment ({exc})."
-        )
+        print(f"Skipped: Plotly dashboard dependencies are not available in this Python environment ({exc}).")
         print("Install the optional dashboard dependencies with:")
         print("  uv sync --project python --extra dashboard")
         print("Then run the demo with the uv-managed interpreter:")
@@ -191,9 +188,7 @@ def style_color(index):
 def stable_color_index(value, modulo):
     if modulo <= 0:
         return 0
-    return (
-        sum((index + 1) * ord(char) for index, char in enumerate(str(value))) % modulo
-    )
+    return sum((index + 1) * ord(char) for index, char in enumerate(str(value))) % modulo
 
 
 def hex_to_rgb(color):
@@ -212,10 +207,7 @@ def mix_hex(base_color, mix_color, weight):
     if base_rgb is None or mix_rgb is None:
         return base_color
     clamped = max(0.0, min(1.0, float(weight)))
-    mixed = [
-        round(base * (1.0 - clamped) + mix * clamped)
-        for base, mix in zip(base_rgb, mix_rgb)
-    ]
+    mixed = [round(base * (1.0 - clamped) + mix * clamped) for base, mix in zip(base_rgb, mix_rgb)]
     return "#{:02x}{:02x}{:02x}".format(*mixed)
 
 
@@ -244,16 +236,12 @@ def trade_node_id(row):
 
 
 def product_family_color(asset_color, product_node_id):
-    mix_color, weight = PRODUCT_COLOR_VARIANTS[
-        stable_color_index(product_node_id, len(PRODUCT_COLOR_VARIANTS))
-    ]
+    mix_color, weight = PRODUCT_COLOR_VARIANTS[stable_color_index(product_node_id, len(PRODUCT_COLOR_VARIANTS))]
     return mix_hex(asset_color, mix_color, weight)
 
 
 def trade_family_color(product_color, trade_node_id):
-    mix_color, weight = TRADE_COLOR_VARIANTS[
-        stable_color_index(trade_node_id, len(TRADE_COLOR_VARIANTS))
-    ]
+    mix_color, weight = TRADE_COLOR_VARIANTS[stable_color_index(trade_node_id, len(TRADE_COLOR_VARIANTS))]
     return mix_hex(product_color, mix_color, weight)
 
 
@@ -269,9 +257,7 @@ def semantic_node_color(node_id, index=0):
         return product_family_color(asset_color, node)
     if node.startswith("trade:"):
         asset_color = preset["asset_colors"].get(asset_class, style_color(index))
-        product_color = product_family_color(
-            asset_color, product_node_id_from_trade_node(node)
-        )
+        product_color = product_family_color(asset_color, product_node_id_from_trade_node(node))
         return trade_family_color(product_color, node)
     return preset["asset_colors"].get(asset_class, style_color(index))
 
@@ -287,10 +273,7 @@ def support_status_color(status):
     normalized = str(status or "").lower()
     if "partial" in normalized:
         return preset["amber"]
-    if any(
-        token in normalized
-        for token in ("error", "missing", "not_supported", "unsupported")
-    ):
+    if any(token in normalized for token in ("error", "missing", "not_supported", "unsupported")):
         return preset["danger"]
     if "supported" in normalized:
         return preset["accent"]
@@ -310,9 +293,7 @@ def support_status_text(status, count, total):
 
 def support_statuses_from_counts(status_counts):
     known = [status for status in SUPPORT_STATUS_ORDER if status in status_counts]
-    extras = sorted(
-        status for status in status_counts if status not in SUPPORT_STATUS_ORDER
-    )
+    extras = sorted(status for status in status_counts if status not in SUPPORT_STATUS_ORDER)
     return known + extras
 
 
@@ -321,11 +302,7 @@ def sort_text(value):
 
 
 def split_identifier(value):
-    return [
-        token
-        for token in str(value or "").replace(":", "_").replace("-", "_").split("_")
-        if token
-    ]
+    return [token for token in str(value or "").replace(":", "_").replace("-", "_").split("_") if token]
 
 
 def title_token(value):
@@ -368,10 +345,7 @@ def trade_hierarchy_axis(trade_ids, trade_rows):
 
 def trade_hierarchy_labels(trade_ids, trade_rows):
     rows = [trade_row_for_id(trade_id, trade_rows) for trade_id in trade_ids]
-    return [
-        f"{row.get('asset_class', '')} / {row.get('product_type', '')} / {row.get('trade_id', '')}"
-        for row in rows
-    ]
+    return [f"{row.get('asset_class', '')} / {row.get('product_type', '')} / {row.get('trade_id', '')}" for row in rows]
 
 
 def tenor_days(value):
@@ -450,9 +424,7 @@ def scenario_group_label(scenario_name):
         return "Credit"
     if tokens[0] == "EQUITY":
         return "Equity"
-    if tokens[0] == "FX" or (
-        tokens[0] == "USD" and len(tokens) > 1 and tokens[1] in {"STRENGTH", "WEAKNESS"}
-    ):
+    if tokens[0] == "FX" or (tokens[0] == "USD" and len(tokens) > 1 and tokens[1] in {"STRENGTH", "WEAKNESS"}):
         return "FX"
     if tokens[0] == "GLOBAL":
         return "Global"
@@ -475,10 +447,7 @@ def scenario_sort_key(scenario_name):
 def scenario_hierarchy_axis(scenario_names):
     return [
         [scenario_group_label(name) for name in scenario_names],
-        [
-            axis_tick_label(name, max_line_length=16, max_lines=2)
-            for name in scenario_names
-        ],
+        [axis_tick_label(name, max_line_length=16, max_lines=2) for name in scenario_names],
     ]
 
 
@@ -688,9 +657,7 @@ def factor_sort_key(factor):
         sort_text(factor_group_label(factor_id)),
         sort_text(factor_subgroup_label(factor_id)),
         identifier_tenor_sort_key(factor_id),
-        tuple(
-            sort_text(token) for token in split_identifier(short_factor_id(factor_id))
-        ),
+        tuple(sort_text(token) for token in split_identifier(short_factor_id(factor_id))),
     )
 
 
@@ -698,12 +665,7 @@ def factor_hierarchy_axis(factors):
     return [
         [factor_group_label(factor.factor_id) for factor in factors],
         [factor_subgroup_label(factor.factor_id) for factor in factors],
-        [
-            axis_tick_label(
-                short_factor_id(factor.factor_id), max_line_length=14, max_lines=2
-            )
-            for factor in factors
-        ],
+        [axis_tick_label(short_factor_id(factor.factor_id), max_line_length=14, max_lines=2) for factor in factors],
     ]
 
 
@@ -786,9 +748,7 @@ def trade_display_npv(trade, valuation_result, product_type):
 
 
 def uses_balanced_demo_exposure(portfolio):
-    label = (
-        f"{getattr(portfolio, 'portfolio_id', '')} {portfolio_label(portfolio)}".lower()
-    )
+    label = f"{getattr(portfolio, 'portfolio_id', '')} {portfolio_label(portfolio)}".lower()
     return "demo" in label and "portfolio" in label
 
 
@@ -799,9 +759,7 @@ def balance_demo_exposures(portfolio, rows):
     asset_totals = defaultdict(float)
     for row in rows:
         asset_totals[row["asset_class"]] += max(0.0, float(row["raw_exposure"] or 0.0))
-    positive_assets = {
-        asset_class: total for asset_class, total in asset_totals.items() if total > 0.0
-    }
+    positive_assets = {asset_class: total for asset_class, total in asset_totals.items() if total > 0.0}
     if len(positive_assets) < 2:
         return rows
 
@@ -810,11 +768,7 @@ def balance_demo_exposures(portfolio, rows):
     for row in rows:
         raw_exposure = max(0.0, float(row["raw_exposure"] or 0.0))
         asset_total = positive_assets.get(row["asset_class"], 0.0)
-        row["exposure"] = (
-            raw_exposure * target_asset_exposure / asset_total
-            if asset_total > 0.0
-            else raw_exposure
-        )
+        row["exposure"] = raw_exposure * target_asset_exposure / asset_total if asset_total > 0.0 else raw_exposure
     return rows
 
 
@@ -832,8 +786,7 @@ def build_trade_rows(portfolio, valuation_results):
                 "currency": valuation.currency,
                 "display_npv": trade_display_npv(trade, valuation, product_type),
                 "exposure": raw_exposure,
-                "model": getattr(valuation, "model_name", "")
-                or valuation.tags.get("model", ""),
+                "model": getattr(valuation, "model_name", "") or valuation.tags.get("model", ""),
                 "npv": valuation.npv,
                 "product_type": product_type,
                 "raw_exposure": raw_exposure,
@@ -882,10 +835,7 @@ def allocation_donut_segments(trade_rows, node_id="portfolio"):
 
     labels = list(sorted(totals))
     return {
-        "colors": [
-            semantic_node_color(segment_ids[label], index)
-            for index, label in enumerate(labels)
-        ],
+        "colors": [semantic_node_color(segment_ids[label], index) for index, label in enumerate(labels)],
         "ids": [segment_ids[label] for label in labels],
         "labels": labels,
         "values": [totals[label] for label in labels],
@@ -893,9 +843,7 @@ def allocation_donut_segments(trade_rows, node_id="portfolio"):
 
 
 def treemap_node_colors(node_ids):
-    return [
-        semantic_node_color(node_id, index) for index, node_id in enumerate(node_ids)
-    ]
+    return [semantic_node_color(node_id, index) for index, node_id in enumerate(node_ids)]
 
 
 ASSET_RETURN_MODELS = {
@@ -968,11 +916,7 @@ POLICY_BENCHMARK_PROFILES = {
 
 
 def normalized_weights(weights):
-    clean = {
-        key: max(0.0, float(value or 0.0))
-        for key, value in weights.items()
-        if float(value or 0.0) > 0.0
-    }
+    clean = {key: max(0.0, float(value or 0.0)) for key, value in weights.items() if float(value or 0.0) > 0.0}
     total = sum(clean.values())
     if total <= 0.0:
         return dict(DEFAULT_POLICY_BENCHMARK_WEIGHTS)
@@ -987,9 +931,7 @@ def portfolio_asset_weights(trade_rows):
 
 
 def benchmark_profile_key(portfolio):
-    label = (
-        f"{getattr(portfolio, 'portfolio_id', '')} {portfolio_label(portfolio)}".lower()
-    )
+    label = f"{getattr(portfolio, 'portfolio_id', '')} {portfolio_label(portfolio)}".lower()
     if "commodity" in label:
         return "commodity"
     if "cash" in label or "liquidity" in label:
@@ -1054,19 +996,12 @@ def asset_daily_return(asset_class, index, sample_count):
     progress = index / max(sample_count - 1, 1)
     common = market_regime_shock(progress)
     daily_drift = model["drift"] / 252.0
-    daily_noise = (
-        model["vol"]
-        / math.sqrt(252.0)
-        * stable_wave(f"{asset_class}:{index}", index, scale=0.22)
-    )
+    daily_noise = model["vol"] / math.sqrt(252.0) * stable_wave(f"{asset_class}:{index}", index, scale=0.22)
     return daily_drift + model["beta"] * common + daily_noise
 
 
 def weighted_daily_return(weights, index, sample_count):
-    return sum(
-        weight * asset_daily_return(asset_class, index, sample_count)
-        for asset_class, weight in weights.items()
-    )
+    return sum(weight * asset_daily_return(asset_class, index, sample_count) for asset_class, weight in weights.items())
 
 
 def portfolio_alpha(portfolio):
@@ -1121,8 +1056,7 @@ def performance_period_summary(dates, portfolio_values, benchmark_values, lookba
     period_portfolio = portfolio_values[start_index:]
     period_benchmark = benchmark_values[start_index:]
     return {
-        "active_return": cumulative_return(period_portfolio)
-        - cumulative_return(period_benchmark),
+        "active_return": cumulative_return(period_portfolio) - cumulative_return(period_benchmark),
         "benchmark_return": cumulative_return(period_benchmark),
         "max_benchmark_drawdown": max_drawdown_detail(period_dates, period_benchmark),
         "max_portfolio_drawdown": max_drawdown_detail(period_dates, period_portfolio),
@@ -1194,9 +1128,7 @@ def build_performance_history(portfolio, trade_rows, market_as_of):
         for portfolio_value, benchmark_value in zip(portfolio_values, benchmark_values)
     ]
     period_summaries = {
-        label: performance_period_summary(
-            dates, portfolio_values, benchmark_values, lookback_days
-        )
+        label: performance_period_summary(dates, portfolio_values, benchmark_values, lookback_days)
         for label, lookback_days in PERFORMANCE_PERIOD_DAYS.items()
     }
     default_summary = period_summaries[PERFORMANCE_DEFAULT_PERIOD]
@@ -1207,9 +1139,7 @@ def build_performance_history(portfolio, trade_rows, market_as_of):
         "benchmark_name": benchmark_name(portfolio),
         "benchmark_return": default_summary["benchmark_return"],
         "benchmark_values": benchmark_values,
-        "calendar_year_returns": calendar_year_returns(
-            dates, portfolio_values, benchmark_values
-        ),
+        "calendar_year_returns": calendar_year_returns(dates, portfolio_values, benchmark_values),
         "dates": [item.isoformat() for item in dates],
         "default_period": PERFORMANCE_DEFAULT_PERIOD,
         "default_start_date": default_summary["start_date"],
@@ -1223,9 +1153,7 @@ def build_performance_history(portfolio, trade_rows, market_as_of):
     }
 
 
-def apply_finance_layout(
-    fig, height, showlegend=False, barmode=None, title=None, yaxis_title=None
-):
+def apply_finance_layout(fig, height, showlegend=False, barmode=None, title=None, yaxis_title=None):
     layout = {
         "colorway": DASHBOARD_COLORWAY,
         "font": {"color": "#16231d", "family": FINANCE_FONT, "size": 12},
@@ -1281,8 +1209,7 @@ def render_dashboard_html(title, views, output_path, pio, report_context=None):
     style_options = dashboard_style_options()
     style_presets_json = json.dumps(DASHBOARD_STYLE_PRESETS, sort_keys=True)
     portfolio_options = "\n".join(
-        f'<option value="{html.escape(view["id"])}">{html.escape(view["label"])}</option>'
-        for view in views
+        f'<option value="{html.escape(view["id"])}">{html.escape(view["label"])}</option>' for view in views
     )
     plotly_index = 0
     view_html = []
@@ -1309,9 +1236,7 @@ def render_dashboard_html(title, views, output_path, pio, report_context=None):
             else:
                 include_plotly = "cdn" if plotly_index == 0 else False
                 plotly_index += 1
-                panel_body = pio.to_html(
-                    fig, full_html=False, include_plotlyjs=include_plotly
-                )
+                panel_body = pio.to_html(fig, full_html=False, include_plotlyjs=include_plotly)
             allocation_controls = ""
             if name == "Portfolio Allocation":
                 allocation_controls = """
@@ -1580,7 +1505,9 @@ def render_dashboard_html(title, views, output_path, pio, report_context=None):
             if (!row) {
               return preset.colorway[pointIndex % preset.colorway.length] || preset.accent;
             }
-            return Number(row.display_npv ?? row.npv ?? 0) < 0 ? preset.danger : nodeColor(tradeNodeIdFromRow(row), pointIndex, preset);
+            return Number(row.display_npv ?? row.npv ?? 0) < 0
+              ? preset.danger
+              : nodeColor(tradeNodeIdFromRow(row), pointIndex, preset);
           });
         }
         return null;
@@ -1662,11 +1589,17 @@ def render_dashboard_html(title, views, output_path, pio, report_context=None):
             updates[`${axisName}.title.font.color`] = tokens.font;
             updates[`${axisName}.zerolinecolor`] = tokens.line;
             if (plot.layout[axisName] && plot.layout[axisName].rangeselector) {
-              updates[`${axisName}.rangeselector.activecolor`] = withAlpha(preset.accent, theme === "dark" ? 0.38 : 0.26);
+              updates[`${axisName}.rangeselector.activecolor`] = withAlpha(
+                preset.accent,
+                theme === "dark" ? 0.38 : 0.26
+              );
               updates[`${axisName}.rangeselector.bgcolor`] = theme === "dark"
                 ? mixHex(tokens.tableCell, "#000000", 0.10)
                 : "rgba(255,255,255,0.72)";
-              updates[`${axisName}.rangeselector.bordercolor`] = withAlpha(preset.accent, theme === "dark" ? 0.44 : 0.24);
+              updates[`${axisName}.rangeselector.bordercolor`] = withAlpha(
+                preset.accent,
+                theme === "dark" ? 0.44 : 0.24
+              );
               updates[`${axisName}.rangeselector.font.color`] = tokens.font;
             }
           });
@@ -1739,7 +1672,9 @@ def render_dashboard_html(title, views, output_path, pio, report_context=None):
         const tokens = contrastPalettes[theme] || contrastPalettes.light;
         const preset = styleTokens(styleKey);
         const root = document.documentElement.style;
-        const header = theme === "dark" ? mixHex(preset.accent, "#061016", 0.16) : mixHex(preset.accent, "#102820", 0.68);
+        const header = theme === "dark"
+          ? mixHex(preset.accent, "#061016", 0.16)
+          : mixHex(preset.accent, "#102820", 0.68);
         const headerFont = theme === "dark" ? "#061016" : tokens.tableHeaderFont;
         const odd = theme === "dark"
           ? mixHex(tokens.tableCell, preset.accent, 0.07)
@@ -1753,14 +1688,23 @@ def render_dashboard_html(title, views, output_path, pio, report_context=None):
         root.setProperty("--table-cell-font", tokens.tableCellFont);
         root.setProperty("--table-row-odd", odd);
         root.setProperty("--table-row-even", even);
-        root.setProperty("--table-border", theme === "dark" ? withAlpha(preset.accent, 0.20) : withAlpha("#102820", 0.12));
+        root.setProperty(
+          "--table-border",
+          theme === "dark" ? withAlpha(preset.accent, 0.20) : withAlpha("#102820", 0.12)
+        );
         root.setProperty("--table-muted", tokens.tableMuted || tokens.font);
         root.setProperty("--status-supported-bg", withAlpha(preset.accent, theme === "dark" ? 0.18 : 0.14));
-        root.setProperty("--status-supported-fg", theme === "dark" ? mixHex(preset.accent, "#ffffff", 0.18) : preset.accent);
+        root.setProperty(
+          "--status-supported-fg",
+          theme === "dark" ? mixHex(preset.accent, "#ffffff", 0.18) : preset.accent
+        );
         root.setProperty("--status-partial-bg", withAlpha(preset.amber, theme === "dark" ? 0.22 : 0.18));
         root.setProperty("--status-partial-fg", theme === "dark" ? mixHex(preset.amber, "#ffffff", 0.18) : "#85622d");
         root.setProperty("--status-unsupported-bg", withAlpha(preset.danger, theme === "dark" ? 0.20 : 0.16));
-        root.setProperty("--status-unsupported-fg", theme === "dark" ? mixHex(preset.danger, "#ffffff", 0.20) : preset.danger);
+        root.setProperty(
+          "--status-unsupported-fg",
+          theme === "dark" ? mixHex(preset.danger, "#ffffff", 0.20) : preset.danger
+        );
       }
 
       let visualRefreshFrame = 0;
@@ -2443,7 +2387,8 @@ def render_dashboard_html(title, views, output_path, pio, report_context=None):
           return;
         }
         filter.hidden = false;
-        filter.textContent = `${label} - ${rows.length} position${rows.length === 1 ? "" : "s"} - ${money(sumExposure(rows))} exposure`;
+        const countLabel = `${rows.length} position${rows.length === 1 ? "" : "s"}`;
+        filter.textContent = `${label} - ${countLabel} - ${money(sumExposure(rows))} exposure`;
       }
 
       function updateLinkedCharts(plot, rows, label, nodeId, options) {
@@ -2634,7 +2579,8 @@ def render_dashboard_html(title, views, output_path, pio, report_context=None):
             const tradeId = tradeIdFromPoint(point);
             const selectedRows = activeRows.filter((row) => row.trade_id === tradeId);
             window.setTimeout(() => {
-              applySelection(selectedRows, `Position: ${tradeId}`, selectedRows[0] ? tradeNodeId(selectedRows[0]) : `trade:${tradeId}`);
+              const selectedNodeId = selectedRows[0] ? tradeNodeId(selectedRows[0]) : `trade:${tradeId}`;
+              applySelection(selectedRows, `Position: ${tradeId}`, selectedNodeId);
             }, 0);
           }
         });
@@ -2734,7 +2680,8 @@ def render_dashboard_html(title, views, output_path, pio, report_context=None):
   <title>{html.escape(title)}</title>
 {initial_theme_script}
   <style>
-    @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
+    @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&display=swap");
+    @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
 
     :root {{
       color-scheme: light;
@@ -3479,8 +3426,8 @@ def render_dashboard_html(title, views, output_path, pio, report_context=None):
       <p class="footnote">
         Performance history is a deterministic model series generated from asset-class return assumptions and policy
         benchmark weights; the chart supports common lookback windows from 1Y through inception plus calendar-year
-        returns. Stress scenarios are one-step revaluations as of {html.escape(market_as_of)}; they are not chronological
-        portfolio performance.
+        returns. Stress scenarios are one-step revaluations as of {html.escape(market_as_of)};
+        they are not chronological portfolio performance.
       </p>
     </main>
   </div>
@@ -3502,10 +3449,7 @@ def make_portfolio_allocation_figure(go, make_subplots, trade_rows):
         [row["product_type"] for row in trade_rows],
         [row["trade_id"] for row in trade_rows],
     ]
-    npv_axis_labels = [
-        f"{row['asset_class']} / {row['product_type']} / {row['trade_id']}"
-        for row in trade_rows
-    ]
+    npv_axis_labels = [f"{row['asset_class']} / {row['product_type']} / {row['trade_id']}" for row in trade_rows]
     npv_values = [row.get("display_npv", row["npv"]) for row in trade_rows]
     donut = allocation_donut_segments(trade_rows)
     chart_height = bounded_chart_height(
@@ -3644,9 +3588,7 @@ def make_portfolio_allocation_figure(go, make_subplots, trade_rows):
     fig.update_layout(
         margin={
             "b": 76,
-            "l": categorical_left_margin(
-                npv_axis_labels, min_margin=180, max_margin=300, char_width=4
-            ),
+            "l": categorical_left_margin(npv_axis_labels, min_margin=180, max_margin=300, char_width=4),
             "r": 44,
             "t": 130,
         }
@@ -3663,12 +3605,8 @@ def make_portfolio_allocation_figure(go, make_subplots, trade_rows):
             "tradeRows": trade_rows,
         }
     )
-    fig.update_xaxes(
-        range=padded_number_range(npv_values), title_text="Display NPV", row=2, col=1
-    )
-    fig.update_yaxes(
-        autorange="reversed", automargin=True, row=2, col=1, type="multicategory"
-    )
+    fig.update_xaxes(range=padded_number_range(npv_values), title_text="Display NPV", row=2, col=1)
+    fig.update_yaxes(autorange="reversed", automargin=True, row=2, col=1, type="multicategory")
     return fig
 
 
@@ -3718,6 +3656,13 @@ def cell_display(row, key, kind):
     return html.escape(str(value or ""))
 
 
+def row_cell_html(row, key, kind):
+    data_kind = html.escape(kind)
+    sort_value = html.escape(sortable_value(row.get(key), kind))
+    display = cell_display(row, key, kind)
+    return f'<td data-kind="{data_kind}" data-sort-value="{sort_value}">{display}</td>'
+
+
 def sortable_table_html(table_id, rows, columns, *, max_height):
     header_html = "".join(
         f"""
@@ -3731,15 +3676,8 @@ def sortable_table_html(table_id, rows, columns, *, max_height):
     )
     body_html = "\n".join(
         f"""
-        <tr data-default-sort="{
-            html.escape("|".join(str(value) for value in trade_sort_key(row)))
-        }">
-          {
-            "".join(
-                f'<td data-kind="{html.escape(kind)}" data-sort-value="{html.escape(sortable_value(row.get(key), kind))}">{cell_display(row, key, kind)}</td>'
-                for key, _, kind in columns
-            )
-        }
+        <tr data-default-sort="{html.escape("|".join(str(value) for value in trade_sort_key(row)))}">
+          {"".join(row_cell_html(row, key, kind) for key, _, kind in columns)}
         </tr>
         """
         for row in rows
@@ -3796,9 +3734,7 @@ def make_support_diagnostics_panel(trade_rows):
 
 
 def make_risk_measures_figure(go, make_subplots, risk_results, trade_rows):
-    sorted_results = sorted(
-        risk_results, key=lambda result: trade_id_sort_key(result.trade_id, trade_rows)
-    )
+    sorted_results = sorted(risk_results, key=lambda result: trade_id_sort_key(result.trade_id, trade_rows))
     trade_ids = [result.trade_id for result in sorted_results]
     trade_axis = trade_hierarchy_axis(trade_ids, trade_rows)
     trade_labels = trade_hierarchy_labels(trade_ids, trade_rows)
@@ -3807,14 +3743,8 @@ def make_risk_measures_figure(go, make_subplots, risk_results, trade_rows):
         key=risk_bucket_sort_key,
     )
     bucket_axis = risk_bucket_hierarchy_axis(all_buckets)
-    z = [
-        [result.bucketed_risk.get(bucket, 0.0) for bucket in all_buckets]
-        for result in sorted_results
-    ]
-    bucket_customdata = [
-        [[result.trade_id, bucket] for bucket in all_buckets]
-        for result in sorted_results
-    ]
+    z = [[result.bucketed_risk.get(bucket, 0.0) for bucket in all_buckets] for result in sorted_results]
+    bucket_customdata = [[[result.trade_id, bucket] for bucket in all_buckets] for result in sorted_results]
     height = bounded_chart_height(
         len(sorted_results),
         base_height=280,
@@ -3872,9 +3802,7 @@ def make_risk_measures_figure(go, make_subplots, risk_results, trade_rows):
     fig.update_layout(
         margin={
             "b": 86,
-            "l": categorical_left_margin(
-                trade_labels, min_margin=180, max_margin=320, char_width=4
-            ),
+            "l": categorical_left_margin(trade_labels, min_margin=180, max_margin=320, char_width=4),
             "r": 38,
             "t": 82,
         }
@@ -3885,9 +3813,7 @@ def make_risk_measures_figure(go, make_subplots, risk_results, trade_rows):
         row=1,
         col=2,
     )
-    fig.update_yaxes(
-        autorange="reversed", automargin=True, row=1, col=1, type="multicategory"
-    )
+    fig.update_yaxes(autorange="reversed", automargin=True, row=1, col=1, type="multicategory")
     fig.update_yaxes(
         autorange="reversed",
         automargin=True,
@@ -3903,9 +3829,7 @@ def make_historical_stress_figure(go, make_subplots, stress_results, trade_rows)
     stress_sorted = sorted(stress_results, key=lambda result: result.total_pnl)
     scenario_names = [result.scenario_name for result in stress_sorted]
     scenario_pnls = [result.total_pnl for result in stress_sorted]
-    matrix_results = sorted(
-        stress_results, key=lambda result: scenario_sort_key(result.scenario_name)
-    )
+    matrix_results = sorted(stress_results, key=lambda result: scenario_sort_key(result.scenario_name))
     matrix_scenario_names = [result.scenario_name for result in matrix_results]
     matrix_scenario_axis = scenario_hierarchy_axis(matrix_scenario_names)
     trade_ids = sorted(
@@ -3914,14 +3838,8 @@ def make_historical_stress_figure(go, make_subplots, stress_results, trade_rows)
     )
     trade_axis = trade_hierarchy_axis(trade_ids, trade_rows)
     trade_labels = trade_hierarchy_labels(trade_ids, trade_rows)
-    stress_matrix = [
-        [result.trade_pnls.get(trade_id, 0.0) for result in matrix_results]
-        for trade_id in trade_ids
-    ]
-    stress_customdata = [
-        [[trade_id, result.scenario_name] for result in matrix_results]
-        for trade_id in trade_ids
-    ]
+    stress_matrix = [[result.trade_pnls.get(trade_id, 0.0) for result in matrix_results] for trade_id in trade_ids]
+    stress_customdata = [[[trade_id, result.scenario_name] for result in matrix_results] for trade_id in trade_ids]
     worst = stress_sorted[0]
     worst_trade_pnls = sorted(
         [(trade_id, worst.trade_pnls.get(trade_id, 0.0)) for trade_id in trade_ids],
@@ -3954,9 +3872,7 @@ def make_historical_stress_figure(go, make_subplots, stress_results, trade_rows)
             constraintext="none",
             customdata=[[result.scenario_name] for result in stress_sorted],
             hovertemplate="<b>%{customdata[0]}</b><br>Total P&L: %{x:,.0f}<extra></extra>",
-            marker_color=[
-                NEGATIVE_COLOR if pnl < 0 else POSITIVE_COLOR for pnl in scenario_pnls
-            ],
+            marker_color=[NEGATIVE_COLOR if pnl < 0 else POSITIVE_COLOR for pnl in scenario_pnls],
             orientation="h",
             text=[money(pnl) for pnl in scenario_pnls],
             textposition="auto",
@@ -3985,10 +3901,7 @@ def make_historical_stress_figure(go, make_subplots, stress_results, trade_rows)
             cliponaxis=False,
             constraintext="none",
             hovertemplate="%{y}<br>Contribution: %{x:,.0f}<extra></extra>",
-            marker_color=[
-                NEGATIVE_COLOR if pnl < 0 else POSITIVE_COLOR
-                for _, pnl in worst_trade_pnls
-            ],
+            marker_color=[NEGATIVE_COLOR if pnl < 0 else POSITIVE_COLOR for _, pnl in worst_trade_pnls],
             orientation="h",
             text=[money(pnl) for _, pnl in worst_trade_pnls],
             textposition="auto",
@@ -4004,9 +3917,7 @@ def make_historical_stress_figure(go, make_subplots, stress_results, trade_rows)
             "b": 118,
             "l": max(
                 categorical_left_margin(scenario_names),
-                categorical_left_margin(
-                    trade_labels, min_margin=180, max_margin=320, char_width=4
-                ),
+                categorical_left_margin(trade_labels, min_margin=180, max_margin=320, char_width=4),
                 categorical_left_margin([trade_id for trade_id, _ in worst_trade_pnls]),
             ),
             "r": 94,
@@ -4043,17 +3954,13 @@ def make_historical_stress_figure(go, make_subplots, stress_results, trade_rows)
         col=1,
     )
     fig.update_xaxes(
-        range=padded_number_range(
-            [pnl for _, pnl in worst_trade_pnls] + [worst.total_pnl]
-        ),
+        range=padded_number_range([pnl for _, pnl in worst_trade_pnls] + [worst.total_pnl]),
         title_text="Position Contribution",
         row=3,
         col=1,
     )
     fig.update_yaxes(autorange="reversed", automargin=True, row=1, col=1)
-    fig.update_yaxes(
-        autorange="reversed", automargin=True, row=2, col=1, type="multicategory"
-    )
+    fig.update_yaxes(autorange="reversed", automargin=True, row=2, col=1, type="multicategory")
     fig.update_yaxes(autorange="reversed", automargin=True, row=3, col=1)
     return fig
 
@@ -4108,8 +4015,7 @@ def make_performance_review_figure(go, make_subplots, performance_history):
             x=dates,
             y=[value * 100.0 for value in performance_history["active_returns"]],
             marker_color=[
-                POSITIVE_COLOR if value >= 0.0 else NEGATIVE_COLOR
-                for value in performance_history["active_returns"]
+                POSITIVE_COLOR if value >= 0.0 else NEGATIVE_COLOR for value in performance_history["active_returns"]
             ],
         ),
         row=2,
@@ -4201,15 +4107,11 @@ def make_monte_carlo_figure(go, make_subplots, mc_results, market_as_of=None):
     titles = []
     for label, result, _ in mc_results:
         end_date = horizon_date(market_as_of, result.horizon_days)
-        horizon_label = (
-            format_date(end_date) if end_date else f"{result.horizon_days:g}d"
-        )
+        horizon_label = format_date(end_date) if end_date else f"{result.horizon_days:g}d"
         titles.append(f"{label} P&L Distribution to {horizon_label}")
     for label, result, _ in mc_results:
         end_date = horizon_date(market_as_of, result.horizon_days)
-        horizon_label = (
-            format_date(end_date) if end_date else f"{result.horizon_days:g}d"
-        )
+        horizon_label = format_date(end_date) if end_date else f"{result.horizon_days:g}d"
         titles.append(f"{label} Future Path Fan to {horizon_label}")
 
     fig = make_subplots(
@@ -4227,21 +4129,13 @@ def make_monte_carlo_figure(go, make_subplots, mc_results, market_as_of=None):
         es_threshold = -result.expected_shortfall_95
 
         fig.add_trace(
-            go.Histogram(
-                name=f"{label} P&L", x=pnls, nbinsx=35, marker_color=POSITIVE_COLOR
-            ),
+            go.Histogram(name=f"{label} P&L", x=pnls, nbinsx=35, marker_color=POSITIVE_COLOR),
             row=1,
             col=col,
         )
-        fig.add_vline(
-            x=var_threshold, line_dash="dash", line_color=NEGATIVE_COLOR, row=1, col=col
-        )
-        fig.add_vline(
-            x=es_threshold, line_dash="dot", line_color="#7c2d12", row=1, col=col
-        )
-        fig.add_vline(
-            x=mean_pnl, line_dash="solid", line_color=WARNING_COLOR, row=1, col=col
-        )
+        fig.add_vline(x=var_threshold, line_dash="dash", line_color=NEGATIVE_COLOR, row=1, col=col)
+        fig.add_vline(x=es_threshold, line_dash="dot", line_color="#7c2d12", row=1, col=col)
+        fig.add_vline(x=mean_pnl, line_dash="solid", line_color=WARNING_COLOR, row=1, col=col)
 
         selected_pnls = pnls[: min(40, len(pnls))]
         for path_index, pnl in enumerate(selected_pnls):
@@ -4276,9 +4170,7 @@ def make_monte_carlo_figure(go, make_subplots, mc_results, market_as_of=None):
         )
         end_date = horizon_date(market_as_of, horizon_days)
         horizon_label = format_date(end_date) if end_date else f"{horizon_days:g}d"
-        fig.update_xaxes(
-            title_text=f"Horizon P&L ending {horizon_label}", row=1, col=col
-        )
+        fig.update_xaxes(title_text=f"Horizon P&L ending {horizon_label}", row=1, col=col)
         if uses_dates:
             fig.update_xaxes(title_text="Date", type="date", row=2, col=col)
         else:
@@ -4306,9 +4198,7 @@ def explain_result_residual(result):
 
 
 def make_pnl_explain_figure(go, pnl_results, trade_rows):
-    sorted_results = sorted(
-        pnl_results, key=lambda result: trade_id_sort_key(result.trade_id, trade_rows)
-    )
+    sorted_results = sorted(pnl_results, key=lambda result: trade_id_sort_key(result.trade_id, trade_rows))
     trade_ids = [result.trade_id for result in sorted_results]
     trade_axis = trade_hierarchy_axis(trade_ids, trade_rows)
     trade_labels = trade_hierarchy_labels(trade_ids, trade_rows)
@@ -4325,10 +4215,7 @@ def make_pnl_explain_figure(go, pnl_results, trade_rows):
             name="Carry",
             orientation="h",
             x=[
-                explain_component_amount(
-                    result, "carry", number_attr(result, "carry_pnl")
-                )
-                for result in sorted_results
+                explain_component_amount(result, "carry", number_attr(result, "carry_pnl")) for result in sorted_results
             ],
             y=trade_axis,
             marker_color=WARNING_COLOR,
@@ -4338,12 +4225,7 @@ def make_pnl_explain_figure(go, pnl_results, trade_rows):
         go.Bar(
             name="Cash",
             orientation="h",
-            x=[
-                explain_component_amount(
-                    result, "cash", number_attr(result, "cash_pnl")
-                )
-                for result in sorted_results
-            ],
+            x=[explain_component_amount(result, "cash", number_attr(result, "cash_pnl")) for result in sorted_results],
             y=trade_axis,
             marker_color=DASHBOARD_COLORWAY[1],
         )
@@ -4353,9 +4235,7 @@ def make_pnl_explain_figure(go, pnl_results, trade_rows):
             name="Market Move",
             orientation="h",
             x=[
-                explain_component_amount(
-                    result, "market_move", number_attr(result, "market_move_pnl")
-                )
+                explain_component_amount(result, "market_move", number_attr(result, "market_move_pnl"))
                 for result in sorted_results
             ],
             y=trade_axis,
@@ -4367,9 +4247,7 @@ def make_pnl_explain_figure(go, pnl_results, trade_rows):
             name="Residual",
             orientation="h",
             x=[
-                explain_component_amount(
-                    result, "residual", explain_result_residual(result)
-                )
+                explain_component_amount(result, "residual", explain_result_residual(result))
                 for result in sorted_results
             ],
             y=trade_axis,
@@ -4386,9 +4264,7 @@ def make_pnl_explain_figure(go, pnl_results, trade_rows):
     fig.update_layout(
         margin={
             "b": 86,
-            "l": categorical_left_margin(
-                trade_labels, min_margin=180, max_margin=320, char_width=4
-            ),
+            "l": categorical_left_margin(trade_labels, min_margin=180, max_margin=320, char_width=4),
             "r": 38,
             "t": 82,
         }
@@ -4400,21 +4276,13 @@ def make_pnl_explain_figure(go, pnl_results, trade_rows):
 
 def make_factor_scenario_figure(go, make_subplots, factors, scenarios):
     factors_sorted = sorted(factors, key=factor_sort_key)
-    scenarios_sorted = sorted(
-        scenarios, key=lambda scenario: scenario_sort_key(scenario.name)
-    )
+    scenarios_sorted = sorted(scenarios, key=lambda scenario: scenario_sort_key(scenario.name))
     factor_ids = [factor.factor_id for factor in factors_sorted]
     factor_axis = factor_hierarchy_axis(factors_sorted)
     scenario_names = [scenario.name for scenario in scenarios_sorted]
     scenario_axis = scenario_hierarchy_axis(scenario_names)
-    z = [
-        [scenario.factor_shocks.get(factor_id, 0.0) for factor_id in factor_ids]
-        for scenario in scenarios_sorted
-    ]
-    factor_customdata = [
-        [[scenario.name, factor_id] for factor_id in factor_ids]
-        for scenario in scenarios_sorted
-    ]
+    z = [[scenario.factor_shocks.get(factor_id, 0.0) for factor_id in factor_ids] for scenario in scenarios_sorted]
+    factor_customdata = [[[scenario.name, factor_id] for factor_id in factor_ids] for scenario in scenarios_sorted]
     factor_type_counts = defaultdict(int)
     for factor in factors_sorted:
         factor_type_counts[enum_label(factor.factor_type)] += 1
@@ -4472,9 +4340,7 @@ def make_factor_scenario_figure(go, make_subplots, factors, scenarios):
         row=1,
         col=1,
     )
-    fig.update_yaxes(
-        autorange="reversed", automargin=True, row=1, col=1, type="multicategory"
-    )
+    fig.update_yaxes(autorange="reversed", automargin=True, row=1, col=1, type="multicategory")
     fig.update_xaxes(
         **diagonal_category_axis(title_text="Factor Type"),
         row=2,
@@ -4485,9 +4351,7 @@ def make_factor_scenario_figure(go, make_subplots, factors, scenarios):
 
 
 def portfolio_label(portfolio):
-    return getattr(portfolio, "portfolio_name", "") or getattr(
-        portfolio, "portfolio_id", "Portfolio"
-    )
+    return getattr(portfolio, "portfolio_name", "") or getattr(portfolio, "portfolio_id", "Portfolio")
 
 
 def portfolio_description(portfolio):
@@ -4506,12 +4370,13 @@ def make_dashboard_cards(
 ):
     trade_rows = build_trade_rows(portfolio, valuation_results)
     mc_card = mc_results[0][1] if mc_results else None
+    asset_class_count = len(set(row["asset_class"] for row in trade_rows))
 
     return [
         {
             "label": "Portfolio NPV",
             "value": money(total_npv),
-            "note": f"{len(trade_rows)} positions across {len(set(row['asset_class'] for row in trade_rows))} asset classes",
+            "note": f"{len(trade_rows)} positions across {asset_class_count} asset classes",
         },
         {
             "label": "2Y Return",
@@ -4535,9 +4400,7 @@ def make_dashboard_cards(
         },
         {
             "label": "Monte Carlo VaR / ES",
-            "value": f"{money(mc_card.var_95)} / {money(mc_card.expected_shortfall_95)}"
-            if mc_card
-            else "n/a",
+            "value": f"{money(mc_card.var_95)} / {money(mc_card.expected_shortfall_95)}" if mc_card else "n/a",
             "note": mc_results[0][0] if mc_results else "No Monte Carlo results",
         },
     ]
@@ -4562,33 +4425,46 @@ def make_dashboard_figures(
         (
             "Portfolio Performance Review",
             make_performance_review_figure(go, make_subplots, performance_history),
-            "Model total-return history versus the policy benchmark, with 1Y, 2Y, 5Y, 10Y, inception, and calendar-year views.",
+            (
+                "Model total-return history versus the policy benchmark, with 1Y, 2Y, 5Y, 10Y, "
+                "inception, and calendar-year views."
+            ),
         ),
         (
             "Portfolio Allocation",
             make_portfolio_allocation_figure(go, make_subplots, trade_rows),
-            "Use Asset, Book, or Position hierarchy; funded bond and note bars show premium or discount to par while tables keep raw NPV.",
+            (
+                "Use Asset, Book, or Position hierarchy; funded bond and note bars show premium "
+                "or discount to par while tables keep raw NPV."
+            ),
         ),
         (
             "Support Diagnostics",
             make_support_diagnostics_panel(trade_rows),
-            "Pricing support exceptions are listed by position so unsupported or partially supported instruments are explicit.",
+            (
+                "Pricing support exceptions are listed by position so unsupported or partially "
+                "supported instruments are explicit."
+            ),
         ),
         (
             "Position Inventory",
             make_trade_inventory_figure(go, trade_rows),
-            "Rows are portfolio positions; asset class and instrument type are shown separately for sorting and grouping.",
+            (
+                "Rows are portfolio positions; asset class and instrument type are shown "
+                "separately for sorting and grouping."
+            ),
         ),
         (
             "Risk Exposures by Position",
             make_risk_measures_figure(go, make_subplots, risk_results, trade_rows),
-            "Rows are positions, grouped by asset class and instrument type; rate and credit buckets are shown by tenor group.",
+            (
+                "Rows are positions, grouped by asset class and instrument type; rate and credit "
+                "buckets are shown by tenor group."
+            ),
         ),
         (
             "Scenario Stress P&L",
-            make_historical_stress_figure(
-                go, make_subplots, stress_results, trade_rows
-            ),
+            make_historical_stress_figure(go, make_subplots, stress_results, trade_rows),
             "Stress scenarios are one-step shocks and P&L explainers, not portfolio performance through time.",
         ),
         (

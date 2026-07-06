@@ -72,7 +72,8 @@ private:
      */
     void load_defaults();
 
-    std::map<std::pair<domain::Currency, std::string>, RatesConvention> rates_conventions_; // Rates conventions keyed by currency and index family.
+    std::map<std::pair<domain::Currency, std::string>, RatesConvention>
+        rates_conventions_; // Rates conventions keyed by currency and index family.
 };
 
 } // namespace qrp::conventions

@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import xml.etree.ElementTree as ET
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-import xml.etree.ElementTree as ET
 
 
 @dataclass(frozen=True)
@@ -59,7 +59,9 @@ def _matches_prefix(path: Path, prefixes: list[Path]) -> bool:
     return False
 
 
-def _filtered_line_counts(root: ET.Element, include_prefixes: list[Path], exclude_prefixes: list[Path]) -> tuple[int, int]:
+def _filtered_line_counts(
+    root: ET.Element, include_prefixes: list[Path], exclude_prefixes: list[Path]
+) -> tuple[int, int]:
     """Counts covered and valid Cobertura lines after source-file filtering."""
 
     valid_lines: set[tuple[str, int]] = set()
@@ -110,10 +112,14 @@ def parse_coverage_metric(
             "For MSVC native coverage, ensure the tested binaries were built with PDB debug symbols."
         )
 
-    line_rate = lines_covered / lines_valid if include_prefixes or exclude_prefixes else _read_float_attribute(
-        root,
-        "line-rate",
-        lines_covered / lines_valid,
+    line_rate = (
+        lines_covered / lines_valid
+        if include_prefixes or exclude_prefixes
+        else _read_float_attribute(
+            root,
+            "line-rate",
+            lines_covered / lines_valid,
+        )
     )
     branches_covered = root.attrib.get("branches-covered")
     branches_valid = root.attrib.get("branches-valid")
@@ -126,9 +132,11 @@ def parse_coverage_metric(
         branch_covered_value = int(branches_covered)
         branch_valid_value = int(branches_valid)
         if branch_valid_value > 0:
-            branch_coverage_percent = float(branch_rate) * 100.0 if branch_rate is not None else (
-                branch_covered_value / branch_valid_value
-            ) * 100.0
+            branch_coverage_percent = (
+                float(branch_rate) * 100.0
+                if branch_rate is not None
+                else (branch_covered_value / branch_valid_value) * 100.0
+            )
 
     line_coverage_percent = line_rate * 100.0
     return CoverageMetric(

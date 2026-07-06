@@ -44,22 +44,27 @@ int main(int argc, char** argv) {
             platform.initialize();
             return 0;
         } else if (cmd == "import-market") {
-            if (argc < 3) throw std::runtime_error("Missing JSON path");
+            if (argc < 3)
+                throw std::runtime_error("Missing JSON path");
             platform.import_market_snapshot(argv[2]);
             return 0;
         } else if (cmd == "import-portfolio") {
-            if (argc < 3) throw std::runtime_error("Missing JSON path");
+            if (argc < 3)
+                throw std::runtime_error("Missing JSON path");
             platform.import_portfolio(argv[2]);
             return 0;
         } else if (cmd == "import-scenarios") {
-            if (argc < 3) throw std::runtime_error("Missing JSON path");
+            if (argc < 3)
+                throw std::runtime_error("Missing JSON path");
             platform.import_scenario_set(argv[2]);
             return 0;
         } else if (cmd == "run-valuation") {
             std::string portfolio, snapshot;
             for (int i = 2; i < argc; ++i) {
-                if (std::string(argv[i]) == "--portfolio" && i + 1 < argc) portfolio = argv[++i];
-                if (std::string(argv[i]) == "--snapshot" && i + 1 < argc) snapshot = argv[++i];
+                if (std::string(argv[i]) == "--portfolio" && i + 1 < argc)
+                    portfolio = argv[++i];
+                if (std::string(argv[i]) == "--snapshot" && i + 1 < argc)
+                    snapshot = argv[++i];
             }
             std::string run_id = platform.run_valuation(portfolio, snapshot);
             fmt::print("Run ID: {}\n", run_id);
@@ -67,8 +72,10 @@ int main(int argc, char** argv) {
         } else if (cmd == "run-risk") {
             std::string portfolio, snapshot;
             for (int i = 2; i < argc; ++i) {
-                if (std::string(argv[i]) == "--portfolio" && i + 1 < argc) portfolio = argv[++i];
-                if (std::string(argv[i]) == "--snapshot" && i + 1 < argc) snapshot = argv[++i];
+                if (std::string(argv[i]) == "--portfolio" && i + 1 < argc)
+                    portfolio = argv[++i];
+                if (std::string(argv[i]) == "--snapshot" && i + 1 < argc)
+                    snapshot = argv[++i];
             }
             std::string run_id = platform.run_risk(portfolio, snapshot);
             fmt::print("Run ID: {}\n", run_id);
@@ -76,19 +83,24 @@ int main(int argc, char** argv) {
         } else if (cmd == "run-hvar") {
             std::string portfolio, snapshot, scenarios;
             for (int i = 2; i < argc; ++i) {
-                if (std::string(argv[i]) == "--portfolio" && i + 1 < argc) portfolio = argv[++i];
-                if (std::string(argv[i]) == "--snapshot" && i + 1 < argc) snapshot = argv[++i];
-                if (std::string(argv[i]) == "--scenarios" && i + 1 < argc) scenarios = argv[++i];
+                if (std::string(argv[i]) == "--portfolio" && i + 1 < argc)
+                    portfolio = argv[++i];
+                if (std::string(argv[i]) == "--snapshot" && i + 1 < argc)
+                    snapshot = argv[++i];
+                if (std::string(argv[i]) == "--scenarios" && i + 1 < argc)
+                    scenarios = argv[++i];
             }
             std::string run_id = platform.run_historical_var(portfolio, snapshot, scenarios);
             fmt::print("Run ID: {}\n", run_id);
             return 0;
         } else if (cmd == "report") {
-            if (argc < 3) throw std::runtime_error("Missing run_id");
+            if (argc < 3)
+                throw std::runtime_error("Missing run_id");
             platform.get_run_report(argv[2]);
             return 0;
         } else if (cmd == "compare") {
-            if (argc < 4) throw std::runtime_error("Missing run_id_1 and run_id_2");
+            if (argc < 4)
+                throw std::runtime_error("Missing run_id_1 and run_id_2");
             platform.compare_runs(argv[2], argv[3]);
             return 0;
         } else if (cmd == "list") {

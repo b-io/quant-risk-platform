@@ -2,24 +2,23 @@
 
 #include <qrp/analytics/covariance_estimator.hpp>
 
-#include <ql/math/matrix.hpp>
-#include <ql/math/matrixutilities/choleskydecomposition.hpp>
-#include <ql/math/matrixutilities/symmetricschurdecomposition.hpp>
-
 #include <algorithm>
 #include <cmath>
 #include <map>
 #include <numeric>
+#include <ql/math/matrix.hpp>
+#include <ql/math/matrixutilities/choleskydecomposition.hpp>
+#include <ql/math/matrixutilities/symmetricschurdecomposition.hpp>
 
 namespace qrp::analytics {
 
-QuantLib::Matrix CovarianceEstimator::estimate_covariance(
-    const std::vector<domain::FactorDefinition>& factors,
-    const std::vector<domain::FactorObservation>& history,
-    const CovarianceEstimationConfig& config) {
+QuantLib::Matrix CovarianceEstimator::estimate_covariance(const std::vector<domain::FactorDefinition>& factors,
+                                                          const std::vector<domain::FactorObservation>& history,
+                                                          const CovarianceEstimationConfig& config) {
 
     size_t num_factors = factors.size();
-    if (num_factors == 0) return QuantLib::Matrix(0, 0);
+    if (num_factors == 0)
+        return QuantLib::Matrix(0, 0);
 
     // 1. Organize history into a matrix: factors (rows) x dates (cols)
     std::map<std::string, std::vector<double>> moves_per_factor;
@@ -36,7 +35,8 @@ QuantLib::Matrix CovarianceEstimator::estimate_covariance(
     std::sort(dates.begin(), dates.end());
 
     size_t num_obs = dates.size();
-    if (num_obs < 2) return QuantLib::Matrix(num_factors, num_factors, 0.0);
+    if (num_obs < 2)
+        return QuantLib::Matrix(num_factors, num_factors, 0.0);
 
     // Fill data matrix X (num_factors x num_obs)
     QuantLib::Matrix X(num_factors, num_obs, 0.0);
@@ -53,8 +53,8 @@ QuantLib::Matrix CovarianceEstimator::estimate_covariance(
                 // Missing observations are rejected rather than silently filled.
                 // Covariance estimation requires synchronized factor history unless
                 // a caller supplies an explicit missing-data policy upstream.
-                throw std::runtime_error("CovarianceEstimator: Missing observation for factor "
-                    + factors[i].factor_id + " on date " + dates[k]);
+                throw std::runtime_error("CovarianceEstimator: Missing observation for factor " + factors[i].factor_id +
+                                         " on date " + dates[k]);
             }
         }
     }
@@ -63,10 +63,12 @@ QuantLib::Matrix CovarianceEstimator::estimate_covariance(
     // mu = 1/M * sum(x_k)
     std::vector<double> means(num_factors, 0.0);
     if (config.demean) {
+        const double observation_count = static_cast<double>(num_obs);
         for (size_t i = 0; i < num_factors; ++i) {
             double sum = 0.0;
-            for (size_t k = 0; k < num_obs; ++k) sum += X[i][k];
-            means[i] = sum / num_obs;
+            for (size_t k = 0; k < num_obs; ++k)
+                sum += X[i][k];
+            means[i] = sum / observation_count;
         }
     }
 
@@ -81,20 +83,23 @@ QuantLib::Matrix CovarianceEstimator::estimate_covariance(
                 for (size_t j = 0; j <= i; ++j) {
                     double diff_j = X[j][k] - means[j];
                     cov[i][j] = lambda * cov[i][j] + (1.0 - lambda) * diff_i * diff_j;
-                    if (i != j) cov[j][i] = cov[i][j];
+                    if (i != j)
+                        cov[j][i] = cov[i][j];
                 }
             }
         }
     } else {
         // Standard sample covariance: Sigma = 1/(M-1) * sum((x_k - mu)(x_k - mu)^T)
+        const double degrees_of_freedom = static_cast<double>(num_obs - 1);
         for (size_t i = 0; i < num_factors; ++i) {
             for (size_t j = 0; j <= i; ++j) {
                 double sum = 0.0;
                 for (size_t k = 0; k < num_obs; ++k) {
                     sum += (X[i][k] - means[i]) * (X[j][k] - means[j]);
                 }
-                cov[i][j] = sum / (num_obs - 1);
-                if (i != j) cov[j][i] = cov[i][j];
+                cov[i][j] = sum / degrees_of_freedom;
+                if (i != j)
+                    cov[j][i] = cov[i][j];
             }
         }
     }
@@ -107,7 +112,8 @@ QuantLib::Matrix CovarianceEstimator::estimate_covariance(
         if (h_obs > 0 && h_target != h_obs) {
             double scale = h_target / h_obs;
             for (size_t i = 0; i < num_factors; ++i) {
-                for (size_t j = 0; j < num_factors; ++j) cov[i][j] *= scale;
+                for (size_t j = 0; j < num_factors; ++j)
+                    cov[i][j] *= scale;
             }
         }
     }
@@ -118,7 +124,8 @@ QuantLib::Matrix CovarianceEstimator::estimate_covariance(
 
 QuantLib::Matrix CovarianceEstimator::repair_psd(const QuantLib::Matrix& raw, double floor) {
     size_t n = raw.rows();
-    if (n == 0) return raw;
+    if (n == 0)
+        return raw;
 
     // Eigenvalue Decomposition of the Raw Covariance Matrix
     // Sigma = Q * Lambda * Q^T

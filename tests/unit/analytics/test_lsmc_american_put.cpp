@@ -16,21 +16,14 @@ class AmericanPutProblem : public dynamic_programming::DecisionProblem {
 public:
     AmericanPutProblem(double strike) : strike_(strike) {}
 
-    std::vector<dynamic_programming::Action> feasibleActions(
-        const dynamic_programming::State&,
-        std::size_t
-    ) const override {
-        return {
-            {0, "Continue", {}},
-            {1, "Exercise", {}}
-        };
+    std::vector<dynamic_programming::Action> feasibleActions(const dynamic_programming::State&,
+                                                             std::size_t) const override {
+        return {{0, "Continue", {}}, {1, "Exercise", {}}};
     }
 
-    double immediateCashflow(
-        const dynamic_programming::State& state,
-        const dynamic_programming::Action& action,
-        std::size_t
-    ) const override {
+    double immediateCashflow(const dynamic_programming::State& state,
+                             const dynamic_programming::Action& action,
+                             std::size_t) const override {
         if (action.id == 1) { // Exercise
             double spot = state.market_variables[0];
             return std::max(strike_ - spot, 0.0);
@@ -38,27 +31,20 @@ public:
         return 0.0;
     }
 
-    dynamic_programming::State nextState(
-        const dynamic_programming::State&,
-        const dynamic_programming::Action&,
-        const std::vector<double>& market_variables_next,
-        std::size_t
-    ) const override {
+    dynamic_programming::State nextState(const dynamic_programming::State&,
+                                         const dynamic_programming::Action&,
+                                         const std::vector<double>& market_variables_next,
+                                         std::size_t) const override {
         return {market_variables_next, {}};
     }
 
-    bool isTerminalAction(
-        const dynamic_programming::State&,
-        const dynamic_programming::Action& action,
-        std::size_t
-    ) const override {
+    bool isTerminalAction(const dynamic_programming::State&,
+                          const dynamic_programming::Action& action,
+                          std::size_t) const override {
         return action.id == 1;
     }
 
-    std::vector<double> regressionFeatures(
-        const dynamic_programming::State& state,
-        std::size_t
-    ) const override {
+    std::vector<double> regressionFeatures(const dynamic_programming::State& state, std::size_t) const override {
         double s = state.market_variables[0];
         return {1.0, s, s * s};
     }
@@ -102,34 +88,25 @@ TEST(LsmcTest, AmericanPutValuation) {
 
 class DefaultDecisionProblem : public dynamic_programming::DecisionProblem {
 public:
-    std::vector<dynamic_programming::Action> feasibleActions(
-        const dynamic_programming::State&,
-        std::size_t
-    ) const override {
+    std::vector<dynamic_programming::Action> feasibleActions(const dynamic_programming::State&,
+                                                             std::size_t) const override {
         return {{0, "Continue", {}}};
     }
 
-    double immediateCashflow(
-        const dynamic_programming::State&,
-        const dynamic_programming::Action&,
-        std::size_t
-    ) const override {
+    double immediateCashflow(const dynamic_programming::State&,
+                             const dynamic_programming::Action&,
+                             std::size_t) const override {
         return 0.0;
     }
 
-    dynamic_programming::State nextState(
-        const dynamic_programming::State&,
-        const dynamic_programming::Action&,
-        const std::vector<double>& market_variables_next,
-        std::size_t
-    ) const override {
+    dynamic_programming::State nextState(const dynamic_programming::State&,
+                                         const dynamic_programming::Action&,
+                                         const std::vector<double>& market_variables_next,
+                                         std::size_t) const override {
         return {market_variables_next, {}};
     }
 
-    std::vector<double> regressionFeatures(
-        const dynamic_programming::State& state,
-        std::size_t
-    ) const override {
+    std::vector<double> regressionFeatures(const dynamic_programming::State& state, std::size_t) const override {
         return state.market_variables;
     }
 };

@@ -1,7 +1,6 @@
 // Implements the CVXPY/OSQP optimization adapter and its JSON worker protocol.
 
 #include <qrp/optimization/adapters/cvxpy_adapter.hpp>
-
 #include <qrp/optimization/models/risk_model.hpp>
 #include <qrp/optimization/portfolio_optimization.hpp>
 
@@ -21,15 +20,15 @@
 #include <vector>
 
 #ifdef _WIN32
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-#include <windows.h>
+#    ifndef NOMINMAX
+#        define NOMINMAX
+#    endif
+#    include <windows.h>
 #else
-#include <cerrno>
-#include <cstring>
-#include <sys/wait.h>
-#include <unistd.h>
+#    include <cerrno>
+#    include <cstring>
+#    include <sys/wait.h>
+#    include <unistd.h>
 #endif
 
 namespace qrp::optimization {
@@ -240,10 +239,9 @@ bool matrix_is_positive_semidefinite(const std::vector<std::vector<double>>& mat
     return true;
 }
 
-bool validate_weight_map(
-    const std::map<std::string, double>& values,
-    const std::set<std::string>& variable_ids,
-    bool require_non_empty) {
+bool validate_weight_map(const std::map<std::string, double>& values,
+                         const std::set<std::string>& variable_ids,
+                         bool require_non_empty) {
     if (require_non_empty && values.empty()) {
         return false;
     }
@@ -260,7 +258,8 @@ bool validate_variables(const OptimizationProblem& problem, std::set<std::string
     }
 
     for (const auto& variable : problem.variables) {
-        if (variable.id.empty() || variable.is_integer || !is_valid_bound_pair(variable.lower_bound, variable.upper_bound)) {
+        if (variable.id.empty() || variable.is_integer ||
+            !is_valid_bound_pair(variable.lower_bound, variable.upper_bound)) {
             return false;
         }
         if (!variable_ids.insert(variable.id).second) {
@@ -271,18 +270,16 @@ bool validate_variables(const OptimizationProblem& problem, std::set<std::string
     return true;
 }
 
-bool validate_full_covariance_model(
-    const FullCovarianceModel& model,
-    const std::set<std::string>& variable_ids,
-    bool require_variable_coverage) {
+bool validate_full_covariance_model(const FullCovarianceModel& model,
+                                    const std::set<std::string>& variable_ids,
+                                    bool require_variable_coverage) {
     if (model.asset_ids.empty() || !has_unique_non_empty_ids(model.asset_ids)) {
         return false;
     }
 
     const std::size_t n_assets = model.asset_ids.size();
-    if (!matrix_is_finite_rectangular(model.covariance_matrix, n_assets, n_assets)
-        || !matrix_is_symmetric(model.covariance_matrix)
-        || !matrix_is_positive_semidefinite(model.covariance_matrix)) {
+    if (!matrix_is_finite_rectangular(model.covariance_matrix, n_assets, n_assets) ||
+        !matrix_is_symmetric(model.covariance_matrix) || !matrix_is_positive_semidefinite(model.covariance_matrix)) {
         return false;
     }
 
@@ -296,23 +293,19 @@ bool validate_full_covariance_model(
     });
 }
 
-bool validate_factor_risk_model(
-    const FactorRiskModel& model,
-    const std::set<std::string>& variable_ids,
-    bool require_variable_coverage) {
-    if (model.asset_ids.empty()
-        || model.factor_ids.empty()
-        || !has_unique_non_empty_ids(model.asset_ids)
-        || !has_unique_non_empty_ids(model.factor_ids)) {
+bool validate_factor_risk_model(const FactorRiskModel& model,
+                                const std::set<std::string>& variable_ids,
+                                bool require_variable_coverage) {
+    if (model.asset_ids.empty() || model.factor_ids.empty() || !has_unique_non_empty_ids(model.asset_ids) ||
+        !has_unique_non_empty_ids(model.factor_ids)) {
         return false;
     }
 
     const std::size_t n_assets = model.asset_ids.size();
     const std::size_t n_factors = model.factor_ids.size();
-    if (!matrix_is_finite_rectangular(model.exposures, n_assets, n_factors)
-        || !matrix_is_finite_rectangular(model.factor_covariance, n_factors, n_factors)
-        || !matrix_is_symmetric(model.factor_covariance)
-        || !matrix_is_positive_semidefinite(model.factor_covariance)) {
+    if (!matrix_is_finite_rectangular(model.exposures, n_assets, n_factors) ||
+        !matrix_is_finite_rectangular(model.factor_covariance, n_factors, n_factors) ||
+        !matrix_is_symmetric(model.factor_covariance) || !matrix_is_positive_semidefinite(model.factor_covariance)) {
         return false;
     }
 
@@ -332,10 +325,9 @@ bool validate_factor_risk_model(
     });
 }
 
-bool validate_risk_model(
-    const std::shared_ptr<RiskModel>& risk_model,
-    const std::set<std::string>& variable_ids,
-    bool require_variable_coverage) {
+bool validate_risk_model(const std::shared_ptr<RiskModel>& risk_model,
+                         const std::set<std::string>& variable_ids,
+                         bool require_variable_coverage) {
     if (!risk_model) {
         return !require_variable_coverage;
     }
@@ -354,19 +346,19 @@ bool objective_requires_risk_model(const std::shared_ptr<OptimizationObjective>&
     if (auto mean_variance = std::dynamic_pointer_cast<MeanVarianceObjective>(objective)) {
         return mean_variance->risk_aversion > 0.0;
     }
-    return std::dynamic_pointer_cast<MinimumVarianceObjective>(objective) != nullptr
-        || std::dynamic_pointer_cast<TrackingErrorObjective>(objective) != nullptr;
+    return std::dynamic_pointer_cast<MinimumVarianceObjective>(objective) != nullptr ||
+           std::dynamic_pointer_cast<TrackingErrorObjective>(objective) != nullptr;
 }
 
-bool validate_objective(const std::shared_ptr<OptimizationObjective>& objective, const std::set<std::string>& variable_ids) {
+bool validate_objective(const std::shared_ptr<OptimizationObjective>& objective,
+                        const std::set<std::string>& variable_ids) {
     if (!objective) {
         return false;
     }
 
     if (auto mean_variance = std::dynamic_pointer_cast<MeanVarianceObjective>(objective)) {
-        return is_finite(mean_variance->risk_aversion)
-            && mean_variance->risk_aversion >= 0.0
-            && validate_weight_map(mean_variance->expected_returns, variable_ids, true);
+        return is_finite(mean_variance->risk_aversion) && mean_variance->risk_aversion >= 0.0 &&
+               validate_weight_map(mean_variance->expected_returns, variable_ids, true);
     }
     if (std::dynamic_pointer_cast<MinimumVarianceObjective>(objective)) {
         return true;
@@ -381,14 +373,14 @@ bool validate_objective(const std::shared_ptr<OptimizationObjective>& objective,
     return false;
 }
 
-bool validate_constraint(const std::shared_ptr<OptimizationConstraint>& constraint, const std::set<std::string>& variable_ids) {
+bool validate_constraint(const std::shared_ptr<OptimizationConstraint>& constraint,
+                         const std::set<std::string>& variable_ids) {
     if (!constraint) {
         return false;
     }
 
     if (auto equality = std::dynamic_pointer_cast<LinearEqualityConstraint>(constraint)) {
-        return is_finite(equality->target_value)
-            && validate_weight_map(equality->coefficients, variable_ids, true);
+        return is_finite(equality->target_value) && validate_weight_map(equality->coefficients, variable_ids, true);
     }
     if (auto inequality = std::dynamic_pointer_cast<LinearInequalityConstraint>(constraint)) {
         const bool has_lower = inequality->lower_bound.has_value();
@@ -396,7 +388,8 @@ bool validate_constraint(const std::shared_ptr<OptimizationConstraint>& constrai
         if (!has_lower && !has_upper) {
             return false;
         }
-        if ((has_lower && !is_finite(*inequality->lower_bound)) || (has_upper && !is_finite(*inequality->upper_bound))) {
+        if ((has_lower && !is_finite(*inequality->lower_bound)) ||
+            (has_upper && !is_finite(*inequality->upper_bound))) {
             return false;
         }
         if (has_lower && has_upper && *inequality->lower_bound > *inequality->upper_bound) {
@@ -405,9 +398,8 @@ bool validate_constraint(const std::shared_ptr<OptimizationConstraint>& constrai
         return validate_weight_map(inequality->coefficients, variable_ids, true);
     }
     if (auto turnover = std::dynamic_pointer_cast<TurnoverConstraint>(constraint)) {
-        return is_finite(turnover->max_turnover)
-            && turnover->max_turnover >= 0.0
-            && validate_weight_map(turnover->current_weights, variable_ids, false);
+        return is_finite(turnover->max_turnover) && turnover->max_turnover >= 0.0 &&
+               validate_weight_map(turnover->current_weights, variable_ids, false);
     }
 
     return false;
@@ -478,18 +470,18 @@ int run_process(const std::vector<std::string>& args) {
     PROCESS_INFORMATION process_info{};
     std::wstring mutable_command_line = command_line;
 
-    if (!CreateProcessW(
-            nullptr,
-            mutable_command_line.data(),
-            nullptr,
-            nullptr,
-            FALSE,
-            0,
-            nullptr,
-            nullptr,
-            &startup_info,
-            &process_info)) {
-        throw std::runtime_error("Failed to start CVXPY worker; CreateProcessW error " + std::to_string(GetLastError()));
+    if (!CreateProcessW(nullptr,
+                        mutable_command_line.data(),
+                        nullptr,
+                        nullptr,
+                        FALSE,
+                        0,
+                        nullptr,
+                        nullptr,
+                        &startup_info,
+                        &process_info)) {
+        throw std::runtime_error("Failed to start CVXPY worker; CreateProcessW error " +
+                                 std::to_string(GetLastError()));
     }
 
     WaitForSingleObject(process_info.hProcess, INFINITE);
@@ -588,14 +580,13 @@ OptimizationResult CvxpyAdapter::solve(const OptimizationProblem& problem, const
     fs::path worker_path = resolve_worker_path(config);
     std::error_code ec;
     if (worker_path.empty() || !fs::is_regular_file(worker_path, ec)) {
-        return error_result("CVXPY worker not found. Set SolverConfig.custom_params[\"cvxpy_worker_path\"] or QRP_CVXPY_WORKER.");
+        return error_result("CVXPY worker not found. Set SolverConfig.custom_params[\"cvxpy_worker_path\"] or "
+                            "QRP_CVXPY_WORKER.");
     }
 
     const std::string suffix = unique_suffix();
-    TempJsonFiles temp_files{
-        fs::temp_directory_path() / ("qrp_opt_request_" + suffix + ".json"),
-        fs::temp_directory_path() / ("qrp_opt_response_" + suffix + ".json")
-    };
+    TempJsonFiles temp_files{fs::temp_directory_path() / ("qrp_opt_request_" + suffix + ".json"),
+                             fs::temp_directory_path() / ("qrp_opt_response_" + suffix + ".json")};
 
     {
         std::ofstream ofs(temp_files.request);
@@ -606,12 +597,10 @@ OptimizationResult CvxpyAdapter::solve(const OptimizationProblem& problem, const
     }
 
     const std::string python_executable = resolve_python_executable(config);
-    const std::vector<std::string> args = {
-        python_executable,
-        worker_path.string(),
-        temp_files.request.string(),
-        temp_files.response.string()
-    };
+    const std::vector<std::string> args = {python_executable,
+                                           worker_path.string(),
+                                           temp_files.request.string(),
+                                           temp_files.response.string()};
 
     if (config.verbose) {
         std::cout << "Running CVXPY worker: " << python_executable << " " << worker_path.string() << std::endl;
@@ -687,8 +676,10 @@ nlohmann::json CvxpyAdapter::serialize_problem(const OptimizationProblem& proble
             c["target"] = le->target_value;
         } else if (auto li = std::dynamic_pointer_cast<LinearInequalityConstraint>(con)) {
             c["coefficients"] = li->coefficients;
-            if (li->lower_bound) c["lb"] = *li->lower_bound;
-            if (li->upper_bound) c["ub"] = *li->upper_bound;
+            if (li->lower_bound)
+                c["lb"] = *li->lower_bound;
+            if (li->upper_bound)
+                c["ub"] = *li->upper_bound;
         } else if (auto to = std::dynamic_pointer_cast<TurnoverConstraint>(con)) {
             c["current_weights"] = to->current_weights;
             c["max_turnover"] = to->max_turnover;
@@ -717,7 +708,8 @@ nlohmann::json CvxpyAdapter::serialize_problem(const OptimizationProblem& proble
     // Solver Config
     j["config"]["tolerance"] = config.tolerance;
     j["config"]["max_iterations"] = config.max_iterations;
-    if (config.time_limit_sec) j["config"]["time_limit"] = *config.time_limit_sec;
+    if (config.time_limit_sec)
+        j["config"]["time_limit"] = *config.time_limit_sec;
     j["config"]["verbose"] = config.verbose;
     j["config"]["solver"] = config.solver_name.empty() ? "OSQP" : config.solver_name;
 
@@ -727,17 +719,26 @@ nlohmann::json CvxpyAdapter::serialize_problem(const OptimizationProblem& proble
 OptimizationResult CvxpyAdapter::parse_result(const nlohmann::json& j) {
     OptimizationResult res;
     std::string status = j.at("status").get<std::string>();
-    if (status == "optimal" || status == "optimal_inaccurate") res.status = SolverStatus::Solved;
-    else if (status == "infeasible" || status == "infeasible_inaccurate") res.status = SolverStatus::Infeasible;
-    else if (status == "unbounded" || status == "unbounded_inaccurate") res.status = SolverStatus::Unbounded;
-    else if (status == "user_limit") res.status = SolverStatus::LimitReached;
-    else res.status = SolverStatus::Error;
+    if (status == "optimal" || status == "optimal_inaccurate")
+        res.status = SolverStatus::Solved;
+    else if (status == "infeasible" || status == "infeasible_inaccurate")
+        res.status = SolverStatus::Infeasible;
+    else if (status == "unbounded" || status == "unbounded_inaccurate")
+        res.status = SolverStatus::Unbounded;
+    else if (status == "user_limit")
+        res.status = SolverStatus::LimitReached;
+    else
+        res.status = SolverStatus::Error;
 
-    if (j.contains("message")) res.message = j.at("message").get<std::string>();
-    if (j.contains("objective_value")) res.objective_value = j.at("objective_value").get<double>();
-    if (j.contains("optimal_values")) res.optimal_values = j.at("optimal_values").get<std::map<std::string, double>>();
+    if (j.contains("message"))
+        res.message = j.at("message").get<std::string>();
+    if (j.contains("objective_value"))
+        res.objective_value = j.at("objective_value").get<double>();
+    if (j.contains("optimal_values"))
+        res.optimal_values = j.at("optimal_values").get<std::map<std::string, double>>();
 
-    if (j.contains("solve_time_ms")) res.solve_time_ms = j.at("solve_time_ms").get<double>();
+    if (j.contains("solve_time_ms"))
+        res.solve_time_ms = j.at("solve_time_ms").get<double>();
 
     return res;
 }

@@ -13,7 +13,6 @@ from pathlib import Path
 
 from demo_dashboard import create_plotly_dashboard
 
-
 script_path = Path(__file__).resolve()
 project_root = script_path.parents[2]
 
@@ -39,10 +38,7 @@ def configure_module_path():
             matching_runtime_files = [
                 path
                 for path in extension_files
-                if any(
-                    path.name.endswith(suffix)
-                    for suffix in importlib.machinery.EXTENSION_SUFFIXES
-                )
+                if any(path.name.endswith(suffix) for suffix in importlib.machinery.EXTENSION_SUFFIXES)
             ]
             if matching_runtime_files:
                 build_path = str(candidate)
@@ -51,9 +47,7 @@ def configure_module_path():
         if not build_path and wrong_runtime_extensions:
             suffixes = ", ".join(importlib.machinery.EXTENSION_SUFFIXES)
             found = "\n  ".join(str(path) for path in wrong_runtime_extensions)
-            print(
-                "Warning: found compiled quant_risk_platform extensions, but none match this Python runtime."
-            )
+            print("Warning: found compiled quant_risk_platform extensions, but none match this Python runtime.")
             print(f"Current Python: {sys.executable}")
             print(f"Expected extension suffixes: {suffixes}")
             print(f"Found extensions:\n  {found}")
@@ -165,10 +159,7 @@ def trade_sort_tuple(asset_class, product_type, trade_id):
 
 
 def portfolio_trade_sort_map(portfolio, valuation_results=None):
-    sort_map = {
-        trade.id: trade_sort_tuple(trade.asset_class, trade.type, trade.id)
-        for trade in portfolio.trades
-    }
+    sort_map = {trade.id: trade_sort_tuple(trade.asset_class, trade.type, trade.id) for trade in portfolio.trades}
     for result in valuation_results or []:
         sort_map[result.trade_id] = trade_sort_tuple(
             result.tags.get("asset_class", ""),
@@ -213,9 +204,7 @@ def trade_metadata(metadata_by_trade, trade_id):
 
 def position_header(*numeric_columns):
     labels = (
-        f"{'Asset':<{ASSET_COLUMN_WIDTH}} "
-        f"{'Product':<{PRODUCT_COLUMN_WIDTH}} "
-        f"{'Position':<{POSITION_COLUMN_WIDTH}}"
+        f"{'Asset':<{ASSET_COLUMN_WIDTH}} {'Product':<{PRODUCT_COLUMN_WIDTH}} {'Position':<{POSITION_COLUMN_WIDTH}}"
     )
     numbers = " ".join(f"{label:>12}" for label in numeric_columns)
     return f"{labels} {numbers}" if numbers else labels
@@ -242,9 +231,7 @@ def ordered_trade_expectations(trades, default_asset_class=""):
         trade_id: trades[trade_id]
         for trade_id in sorted(
             trades,
-            key=lambda item: trade_expectation_sort_key(
-                item, trades[item], default_asset_class
-            ),
+            key=lambda item: trade_expectation_sort_key(item, trades[item], default_asset_class),
         )
     }
 
@@ -360,11 +347,7 @@ def expected_regression_keys(section):
 
 
 def material_value_map(values, tolerance):
-    return {
-        str(key): float(value)
-        for key, value in dict(values).items()
-        if abs(float(value)) > tolerance
-    }
+    return {str(key): float(value) for key, value in dict(values).items() if abs(float(value)) > tolerance}
 
 
 def enum_name(value):
@@ -381,18 +364,14 @@ def load_product_family_expectations(path):
     for fixture_path in sorted(path.glob("*_golden.json")):
         with open(fixture_path, "r", encoding="utf-8") as handle:
             fixture = json.load(handle)
-        fixture["trades"] = ordered_trade_expectations(
-            fixture["trades"], fixture.get("asset_class", "")
-        )
+        fixture["trades"] = ordered_trade_expectations(fixture["trades"], fixture.get("asset_class", ""))
         fixture["fixture_path"] = str(fixture_path)
         fixtures.append(fixture)
     if not fixtures:
         raise ValueError(f"No product-family golden fixtures found in {path}")
     return sorted(
         fixtures,
-        key=lambda item: trade_sort_tuple(
-            item.get("asset_class", ""), "", Path(item["fixture_path"]).name
-        ),
+        key=lambda item: trade_sort_tuple(item.get("asset_class", ""), "", Path(item["fixture_path"]).name),
     )
 
 
@@ -403,9 +382,7 @@ def quote_values(market):
 def print_market_data_coverage(market, factors, bindings):
     section("1. Market Data Coverage")
     diagnostics = qrp.collect_market_snapshot_diagnostics(market)
-    blocking = [
-        item for item in diagnostics if qrp.is_blocking_market_data_diagnostic(item)
-    ]
+    blocking = [item for item in diagnostics if qrp.is_blocking_market_data_diagnostic(item)]
     if blocking:
         for item in blocking:
             print(qrp.format_market_data_diagnostic(item))
@@ -414,15 +391,11 @@ def print_market_data_coverage(market, factors, bindings):
     quote_ids = {quote.id for quote in market.quotes}
     factor_quote_ids = {quote_id for factor in factors for quote_id in factor.quote_ids}
     binding_quote_ids = {binding.quote_id for binding in bindings}
-    curve_quote_ids = {
-        quote_id for curve in market.curves for quote_id in curve.quote_ids
-    }
+    curve_quote_ids = {quote_id for curve in market.curves for quote_id in curve.quote_ids}
 
     print(f"Snapshot:          {market.snapshot_id}")
     print(f"Market date:       {market.valuation_date}")
-    print(
-        f"Quotes/curves:     {len(market.quotes)} quotes / {len(market.curves)} curves"
-    )
+    print(f"Quotes/curves:     {len(market.quotes)} quotes / {len(market.curves)} curves")
     print(f"Diagnostics:       {len(diagnostics)} non-blocking")
 
     grouped = defaultdict(lambda: defaultdict(list))
@@ -445,17 +418,13 @@ def print_market_data_coverage(market, factors, bindings):
     ):
         status = "built" if result.built else "skipped"
         curve_id = f"{enum_name(result.id.currency)}:{result.id.family}"
-        print(
-            f"  {curve_id:<16} {status:<7} {enum_name(result.purpose):<12} {result.status_message}"
-        )
+        print(f"  {curve_id:<16} {status:<7} {enum_name(result.purpose):<12} {result.status_message}")
 
     missing_binding_quotes = sorted(binding_quote_ids - quote_ids)
     missing_factor_quotes = sorted(factor_quote_ids - quote_ids)
     if missing_binding_quotes or missing_factor_quotes:
         missing = sorted(set(missing_binding_quotes) | set(missing_factor_quotes))
-        raise AssertionError(
-            f"Scenario factors reference missing market quotes: {', '.join(missing)}"
-        )
+        raise AssertionError(f"Scenario factors reference missing market quotes: {', '.join(missing)}")
 
     exercised_quote_ids = curve_quote_ids | binding_quote_ids
     catalog_only_quote_ids = sorted(quote_ids - exercised_quote_ids)
@@ -505,24 +474,18 @@ def load_factor_scenario_set(path):
     factors = [build_factor(item) for item in payload["factors"]]
     factor_ids = {factor.factor_id for factor in factors}
     bindings = [build_binding(item) for item in payload["bindings"]]
-    scenarios = [
-        build_scenario(name, item) for name, item in payload["scenarios"].items()
-    ]
+    scenarios = [build_scenario(name, item) for name, item in payload["scenarios"].items()]
     missing_scenarios = REQUIRED_STRESS_SCENARIOS - set(payload["scenarios"])
     if missing_scenarios:
         missing = ", ".join(sorted(missing_scenarios))
         raise ValueError(f"Missing required stress scenarios: {missing}")
     for binding in bindings:
         if binding.factor_id not in factor_ids:
-            raise ValueError(
-                f"Binding references undefined factor_id: {binding.factor_id}"
-            )
+            raise ValueError(f"Binding references undefined factor_id: {binding.factor_id}")
     for scenario in scenarios:
         for factor_id in scenario.factor_shocks:
             if factor_id not in factor_ids:
-                raise ValueError(
-                    f"Scenario references undefined factor_id: {factor_id}"
-                )
+                raise ValueError(f"Scenario references undefined factor_id: {factor_id}")
     return payload, factors, bindings, scenarios
 
 
@@ -534,15 +497,10 @@ def print_portfolio_valuation(portfolio, market):
     sort_map = portfolio_trade_sort_map(portfolio, valuation_results)
     print(f"{position_header('NPV')} {'CCY':<3} {'Status':<20}")
     print("-" * POSITION_RULE_WIDTH)
-    for result in sorted(
-        valuation_results, key=lambda item: result_sort_key(item, sort_map)
-    ):
+    for result in sorted(valuation_results, key=lambda item: result_sort_key(item, sort_map)):
         status = result.tags.get("status", "unknown")
         metadata = trade_metadata(metadata_by_trade, result.trade_id)
-        print(
-            f"{position_prefix(metadata)} {result.npv:>12,.2f} "
-            f"{result.currency:<3} {status:<20}"
-        )
+        print(f"{position_prefix(metadata)} {result.npv:>12,.2f} {result.currency:<3} {status:<20}")
     print("-" * POSITION_RULE_WIDTH)
     print(f"{'TOTAL':<{ASSET_COLUMN_WIDTH + PRODUCT_COLUMN_WIDTH + POSITION_COLUMN_WIDTH + 2}} {total_npv:>12,.2f} USD")
     if not valuation_results:
@@ -563,11 +521,9 @@ def run_factor_resolution_checks(market, factors, bindings, scenarios):
         "USD_OIS_2Y": base["USD_OIS_2Y"] - 35.0 / 10000.0,
         "USD_OIS_5Y": base["USD_OIS_5Y"] - 0.8 * 35.0 / 10000.0,
         "USD_OIS_10Y": base["USD_OIS_10Y"] - 0.6 * 35.0 / 10000.0,
-        "EURUSD": base["EURUSD"]
-        * math.exp(scenario.factor_shocks["RF:FX:EURUSD:SPOT"]),
+        "EURUSD": base["EURUSD"] * math.exp(scenario.factor_shocks["RF:FX:EURUSD:SPOT"]),
         "AAPL": base["AAPL"] * (1.0 + scenario.factor_shocks["RF:EQ:AAPL:SPOT"]),
-        "USD_CAP_VOL_1Y": base["USD_CAP_VOL_1Y"]
-        + scenario.factor_shocks["RF:RATESVOL:USD:CAP:1Y:ATM"] / 100.0,
+        "USD_CAP_VOL_1Y": base["USD_CAP_VOL_1Y"] + scenario.factor_shocks["RF:RATESVOL:USD:CAP:1Y:ATM"] / 100.0,
     }
 
     for quote_id, expected_value in expected.items():
@@ -581,9 +537,7 @@ def run_stress(portfolio, market, factors, bindings, scenarios):
     section("4. Historical Stress")
     metadata_by_trade = portfolio_trade_metadata_map(portfolio)
     sort_map = portfolio_trade_sort_map(portfolio)
-    stress_results = qrp.run_historical_stress(
-        portfolio, market, scenarios, factors, bindings
-    )
+    stress_results = qrp.run_historical_stress(portfolio, market, scenarios, factors, bindings)
     if len(stress_results) != len(scenarios):
         raise AssertionError("Stress result count does not match scenario count")
 
@@ -612,16 +566,10 @@ def run_risk(portfolio, market, factors, bindings):
     sort_map = portfolio_trade_sort_map(portfolio)
     print(position_header("PV01", "CS01"))
     print("-" * POSITION_RULE_WIDTH)
-    for result in sorted(
-        risk_results, key=lambda item: result_sort_key(item, sort_map)
-    ):
+    for result in sorted(risk_results, key=lambda item: result_sort_key(item, sort_map)):
         metadata = trade_metadata(metadata_by_trade, result.trade_id)
-        print(
-            f"{position_prefix(metadata)} {result.pv01:>12,.2f} {result.cs01:>12,.2f}"
-        )
-        for node, value in sorted(
-            result.bucketed_risk.items(), key=lambda item: sort_text(item[0])
-        ):
+        print(f"{position_prefix(metadata)} {result.pv01:>12,.2f} {result.cs01:>12,.2f}")
+        for node, value in sorted(result.bucketed_risk.items(), key=lambda item: sort_text(item[0])):
             if abs(value) > 1e-8:
                 print(f"  {node:<24} {value:>12,.2f}")
     return risk_results
@@ -684,16 +632,12 @@ def build_covariance(factors):
             if i == j:
                 covariance[i, j] = factor_variance(factor_i)
             else:
-                covariance[i, j] = 0.15 * math.sqrt(
-                    factor_variance(factor_i) * factor_variance(factor_j)
-                )
+                covariance[i, j] = 0.15 * math.sqrt(factor_variance(factor_i) * factor_variance(factor_j))
     return covariance
 
 
 def compute_monte_carlo(portfolio, market, factors, bindings, cases=None):
-    mc_factors = [
-        factor for factor in factors if factor.factor_id != "RF:RATES:USD:OIS:PARALLEL"
-    ]
+    mc_factors = [factor for factor in factors if factor.factor_id != "RF:RATES:USD:OIS:PARALLEL"]
     covariance = build_covariance(mc_factors)
     selected_cases = cases or MONTE_CARLO_CASES
 
@@ -705,9 +649,7 @@ def compute_monte_carlo(portfolio, market, factors, bindings, cases=None):
         config.num_paths = 100
         config.seed = 42
 
-        result = qrp.run_simulation(
-            portfolio, market, mc_factors, bindings, covariance, config
-        )
+        result = qrp.run_simulation(portfolio, market, mc_factors, bindings, covariance, config)
         if not result.portfolio_pnls:
             raise AssertionError(f"{label} produced no P&L paths")
 
@@ -721,33 +663,23 @@ def print_traces(traces, mode):
     for trace in traces[:2]:
         print(f"\nPath {trace.path_index + 1}")
         if mode == qrp.MonteCarloMode.AgedHorizonRevaluation:
-            print(
-                f"  Dates:        {trace.valuation_date_before} -> {trace.valuation_date_after}"
-            )
+            print(f"  Dates:        {trace.valuation_date_before} -> {trace.valuation_date_after}")
             print(f"  Frozen aged:  {trace.portfolio_value_frozen_aged:,.2f}")
             print(f"  Shocked aged: {trace.portfolio_value_after:,.2f}")
             print(f"  Total P&L:    {trace.total_pnl:,.2f}")
         else:
-            print(
-                f"  Value:        {trace.portfolio_value_before:,.2f} -> {trace.portfolio_value_after:,.2f}"
-            )
+            print(f"  Value:        {trace.portfolio_value_before:,.2f} -> {trace.portfolio_value_after:,.2f}")
             print(f"  Path P&L:     {trace.path_pnl:,.2f}")
 
         print("  Factor shocks:")
-        for factor_id, shock in sorted(
-            trace.factor_shocks.items(), key=lambda item: sort_text(item[0])
-        ):
+        for factor_id, shock in sorted(trace.factor_shocks.items(), key=lambda item: sort_text(item[0])):
             print(f"    {factor_id:<28} {shock:+.8f}")
 
 
 def run_monte_carlo(portfolio, market, factors, bindings):
     section("7. Monte Carlo")
-    results = compute_monte_carlo(
-        portfolio, market, factors, bindings, MONTE_CARLO_CASES
-    )
-    for (label, mode, horizon_days), (_, result, mean_pnl) in zip(
-        MONTE_CARLO_CASES, results
-    ):
+    results = compute_monte_carlo(portfolio, market, factors, bindings, MONTE_CARLO_CASES)
+    for (label, mode, horizon_days), (_, result, mean_pnl) in zip(MONTE_CARLO_CASES, results):
         print(
             f"{label:<24} horizon={horizon_days:>4.0f}d "
             f"VaR95={result.var_95:>12,.2f} ES95={result.expected_shortfall_95:>12,.2f} "
@@ -758,19 +690,13 @@ def run_monte_carlo(portfolio, market, factors, bindings):
     return results
 
 
-def compute_portfolio_analytics(
-    portfolio, market, market_path, factors, bindings, scenarios, monte_carlo_cases=None
-):
+def compute_portfolio_analytics(portfolio, market, market_path, factors, bindings, scenarios, monte_carlo_cases=None):
     valuation_results = qrp.price_portfolio(portfolio, market)
     total_npv = sum(result.npv for result in valuation_results)
-    stress_results = qrp.run_historical_stress(
-        portfolio, market, scenarios, factors, bindings
-    )
+    stress_results = qrp.run_historical_stress(portfolio, market, scenarios, factors, bindings)
     risk_results = qrp.compute_risk(portfolio, market, factors, bindings)
     pnl_results = compute_pnl_explain(portfolio, market_path)
-    mc_results = compute_monte_carlo(
-        portfolio, market, factors, bindings, monte_carlo_cases
-    )
+    mc_results = compute_monte_carlo(portfolio, market, factors, bindings, monte_carlo_cases)
     return {
         "mc_results": mc_results,
         "pnl_results": pnl_results,
@@ -782,9 +708,7 @@ def compute_portfolio_analytics(
     }
 
 
-def build_dashboard_portfolio_views(
-    primary_portfolio_id, market, market_path, factors, bindings, scenarios
-):
+def build_dashboard_portfolio_views(primary_portfolio_id, market, market_path, factors, bindings, scenarios):
     views = []
     seen = {primary_portfolio_id}
     portfolio_dir = project_root / "data" / "portfolios"
@@ -820,9 +744,7 @@ def validate_golden_outputs(
 
     valuation = golden["valuation"]
     valuation_tolerance = valuation.get("tolerance", 1.0)
-    assert_close(
-        "valuation.total_npv", total_npv, valuation["total_npv"], valuation_tolerance
-    )
+    assert_close("valuation.total_npv", total_npv, valuation["total_npv"], valuation_tolerance)
     valuation_by_trade = {result.trade_id: result for result in valuation_results}
     assert_key_sets_match("valuation.trades", valuation_by_trade, valuation["trades"])
     for trade_id, expected in valuation["trades"].items():
@@ -843,9 +765,7 @@ def validate_golden_outputs(
     stress = golden["stress"]
     stress_tolerance = stress.get("tolerance", 1.0)
     stress_by_name = {result.scenario_name: result for result in stress_results}
-    assert_key_sets_match(
-        "stress.scenarios", stress_by_name, expected_regression_keys(stress)
-    )
+    assert_key_sets_match("stress.scenarios", stress_by_name, expected_regression_keys(stress))
     for scenario_name in expected_regression_keys(stress):
         expected = stress[scenario_name]
         actual = stress_by_name[scenario_name]
@@ -878,9 +798,7 @@ def validate_golden_outputs(
         actual = risk_by_trade[trade_id]
         for component in ["bucketed_risk", "cs01", "fx_delta", "fx_vega", "pv01"]:
             if component == "bucketed_risk":
-                actual_buckets = material_value_map(
-                    actual.bucketed_risk, risk_tolerance
-                )
+                actual_buckets = material_value_map(actual.bucketed_risk, risk_tolerance)
                 assert_key_sets_match(
                     f"risk.{trade_id}.bucketed_risk",
                     actual_buckets,
@@ -946,9 +864,7 @@ def validate_golden_outputs(
     print("Golden regression checks passed.")
 
 
-def validate_product_family_outputs(
-    product_families, valuation_results, stress_results, risk_results, pnl_results
-):
+def validate_product_family_outputs(product_families, valuation_results, stress_results, risk_results, pnl_results):
     section("Product-Family Golden Checks")
 
     pnl_by_trade = {result.trade_id: result for result in pnl_results}
@@ -960,14 +876,10 @@ def validate_product_family_outputs(
     for family in product_families:
         for trade_id in family["trades"]:
             if trade_id in fixture_by_trade:
-                raise AssertionError(
-                    f"Duplicate product-family golden coverage for {trade_id}"
-                )
+                raise AssertionError(f"Duplicate product-family golden coverage for {trade_id}")
             fixture_by_trade[trade_id] = Path(family["fixture_path"]).name
 
-    assert_key_sets_match(
-        "product_families.trades", valuation_by_trade, fixture_by_trade
-    )
+    assert_key_sets_match("product_families.trades", valuation_by_trade, fixture_by_trade)
 
     for family in product_families:
         asset_class = family["asset_class"]
@@ -984,9 +896,7 @@ def validate_product_family_outputs(
             if valuation_result.tags.get("product_type") != expected["product_type"]:
                 raise AssertionError(f"{fixture_name}.{trade_id}.product_type drifted")
             if valuation_result.tags.get("status") != expected["support_status"]:
-                raise AssertionError(
-                    f"{fixture_name}.{trade_id}.support_status drifted"
-                )
+                raise AssertionError(f"{fixture_name}.{trade_id}.support_status drifted")
 
             assert_close(
                 f"{fixture_name}.{trade_id}.valuation.npv",
@@ -1018,9 +928,7 @@ def validate_product_family_outputs(
                 expected["risk"]["pv01"],
                 tolerances.get("risk", 1.0),
             )
-            actual_buckets = material_value_map(
-                risk_result.bucketed_risk, tolerances.get("risk", 1.0)
-            )
+            actual_buckets = material_value_map(risk_result.bucketed_risk, tolerances.get("risk", 1.0))
             assert_key_sets_match(
                 f"{fixture_name}.{trade_id}.risk.bucketed_risk",
                 actual_buckets,
@@ -1089,9 +997,7 @@ def run_optional_cvxpy_worker_check():
     try:
         spec.loader.exec_module(worker)
     except ImportError as exc:
-        print(
-            f"Skipped: CVXPY worker dependencies are not available in this Python environment ({exc})."
-        )
+        print(f"Skipped: CVXPY worker dependencies are not available in this Python environment ({exc}).")
         print("Install the optional optimization dependencies with:")
         print("  uv sync --project python --extra optimization")
         print("Then run the demo with the uv-managed interpreter:")
@@ -1104,9 +1010,7 @@ def run_optional_cvxpy_worker_check():
             {"id": "AAPL", "lb": 0.0, "ub": 1.0, "integer": False},
             {"id": "MSFT", "lb": 0.0, "ub": 1.0, "integer": False},
         ],
-        "objectives": [
-            {"type": "MaximizeReturn", "expected_returns": {"AAPL": 0.10, "MSFT": 0.08}}
-        ],
+        "objectives": [{"type": "MaximizeReturn", "expected_returns": {"AAPL": 0.10, "MSFT": 0.08}}],
         "constraints": [
             {
                 "type": "LinearEquality",
@@ -1130,9 +1034,7 @@ def run_optional_cvxpy_worker_check():
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Run the Quant Risk Platform Python demo."
-    )
+    parser = argparse.ArgumentParser(description="Run the Quant Risk Platform Python demo.")
     parser.add_argument(
         "--dashboard",
         action="store_true",
@@ -1146,26 +1048,18 @@ def run_demo(dashboard=False):
     market_path = project_root / "data" / "market" / "demo_market.json"
     portfolio_path = project_root / "data" / "portfolios" / "demo_portfolio.json"
     golden_path = project_root / "data" / "regression" / "demo_golden.json"
-    product_family_golden_path = (
-        project_root / "data" / "regression" / "product_families"
-    )
+    product_family_golden_path = project_root / "data" / "regression" / "product_families"
     scenario_path = project_root / "data" / "scenarios" / "demo_scenarios.json"
 
     golden = load_golden_expectations(golden_path)
     product_families = load_product_family_expectations(product_family_golden_path)
     market = qrp.load_market(str(market_path))
     portfolio = qrp.load_portfolio(str(portfolio_path))
-    scenario_payload, factors, bindings, scenarios = load_factor_scenario_set(
-        scenario_path
-    )
+    scenario_payload, factors, bindings, scenarios = load_factor_scenario_set(scenario_path)
 
     print(f"Market date:       {market.valuation_date}")
-    print(
-        f"Portfolio:         {portfolio.portfolio_id} ({len(portfolio.trades)} trades)"
-    )
-    print(
-        f"Scenario set:      {scenario_payload['scenario_set_id']} ({len(scenarios)} scenarios)"
-    )
+    print(f"Portfolio:         {portfolio.portfolio_id} ({len(portfolio.trades)} trades)")
+    print(f"Scenario set:      {scenario_payload['scenario_set_id']} ({len(scenarios)} scenarios)")
     print(f"Factors/bindings:  {len(factors)} factors / {len(bindings)} bindings")
 
     print_market_data_coverage(market, factors, bindings)
@@ -1184,9 +1078,7 @@ def run_demo(dashboard=False):
         pnl_results,
         mc_results,
     )
-    validate_product_family_outputs(
-        product_families, valuation_results, stress_results, risk_results, pnl_results
-    )
+    validate_product_family_outputs(product_families, valuation_results, stress_results, risk_results, pnl_results)
     optimization_result = run_optional_cvxpy_worker_check()
     if dashboard:
         portfolio_views = build_dashboard_portfolio_views(

@@ -33,7 +33,9 @@ public:
     /**
      * @brief Returns the solver-facing risk-model type identifier.
      */
-    std::string type() const override { return "FullCovariance"; }
+    std::string type() const override {
+        return "FullCovariance";
+    }
 
     std::vector<std::string> asset_ids;                 // Asset order used by the covariance matrix.
     std::vector<std::vector<double>> covariance_matrix; // Asset-by-asset covariance matrix.
@@ -47,7 +49,9 @@ public:
     /**
      * @brief Returns the solver-facing risk-model type identifier.
      */
-    std::string type() const override { return "FactorRisk"; }
+    std::string type() const override {
+        return "FactorRisk";
+    }
 
     std::vector<std::string> asset_ids;  // Asset order used by exposure and specific-risk inputs.
     std::vector<std::string> factor_ids; // Factor order used by exposure and covariance matrices.

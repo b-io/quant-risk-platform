@@ -47,7 +47,8 @@ std::optional<std::string> env_value(const char* name) {
 } // namespace
 
 void Logger::initialize() {
-    if (g_logger) return;
+    if (g_logger)
+        return;
 
     auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
     console_sink->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%^%l%$] [tid %t] %v");
@@ -59,16 +60,24 @@ void Logger::initialize() {
     const auto env_level = env_value("QRP_LOG_LEVEL");
     if (env_level) {
         std::string s_level = *env_level;
-        std::transform(s_level.begin(), s_level.end(), s_level.begin(),
-                       [](unsigned char c){ return std::tolower(c); });
+        std::transform(s_level.begin(), s_level.end(), s_level.begin(), [](unsigned char c) {
+            return std::tolower(c);
+        });
 
-        if (s_level == "trace") level = spdlog::level::trace;
-        else if (s_level == "debug") level = spdlog::level::debug;
-        else if (s_level == "info") level = spdlog::level::info;
-        else if (s_level == "warn") level = spdlog::level::warn;
-        else if (s_level == "err") level = spdlog::level::err;
-        else if (s_level == "critical") level = spdlog::level::critical;
-        else if (s_level == "off") level = spdlog::level::off;
+        if (s_level == "trace")
+            level = spdlog::level::trace;
+        else if (s_level == "debug")
+            level = spdlog::level::debug;
+        else if (s_level == "info")
+            level = spdlog::level::info;
+        else if (s_level == "warn")
+            level = spdlog::level::warn;
+        else if (s_level == "err")
+            level = spdlog::level::err;
+        else if (s_level == "critical")
+            level = spdlog::level::critical;
+        else if (s_level == "off")
+            level = spdlog::level::off;
     }
 
     g_logger->set_level(level);

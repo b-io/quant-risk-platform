@@ -5,7 +5,6 @@ import math
 import sys
 from pathlib import Path
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 PYTHON_ROOT = PROJECT_ROOT / "python"
 REPORT_PATH = PROJECT_ROOT / "reports" / "demo_optimizer_result.json"
@@ -127,11 +126,7 @@ def mapping(field):
 
 def class_coefficients(*asset_classes):
     selected = set(asset_classes)
-    return {
-        asset["id"]: 1.0
-        for asset in sorted_assets()
-        if asset["asset_class"] in selected
-    }
+    return {asset["id"]: 1.0 for asset in sorted_assets() if asset["asset_class"] in selected}
 
 
 def covariance_matrix():
@@ -145,9 +140,7 @@ def covariance_matrix():
             right_loadings = LOADINGS[right_id]
             value = sum(
                 left * right * factor_variance
-                for left, right, factor_variance in zip(
-                    left_loadings, right_loadings, factor_variances
-                )
+                for left, right, factor_variance in zip(left_loadings, right_loadings, factor_variances)
             )
             if left_id == right_id:
                 value += SPECIFIC_VOLS[left_id] ** 2
@@ -160,10 +153,7 @@ def build_request():
     ids = asset_ids()
     return {
         "name": "Demo multi-asset mean-variance allocation",
-        "variables": [
-            {"id": asset["id"], "lb": 0.0, "ub": asset["ub"], "integer": False}
-            for asset in sorted_assets()
-        ],
+        "variables": [{"id": asset["id"], "lb": 0.0, "ub": asset["ub"], "integer": False} for asset in sorted_assets()],
         "objectives": [
             {
                 "type": "MeanVariance",
@@ -226,17 +216,13 @@ def build_request():
 
 def portfolio_metrics(weights, covariance):
     expected_returns = mapping("expected_return")
-    expected_return = sum(
-        expected_returns[asset_id] * weight for asset_id, weight in weights.items()
-    )
+    expected_return = sum(expected_returns[asset_id] * weight for asset_id, weight in weights.items())
     ordered_weights = [weights[asset_id] for asset_id in asset_ids()]
     variance = 0.0
     for i, left_weight in enumerate(ordered_weights):
         for j, right_weight in enumerate(ordered_weights):
             variance += left_weight * covariance[i][j] * right_weight
-    turnover = sum(
-        abs(weights[asset["id"]] - asset["current_weight"]) for asset in sorted_assets()
-    )
+    turnover = sum(abs(weights[asset["id"]] - asset["current_weight"]) for asset in sorted_assets())
     return {
         "expected_return": expected_return,
         "volatility": math.sqrt(max(variance, 0.0)),
@@ -245,10 +231,7 @@ def portfolio_metrics(weights, covariance):
 
 
 def clean_weights(weights):
-    return {
-        asset_id: 0.0 if abs(float(weight)) < 1e-8 else float(weight)
-        for asset_id, weight in weights.items()
-    }
+    return {asset_id: 0.0 if abs(float(weight)) < 1e-8 else float(weight) for asset_id, weight in weights.items()}
 
 
 def pct(value):
@@ -267,18 +250,13 @@ def print_result(result, covariance):
     print(f"Objective value:   {result['objective_value']:.8f}")
     print(f"Solve time:        {result['solve_time_ms']:.2f} ms")
     print()
-    print(
-        f"{'Asset':<18} {'Class':<10} {'Current':>9} {'Optimized':>11} "
-        f"{'Change':>9} {'Exp Ret':>9} {'Vol':>9}"
-    )
+    print(f"{'Asset':<18} {'Class':<10} {'Current':>9} {'Optimized':>11} {'Change':>9} {'Exp Ret':>9} {'Vol':>9}")
     print("-" * 82)
     for asset in sorted_assets():
         asset_id = asset["id"]
         current_weight = asset["current_weight"]
         optimized_weight = weights[asset_id]
-        single_asset_vol = math.sqrt(
-            covariance[ids.index(asset_id)][ids.index(asset_id)]
-        )
+        single_asset_vol = math.sqrt(covariance[ids.index(asset_id)][ids.index(asset_id)])
         print(
             f"{asset_id:<18} {asset['asset_class']:<10} {pct(current_weight):>9} "
             f"{pct(optimized_weight):>11} {pct(optimized_weight - current_weight):>9} "
@@ -312,12 +290,8 @@ def main():
     REPORT_PATH.write_text(
         json.dumps(
             {
-                "current_metrics": portfolio_metrics(
-                    mapping("current_weight"), covariance
-                ),
-                "optimized_metrics": portfolio_metrics(
-                    result["optimal_values"], covariance
-                ),
+                "current_metrics": portfolio_metrics(mapping("current_weight"), covariance),
+                "optimized_metrics": portfolio_metrics(result["optimal_values"], covariance),
                 "request": request,
                 "result": result,
             },

@@ -17,13 +17,12 @@
 
 namespace {
 
-qrp::domain::MarketQuote make_quote(
-    const std::string& id,
-    qrp::domain::QuoteInstrumentType instrument_type,
-    qrp::domain::QuoteType quote_type,
-    const std::string& tenor,
-    double value,
-    const std::string& underlier = {}) {
+qrp::domain::MarketQuote make_quote(const std::string& id,
+                                    qrp::domain::QuoteInstrumentType instrument_type,
+                                    qrp::domain::QuoteType quote_type,
+                                    const std::string& tenor,
+                                    double value,
+                                    const std::string& underlier = {}) {
     qrp::domain::MarketQuote quote;
     quote.id = id;
     quote.instrument_type = instrument_type;
@@ -45,21 +44,65 @@ qrp::domain::MarketSnapshot make_credit_market() {
     market.default_stale_after_days = 10;
 
     market.quotes = {
-        make_quote("ACME_BOND_SPREAD_5Y", qrp::domain::QuoteInstrumentType::BondSpread, qrp::domain::QuoteType::CreditSpread, "5Y", 0.0160, "ACME"),
-        make_quote("ACME_CDS_1Y", qrp::domain::QuoteInstrumentType::CDS, qrp::domain::QuoteType::CreditSpread, "1Y", 0.0120, "ACME"),
-        make_quote("ACME_CDS_3Y", qrp::domain::QuoteInstrumentType::CDS, qrp::domain::QuoteType::CreditSpread, "3Y", 0.0150, "ACME"),
-        make_quote("ACME_CDS_5Y", qrp::domain::QuoteInstrumentType::CDS, qrp::domain::QuoteType::CreditSpread, "5Y", 0.0180, "ACME"),
-        make_quote("ACME_CDS_OPTION_VOL_1Y_5Y", qrp::domain::QuoteInstrumentType::CreditSpread, qrp::domain::QuoteType::Volatility, "5Y", 0.35, "ACME"),
-        make_quote("ACME_RECOVERY", qrp::domain::QuoteInstrumentType::RecoveryRate, qrp::domain::QuoteType::RecoveryRate, "RECOVERY", 0.40, "ACME"),
-        make_quote("CDX_IG_5Y", qrp::domain::QuoteInstrumentType::CreditIndex, qrp::domain::QuoteType::CreditSpread, "5Y", 0.0100, "CDX_IG"),
-        make_quote("CDX_IG_OPTION_VOL_1Y_5Y", qrp::domain::QuoteInstrumentType::CreditSpread, qrp::domain::QuoteType::Volatility, "5Y", 0.30, "CDX_IG"),
-        make_quote("CDX_IG_RECOVERY", qrp::domain::QuoteInstrumentType::RecoveryRate, qrp::domain::QuoteType::RecoveryRate, "RECOVERY", 0.40, "CDX_IG"),
+        make_quote("ACME_BOND_SPREAD_5Y",
+                   qrp::domain::QuoteInstrumentType::BondSpread,
+                   qrp::domain::QuoteType::CreditSpread,
+                   "5Y",
+                   0.0160,
+                   "ACME"),
+        make_quote("ACME_CDS_1Y",
+                   qrp::domain::QuoteInstrumentType::CDS,
+                   qrp::domain::QuoteType::CreditSpread,
+                   "1Y",
+                   0.0120,
+                   "ACME"),
+        make_quote("ACME_CDS_3Y",
+                   qrp::domain::QuoteInstrumentType::CDS,
+                   qrp::domain::QuoteType::CreditSpread,
+                   "3Y",
+                   0.0150,
+                   "ACME"),
+        make_quote("ACME_CDS_5Y",
+                   qrp::domain::QuoteInstrumentType::CDS,
+                   qrp::domain::QuoteType::CreditSpread,
+                   "5Y",
+                   0.0180,
+                   "ACME"),
+        make_quote("ACME_CDS_OPTION_VOL_1Y_5Y",
+                   qrp::domain::QuoteInstrumentType::CreditSpread,
+                   qrp::domain::QuoteType::Volatility,
+                   "5Y",
+                   0.35,
+                   "ACME"),
+        make_quote("ACME_RECOVERY",
+                   qrp::domain::QuoteInstrumentType::RecoveryRate,
+                   qrp::domain::QuoteType::RecoveryRate,
+                   "RECOVERY",
+                   0.40,
+                   "ACME"),
+        make_quote("CDX_IG_5Y",
+                   qrp::domain::QuoteInstrumentType::CreditIndex,
+                   qrp::domain::QuoteType::CreditSpread,
+                   "5Y",
+                   0.0100,
+                   "CDX_IG"),
+        make_quote("CDX_IG_OPTION_VOL_1Y_5Y",
+                   qrp::domain::QuoteInstrumentType::CreditSpread,
+                   qrp::domain::QuoteType::Volatility,
+                   "5Y",
+                   0.30,
+                   "CDX_IG"),
+        make_quote("CDX_IG_RECOVERY",
+                   qrp::domain::QuoteInstrumentType::RecoveryRate,
+                   qrp::domain::QuoteType::RecoveryRate,
+                   "RECOVERY",
+                   0.40,
+                   "CDX_IG"),
         make_quote("USD_ON", qrp::domain::QuoteInstrumentType::Deposit, qrp::domain::QuoteType::Deposit, "1D", 0.0525),
         make_quote("USD_OIS_1Y", qrp::domain::QuoteInstrumentType::OIS, qrp::domain::QuoteType::OIS, "1Y", 0.0535),
         make_quote("USD_OIS_2Y", qrp::domain::QuoteInstrumentType::OIS, qrp::domain::QuoteType::OIS, "2Y", 0.0537),
         make_quote("USD_OIS_5Y", qrp::domain::QuoteInstrumentType::OIS, qrp::domain::QuoteType::OIS, "5Y", 0.0540),
-        make_quote("USD_OIS_10Y", qrp::domain::QuoteInstrumentType::OIS, qrp::domain::QuoteType::OIS, "10Y", 0.0545)
-    };
+        make_quote("USD_OIS_10Y", qrp::domain::QuoteInstrumentType::OIS, qrp::domain::QuoteType::OIS, "10Y", 0.0545)};
     market.quotes[4].expiry = "1Y";
     market.quotes[4].strike = "5Y";
     market.quotes[7].expiry = "1Y";
@@ -140,7 +183,8 @@ qrp::domain::Portfolio make_credit_portfolio() {
     cds_option->volatility_quote_id = "ACME_CDS_OPTION_VOL_1Y_5Y";
     portfolio.trades.push_back(cds_option);
 
-    auto credit_index_option = make_credit_trade<qrp::domain::CreditIndexOptionTrade>("credit_index_option_cdx_ig", "long");
+    auto credit_index_option =
+        make_credit_trade<qrp::domain::CreditIndexOptionTrade>("credit_index_option_cdx_ig", "long");
     credit_index_option->notional = 10'000'000.0;
     credit_index_option->expiry_date = "2027-03-24";
     credit_index_option->maturity_date = "2031-03-24";
@@ -177,15 +221,13 @@ std::vector<qrp::domain::FactorDefinition> make_credit_factors() {
     return {acme, cdx};
 }
 
-std::vector<qrp::domain::FactorBinding> make_credit_bindings(
-    const std::vector<qrp::domain::FactorDefinition>& factors) {
-    return {
-        {factors[0].factor_id, "ACME_BOND_SPREAD_5Y", qrp::domain::ShockMeasure::Absolute, 1.0},
-        {factors[0].factor_id, "ACME_CDS_1Y", qrp::domain::ShockMeasure::Absolute, 1.0},
-        {factors[0].factor_id, "ACME_CDS_3Y", qrp::domain::ShockMeasure::Absolute, 1.0},
-        {factors[0].factor_id, "ACME_CDS_5Y", qrp::domain::ShockMeasure::Absolute, 1.0},
-        {factors[1].factor_id, "CDX_IG_5Y", qrp::domain::ShockMeasure::Absolute, 1.0}
-    };
+std::vector<qrp::domain::FactorBinding>
+make_credit_bindings(const std::vector<qrp::domain::FactorDefinition>& factors) {
+    return {{factors[0].factor_id, "ACME_BOND_SPREAD_5Y", qrp::domain::ShockMeasure::Absolute, 1.0},
+            {factors[0].factor_id, "ACME_CDS_1Y", qrp::domain::ShockMeasure::Absolute, 1.0},
+            {factors[0].factor_id, "ACME_CDS_3Y", qrp::domain::ShockMeasure::Absolute, 1.0},
+            {factors[0].factor_id, "ACME_CDS_5Y", qrp::domain::ShockMeasure::Absolute, 1.0},
+            {factors[1].factor_id, "CDX_IG_5Y", qrp::domain::ShockMeasure::Absolute, 1.0}};
 }
 
 } // namespace
@@ -246,13 +288,12 @@ TEST(CreditProductsTest, ComputesCs01AndSpreadDuration) {
 
 TEST(CreditProductsTest, PricesFallbackCreditInputsAndAlternativeDirections) {
     auto market_dto = make_credit_market();
-    market_dto.quotes.push_back(make_quote(
-        "ACME_ZERO_VOL",
-        qrp::domain::QuoteInstrumentType::CreditSpread,
-        qrp::domain::QuoteType::Volatility,
-        "5Y",
-        0.0,
-        "ACME"));
+    market_dto.quotes.push_back(make_quote("ACME_ZERO_VOL",
+                                           qrp::domain::QuoteInstrumentType::CreditSpread,
+                                           qrp::domain::QuoteType::Volatility,
+                                           "5Y",
+                                           0.0,
+                                           "ACME"));
     market_dto.quotes.back().expiry = "6M";
     market_dto.quotes.back().strike = "5Y";
 
@@ -303,7 +344,8 @@ TEST(CreditProductsTest, PricesFallbackCreditInputsAndAlternativeDirections) {
     default_vol_option->spread_quote_id = "ACME_CDS_5Y";
     portfolio.trades.push_back(default_vol_option);
 
-    auto default_vol_index_option = make_credit_trade<qrp::domain::CreditIndexOptionTrade>("credit_index_option_default_vol", "long");
+    auto default_vol_index_option =
+        make_credit_trade<qrp::domain::CreditIndexOptionTrade>("credit_index_option_default_vol", "long");
     default_vol_index_option->notional = 2'000'000.0;
     default_vol_index_option->expiry_date = "2026-09-24";
     default_vol_index_option->maturity_date = "2031-03-24";

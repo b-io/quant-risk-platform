@@ -18,11 +18,11 @@ public:
      * @brief Plant economics and operating constraints.
      */
     struct Params {
-        double capacity = 100.0; // MW
-        double heat_rate = 2.0;  // Fuel units per MWh
+        double capacity = 100.0;     // MW
+        double heat_rate = 2.0;      // Fuel units per MWh
         double startup_cost = 500.0; // Fixed startup cost when switching on.
         double variable_opex = 2.0;  // Variable operating cost per MWh.
-        double co2_intensity = 0.5; // tons/MWh
+        double co2_intensity = 0.5;  // tons/MWh
     };
 
     /**
@@ -33,32 +33,27 @@ public:
     /**
      * @brief Returns off and on dispatch actions.
      */
-    std::vector<dynamic_programming::Action> feasibleActions(
-        const dynamic_programming::State& state,
-        std::size_t timeIndex
-    ) const override {
-        return {
-            {0, "Off", {}},
-            {1, "On", {}}
-        };
+    std::vector<dynamic_programming::Action> feasibleActions(const dynamic_programming::State& state,
+                                                             std::size_t timeIndex) const override {
+        return {{0, "Off", {}}, {1, "On", {}}};
     }
 
     /**
      * @brief Returns spark-spread cashflow net of startup and variable costs.
      */
-    double immediateCashflow(
-        const dynamic_programming::State& state,
-        const dynamic_programming::Action& action,
-        std::size_t timeIndex
-    ) const override {
-        if (action.id == 0) return 0.0;
+    double immediateCashflow(const dynamic_programming::State& state,
+                             const dynamic_programming::Action& action,
+                             std::size_t timeIndex) const override {
+        if (action.id == 0)
+            return 0.0;
 
         double power_price = state.market_variables[0];
         double fuel_price = state.market_variables[1];
         double co2_price = state.market_variables[2];
         bool was_on = (state.operational_variables[0] > 0.5);
 
-        double margin = power_price - (fuel_price * params_.heat_rate) - (co2_price * params_.co2_intensity) - params_.variable_opex;
+        double margin = power_price - (fuel_price * params_.heat_rate) - (co2_price * params_.co2_intensity) -
+                        params_.variable_opex;
         double flow = margin * params_.capacity;
 
         if (!was_on) {
@@ -71,12 +66,10 @@ public:
     /**
      * @brief Updates the on/off operational state.
      */
-    dynamic_programming::State nextState(
-        const dynamic_programming::State& state,
-        const dynamic_programming::Action& action,
-        const std::vector<double>& market_variables_next,
-        std::size_t timeIndex
-    ) const override {
+    dynamic_programming::State nextState(const dynamic_programming::State& state,
+                                         const dynamic_programming::Action& action,
+                                         const std::vector<double>& market_variables_next,
+                                         std::size_t timeIndex) const override {
         double is_on = (action.id == 1) ? 1.0 : 0.0;
         return {market_variables_next, {is_on}};
     }
@@ -84,10 +77,8 @@ public:
     /**
      * @brief Returns polynomial features of power, fuel, carbon, and state.
      */
-    std::vector<double> regressionFeatures(
-        const dynamic_programming::State& state,
-        std::size_t timeIndex
-    ) const override {
+    std::vector<double> regressionFeatures(const dynamic_programming::State& state,
+                                           std::size_t timeIndex) const override {
         double p = state.market_variables[0];
         double f = state.market_variables[1];
         double c = state.market_variables[2];

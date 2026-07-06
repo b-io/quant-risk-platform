@@ -18,8 +18,10 @@ namespace qrp::persistence {
  * @brief Abstract interface for the platform's storage layer.
  *
  * Why this interface?
- * To decouple the analytics services and the application facade from a specific database implementation.
- * SQLite is the default implementation; alternate backends can satisfy the same analytics contract.
+ * To decouple the analytics services and the application facade from a
+ * specific database implementation.
+ * SQLite is the default implementation; alternate backends can
+ * satisfy the same analytics contract.
  */
 class StorageBackend {
 public:
@@ -37,7 +39,8 @@ public:
     /**
      * @brief Stores a portfolio header.
      */
-    virtual void store_portfolio(const std::string& portfolio_id, const std::string& name, const std::string& base_ccy) = 0;
+    virtual void
+    store_portfolio(const std::string& portfolio_id, const std::string& name, const std::string& base_ccy) = 0;
 
     /**
      * @brief Stores a book header associated with a portfolio.
@@ -47,21 +50,35 @@ public:
     /**
      * @brief Stores a normalized trade row and product-specific economics JSON.
      */
-    virtual void store_trade(const std::string& trade_id, const std::string& portfolio_id, const std::string& book_id,
-                             const std::string& asset_class, const std::string& trade_type, const std::string& ccy,
-                             double notional, const std::string& start_date, const std::string& maturity_date,
-                             const std::string& direction, const std::string& economics_json) = 0;
+    virtual void store_trade(const std::string& trade_id,
+                             const std::string& portfolio_id,
+                             const std::string& book_id,
+                             const std::string& asset_class,
+                             const std::string& trade_type,
+                             const std::string& ccy,
+                             double notional,
+                             const std::string& start_date,
+                             const std::string& maturity_date,
+                             const std::string& direction,
+                             const std::string& economics_json) = 0;
 
     // Market snapshots and bitemporal events
     /**
      * @brief Stores a market snapshot header and curve specification payload.
      */
-    virtual void store_market_snapshot(const std::string& snapshot_id, const std::string& as_of_date, const std::string& base_ccy, const std::string& curves_json = "[]") = 0;
+    virtual void store_market_snapshot(const std::string& snapshot_id,
+                                       const std::string& as_of_date,
+                                       const std::string& base_ccy,
+                                       const std::string& curves_json = "[]") = 0;
 
     /**
      * @brief Stores a raw quote attached to a market snapshot.
      */
-    virtual void store_market_quote(const std::string& snapshot_id, const std::string& quote_id, double value, const std::string& ccy, const std::string& metadata_json = "{}") = 0;
+    virtual void store_market_quote(const std::string& snapshot_id,
+                                    const std::string& quote_id,
+                                    double value,
+                                    const std::string& ccy,
+                                    const std::string& metadata_json = "{}") = 0;
 
     /**
      * @brief Stores one bitemporal market quote event.
@@ -71,11 +88,10 @@ public:
     /**
      * @brief Reconstructs a market snapshot as of market and knowledge timestamps.
      */
-    virtual domain::MarketSnapshot load_market_snapshot_asof(
-        const std::string& market_ts,
-        const std::string& recorded_ts,
-        const std::string& base_ccy,
-        const std::string& overlay_set_id = "") = 0;
+    virtual domain::MarketSnapshot load_market_snapshot_asof(const std::string& market_ts,
+                                                             const std::string& recorded_ts,
+                                                             const std::string& base_ccy,
+                                                             const std::string& overlay_set_id = "") = 0;
 
     // Factors and History
     /**
@@ -106,10 +122,9 @@ public:
     /**
      * @brief Loads historical observations for requested factors over a date range.
      */
-    virtual std::vector<domain::FactorObservation> load_factor_history(
-        const std::vector<std::string>& factor_ids,
-        const std::string& start_date,
-        const std::string& end_date) = 0;
+    virtual std::vector<domain::FactorObservation> load_factor_history(const std::vector<std::string>& factor_ids,
+                                                                       const std::string& start_date,
+                                                                       const std::string& end_date) = 0;
 
     // Load methods
     /**
@@ -126,38 +141,50 @@ public:
     /**
      * @brief Stores an analysis run header.
      */
-    virtual void store_analysis_run(const std::string& run_id, const std::string& type, const std::string& portfolio_id, const std::string& snapshot_id) = 0;
+    virtual void store_analysis_run(const std::string& run_id,
+                                    const std::string& type,
+                                    const std::string& portfolio_id,
+                                    const std::string& snapshot_id) = 0;
 
     /**
      * @brief Stores aggregate PnL for one scenario in a run.
      */
-    virtual void store_scenario_result(const std::string& run_id, const std::string& scenario_name, double portfolio_pnl) = 0;
+    virtual void
+    store_scenario_result(const std::string& run_id, const std::string& scenario_name, double portfolio_pnl) = 0;
 
     /**
      * @brief Stores normalized valuation output for one trade in a run.
      */
-    virtual void store_valuation_result(
-        const std::string& run_id,
-        const std::string& trade_id,
-        double npv,
-        const std::string& ccy,
-        const std::string& status,
-        const std::string& error,
-        const std::string& asset_class,
-        const std::string& product_type,
-        const std::string& support_status,
-        const std::string& model_name,
-        const std::string& status_message) = 0;
+    virtual void store_valuation_result(const std::string& run_id,
+                                        const std::string& trade_id,
+                                        double npv,
+                                        const std::string& ccy,
+                                        const std::string& status,
+                                        const std::string& error,
+                                        const std::string& asset_class,
+                                        const std::string& product_type,
+                                        const std::string& support_status,
+                                        const std::string& model_name,
+                                        const std::string& status_message) = 0;
 
     /**
      * @brief Stores aggregate VaR and ES metrics for a run.
      */
-    virtual void store_var_result(const std::string& run_id, const std::string& method, double confidence_level, double var_value, double expected_shortfall, int scenario_count) = 0;
+    virtual void store_var_result(const std::string& run_id,
+                                  const std::string& method,
+                                  double confidence_level,
+                                  double var_value,
+                                  double expected_shortfall,
+                                  int scenario_count) = 0;
 
     /**
      * @brief Stores one trade-level risk measure.
      */
-    virtual void store_risk_result(const std::string& run_id, const std::string& trade_id, const std::string& measure, const std::string& rf_id, double value) = 0;
+    virtual void store_risk_result(const std::string& run_id,
+                                   const std::string& trade_id,
+                                   const std::string& measure,
+                                   const std::string& rf_id,
+                                   double value) = 0;
 
     // Scenarios
     /**
@@ -168,7 +195,10 @@ public:
     /**
      * @brief Stores one factor shock within a named scenario.
      */
-    virtual void store_scenario_factor_shock(const std::string& set_id, const std::string& scenario_name, const std::string& factor_id, double shock) = 0;
+    virtual void store_scenario_factor_shock(const std::string& set_id,
+                                             const std::string& scenario_name,
+                                             const std::string& factor_id,
+                                             double shock) = 0;
 
     /**
      * @brief Loads a scenario set as scenario-name to factor-shock maps.
@@ -195,17 +225,17 @@ public:
      * @brief Result record for ad hoc valuation queries.
      */
     struct ValuationRecord {
-        std::string run_id;          // Analysis run id.
-        std::string trade_id;        // Valued trade id.
-        double npv;                  // Stored net present value.
-        std::string ccy;             // Valuation currency.
-        std::string status;          // Storage or pricing status label.
-        std::string asset_class;     // Trade asset class label.
-        std::string product_type;    // Trade product type label.
-        std::string support_status;  // Product support status label.
-        std::string model_name;      // Pricing model or approximation name.
-        std::string status_message;  // Pricing diagnostic message.
-        std::string error_message;   // Error detail, when pricing failed.
+        std::string run_id;         // Analysis run id.
+        std::string trade_id;       // Valued trade id.
+        double npv;                 // Stored net present value.
+        std::string ccy;            // Valuation currency.
+        std::string status;         // Storage or pricing status label.
+        std::string asset_class;    // Trade asset class label.
+        std::string product_type;   // Trade product type label.
+        std::string support_status; // Product support status label.
+        std::string model_name;     // Pricing model or approximation name.
+        std::string status_message; // Pricing diagnostic message.
+        std::string error_message;  // Error detail, when pricing failed.
     };
 
     /**

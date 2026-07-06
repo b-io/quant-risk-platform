@@ -8,11 +8,10 @@ namespace {
 /**
  * @brief Creates the common OIS convention skeleton for a currency.
  */
-RatesConvention make_ois_convention(
-    domain::Currency currency,
-    domain::BusinessCalendar calendar,
-    int settlement_days,
-    domain::DayCount day_count) {
+RatesConvention make_ois_convention(domain::Currency currency,
+                                    domain::BusinessCalendar calendar,
+                                    int settlement_days,
+                                    domain::DayCount day_count) {
     RatesConvention convention;
     convention.currency = currency;
     convention.index_family = "OIS";
@@ -54,27 +53,15 @@ RatesConvention make_usd_ibor_3m_convention() {
 } // namespace
 
 void register_default_rates_conventions(MarketConventionRegistry& registry) {
-    registry.register_rates_convention(make_ois_convention(
-        domain::Currency::USD,
-        domain::BusinessCalendar::US,
-        2,
-        domain::DayCount::ACT360));
+    registry.register_rates_convention(
+        make_ois_convention(domain::Currency::USD, domain::BusinessCalendar::US, 2, domain::DayCount::ACT360));
     registry.register_rates_convention(make_usd_ibor_3m_convention());
-    registry.register_rates_convention(make_ois_convention(
-        domain::Currency::EUR,
-        domain::BusinessCalendar::Target,
-        2,
-        domain::DayCount::ACT360));
-    registry.register_rates_convention(make_ois_convention(
-        domain::Currency::GBP,
-        domain::BusinessCalendar::UK,
-        0,
-        domain::DayCount::ACT365));
-    registry.register_rates_convention(make_ois_convention(
-        domain::Currency::CHF,
-        domain::BusinessCalendar::CHF,
-        2,
-        domain::DayCount::ACT360));
+    registry.register_rates_convention(
+        make_ois_convention(domain::Currency::EUR, domain::BusinessCalendar::Target, 2, domain::DayCount::ACT360));
+    registry.register_rates_convention(
+        make_ois_convention(domain::Currency::GBP, domain::BusinessCalendar::UK, 0, domain::DayCount::ACT365));
+    registry.register_rates_convention(
+        make_ois_convention(domain::Currency::CHF, domain::BusinessCalendar::CHF, 2, domain::DayCount::ACT360));
 }
 
 } // namespace qrp::conventions

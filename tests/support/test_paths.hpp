@@ -43,7 +43,8 @@ inline std::filesystem::path find_data_dir() {
         current = current.parent_path();
     }
 
-    throw std::runtime_error("Test data directory was not found. Configure QRP_TEST_DATA_DIR or run from the repository tree.");
+    throw std::runtime_error("Test data directory was not found. Configure QRP_TEST_DATA_DIR or "
+                             "run from the repository tree.");
 }
 
 /**

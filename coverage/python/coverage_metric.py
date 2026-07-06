@@ -55,11 +55,7 @@ def source_files(source_roots: list[Path]) -> list[Path]:
             continue
         if not root.exists():
             continue
-        files.extend(
-            path
-            for path in root.rglob("*.py")
-            if "__pycache__" not in path.parts
-        )
+        files.extend(path for path in root.rglob("*.py") if "__pycache__" not in path.parts)
     return sorted({path.resolve() for path in files})
 
 

@@ -94,8 +94,7 @@ void verify_portfolio_fixture(const std::filesystem::path& manifest_path) {
             << result.trade_id;
         EXPECT_EQ(qrp::domain::to_string(result.support_status), expected.at("support_status").get<std::string>())
             << result.trade_id;
-        EXPECT_EQ(result.tags.at("status"), expected.at("support_status").get<std::string>())
-            << result.trade_id;
+        EXPECT_EQ(result.tags.at("status"), expected.at("support_status").get<std::string>()) << result.trade_id;
 
         seen_trade_ids.insert(result.trade_id);
     }

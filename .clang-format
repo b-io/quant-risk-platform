@@ -1,0 +1,49 @@
+BasedOnStyle: LLVM
+Language: Cpp
+Standard: c++20
+
+AccessModifierOffset: -4
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: None
+AlignConsecutiveDeclarations: None
+AlignOperands: Align
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakTemplateDeclarations: Yes
+BinPackArguments: false
+BinPackParameters: false
+BreakBeforeBraces: Attach
+BreakConstructorInitializers: BeforeColon
+ColumnLimit: 120
+Cpp11BracedListStyle: true
+FixNamespaceComments: true
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '^"'
+    Priority: 0
+  - Regex: '^<qrp/'
+    Priority: 1
+  - Regex: '^<(Eigen|QuantLib|boost|fmt|gtest|nlohmann|pybind11|spdlog)/'
+    Priority: 2
+  - Regex: '^<'
+    Priority: 3
+IndentCaseLabels: true
+IndentPPDirectives: AfterHash
+IndentWidth: 4
+NamespaceIndentation: None
+PointerAlignment: Left
+QualifierAlignment: Leave
+ReferenceAlignment: Pointer
+SortIncludes: CaseSensitive
+SpaceAfterCStyleCast: false
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeParens: ControlStatements
+SpacesInAngles: Never
+TabWidth: 4
+UseTab: Never

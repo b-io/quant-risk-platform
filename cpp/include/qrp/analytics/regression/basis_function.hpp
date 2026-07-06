@@ -48,6 +48,7 @@ public:
         }
         return features;
     }
+
 private:
     int degree_; // Maximum univariate polynomial degree.
 };

@@ -1,8 +1,7 @@
 // Implements factor-based Monte Carlo simulation and horizon revaluation workflows.
 
-#include <qrp/analytics/monte_carlo_engine.hpp>
-
 #include <qrp/analytics/covariance_estimator.hpp>
+#include <qrp/analytics/monte_carlo_engine.hpp>
 #include <qrp/analytics/pricing_context.hpp>
 #include <qrp/analytics/valuation_service.hpp>
 #include <qrp/instruments/instrument_factory.hpp>
@@ -10,6 +9,11 @@
 #include <qrp/util/logger.hpp>
 
 #include <fmt/format.h>
+
+#include <algorithm>
+#include <map>
+#include <memory>
+#include <numeric>
 #include <ql/indexes/ibor/usdlibor.hpp>
 #include <ql/instrument.hpp>
 #include <ql/math/matrix.hpp>
@@ -19,33 +23,30 @@
 #include <ql/settings.hpp>
 #include <ql/termstructures/yield/discountcurve.hpp>
 #include <ql/time/calendars/target.hpp>
-
-#include <algorithm>
-#include <map>
-#include <memory>
-#include <numeric>
 #include <stdexcept>
 #include <tuple>
 
 /*
 Design note (see docs/architecture/ANALYTICS_SERVICES.md and docs/risk/MONTE_CARLO.md):
-- We implement a one-step, factor-based Monte Carlo to generate coherent shocks across currencies.
+- We
+implement a one-step, factor-based Monte Carlo to generate coherent shocks across currencies.
 - The factor covariance is represented by a symmetric positive-definite matrix and sampled via
-  Cholesky decomposition (L*Z). This produces correlated Gaussian shocks consistent with the covariance.
-- We do not rebuild curves for each path; instead we bump quote handles and rely on QuantLib's Observer pattern
-  to lazily reprice cached instruments. This drastically improves throughput.
+  Cholesky decomposition (L*Z). This produces correlated Gaussian shocks consistent with the
+covariance.
+- We do not rebuild curves for each path; instead we bump quote handles and rely on QuantLib's
+Observer pattern to lazily reprice cached instruments. This drastically improves throughput.
 */
 namespace qrp::analytics {
 
-SimulationResult MonteCarloEngine::run_simulation(
-    const domain::Portfolio& portfolio,
-    const domain::MarketSnapshot& base_market_dto,
-    const std::vector<domain::FactorDefinition>& factors,
-    const std::vector<domain::FactorBinding>& bindings,
-    const QuantLib::Matrix& covariance,
-    const MonteCarloConfig& config) {
+SimulationResult MonteCarloEngine::run_simulation(const domain::Portfolio& portfolio,
+                                                  const domain::MarketSnapshot& base_market_dto,
+                                                  const std::vector<domain::FactorDefinition>& factors,
+                                                  const std::vector<domain::FactorBinding>& bindings,
+                                                  const QuantLib::Matrix& covariance,
+                                                  const MonteCarloConfig& config) {
 
-    if (config.num_paths <= 0) return {};
+    if (config.num_paths <= 0)
+        return {};
 
     size_t num_factors = factors.size();
     if (num_factors == 0) {
@@ -58,8 +59,8 @@ SimulationResult MonteCarloEngine::run_simulation(
 
     // Validate covariance dimensions
     if (covariance.rows() != num_factors || covariance.columns() != num_factors) {
-        throw std::runtime_error("MonteCarloEngine: Covariance matrix dimensions must match factor count ("
-            + std::to_string(num_factors) + "x" + std::to_string(num_factors) + ")");
+        throw std::runtime_error("MonteCarloEngine: Covariance matrix dimensions must match factor count (" +
+                                 std::to_string(num_factors) + "x" + std::to_string(num_factors) + ")");
     }
 
     SimulationResult result;
@@ -68,7 +69,8 @@ SimulationResult MonteCarloEngine::run_simulation(
     result.seed = config.seed;
     result.horizon_days = config.horizon_days;
     result.mode = config.mode;
-    for (const auto& f : factors) result.factor_ids.push_back(f.factor_id);
+    for (const auto& f : factors)
+        result.factor_ids.push_back(f.factor_id);
 
     // Build the base market and reusable instrument cache.
     qrp::market::MarketSnapshot base_market(base_market_dto);
@@ -95,11 +97,13 @@ SimulationResult MonteCarloEngine::run_simulation(
         // Frozen-aging policy: advance the valuation date while keeping market quote
         // levels unchanged. Forward-projected market states should be supplied by a
         // dedicated market-data evolution model when that workflow is introduced.
-        frozen_aged_market_dto.valuation_date = fmt::format("{:4d}-{:02d}-{:02d}", (int)tH.year(), (int)tH.month(), (int)tH.dayOfMonth());
+        frozen_aged_market_dto.valuation_date =
+            fmt::format("{:4d}-{:02d}-{:02d}", (int)tH.year(), (int)tH.month(), (int)tH.dayOfMonth());
 
         // Rebuild curves against the horizon state so instruments observe horizon quote handles.
         std::map<std::string, domain::MarketQuote> quote_map;
-        for (const auto& q : base_market_dto.quotes) quote_map[q.id] = q;
+        for (const auto& q : base_market_dto.quotes)
+            quote_map[q.id] = q;
 
         for (const auto& curve_spec : base_market_dto.curves) {
             auto curve = market::CurveBuilder::build_rate_curve(curve_spec, quote_map, tH, horizon_state);
@@ -122,7 +126,8 @@ SimulationResult MonteCarloEngine::run_simulation(
         }
 
         frozen_aged_market_dto = horizon_state->capture_snapshot();
-        frozen_aged_market_dto.valuation_date = fmt::format("{:4d}-{:02d}-{:02d}", (int)tH.year(), (int)tH.month(), (int)tH.dayOfMonth());
+        frozen_aged_market_dto.valuation_date =
+            fmt::format("{:4d}-{:02d}-{:02d}", (int)tH.year(), (int)tH.month(), (int)tH.dayOfMonth());
     }
 
     PricingContext base_context(state);
@@ -131,8 +136,10 @@ SimulationResult MonteCarloEngine::run_simulation(
         horizon_context = std::make_unique<PricingContext>(horizon_state);
     }
 
-    std::vector<std::pair<std::string, std::tuple<QuantLib::ext::shared_ptr<QuantLib::Instrument>, double, double>>> base_instruments;
-    std::vector<std::pair<std::string, std::tuple<QuantLib::ext::shared_ptr<QuantLib::Instrument>, double, double>>> horizon_instruments;
+    std::vector<std::pair<std::string, std::tuple<QuantLib::ext::shared_ptr<QuantLib::Instrument>, double, double>>>
+        base_instruments;
+    std::vector<std::pair<std::string, std::tuple<QuantLib::ext::shared_ptr<QuantLib::Instrument>, double, double>>>
+        horizon_instruments;
 
     double base_total_npv = 0.0;
     double frozen_aged_total_npv = 0.0;
@@ -190,7 +197,8 @@ SimulationResult MonteCarloEngine::run_simulation(
             } catch (...) {
                 result.num_trades_failed_tH++;
                 result.construction_errors[trade.id + "_tH"] = "Unknown exception at tH";
-                util::Logger::get()->warn("Failed to create horizon instrument for trade {}: Unknown exception at tH", trade.id);
+                util::Logger::get()->warn("Failed to create horizon instrument for trade {}: Unknown exception at tH",
+                                          trade.id);
             }
         }
     }
@@ -199,9 +207,12 @@ SimulationResult MonteCarloEngine::run_simulation(
 
     // Select the state and baseline appropriate for horizon-aging or shock-only mode.
     auto active_state = (config.mode == MonteCarloMode::AgedHorizonRevaluation) ? horizon_state : state;
-    auto& active_instruments = (config.mode == MonteCarloMode::AgedHorizonRevaluation) ? horizon_instruments : base_instruments;
-    const auto& active_reference_dto = (config.mode == MonteCarloMode::AgedHorizonRevaluation) ? frozen_aged_market_dto : base_market_dto;
-    double active_base_npv = (config.mode == MonteCarloMode::AgedHorizonRevaluation) ? frozen_aged_total_npv : base_total_npv;
+    auto& active_instruments =
+        (config.mode == MonteCarloMode::AgedHorizonRevaluation) ? horizon_instruments : base_instruments;
+    const auto& active_reference_dto =
+        (config.mode == MonteCarloMode::AgedHorizonRevaluation) ? frozen_aged_market_dto : base_market_dto;
+    double active_base_npv =
+        (config.mode == MonteCarloMode::AgedHorizonRevaluation) ? frozen_aged_total_npv : base_total_npv;
     QuantLib::Date active_val_date = (config.mode == MonteCarloMode::AgedHorizonRevaluation) ? tH : t0;
 
     // Build the factor covariance model.
@@ -222,7 +233,8 @@ SimulationResult MonteCarloEngine::run_simulation(
     // Run paths from a clean baseline state before each scenario shock.
     for (int i = 0; i < config.num_paths; ++i) {
         std::vector<double> z(num_factors);
-        for (size_t j = 0; j < num_factors; ++j) z[j] = rng.next().value;
+        for (size_t j = 0; j < num_factors; ++j)
+            z[j] = rng.next().value;
 
         std::vector<double> shocks(num_factors, 0.0);
         for (size_t row = 0; row < num_factors; ++row) {
@@ -245,8 +257,10 @@ SimulationResult MonteCarloEngine::run_simulation(
             trace.portfolio_value_frozen_aged = frozen_aged_total_npv;
             trace.aging_pnl = aging_pnl;
             trace.factor_shocks = path_scenario.factor_shocks;
-            trace.valuation_date_before = fmt::format("{:4d}-{:02d}-{:02d}", (int)t0.year(), (int)t0.month(), (int)t0.dayOfMonth());
-            trace.valuation_date_after = fmt::format("{:4d}-{:02d}-{:02d}", (int)tH.year(), (int)tH.month(), (int)tH.dayOfMonth());
+            trace.valuation_date_before =
+                fmt::format("{:4d}-{:02d}-{:02d}", (int)t0.year(), (int)t0.month(), (int)t0.dayOfMonth());
+            trace.valuation_date_after =
+                fmt::format("{:4d}-{:02d}-{:02d}", (int)tH.year(), (int)tH.month(), (int)tH.dayOfMonth());
         }
 
         // Reset to path baseline before applying shocks
@@ -264,7 +278,11 @@ SimulationResult MonteCarloEngine::run_simulation(
 
         QuantLib::Settings::instance().evaluationDate() = active_val_date;
 
-        market::ScenarioEngine::apply_scenario_to_state(*active_state, active_reference_dto, path_scenario, factors, bindings);
+        market::ScenarioEngine::apply_scenario_to_state(*active_state,
+                                                        active_reference_dto,
+                                                        path_scenario,
+                                                        factors,
+                                                        bindings);
 
         if (capture_trace) {
             for (auto& [quote_id, values] : trace.quote_before_after) {
@@ -329,7 +347,8 @@ SimulationResult MonteCarloEngine::run_simulation(
     if (var_idx < (int)sorted_pnls.size()) {
         result.var_95 = -sorted_pnls[var_idx];
         double es_sum = 0.0;
-        for (int j = 0; j <= var_idx; ++j) es_sum += sorted_pnls[j];
+        for (int j = 0; j <= var_idx; ++j)
+            es_sum += sorted_pnls[j];
         result.expected_shortfall_95 = -(es_sum / (var_idx + 1));
     }
 

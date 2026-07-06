@@ -12,9 +12,9 @@ namespace qrp::analytics::regression {
  * @brief Fitted regression coefficients and goodness-of-fit diagnostics.
  */
 struct RegressionResult {
-    Eigen::VectorXd coefficients;     // Fitted regression coefficients.
-    double r_squared;                 // Coefficient of determination.
-    double residual_sum_of_squares;   // Sum of squared residuals.
+    Eigen::VectorXd coefficients;   // Fitted regression coefficients.
+    double r_squared;               // Coefficient of determination.
+    double residual_sum_of_squares; // Sum of squared residuals.
 };
 
 /**

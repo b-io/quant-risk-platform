@@ -62,7 +62,9 @@ public:
     /**
      * @brief Runs historical VaR over a stored scenario set.
      */
-    std::string run_historical_var(const std::string& portfolio_id, const std::string& snapshot_id, const std::string& scenario_set_id);
+    std::string run_historical_var(const std::string& portfolio_id,
+                                   const std::string& snapshot_id,
+                                   const std::string& scenario_set_id);
 
     // Reporting workflows
     /**

@@ -1,8 +1,7 @@
 // Implements convention-registry lookup and coordinates asset-class default registration.
 
-#include <qrp/conventions/market_convention_registry.hpp>
-
 #include <qrp/conventions/market_convention_defaults.hpp>
+#include <qrp/conventions/market_convention_registry.hpp>
 
 namespace qrp::conventions {
 
@@ -19,7 +18,8 @@ void MarketConventionRegistry::register_rates_convention(const RatesConvention& 
     rates_conventions_[{conv.currency, conv.index_family}] = conv;
 }
 
-RatesConvention MarketConventionRegistry::get_rates_convention(domain::Currency currency, const std::string& index_family) const {
+RatesConvention MarketConventionRegistry::get_rates_convention(domain::Currency currency,
+                                                               const std::string& index_family) const {
     auto it = rates_conventions_.find({currency, index_family});
     if (it != rates_conventions_.end()) {
         return it->second;

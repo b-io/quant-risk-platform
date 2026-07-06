@@ -3,10 +3,10 @@
 #include <qrp/analytics/covariance_estimator.hpp>
 
 #include <gtest/gtest.h>
-#include <ql/math/matrix.hpp>
-#include <ql/math/matrixutilities/symmetricschurdecomposition.hpp>
 
 #include <algorithm>
+#include <ql/math/matrix.hpp>
+#include <ql/math/matrixutilities/symmetricschurdecomposition.hpp>
 #include <stdexcept>
 #include <vector>
 
@@ -15,8 +15,10 @@ using namespace qrp::domain;
 
 TEST(CovarianceTest, TestSimpleSampleCovariance) {
     std::vector<FactorDefinition> factors;
-    FactorDefinition f1; f1.factor_id = "F1";
-    FactorDefinition f2; f2.factor_id = "F2";
+    FactorDefinition f1;
+    f1.factor_id = "F1";
+    FactorDefinition f2;
+    f2.factor_id = "F2";
     factors.push_back(f1);
     factors.push_back(f2);
 
@@ -50,7 +52,8 @@ TEST(CovarianceTest, TestSimpleSampleCovariance) {
 
 TEST(CovarianceTest, TestHorizonScaling) {
     std::vector<FactorDefinition> factors;
-    FactorDefinition f1; f1.factor_id = "F1";
+    FactorDefinition f1;
+    f1.factor_id = "F1";
     factors.push_back(f1);
 
     std::vector<FactorObservation> history;
@@ -76,8 +79,10 @@ TEST(CovarianceTest, TestPSDRepair) {
     // Eigenvalues: det(1-L, 2; 2, 1-L) = (1-L)^2 - 4 = L^2 - 2L - 3 = (L-3)(L+1)
     // Eigenvalues are 3 and -1.
     QuantLib::Matrix non_psd(2, 2);
-    non_psd[0][0] = 1.0; non_psd[0][1] = 2.0;
-    non_psd[1][0] = 2.0; non_psd[1][1] = 1.0;
+    non_psd[0][0] = 1.0;
+    non_psd[0][1] = 2.0;
+    non_psd[1][0] = 2.0;
+    non_psd[1][1] = 1.0;
 
     double floor = 0.1;
     QuantLib::Matrix repaired = CovarianceEstimator::repair_psd(non_psd, floor);
@@ -102,9 +107,7 @@ TEST(CovarianceTest, InsufficientHistoryReturnsZeroMatrix) {
     FactorDefinition factor;
     factor.factor_id = "F1";
 
-    std::vector<FactorObservation> history = {
-        {"F1", "2024-01-01", 1.0, 0.01, "absolute"}
-    };
+    std::vector<FactorObservation> history = {{"F1", "2024-01-01", 1.0, 0.01, "absolute"}};
 
     CovarianceEstimationConfig config;
     auto cov = CovarianceEstimator::estimate_covariance({factor}, history, config);
@@ -119,27 +122,21 @@ TEST(CovarianceTest, MissingSynchronizedObservationThrows) {
     FactorDefinition f2;
     f2.factor_id = "F2";
 
-    std::vector<FactorObservation> history = {
-        {"F1", "2024-01-01", 1.0, 0.01, "absolute"},
-        {"F2", "2024-01-01", 1.0, 0.02, "absolute"},
-        {"F1", "2024-01-02", 1.0, 0.03, "absolute"}
-    };
+    std::vector<FactorObservation> history = {{"F1", "2024-01-01", 1.0, 0.01, "absolute"},
+                                              {"F2", "2024-01-01", 1.0, 0.02, "absolute"},
+                                              {"F1", "2024-01-02", 1.0, 0.03, "absolute"}};
 
     CovarianceEstimationConfig config;
 
-    EXPECT_THROW(
-        CovarianceEstimator::estimate_covariance({f1, f2}, history, config),
-        std::runtime_error);
+    EXPECT_THROW(CovarianceEstimator::estimate_covariance({f1, f2}, history, config), std::runtime_error);
 }
 
 TEST(CovarianceTest, EwmaCovarianceUsesConfiguredLambda) {
     FactorDefinition factor;
     factor.factor_id = "F1";
 
-    std::vector<FactorObservation> history = {
-        {"F1", "2024-01-01", 1.0, 0.01, "absolute"},
-        {"F1", "2024-01-02", 1.0, 0.03, "absolute"}
-    };
+    std::vector<FactorObservation> history = {{"F1", "2024-01-01", 1.0, 0.01, "absolute"},
+                                              {"F1", "2024-01-02", 1.0, 0.03, "absolute"}};
 
     CovarianceEstimationConfig config;
     config.demean = false;

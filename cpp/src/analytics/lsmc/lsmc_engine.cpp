@@ -20,14 +20,16 @@ std::mt19937 make_generator(std::uint64_t seed) {
     return std::mt19937(sequence);
 }
 
+double path_count_as_double(std::size_t path_count) {
+    return static_cast<double>(path_count);
+}
+
 } // namespace
 
-LsmcResult LsmcEngine::run(
-    const simulation::TimeGrid& time_grid,
-    const simulation::StochasticProcess& process,
-    const dynamic_programming::DecisionProblem& problem,
-    const dynamic_programming::State& initial_state
-) const {
+LsmcResult LsmcEngine::run(const simulation::TimeGrid& time_grid,
+                           const simulation::StochasticProcess& process,
+                           const dynamic_programming::DecisionProblem& problem,
+                           const dynamic_programming::State& initial_state) const {
     std::mt19937 gen = make_generator(config_.seed);
     std::size_t N = config_.num_paths;
     std::size_t T = time_grid.size();
@@ -123,23 +125,24 @@ LsmcResult LsmcEngine::run(
         sum2 += v * v;
     }
 
-    double mean = sum / N;
-    double variance = (sum2 / N) - (mean * mean);
+    const double path_count = path_count_as_double(N);
+    double mean = sum / path_count;
+    double variance = (sum2 / path_count) - (mean * mean);
 
     std::sort(path_values.begin(), path_values.end());
-    double var_95 = path_values[static_cast<std::size_t>(0.05 * N)];
+    const std::size_t var_index = std::min(N - 1, N / 20);
+    double var_95 = path_values[var_index];
 
     double es_sum = 0;
-    std::size_t es_count = 0;
-    for (std::size_t i = 0; i < static_cast<std::size_t>(0.05 * N); ++i) {
+    const std::size_t es_count = std::max<std::size_t>(1, var_index);
+    for (std::size_t i = 0; i < es_count; ++i) {
         es_sum += path_values[i];
-        es_count++;
     }
-    double es_95 = (es_count > 0) ? es_sum / es_count : var_95;
+    double es_95 = (es_count > 0) ? es_sum / static_cast<double>(es_count) : var_95;
 
     LsmcResult result;
     result.value = mean;
-    result.standard_error = std::sqrt(variance / N);
+    result.standard_error = std::sqrt(std::max(variance, 0.0) / path_count);
     result.path_values = path_values;
     result.var_95 = var_95;
     result.expected_shortfall_95 = es_95;

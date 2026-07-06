@@ -1,8 +1,7 @@
 // Implements PnL explain by combining valuation diagnostics with aging and market-move components.
 
-#include <qrp/analytics/pnl_explain_service.hpp>
-
 #include <qrp/analytics/cashflow_extractor.hpp>
+#include <qrp/analytics/pnl_explain_service.hpp>
 #include <qrp/analytics/valuation_service.hpp>
 #include <qrp/market/market_snapshot.hpp>
 
@@ -22,13 +21,12 @@ std::map<std::string, ValuationResult> by_trade_id(const std::vector<ValuationRe
     return by_trade;
 }
 
-PnlExplainComponent make_component(
-    std::string component_id,
-    PnlExplainComponentType component_type,
-    std::string label,
-    double amount,
-    domain::SupportStatus support_status = domain::SupportStatus::Supported,
-    std::string status_message = {}) {
+PnlExplainComponent make_component(std::string component_id,
+                                   PnlExplainComponentType component_type,
+                                   std::string label,
+                                   double amount,
+                                   domain::SupportStatus support_status = domain::SupportStatus::Supported,
+                                   std::string status_message = {}) {
     PnlExplainComponent component;
     component.component_id = std::move(component_id);
     component.component_type = component_type;
@@ -45,10 +43,9 @@ std::string bool_string(bool value) {
 
 } // namespace
 
-std::vector<PnlExplainResult> PnlExplainService::explain_pnl(
-    const domain::Portfolio& portfolio,
-    const domain::MarketSnapshot& prev_market_dto,
-    const domain::MarketSnapshot& curr_market_dto) {
+std::vector<PnlExplainResult> PnlExplainService::explain_pnl(const domain::Portfolio& portfolio,
+                                                             const domain::MarketSnapshot& prev_market_dto,
+                                                             const domain::MarketSnapshot& curr_market_dto) {
 
     qrp::market::MarketSnapshot prev_market(prev_market_dto);
     qrp::market::MarketSnapshot curr_market(curr_market_dto);
@@ -81,8 +78,9 @@ std::vector<PnlExplainResult> PnlExplainService::explain_pnl(
         PnlExplainResult res;
         res.trade_id = trade.id;
 
-        // ValuationService returns one result per input trade, including failed instrument construction,
-        // so missing valuation rows would indicate an internal contract violation rather than a normal state.
+        // ValuationService returns one result per input trade, including failed instrument
+        // construction, so missing valuation rows would indicate an internal contract violation
+        // rather than a normal state.
         res.prev_valuation_available = true;
         res.prev_valuation = prev_map.at(trade.id);
         res.prev_npv = res.prev_valuation.npv;
@@ -101,10 +99,8 @@ std::vector<PnlExplainResult> PnlExplainService::explain_pnl(
         const auto rolled_npv = res.rolled_valuation.npv;
         res.carry_pnl = rolled_npv - res.prev_npv;
 
-        res.cashflow_extraction = CashflowExtractor::extract_realized_cashflows(
-            trade,
-            prev_market_dto,
-            curr_market_dto);
+        res.cashflow_extraction =
+            CashflowExtractor::extract_realized_cashflows(trade, prev_market_dto, curr_market_dto);
         res.cash_pnl = res.cashflow_extraction.realized_cash_pnl;
         res.diagnostics["cashflow_extraction_supported"] = bool_string(res.cashflow_extraction.extraction_supported);
         res.diagnostics["cashflow_support_status"] = domain::to_string(res.cashflow_extraction.support_status);
@@ -115,39 +111,28 @@ std::vector<PnlExplainResult> PnlExplainService::explain_pnl(
         res.market_move_pnl = res.total_pnl - res.carry_pnl - res.cash_pnl;
         res.residual = 0.0;
 
-        auto carry = make_component(
-            "carry",
-            PnlExplainComponentType::Carry,
-            "Carry / roll-down",
-            res.carry_pnl);
+        auto carry = make_component("carry", PnlExplainComponentType::Carry, "Carry / roll-down", res.carry_pnl);
         carry.model_name = res.rolled_valuation.model_name;
         res.components.push_back(carry);
 
-        auto cash = make_component(
-            "cash",
-            PnlExplainComponentType::Cash,
-            "Realized cash",
-            res.cash_pnl,
-            res.cashflow_extraction.support_status,
-            res.cashflow_extraction.status_message);
+        auto cash = make_component("cash",
+                                   PnlExplainComponentType::Cash,
+                                   "Realized cash",
+                                   res.cash_pnl,
+                                   res.cashflow_extraction.support_status,
+                                   res.cashflow_extraction.status_message);
         cash.model_name = res.cashflow_extraction.model_name;
         cash.tags = res.cashflow_extraction.tags;
         cash.tags["extraction_supported"] = bool_string(res.cashflow_extraction.extraction_supported);
         res.components.push_back(cash);
 
-        auto market_move = make_component(
-            "market_move",
-            PnlExplainComponentType::MarketMove,
-            "Market move",
-            res.market_move_pnl);
+        auto market_move =
+            make_component("market_move", PnlExplainComponentType::MarketMove, "Market move", res.market_move_pnl);
         market_move.model_name = res.curr_valuation.model_name;
         res.components.push_back(market_move);
 
-        res.components.push_back(make_component(
-            "residual",
-            PnlExplainComponentType::Residual,
-            "Residual",
-            res.residual));
+        res.components.push_back(
+            make_component("residual", PnlExplainComponentType::Residual, "Residual", res.residual));
 
         results.push_back(res);
     }

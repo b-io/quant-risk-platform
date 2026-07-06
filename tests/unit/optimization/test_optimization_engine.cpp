@@ -36,7 +36,8 @@ public:
 
         OptimizationResult result;
         result.status = SolverStatus::Solved;
-        const double equal_weight = problem.variables.empty() ? 0.0 : 1.0 / static_cast<double>(problem.variables.size());
+        const double equal_weight =
+            problem.variables.empty() ? 0.0 : 1.0 / static_cast<double>(problem.variables.size());
         for (const auto& variable : problem.variables) {
             result.optimal_values[variable.id] = equal_weight;
         }
@@ -50,17 +51,18 @@ public:
         return caps;
     }
 
-    bool supports(const OptimizationProblem&) const override { return supports_problem; }
-    std::string name() const override { return "RecordingSolver"; }
+    bool supports(const OptimizationProblem&) const override {
+        return supports_problem;
+    }
+    std::string name() const override {
+        return "RecordingSolver";
+    }
 };
 
 std::shared_ptr<FullCovarianceModel> make_two_asset_risk_model() {
     auto risk_model = std::make_shared<FullCovarianceModel>();
     risk_model->asset_ids = {"AAPL", "MSFT"};
-    risk_model->covariance_matrix = {
-        {0.04, 0.01},
-        {0.01, 0.09}
-    };
+    risk_model->covariance_matrix = {{0.04, 0.01}, {0.01, 0.09}};
     return risk_model;
 }
 
@@ -96,10 +98,7 @@ OptimizationProblem make_supported_mean_variance_problem() {
 OptimizationProblem make_supported_factor_problem() {
     OptimizationProblem problem;
     problem.name = "Supported factor problem";
-    problem.variables = {
-        {"AAPL", 0.0, 1.0},
-        {"MSFT", 0.0, 1.0}
-    };
+    problem.variables = {{"AAPL", 0.0, 1.0}, {"MSFT", 0.0, 1.0}};
     problem.risk_model = make_two_asset_factor_risk_model();
 
     auto tracking_error = std::make_shared<TrackingErrorObjective>();
@@ -158,13 +157,16 @@ public:
         std::filesystem::remove(path_, ec);
     }
 
-    const std::filesystem::path& path() const { return path_; }
+    const std::filesystem::path& path() const {
+        return path_;
+    }
 
 private:
     std::filesystem::path path_;
 };
 
-SolverConfig make_worker_config(const std::filesystem::path& worker_path, const std::string& python, const std::string& status) {
+SolverConfig
+make_worker_config(const std::filesystem::path& worker_path, const std::string& python, const std::string& status) {
     SolverConfig config;
     config.custom_params["cvxpy_worker_path"] = worker_path.filename().string();
     config.custom_params["python_executable"] = python;
@@ -179,19 +181,11 @@ TEST(PortfolioOptimizationTest, BuildsMeanVarianceProblemForSolver) {
     auto solver = std::make_shared<RecordingSolver>();
     PortfolioOptimizationEngine engine(solver);
 
-    std::map<std::string, double> returns = {
-        {"AAPL", 0.15},
-        {"GOOG", 0.10},
-        {"MSFT", 0.12}
-    };
+    std::map<std::string, double> returns = {{"AAPL", 0.15}, {"GOOG", 0.10}, {"MSFT", 0.12}};
 
     auto risk_model = std::make_shared<FullCovarianceModel>();
     risk_model->asset_ids = {"AAPL", "MSFT", "GOOG"};
-    risk_model->covariance_matrix = {
-        {0.04, 0.02, 0.01},
-        {0.02, 0.03, 0.015},
-        {0.01, 0.015, 0.025}
-    };
+    risk_model->covariance_matrix = {{0.04, 0.02, 0.01}, {0.02, 0.03, 0.015}, {0.01, 0.015, 0.025}};
 
     auto objective = std::make_shared<MeanVarianceObjective>();
     objective->risk_aversion = 2.0;
@@ -212,7 +206,9 @@ TEST(PortfolioOptimizationTest, BuildsMeanVarianceProblemForSolver) {
     auto mv_objective = std::dynamic_pointer_cast<MeanVarianceObjective>(solver->last_problem.objectives.front());
     ASSERT_NE(mv_objective, nullptr);
     EXPECT_EQ(mv_objective->expected_returns, returns);
-    EXPECT_NEAR(result.optimal_values["AAPL"] + result.optimal_values["GOOG"] + result.optimal_values["MSFT"], 1.0, 1e-12);
+    EXPECT_NEAR(result.optimal_values["AAPL"] + result.optimal_values["GOOG"] + result.optimal_values["MSFT"],
+                1.0,
+                1e-12);
 }
 
 TEST(PortfolioOptimizationTest, IncludesCurrentWeightsAndFactorRiskAssets) {
@@ -321,10 +317,7 @@ TEST(CvxpyAdapterTest, RejectsInvalidFullCovarianceMatrix) {
     auto problem = make_supported_mean_variance_problem();
     auto risk_model = std::dynamic_pointer_cast<FullCovarianceModel>(problem.risk_model);
     ASSERT_NE(risk_model, nullptr);
-    risk_model->covariance_matrix = {
-        {0.04, 0.03},
-        {0.01, 0.09}
-    };
+    risk_model->covariance_matrix = {{0.04, 0.03}, {0.01, 0.09}};
 
     EXPECT_FALSE(solver.supports(problem));
 }
@@ -591,9 +584,8 @@ TEST(CvxpyAdapterTest, DiscoversWorkerAndReportsProcessStartFailure) {
     const auto result = solver.solve(make_supported_mean_variance_problem(), config);
 
     EXPECT_EQ(result.status, SolverStatus::Error);
-    EXPECT_TRUE(
-        result.message.find("Failed to start CVXPY worker") != std::string::npos ||
-        result.message.find("exit code 127") != std::string::npos)
+    EXPECT_TRUE(result.message.find("Failed to start CVXPY worker") != std::string::npos ||
+                result.message.find("exit code 127") != std::string::npos)
         << result.message;
 }
 

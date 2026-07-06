@@ -9,10 +9,7 @@ using namespace qrp::analytics::regression;
 
 TEST(RegressionTest, OrdinaryLeastSquaresFitsLinearModel) {
     Eigen::MatrixXd x(4, 2);
-    x << 1.0, 0.0,
-         1.0, 1.0,
-         1.0, 2.0,
-         1.0, 3.0;
+    x << 1.0, 0.0, 1.0, 1.0, 1.0, 2.0, 1.0, 3.0;
 
     Eigen::VectorXd y(4);
     y << 1.0, 3.0, 5.0, 7.0;
@@ -29,8 +26,7 @@ TEST(RegressionTest, OrdinaryLeastSquaresFitsLinearModel) {
 
 TEST(RegressionTest, PredictUsesProvidedCoefficients) {
     Eigen::MatrixXd x(2, 3);
-    x << 1.0, 2.0, 3.0,
-         1.0, 4.0, 5.0;
+    x << 1.0, 2.0, 3.0, 1.0, 4.0, 5.0;
 
     Eigen::VectorXd beta(3);
     beta << 10.0, 2.0, -1.0;

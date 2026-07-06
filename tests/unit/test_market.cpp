@@ -7,15 +7,15 @@
 
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
-#include <ql/indexes/ibor/sofr.hpp>
-#include <ql/termstructures/yield/flatforward.hpp>
-#include <ql/termstructures/yield/oisratehelper.hpp>
-#include <ql/termstructures/yield/piecewiseyieldcurve.hpp>
 
 #include <algorithm>
 #include <iostream>
 #include <map>
 #include <memory>
+#include <ql/indexes/ibor/sofr.hpp>
+#include <ql/termstructures/yield/flatforward.hpp>
+#include <ql/termstructures/yield/oisratehelper.hpp>
+#include <ql/termstructures/yield/piecewiseyieldcurve.hpp>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -52,7 +52,8 @@ TEST(MarketTest, TestOISBootstrap) {
     try {
         auto curve = CurveBuilder::build_rate_curve(spec, quotes, valuation_date, nullptr);
         ASSERT_NE(curve, nullptr);
-        std::cout << "Curve built successfully. NPV at 1M: " << curve->discount(valuation_date + QuantLib::Period(1, QuantLib::Months)) << std::endl;
+        std::cout << "Curve built successfully. NPV at 1M: "
+                  << curve->discount(valuation_date + QuantLib::Period(1, QuantLib::Months)) << std::endl;
     } catch (const std::exception& e) {
         FAIL() << "Bootstrap failed with exception: " << e.what();
     }
@@ -117,15 +118,19 @@ TEST(MarketTest, CurveBuilderMapsDomainEnumsAndIndexFamilies) {
     EXPECT_FALSE(CurveBuilder::parse_calendar(domain::BusinessCalendar::WeekendsOnly).name().empty());
     EXPECT_FALSE(CurveBuilder::parse_calendar(domain::BusinessCalendar::UNKNOWN).name().empty());
 
-    EXPECT_EQ(CurveBuilder::parse_business_day_convention(domain::BusinessDayConvention::Following), QuantLib::Following);
-    EXPECT_EQ(
-        CurveBuilder::parse_business_day_convention(domain::BusinessDayConvention::HalfMonthModifiedFollowing),
-        QuantLib::HalfMonthModifiedFollowing);
-    EXPECT_EQ(CurveBuilder::parse_business_day_convention(domain::BusinessDayConvention::ModifiedFollowing), QuantLib::ModifiedFollowing);
-    EXPECT_EQ(CurveBuilder::parse_business_day_convention(domain::BusinessDayConvention::ModifiedPreceding), QuantLib::ModifiedPreceding);
+    EXPECT_EQ(CurveBuilder::parse_business_day_convention(domain::BusinessDayConvention::Following),
+              QuantLib::Following);
+    EXPECT_EQ(CurveBuilder::parse_business_day_convention(domain::BusinessDayConvention::HalfMonthModifiedFollowing),
+              QuantLib::HalfMonthModifiedFollowing);
+    EXPECT_EQ(CurveBuilder::parse_business_day_convention(domain::BusinessDayConvention::ModifiedFollowing),
+              QuantLib::ModifiedFollowing);
+    EXPECT_EQ(CurveBuilder::parse_business_day_convention(domain::BusinessDayConvention::ModifiedPreceding),
+              QuantLib::ModifiedPreceding);
     EXPECT_EQ(CurveBuilder::parse_business_day_convention(domain::BusinessDayConvention::Nearest), QuantLib::Nearest);
-    EXPECT_EQ(CurveBuilder::parse_business_day_convention(domain::BusinessDayConvention::Preceding), QuantLib::Preceding);
-    EXPECT_EQ(CurveBuilder::parse_business_day_convention(domain::BusinessDayConvention::Unadjusted), QuantLib::Unadjusted);
+    EXPECT_EQ(CurveBuilder::parse_business_day_convention(domain::BusinessDayConvention::Preceding),
+              QuantLib::Preceding);
+    EXPECT_EQ(CurveBuilder::parse_business_day_convention(domain::BusinessDayConvention::Unadjusted),
+              QuantLib::Unadjusted);
     EXPECT_EQ(CurveBuilder::parse_business_day_convention(domain::BusinessDayConvention::UNKNOWN), QuantLib::Following);
 
     EXPECT_EQ(CurveBuilder::parse_frequency(domain::Frequency::Annual), QuantLib::Annual);
@@ -142,14 +147,18 @@ TEST(MarketTest, CurveBuilderMapsDomainEnumsAndIndexFamilies) {
     EXPECT_EQ(CurveBuilder::parse_frequency(domain::Frequency::Weekly), QuantLib::Weekly);
     EXPECT_EQ(CurveBuilder::parse_frequency(domain::Frequency::UNKNOWN), QuantLib::Annual);
 
-    EXPECT_EQ(CurveBuilder::parse_date_generation(domain::DateGeneration::Backward), QuantLib::DateGeneration::Backward);
+    EXPECT_EQ(CurveBuilder::parse_date_generation(domain::DateGeneration::Backward),
+              QuantLib::DateGeneration::Backward);
     EXPECT_EQ(CurveBuilder::parse_date_generation(domain::DateGeneration::CDS), QuantLib::DateGeneration::CDS);
     EXPECT_EQ(CurveBuilder::parse_date_generation(domain::DateGeneration::CDS2015), QuantLib::DateGeneration::CDS2015);
     EXPECT_EQ(CurveBuilder::parse_date_generation(domain::DateGeneration::Forward), QuantLib::DateGeneration::Forward);
     EXPECT_EQ(CurveBuilder::parse_date_generation(domain::DateGeneration::OldCDS), QuantLib::DateGeneration::OldCDS);
-    EXPECT_EQ(CurveBuilder::parse_date_generation(domain::DateGeneration::ThirdWednesday), QuantLib::DateGeneration::ThirdWednesday);
-    EXPECT_EQ(CurveBuilder::parse_date_generation(domain::DateGeneration::Twentieth), QuantLib::DateGeneration::Twentieth);
-    EXPECT_EQ(CurveBuilder::parse_date_generation(domain::DateGeneration::TwentiethIMM), QuantLib::DateGeneration::TwentiethIMM);
+    EXPECT_EQ(CurveBuilder::parse_date_generation(domain::DateGeneration::ThirdWednesday),
+              QuantLib::DateGeneration::ThirdWednesday);
+    EXPECT_EQ(CurveBuilder::parse_date_generation(domain::DateGeneration::Twentieth),
+              QuantLib::DateGeneration::Twentieth);
+    EXPECT_EQ(CurveBuilder::parse_date_generation(domain::DateGeneration::TwentiethIMM),
+              QuantLib::DateGeneration::TwentiethIMM);
     EXPECT_EQ(CurveBuilder::parse_date_generation(domain::DateGeneration::Zero), QuantLib::DateGeneration::Zero);
     EXPECT_EQ(CurveBuilder::parse_date_generation(domain::DateGeneration::UNKNOWN), QuantLib::DateGeneration::Forward);
 
@@ -180,10 +189,7 @@ TEST(MarketTest, ParsesMarketDataJsonTaxonomyHelpers) {
     EXPECT_EQ(nlohmann::json("LogLinear").get<domain::InterpolationType>(), domain::InterpolationType::LogLinear);
     EXPECT_EQ(nlohmann::json("unsupported").get<domain::InterpolationType>(), domain::InterpolationType::UNKNOWN);
 
-    const auto curve_id = nlohmann::json{
-        {"currency", "USD"},
-        {"family", "OIS"}
-    }.get<domain::CurveId>();
+    const auto curve_id = nlohmann::json{{"currency", "USD"}, {"family", "OIS"}}.get<domain::CurveId>();
     EXPECT_EQ(curve_id.currency, domain::Currency::USD);
     EXPECT_EQ(curve_id.family, "OIS");
 }
@@ -372,8 +378,7 @@ TEST(MarketTest, ParsesMarketConventionsAndDiagnostics) {
         {"ACTACT_ISDA", domain::DayCount::ACTACT_ISDA},
         {"ACTACT_ISMA", domain::DayCount::ACTACT_ISMA},
         {"Thirty360", domain::DayCount::Thirty360},
-        {"Unsupported", domain::DayCount::UNKNOWN}
-    };
+        {"Unsupported", domain::DayCount::UNKNOWN}};
     for (const auto& [label, expected] : day_counts) {
         EXPECT_EQ(nlohmann::json(label).get<domain::DayCount>(), expected);
     }
@@ -389,8 +394,7 @@ TEST(MarketTest, ParsesMarketConventionsAndDiagnostics) {
         {"US", domain::BusinessCalendar::US},
         {"USA", domain::BusinessCalendar::US},
         {"WeekendsOnly", domain::BusinessCalendar::WeekendsOnly},
-        {"Unsupported", domain::BusinessCalendar::UNKNOWN}
-    };
+        {"Unsupported", domain::BusinessCalendar::UNKNOWN}};
     for (const auto& [label, expected] : calendars) {
         EXPECT_EQ(nlohmann::json(label).get<domain::BusinessCalendar>(), expected);
     }
@@ -403,8 +407,7 @@ TEST(MarketTest, ParsesMarketConventionsAndDiagnostics) {
         {"Nearest", domain::BusinessDayConvention::Nearest},
         {"Preceding", domain::BusinessDayConvention::Preceding},
         {"Unadjusted", domain::BusinessDayConvention::Unadjusted},
-        {"Unsupported", domain::BusinessDayConvention::UNKNOWN}
-    };
+        {"Unsupported", domain::BusinessDayConvention::UNKNOWN}};
     for (const auto& [label, expected] : business_day_conventions) {
         EXPECT_EQ(nlohmann::json(label).get<domain::BusinessDayConvention>(), expected);
     }
@@ -422,8 +425,7 @@ TEST(MarketTest, ParsesMarketConventionsAndDiagnostics) {
         {"Quarterly", domain::Frequency::Quarterly},
         {"Semiannual", domain::Frequency::Semiannual},
         {"Weekly", domain::Frequency::Weekly},
-        {"Unsupported", domain::Frequency::UNKNOWN}
-    };
+        {"Unsupported", domain::Frequency::UNKNOWN}};
     for (const auto& [label, expected] : frequencies) {
         EXPECT_EQ(nlohmann::json(label).get<domain::Frequency>(), expected);
     }
@@ -438,8 +440,7 @@ TEST(MarketTest, ParsesMarketConventionsAndDiagnostics) {
         {"Twentieth", domain::DateGeneration::Twentieth},
         {"TwentiethIMM", domain::DateGeneration::TwentiethIMM},
         {"Zero", domain::DateGeneration::Zero},
-        {"Unsupported", domain::DateGeneration::UNKNOWN}
-    };
+        {"Unsupported", domain::DateGeneration::UNKNOWN}};
     for (const auto& [label, expected] : date_generations) {
         EXPECT_EQ(nlohmann::json(label).get<domain::DateGeneration>(), expected);
     }
@@ -461,9 +462,8 @@ TEST(MarketTest, ParsesMarketConventionsAndDiagnostics) {
         "curve_id": "USD:OIS"
     })json");
     const auto diagnostic = diagnostic_json.get<domain::MarketDataDiagnostic>();
-    EXPECT_EQ(
-        domain::format_market_data_diagnostic(diagnostic),
-        "ERROR:MISSING_CURVE_QUOTE quote=USD_OIS_30Y curve=USD:OIS - Curve quote is absent");
+    EXPECT_EQ(domain::format_market_data_diagnostic(diagnostic),
+              "ERROR:MISSING_CURVE_QUOTE quote=USD_OIS_30Y curve=USD:OIS - Curve quote is absent");
     EXPECT_TRUE(domain::is_blocking_market_data_diagnostic(diagnostic));
 }
 
@@ -574,11 +574,10 @@ TEST(MarketTest, MarketSnapshotDiagnosticsSortAndDeduplicateSourceDiagnostics) {
     const auto diagnostics = domain::collect_market_snapshot_diagnostics(snapshot);
     ASSERT_FALSE(diagnostics.empty());
     EXPECT_EQ(diagnostics.front().severity, "ERROR");
-    EXPECT_NE(
-        std::find_if(diagnostics.begin(), diagnostics.end(), [](const auto& diagnostic) {
-            return diagnostic.code == "SOURCE_WARNING";
-        }),
-        diagnostics.end());
+    EXPECT_NE(std::find_if(diagnostics.begin(),
+                           diagnostics.end(),
+                           [](const auto& diagnostic) { return diagnostic.code == "SOURCE_WARNING"; }),
+              diagnostics.end());
 
     const auto source_warning_count = std::count_if(diagnostics.begin(), diagnostics.end(), [](const auto& diagnostic) {
         return diagnostic.code == "SOURCE_WARNING";
@@ -613,9 +612,7 @@ TEST(MarketTest, MarketSnapshotGateRejectsMissingCurveQuote) {
     const auto blocking = domain::blocking_market_snapshot_diagnostics(snapshot);
     ASSERT_EQ(blocking.size(), 1U);
     EXPECT_EQ(blocking[0].code, "MISSING_CURVE_QUOTE");
-    EXPECT_THROW({
-        qrp::market::MarketSnapshot runtime_snapshot(snapshot);
-    }, std::runtime_error);
+    EXPECT_THROW({ qrp::market::MarketSnapshot runtime_snapshot(snapshot); }, std::runtime_error);
 }
 
 TEST(MarketTest, MarketSnapshotGateRejectsStaleQuote) {
@@ -649,9 +646,7 @@ TEST(MarketTest, MarketSnapshotGateRejectsStaleQuote) {
     const auto blocking = domain::blocking_market_snapshot_diagnostics(snapshot);
     ASSERT_EQ(blocking.size(), 1U);
     EXPECT_EQ(blocking[0].code, "STALE_QUOTE");
-    EXPECT_THROW({
-        qrp::market::MarketSnapshot runtime_snapshot(snapshot);
-    }, std::runtime_error);
+    EXPECT_THROW({ qrp::market::MarketSnapshot runtime_snapshot(snapshot); }, std::runtime_error);
 }
 
 TEST(MarketTest, MarketSnapshotGateAllowsNonBlockingProvenanceWarnings) {
@@ -734,9 +729,8 @@ TEST(MarketTest, RatesMarketBuilderReportsSkippedAndFailedCurves) {
     const auto skipped_result = RatesMarketBuilder::build(skipped_snapshot);
     ASSERT_EQ(skipped_result.curve_results.size(), 1U);
     EXPECT_FALSE(skipped_result.curve_results[0].built);
-    EXPECT_EQ(
-        skipped_result.curve_results[0].status_message,
-        "Skipped: curve purpose is not supported by the rates builder");
+    EXPECT_EQ(skipped_result.curve_results[0].status_message,
+              "Skipped: curve purpose is not supported by the rates builder");
 
     domain::MarketSnapshot no_helper_snapshot;
     no_helper_snapshot.valuation_date = "2026-03-24";
@@ -759,16 +753,12 @@ TEST(MarketTest, RatesMarketBuilderReportsSkippedAndFailedCurves) {
     rates_curve.quote_ids = {"EURUSD"};
     no_helper_snapshot.curves.push_back(rates_curve);
 
-    EXPECT_THROW({
-        RatesMarketBuilder::build(no_helper_snapshot);
-    }, std::runtime_error);
+    EXPECT_THROW({ RatesMarketBuilder::build(no_helper_snapshot); }, std::runtime_error);
 
     domain::MarketSnapshot bad_tenor_snapshot = no_helper_snapshot;
     bad_tenor_snapshot.quotes[0].instrument_type = domain::QuoteInstrumentType::OIS;
 
-    EXPECT_THROW({
-        RatesMarketBuilder::build(bad_tenor_snapshot);
-    }, std::runtime_error);
+    EXPECT_THROW({ RatesMarketBuilder::build(bad_tenor_snapshot); }, std::runtime_error);
 }
 
 TEST(MarketTest, BuildsInterestRateFutureCurveHelpersFromPriceAndRateQuotes) {
@@ -803,19 +793,17 @@ TEST(MarketTest, BuildsInterestRateFutureCurveHelpersFromPriceAndRateQuotes) {
 }
 
 TEST(MarketTest, ParsesInterestRateFutureQuoteTaxonomy) {
-    EXPECT_EQ(
-        domain::parse_quote_instrument_type("InterestRateFuture"),
-        domain::QuoteInstrumentType::InterestRateFuture);
-    EXPECT_EQ(
-        domain::parse_quote_type("InterestRateFuture"),
-        domain::QuoteType::InterestRateFuture);
+    EXPECT_EQ(domain::parse_quote_instrument_type("InterestRateFuture"),
+              domain::QuoteInstrumentType::InterestRateFuture);
+    EXPECT_EQ(domain::parse_quote_type("InterestRateFuture"), domain::QuoteType::InterestRateFuture);
     EXPECT_TRUE(CurveBuilder::supports_rates_curve_quote(domain::QuoteInstrumentType::InterestRateFuture));
 }
 
 TEST(MarketTest, ParsesScalarEnumsAndOptionalQuoteFields) {
     EXPECT_EQ(nlohmann::json("USD").get<domain::Currency>(), domain::Currency::USD);
     EXPECT_EQ(nlohmann::json("CreditSpread").get<domain::CurvePurpose>(), domain::CurvePurpose::CreditSpread);
-    EXPECT_EQ(nlohmann::json("RecoveryRate").get<domain::QuoteInstrumentType>(), domain::QuoteInstrumentType::RecoveryRate);
+    EXPECT_EQ(nlohmann::json("RecoveryRate").get<domain::QuoteInstrumentType>(),
+              domain::QuoteInstrumentType::RecoveryRate);
     EXPECT_EQ(nlohmann::json("RecoveryRate").get<domain::QuoteType>(), domain::QuoteType::RecoveryRate);
 
     const auto quote_json = nlohmann::json::parse(R"json({
@@ -862,7 +850,8 @@ TEST(MarketTest, ParsesScalarEnumsAndOptionalQuoteFields) {
     EXPECT_EQ(quote.source_ts, "2026-03-24T17:00:00Z");
     EXPECT_EQ(quote.stale_after_days, 2);
 
-    const auto curve_id = nlohmann::json::parse(R"json({"currency": "EUR", "family": "OIS"})json").get<domain::CurveId>();
+    const auto curve_id =
+        nlohmann::json::parse(R"json({"currency": "EUR", "family": "OIS"})json").get<domain::CurveId>();
     EXPECT_EQ(curve_id.currency, domain::Currency::EUR);
     EXPECT_EQ(curve_id.family, "OIS");
 }

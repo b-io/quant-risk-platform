@@ -1,0 +1,20 @@
+minimum_pre_commit_version: "3.0.0"
+
+repos:
+  - repo: local
+    hooks:
+      - id: qrp-clang-format
+        name: clang-format (C++)
+        entry: python scripts/format.py --fix --scope cpp
+        language: python
+        additional_dependencies:
+          - clang-format==22.1.5
+        files: ^(cpp|tests)/.*\.(c|cc|cpp|cxx|h|hh|hpp|hxx)$
+
+      - id: qrp-ruff
+        name: ruff format and import sort (Python)
+        entry: python scripts/format.py --fix --scope python
+        language: python
+        additional_dependencies:
+          - ruff==0.15.5
+        files: ^(coverage|python|scripts|tests)/.*\.py$

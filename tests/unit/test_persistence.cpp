@@ -4,10 +4,10 @@
 #include <qrp/persistence/sqlite_storage_backend.hpp>
 
 #include <gtest/gtest.h>
-#include <sqlite3.h>
 
 #include <filesystem>
 #include <fstream>
+#include <sqlite3.h>
 #include <stdexcept>
 
 namespace qrp::testing {
@@ -70,9 +70,7 @@ TEST(SQLiteStorageBackendTest, ConstructorRejectsMissingParentDirectory) {
     const auto db_path = missing_parent / "test.db";
     std::filesystem::remove_all(missing_parent);
 
-    EXPECT_THROW({
-        persistence::SQLiteStorageBackend storage(db_path.string());
-    }, std::runtime_error);
+    EXPECT_THROW({ persistence::SQLiteStorageBackend storage(db_path.string()); }, std::runtime_error);
 }
 
 TEST(SQLiteStorageBackendTest, InitializeSchemaRejectsCorruptDatabaseFile) {
@@ -83,10 +81,12 @@ TEST(SQLiteStorageBackendTest, InitializeSchemaRejectsCorruptDatabaseFile) {
         db_file << "not a sqlite database";
     }
 
-    EXPECT_THROW({
-        persistence::SQLiteStorageBackend storage(db_path.string());
-        storage.initialize_schema();
-    }, std::runtime_error);
+    EXPECT_THROW(
+        {
+            persistence::SQLiteStorageBackend storage(db_path.string());
+            storage.initialize_schema();
+        },
+        std::runtime_error);
 
     std::filesystem::remove(db_path);
 }
@@ -107,7 +107,8 @@ protected:
             if (std::filesystem::exists(db_path)) {
                 std::filesystem::remove(db_path);
             }
-        } catch (...) {}
+        } catch (...) {
+        }
     }
 
     std::string db_path;
@@ -146,7 +147,17 @@ TEST_F(PersistenceTest, MarketSnapshotIdempotency) {
 TEST_F(PersistenceTest, TradeStorageAndLoading) {
     storage->store_portfolio("P1", "P1", "USD");
     storage->store_book("B1", "P1", "Book 1");
-    storage->store_trade("T1", "P1", "B1", "Rates", "vanilla_swap", "USD", 1000000.0, "2024-01-01", "2034-01-01", "Buy", "{\"fixed_rate\": 0.03, \"floating_index\": \"USD_LIBOR_3M\"}");
+    storage->store_trade("T1",
+                         "P1",
+                         "B1",
+                         "Rates",
+                         "vanilla_swap",
+                         "USD",
+                         1000000.0,
+                         "2024-01-01",
+                         "2034-01-01",
+                         "Buy",
+                         "{\"fixed_rate\": 0.03, \"floating_index\": \"USD_LIBOR_3M\"}");
 
     auto trades = storage->load_trades("P1");
     EXPECT_EQ(trades.size(), 1);
@@ -159,12 +170,20 @@ TEST_F(PersistenceTest, TradeStorageAndLoading) {
 
 TEST_F(PersistenceTest, MarketSnapshotQuotesRoundTrip) {
     storage->store_market_snapshot("S1", "2023-01-01", "USD", "[]");
-    storage->store_market_quote("S1", "USD.SOFR.10Y", 0.035, "USD", "{\"instrument_type\": \"OIS\", \"tenor\": \"10Y\"}");
+    storage->store_market_quote("S1",
+                                "USD.SOFR.10Y",
+                                0.035,
+                                "USD",
+                                "{\"instrument_type\": \"OIS\", \"tenor\": \"10Y\"}");
     storage->store_market_quote("S1", "USD.SOFR.5Y", 0.032, "USD", "{\"instrument_type\": \"OIS\", \"tenor\": \"5Y\"}");
 
     // Second snapshot with same quote IDs
     storage->store_market_snapshot("S2", "2023-01-02", "USD", "[]");
-    storage->store_market_quote("S2", "USD.SOFR.10Y", 0.036, "USD", "{\"instrument_type\": \"OIS\", \"tenor\": \"10Y\"}");
+    storage->store_market_quote("S2",
+                                "USD.SOFR.10Y",
+                                0.036,
+                                "USD",
+                                "{\"instrument_type\": \"OIS\", \"tenor\": \"10Y\"}");
 
     auto s1 = storage->load_market_snapshot("S1");
     EXPECT_EQ(s1.quotes.size(), 2);
@@ -222,9 +241,10 @@ TEST_F(PersistenceTest, MarketSnapshotPreservesMarketFields) {
     EXPECT_EQ(snapshot.quotes[0].risk_factor_id, "RF:FX:EURUSD:SPOT");
     EXPECT_EQ(snapshot.quotes[0].underlier, "EURUSD");
     EXPECT_TRUE(snapshot.diagnostics.empty());
-    EXPECT_EQ(
-        QueryString(db_path, "SELECT quote_type FROM market_quotes WHERE snapshot_id = 'S_MARKET_SCHEMA' AND quote_id = 'EURUSD.SPOT';"),
-        "FXSpot");
+    EXPECT_EQ(QueryString(db_path,
+                          "SELECT quote_type FROM market_quotes WHERE snapshot_id = "
+                          "'S_MARKET_SCHEMA' AND quote_id = 'EURUSD.SPOT';"),
+              "FXSpot");
 }
 
 TEST_F(PersistenceTest, MarketQuoteEventsLoadLatestAsOfWithProvenance) {
@@ -274,18 +294,17 @@ TEST_F(PersistenceTest, ValuationResultsPersistence) {
     storage->store_market_snapshot("S1", "2023-01-01", "USD", "[]");
     std::string run_id = "RUN1";
     storage->store_analysis_run(run_id, "VALUATION", "P1", "S1");
-    storage->store_valuation_result(
-        run_id,
-        "T1",
-        1234.56,
-        "USD",
-        "SUCCESS",
-        "",
-        "rates",
-        "vanilla_swap",
-        "supported",
-        "QuantLib::VanillaSwap/DiscountingSwapEngine",
-        "Vanilla fixed-float swap pricing is supported for configured rates curves");
+    storage->store_valuation_result(run_id,
+                                    "T1",
+                                    1234.56,
+                                    "USD",
+                                    "SUCCESS",
+                                    "",
+                                    "rates",
+                                    "vanilla_swap",
+                                    "supported",
+                                    "QuantLib::VanillaSwap/DiscountingSwapEngine",
+                                    "Vanilla fixed-float swap pricing is supported for configured rates curves");
 
     auto results = storage->get_valuation_results(run_id);
     EXPECT_EQ(results.size(), 1);
@@ -297,9 +316,10 @@ TEST_F(PersistenceTest, ValuationResultsPersistence) {
     EXPECT_EQ(results[0].support_status, "supported");
     EXPECT_EQ(results[0].model_name, "QuantLib::VanillaSwap/DiscountingSwapEngine");
     EXPECT_FALSE(results[0].status_message.empty());
-    EXPECT_EQ(
-        QueryString(db_path, "SELECT support_status FROM valuation_results WHERE run_id = 'RUN1' AND trade_id = 'T1';"),
-        "supported");
+    EXPECT_EQ(QueryString(db_path,
+                          "SELECT support_status FROM valuation_results WHERE run_id = 'RUN1' AND "
+                          "trade_id = 'T1';"),
+              "supported");
     EXPECT_EQ(
         QueryString(db_path, "SELECT model_name FROM valuation_results WHERE run_id = 'RUN1' AND trade_id = 'T1';"),
         "QuantLib::VanillaSwap/DiscountingSwapEngine");
@@ -315,9 +335,13 @@ TEST_F(PersistenceTest, ScenarioAndVarResultsPersistence) {
     storage->store_var_result(run_id, "HISTORICAL", 0.95, 1250.0, 1250.0, 2);
 
     EXPECT_EQ(QueryDouble(db_path, "SELECT count(*) FROM scenario_results WHERE run_id = 'RUN_HVAR_1';"), 2.0);
-    EXPECT_NEAR(QueryDouble(db_path, "SELECT portfolio_pnl FROM scenario_results WHERE scenario_name = 'RISK_OFF';"), -1250.0, 1e-10);
+    EXPECT_NEAR(QueryDouble(db_path, "SELECT portfolio_pnl FROM scenario_results WHERE scenario_name = 'RISK_OFF';"),
+                -1250.0,
+                1e-10);
     EXPECT_NEAR(QueryDouble(db_path, "SELECT var_value FROM var_results WHERE run_id = 'RUN_HVAR_1';"), 1250.0, 1e-10);
-    EXPECT_NEAR(QueryDouble(db_path, "SELECT expected_shortfall FROM var_results WHERE run_id = 'RUN_HVAR_1';"), 1250.0, 1e-10);
+    EXPECT_NEAR(QueryDouble(db_path, "SELECT expected_shortfall FROM var_results WHERE run_id = 'RUN_HVAR_1';"),
+                1250.0,
+                1e-10);
 }
 
 TEST_F(PersistenceTest, FactorsHistoryBindingsAndScenarioSetsRoundTrip) {

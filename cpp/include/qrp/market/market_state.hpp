@@ -5,13 +5,12 @@
 #include <qrp/domain/market_data.hpp>
 #include <qrp/domain/types.hpp>
 
+#include <map>
+#include <memory>
 #include <ql/handle.hpp>
 #include <ql/quotes/simplequote.hpp>
 #include <ql/termstructures/yieldtermstructure.hpp>
 #include <ql/time/date.hpp>
-
-#include <map>
-#include <memory>
 #include <string>
 #include <utility>
 
@@ -33,7 +32,9 @@ public:
     /**
      * @brief Returns the valuation date for this state.
      */
-    const QuantLib::Date& valuation_date() const { return valuation_date_; }
+    const QuantLib::Date& valuation_date() const {
+        return valuation_date_;
+    }
 
     /**
      * @brief Adds or replaces a yield curve by curve id.
@@ -47,7 +48,8 @@ public:
      */
     QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> get_curve(const domain::CurveId& id) const {
         auto it = curves_.find(id);
-        if (it != curves_.end()) return it->second;
+        if (it != curves_.end())
+            return it->second;
         return nullptr;
     }
 
@@ -68,7 +70,8 @@ public:
      */
     QuantLib::ext::shared_ptr<QuantLib::SimpleQuote> get_quote_handle(const std::string& id) const {
         auto it = quote_handles_.find(id);
-        if (it != quote_handles_.end()) return it->second;
+        if (it != quote_handles_.end())
+            return it->second;
         return nullptr;
     }
 
@@ -101,7 +104,8 @@ public:
      * @brief Returns a quote value by id, or zero when absent.
      */
     double get_quote(const std::string& id) const {
-        if (quote_handles_.contains(id)) return quote_handles_.at(id)->value();
+        if (quote_handles_.contains(id))
+            return quote_handles_.at(id)->value();
         return 0.0;
     }
 
@@ -143,13 +147,15 @@ public:
     /**
      * @brief Returns all fixings keyed by index and fixing date.
      */
-    const std::map<std::string, std::map<QuantLib::Date, double>>& fixings() const { return fixings_; }
+    const std::map<std::string, std::map<QuantLib::Date, double>>& fixings() const {
+        return fixings_;
+    }
 
 private:
     QuantLib::Date valuation_date_; // Valuation date for all stored market objects.
     std::map<domain::CurveId, QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure>> curves_; // Yield curves by id.
     std::map<std::string, QuantLib::ext::shared_ptr<QuantLib::SimpleQuote>> quote_handles_; // Live quote handles by id.
-    std::map<std::string, domain::MarketQuote> quote_metadata_; // Original quote metadata by id.
+    std::map<std::string, domain::MarketQuote> quote_metadata_;       // Original quote metadata by id.
     std::map<std::string, std::map<QuantLib::Date, double>> fixings_; // Fixings by index and date.
 };
 

@@ -19,32 +19,28 @@ namespace {
 
 namespace domain = qrp::domain;
 
-nlohmann::json trade_payload(
-    const std::string& id,
-    const std::string& asset_class,
-    const std::string& type,
-    const std::string& currency,
-    nlohmann::json details) {
-    return {
-        {"id", id},
-        {"asset_class", asset_class},
-        {"type", type},
-        {"currency", currency},
-        {"notional", 1000000.0},
-        {"quantity", 125.0},
-        {"start_date", "2026-03-24"},
-        {"maturity_date", "2028-03-24"},
-        {"direction", "long"},
-        {"book", "BOOK:UNIT"},
-        {"strategy", "STRATEGY:UNIT"},
-        {"details", std::move(details)}
-    };
+nlohmann::json trade_payload(const std::string& id,
+                             const std::string& asset_class,
+                             const std::string& type,
+                             const std::string& currency,
+                             nlohmann::json details) {
+    return {{"id", id},
+            {"asset_class", asset_class},
+            {"type", type},
+            {"currency", currency},
+            {"notional", 1000000.0},
+            {"quantity", 125.0},
+            {"start_date", "2026-03-24"},
+            {"maturity_date", "2028-03-24"},
+            {"direction", "long"},
+            {"book", "BOOK:UNIT"},
+            {"strategy", "STRATEGY:UNIT"},
+            {"details", std::move(details)}};
 }
 
 template <typename TradeT>
-const TradeT& require_trade(
-    const std::map<std::string, std::shared_ptr<domain::Trade>>& trades,
-    const std::string& id) {
+const TradeT& require_trade(const std::map<std::string, std::shared_ptr<domain::Trade>>& trades,
+                            const std::string& id) {
     const auto it = trades.find(id);
     if (it == trades.end()) {
         ADD_FAILURE() << "Missing trade id: " << id;
@@ -68,7 +64,8 @@ TEST(TradeModelTest, ParsesKnownTradeTypes) {
     EXPECT_EQ(qrp::domain::parse_trade_type("commodity_future"), qrp::domain::TradeType::CommodityFuture);
     EXPECT_EQ(qrp::domain::parse_trade_type("commodity_future_strip"), qrp::domain::TradeType::CommodityFutureStrip);
     EXPECT_EQ(qrp::domain::parse_trade_type("commodity_future_option"), qrp::domain::TradeType::CommodityFutureOption);
-    EXPECT_EQ(qrp::domain::parse_trade_type("commodity_calendar_spread_option"), qrp::domain::TradeType::CommodityCalendarSpreadOption);
+    EXPECT_EQ(qrp::domain::parse_trade_type("commodity_calendar_spread_option"),
+              qrp::domain::TradeType::CommodityCalendarSpreadOption);
     EXPECT_EQ(qrp::domain::parse_trade_type("commodity_swing"), qrp::domain::TradeType::CommoditySwing);
     EXPECT_EQ(qrp::domain::parse_trade_type("credit_bond"), qrp::domain::TradeType::CreditBond);
     EXPECT_EQ(qrp::domain::parse_trade_type("cds"), qrp::domain::TradeType::Cds);
@@ -102,7 +99,9 @@ TEST(TradeModelTest, SerializesAllTradeTypesAndBuildsConcreteTradeDtos) {
         {domain::TradeType::CommodityForward, "commodity_forward", domain::ProductType::CommodityForward},
         {domain::TradeType::CommodityFuture, "commodity_future", domain::ProductType::CommodityFuture},
         {domain::TradeType::CommodityFutureStrip, "commodity_future_strip", domain::ProductType::CommodityFutureStrip},
-        {domain::TradeType::CommodityFutureOption, "commodity_future_option", domain::ProductType::CommodityFutureOption},
+        {domain::TradeType::CommodityFutureOption,
+         "commodity_future_option",
+         domain::ProductType::CommodityFutureOption},
         {domain::TradeType::CommodityCalendarSpreadOption,
          "commodity_calendar_spread_option",
          domain::ProductType::CommodityCalendarSpreadOption},
@@ -130,8 +129,7 @@ TEST(TradeModelTest, SerializesAllTradeTypesAndBuildsConcreteTradeDtos) {
         {domain::TradeType::FloatingRateNote, "floating_rate_note", domain::ProductType::FloatingRateNote},
         {domain::TradeType::CapFloor, "cap_floor", domain::ProductType::CapFloor},
         {domain::TradeType::EuropeanSwaption, "european_swaption", domain::ProductType::EuropeanSwaption},
-        {domain::TradeType::BermudanSwaption, "bermudan_swaption", domain::ProductType::BermudanSwaption}
-    };
+        {domain::TradeType::BermudanSwaption, "bermudan_swaption", domain::ProductType::BermudanSwaption}};
 
     for (const auto& [trade_type, type_name, product_type] : cases) {
         SCOPED_TRACE(type_name);
@@ -178,8 +176,7 @@ TEST(TradeModelTest, SerializesMarketQuoteTaxonomy) {
         {domain::QuoteInstrumentType::InterestRateFuture, "InterestRateFuture"},
         {domain::QuoteInstrumentType::IRS, "IRS"},
         {domain::QuoteInstrumentType::OIS, "OIS"},
-        {domain::QuoteInstrumentType::SwaptionVol, "SwaptionVol"}
-    };
+        {domain::QuoteInstrumentType::SwaptionVol, "SwaptionVol"}};
     for (const auto& [type, label] : instrument_types) {
         EXPECT_EQ(domain::to_string(type), label);
         EXPECT_EQ(domain::parse_quote_instrument_type(label), type);
@@ -208,8 +205,7 @@ TEST(TradeModelTest, SerializesMarketQuoteTaxonomy) {
         {domain::QuoteType::InterestRateFuture, "InterestRateFuture"},
         {domain::QuoteType::IRS, "IRS"},
         {domain::QuoteType::OIS, "OIS"},
-        {domain::QuoteType::Swap, "Swap"}
-    };
+        {domain::QuoteType::Swap, "Swap"}};
     for (const auto& [type, label] : quote_types) {
         EXPECT_EQ(domain::to_string(type), label);
         EXPECT_EQ(domain::parse_quote_type(label), type);
@@ -226,11 +222,12 @@ TEST(TradeModelTest, ParsesCanonicalAssetClassesAndProductTypes) {
 
     EXPECT_EQ(qrp::domain::parse_product_type("commodity_spot"), qrp::domain::ProductType::CommoditySpot);
     EXPECT_EQ(qrp::domain::parse_product_type("commodity_forward"), qrp::domain::ProductType::CommodityForward);
-    EXPECT_EQ(qrp::domain::parse_product_type("commodity_future_strip"), qrp::domain::ProductType::CommodityFutureStrip);
-    EXPECT_EQ(
-        qrp::domain::parse_product_type("commodity_calendar_spread_option"),
-        qrp::domain::ProductType::CommodityCalendarSpreadOption);
-    EXPECT_EQ(qrp::domain::parse_product_type("commodity_future_option"), qrp::domain::ProductType::CommodityFutureOption);
+    EXPECT_EQ(qrp::domain::parse_product_type("commodity_future_strip"),
+              qrp::domain::ProductType::CommodityFutureStrip);
+    EXPECT_EQ(qrp::domain::parse_product_type("commodity_calendar_spread_option"),
+              qrp::domain::ProductType::CommodityCalendarSpreadOption);
+    EXPECT_EQ(qrp::domain::parse_product_type("commodity_future_option"),
+              qrp::domain::ProductType::CommodityFutureOption);
     EXPECT_EQ(qrp::domain::parse_product_type("credit_bond"), qrp::domain::ProductType::CreditBond);
     EXPECT_EQ(qrp::domain::parse_product_type("cds"), qrp::domain::ProductType::Cds);
     EXPECT_EQ(qrp::domain::parse_product_type("cds_index"), qrp::domain::ProductType::CdsIndex);
@@ -258,8 +255,7 @@ TEST(TradeModelTest, SerializesAssetClassesAndDeclaredProductTypes) {
         {domain::AssetClass::FX, "fx"},
         {domain::AssetClass::Inflation, "inflation"},
         {domain::AssetClass::Rates, "rates"},
-        {domain::AssetClass::Unknown, "unknown"}
-    };
+        {domain::AssetClass::Unknown, "unknown"}};
     for (const auto& [asset_class, label] : asset_classes) {
         EXPECT_EQ(domain::to_string(asset_class), label);
     }
@@ -267,57 +263,27 @@ TEST(TradeModelTest, SerializesAssetClassesAndDeclaredProductTypes) {
     const auto product_types = domain::all_product_types();
     EXPECT_EQ(product_types.front(), domain::ProductType::CommoditySpot);
     EXPECT_EQ(product_types.back(), domain::ProductType::Unknown);
-    EXPECT_NE(
-        std::find(product_types.begin(), product_types.end(), domain::ProductType::CreditIndexOption),
-        product_types.end());
+    EXPECT_NE(std::find(product_types.begin(), product_types.end(), domain::ProductType::CreditIndexOption),
+              product_types.end());
 }
 
 TEST(TradeModelTest, BuildsCanonicalFactorIds) {
-    EXPECT_EQ(
-        qrp::domain::make_commodity_spot_factor_id("WTI"),
-        "RF:COM:WTI:SPOT");
-    EXPECT_EQ(
-        qrp::domain::make_commodity_forward_factor_id("WTI", "3M"),
-        "RF:COM:WTI:FWD:3M");
-    EXPECT_EQ(
-        qrp::domain::make_commodity_vol_factor_id("TTF", "1Y", "ATM"),
-        "RF:COMVOL:TTF:1Y:ATM");
-    EXPECT_EQ(
-        qrp::domain::make_credit_spread_factor_id("CDX_IG", "5Y"),
-        "RF:CREDIT:CDX_IG:SPREAD:5Y");
-    EXPECT_EQ(
-        qrp::domain::make_credit_recovery_factor_id("CDX_IG"),
-        "RF:CREDIT:CDX_IG:RECOVERY:SPOT");
-    EXPECT_EQ(
-        qrp::domain::make_credit_vol_factor_id("ITRAXX_MAIN", "6M", "100"),
-        "RF:CREDITVOL:ITRAXX_MAIN:6M:100");
-    EXPECT_EQ(
-        qrp::domain::make_equity_spot_factor_id("AAPL"),
-        "RF:EQ:AAPL:SPOT");
-    EXPECT_EQ(
-        qrp::domain::make_equity_carry_factor_id("AAPL", "DIVYLD", "1Y"),
-        "RF:EQ:AAPL:DIVYLD:1Y");
-    EXPECT_EQ(
-        qrp::domain::make_equity_forward_factor_id("SPX", "FUT", "6M"),
-        "RF:EQ:SPX:FUT:6M");
-    EXPECT_EQ(
-        qrp::domain::make_equity_vol_factor_id("SPX", "3M", "ATM"),
-        "RF:EQVOL:SPX:3M:ATM");
-    EXPECT_EQ(
-        qrp::domain::make_fx_spot_factor_id("EURUSD"),
-        "RF:FX:EURUSD:SPOT");
-    EXPECT_EQ(
-        qrp::domain::make_fx_forward_points_factor_id("EURUSD", "6M"),
-        "RF:FX:EURUSD:FWDPTS_6M");
-    EXPECT_EQ(
-        qrp::domain::make_fx_vol_factor_id("EURUSD", "1M", "25D_RR"),
-        "RF:FXVOL:EURUSD:1M:25D_RR");
-    EXPECT_EQ(
-        qrp::domain::make_rates_factor_id(qrp::domain::Currency::USD, "OIS", "5Y"),
-        "RF:RATES:USD:OIS:5Y");
-    EXPECT_EQ(
-        qrp::domain::make_rates_vol_factor_id(qrp::domain::Currency::USD, "SWAPTION", "1Y", "5Y"),
-        "RF:RATESVOL:USD:SWAPTION:1Y:5Y");
+    EXPECT_EQ(qrp::domain::make_commodity_spot_factor_id("WTI"), "RF:COM:WTI:SPOT");
+    EXPECT_EQ(qrp::domain::make_commodity_forward_factor_id("WTI", "3M"), "RF:COM:WTI:FWD:3M");
+    EXPECT_EQ(qrp::domain::make_commodity_vol_factor_id("TTF", "1Y", "ATM"), "RF:COMVOL:TTF:1Y:ATM");
+    EXPECT_EQ(qrp::domain::make_credit_spread_factor_id("CDX_IG", "5Y"), "RF:CREDIT:CDX_IG:SPREAD:5Y");
+    EXPECT_EQ(qrp::domain::make_credit_recovery_factor_id("CDX_IG"), "RF:CREDIT:CDX_IG:RECOVERY:SPOT");
+    EXPECT_EQ(qrp::domain::make_credit_vol_factor_id("ITRAXX_MAIN", "6M", "100"), "RF:CREDITVOL:ITRAXX_MAIN:6M:100");
+    EXPECT_EQ(qrp::domain::make_equity_spot_factor_id("AAPL"), "RF:EQ:AAPL:SPOT");
+    EXPECT_EQ(qrp::domain::make_equity_carry_factor_id("AAPL", "DIVYLD", "1Y"), "RF:EQ:AAPL:DIVYLD:1Y");
+    EXPECT_EQ(qrp::domain::make_equity_forward_factor_id("SPX", "FUT", "6M"), "RF:EQ:SPX:FUT:6M");
+    EXPECT_EQ(qrp::domain::make_equity_vol_factor_id("SPX", "3M", "ATM"), "RF:EQVOL:SPX:3M:ATM");
+    EXPECT_EQ(qrp::domain::make_fx_spot_factor_id("EURUSD"), "RF:FX:EURUSD:SPOT");
+    EXPECT_EQ(qrp::domain::make_fx_forward_points_factor_id("EURUSD", "6M"), "RF:FX:EURUSD:FWDPTS_6M");
+    EXPECT_EQ(qrp::domain::make_fx_vol_factor_id("EURUSD", "1M", "25D_RR"), "RF:FXVOL:EURUSD:1M:25D_RR");
+    EXPECT_EQ(qrp::domain::make_rates_factor_id(qrp::domain::Currency::USD, "OIS", "5Y"), "RF:RATES:USD:OIS:5Y");
+    EXPECT_EQ(qrp::domain::make_rates_vol_factor_id(qrp::domain::Currency::USD, "SWAPTION", "1Y", "5Y"),
+              "RF:RATESVOL:USD:SWAPTION:1Y:5Y");
 }
 
 TEST(TradeModelTest, ParsesAndSerializesFactorEnums) {
@@ -337,48 +303,31 @@ TEST(TradeModelTest, ParsesAndSerializesFactorEnums) {
         {domain::FactorType::Volatility, "Volatility"},
         {domain::FactorType::BasisSpread, "BasisSpread"},
         {domain::FactorType::RateForward, "RateForward"},
-        {domain::FactorType::RateZero, "RateZero"}
-    };
+        {domain::FactorType::RateZero, "RateZero"}};
     for (const auto& [factor_type, label] : factor_types) {
         EXPECT_EQ(domain::parse_factor_type(label), factor_type);
         EXPECT_EQ(domain::to_string(factor_type), label);
     }
 
-    EXPECT_EQ(
-        qrp::domain::parse_shock_measure("BasisPoints"),
-        qrp::domain::ShockMeasure::BasisPoints);
-    EXPECT_EQ(
-        qrp::domain::to_string(qrp::domain::ShockMeasure::VolPoints),
-        "VolPoints");
+    EXPECT_EQ(qrp::domain::parse_shock_measure("BasisPoints"), qrp::domain::ShockMeasure::BasisPoints);
+    EXPECT_EQ(qrp::domain::to_string(qrp::domain::ShockMeasure::VolPoints), "VolPoints");
 
     EXPECT_THROW(qrp::domain::parse_factor_type("UnsupportedFactor"), std::invalid_argument);
     EXPECT_THROW(qrp::domain::parse_shock_measure("UnsupportedShock"), std::invalid_argument);
 }
 
 TEST(TradeModelTest, FactorIdHelpersValidateAndJoinTokens) {
-    EXPECT_EQ(
-        qrp::domain::factor_id_detail::join({"RF", "RATES", "USD", "OIS", "5Y"}),
-        "RF:RATES:USD:OIS:5Y");
+    EXPECT_EQ(qrp::domain::factor_id_detail::join({"RF", "RATES", "USD", "OIS", "5Y"}), "RF:RATES:USD:OIS:5Y");
     EXPECT_EQ(qrp::domain::factor_id_detail::currency_token(domain::Currency::USD), "USD");
     EXPECT_THROW(qrp::domain::factor_id_detail::currency_token(domain::Currency::UNKNOWN), std::invalid_argument);
 }
 
 TEST(TradeModelTest, RejectsMalformedFactorTokens) {
-    EXPECT_THROW(
-        qrp::domain::make_rates_factor_id(qrp::domain::Currency::USD, "USD:OIS", "5Y"),
-        std::invalid_argument);
-    EXPECT_THROW(
-        qrp::domain::make_fx_spot_factor_id(""),
-        std::invalid_argument);
-    EXPECT_THROW(
-        qrp::domain::make_equity_carry_factor_id("AAPL", "DVD", "1Y"),
-        std::invalid_argument);
-    EXPECT_THROW(
-        qrp::domain::make_equity_forward_factor_id("SPX", "FUTURE", "6M"),
-        std::invalid_argument);
-    EXPECT_THROW(
-        qrp::domain::make_rates_factor_id(qrp::domain::Currency::UNKNOWN, "OIS", "5Y"),
-        std::invalid_argument);
+    EXPECT_THROW(qrp::domain::make_rates_factor_id(qrp::domain::Currency::USD, "USD:OIS", "5Y"), std::invalid_argument);
+    EXPECT_THROW(qrp::domain::make_fx_spot_factor_id(""), std::invalid_argument);
+    EXPECT_THROW(qrp::domain::make_equity_carry_factor_id("AAPL", "DVD", "1Y"), std::invalid_argument);
+    EXPECT_THROW(qrp::domain::make_equity_forward_factor_id("SPX", "FUTURE", "6M"), std::invalid_argument);
+    EXPECT_THROW(qrp::domain::make_rates_factor_id(qrp::domain::Currency::UNKNOWN, "OIS", "5Y"), std::invalid_argument);
 }
 
 TEST(TradeModelTest, ValidatesCanonicalFactorIds) {
@@ -454,156 +403,184 @@ TEST(TradeModelTest, PortfolioJsonUsesCanonicalTradeFactory) {
 TEST(TradeModelTest, PortfolioJsonParsesAllSupportedTradeEconomics) {
     nlohmann::json payload = {
         {"portfolio_id", "P_ALL"},
-        {"trades", nlohmann::json::array({
-            trade_payload("T01", "rates", "deposit", "USD", {{"rate", 0.0525}}),
-            trade_payload("T02", "rates", "fra", "USD", {{"rate", 0.0475}, {"index_family", "IBOR_3M"}}),
-            trade_payload("T03", "rates", "interest_rate_future", "USD", {
-                {"contract_size", 2500.0},
-                {"index_family", "SOFR_3M"},
-                {"quote_id", "SFRZ6"},
-                {"trade_price", 95.125}
-            }),
-            trade_payload("T04", "rates", "vanilla_swap", "USD", {
-                {"fixed_rate", 0.045},
-                {"floating_index", "USD_LIBOR_3M"}
-            }),
-            trade_payload("T05", "rates", "ois_swap", "USD", {
-                {"rate", 0.043},
-                {"floating_index", "SOFR"},
-                {"spread", 0.0005}
-            }),
-            trade_payload("T06", "rates", "fixed_rate_bond", "USD", {
-                {"coupon_rate", 0.050},
-                {"frequency", "Annual"}
-            }),
-            trade_payload("T07", "rates", "floating_rate_note", "USD", {
-                {"index_family", "IBOR_3M"},
-                {"frequency", "Quarterly"},
-                {"spread", 0.0012}
-            }),
-            trade_payload("T08", "rates", "cap_floor", "USD", {
-                {"option_type", "floor"},
-                {"index_family", "IBOR_3M"},
-                {"strike", 0.035},
-                {"volatility", 0.21},
-                {"vol_quote_id", "USD_CAP_VOL_2Y"}
-            }),
-            trade_payload("T09", "rates", "european_swaption", "USD", {
-                {"strike", 0.041},
-                {"index_family", "IBOR_3M"},
-                {"expiry_date", "2027-03-24"},
-                {"volatility", 0.19},
-                {"vol_quote_id", "USD_SWAPTION_VOL_1Y_5Y"}
-            }),
-            trade_payload("T10", "rates", "bermudan_swaption", "USD", {
-                {"exercise_dates", std::vector<std::string>{"2027-03-24", "2028-03-24"}},
-                {"strike", 0.040},
-                {"index_family", "IBOR_6M"},
-                {"mean_reversion", 0.025},
-                {"volatility", 0.18},
-                {"vol_quote_id", "USD_BERM_VOL"}
-            }),
-            trade_payload("T11", "fx", "fx_spot", "USD", {
-                {"base_currency", "EUR"},
-                {"quote_currency", "USD"},
-                {"spot_rate", 1.085},
-                {"quote_id", "EURUSD"}
-            }),
-            trade_payload("T12", "fx", "fx_forward", "USD", {
-                {"base_currency", "EUR"},
-                {"quote_currency", "USD"},
-                {"forward_rate", 1.1025},
-                {"forward_points_quote_id", "EURUSD_FWDPTS_6M"},
-                {"forward_quote_id", "EURUSD_FWD_6M"},
-                {"quote_id", "EURUSD"}
-            }),
-            trade_payload("T13", "fx", "fx_swap", "USD", {
-                {"base_currency", "EUR"},
-                {"quote_currency", "USD"},
-                {"spot_rate", 1.085},
-                {"forward_rate", 1.101},
-                {"far_forward_points_quote_id", "EURUSD_FWDPTS_1Y"},
-                {"far_forward_quote_id", "EURUSD_FWD_1Y"},
-                {"near_forward_points_quote_id", "EURUSD_FWDPTS_1M"},
-                {"near_forward_quote_id", "EURUSD_FWD_1M"},
-                {"quote_id", "EURUSD"}
-            }),
-            trade_payload("T14", "fx", "ndf", "USD", {
-                {"base_currency", "BRL"},
-                {"quote_currency", "USD"},
-                {"forward_rate", 0.205},
-                {"fixing_date", "2026-09-28"},
-                {"fixing_quote_id", "BRLUSD_FIX"},
-                {"forward_points_quote_id", "BRLUSD_FWDPTS"},
-                {"forward_quote_id", "BRLUSD_FWD"},
-                {"quote_id", "BRLUSD"}
-            }),
-            trade_payload("T15", "fx", "fx_option", "USD", {
-                {"base_currency", "EUR"},
-                {"quote_currency", "USD"},
-                {"strike", 1.12},
-                {"volatility", 0.105},
-                {"option_expiry_date", "2026-09-24"},
-                {"call_put", "put"},
-                {"maturity_date", "2026-09-26"},
-                {"quote_id", "EURUSD"},
-                {"vol_quote_id", "EURUSD_VOL_6M"}
-            }),
-            trade_payload("T16", "credit", "credit_bond", "USD", {
-                {"fixed_rate", 0.0575},
-                {"z_spread", 0.012},
-                {"frequency", "Semiannual"},
-                {"reference_entity", "ACME"},
-                {"quote_id", "ACME_BOND_SPREAD_5Y"}
-            }),
-            trade_payload("T17", "credit", "cds", "USD", {
-                {"running_spread", 0.0100},
-                {"frequency", "Quarterly"},
-                {"reference_entity", "ACME"},
-                {"recovery_quote_id", "ACME_RECOVERY"},
-                {"recovery_rate", 0.38},
-                {"cds_quote_id", "ACME_CDS_5Y"}
-            }),
-            trade_payload("T18", "credit", "cds_index", "USD", {
-                {"spread", 0.0080},
-                {"frequency", "Quarterly"},
-                {"index_factor", 0.97},
-                {"index_name", "CDX_IG"},
-                {"recovery_quote_id", "CDX_RECOVERY"},
-                {"recovery_rate", 0.40},
-                {"cds_quote_id", "CDX_IG_5Y"}
-            }),
-            trade_payload("T19", "credit", "cds_option", "USD", {
-                {"option_expiry_date", "2026-09-24"},
-                {"frequency", "Quarterly"},
-                {"underlier", "ACME"},
-                {"payer_receiver", "receiver"},
-                {"recovery_quote_id", "ACME_RECOVERY"},
-                {"recovery_rate", 0.38},
-                {"cds_quote_id", "ACME_CDS_5Y"},
-                {"strike_rate", 0.0110},
-                {"volatility", 0.36},
-                {"vol_quote_id", "ACME_CDS_VOL_6M"}
-            }),
-            trade_payload("T20", "credit", "credit_index_option", "USD", {
-                {"option_expiry_date", "2026-09-24"},
-                {"frequency", "Quarterly"},
-                {"index_factor", 0.95},
-                {"underlier", "CDX_IG"},
-                {"payer_receiver", "call"},
-                {"recovery_quote_id", "CDX_RECOVERY"},
-                {"recovery_rate", 0.40},
-                {"cds_quote_id", "CDX_IG_5Y"},
-                {"strike_rate", 0.0090},
-                {"volatility", 0.30},
-                {"vol_quote_id", "CDX_IG_VOL_6M"}
-            }),
-            trade_payload("T21", "equity", "equity_spot", "USD", {
-                {"reference_price", 187.20},
-                {"underlier", "AAPL"}
-            })
-        })}
-    };
+        {"trades",
+         nlohmann::json::array(
+             {trade_payload("T01", "rates", "deposit", "USD", {{"rate", 0.0525}}),
+              trade_payload("T02", "rates", "fra", "USD", {{"rate", 0.0475}, {"index_family", "IBOR_3M"}}),
+              trade_payload("T03",
+                            "rates",
+                            "interest_rate_future",
+                            "USD",
+                            {{"contract_size", 2500.0},
+                             {"index_family", "SOFR_3M"},
+                             {"quote_id", "SFRZ6"},
+                             {"trade_price", 95.125}}),
+              trade_payload("T04",
+                            "rates",
+                            "vanilla_swap",
+                            "USD",
+                            {{"fixed_rate", 0.045}, {"floating_index", "USD_LIBOR_3M"}}),
+              trade_payload("T05",
+                            "rates",
+                            "ois_swap",
+                            "USD",
+                            {{"rate", 0.043}, {"floating_index", "SOFR"}, {"spread", 0.0005}}),
+              trade_payload("T06",
+                            "rates",
+                            "fixed_rate_bond",
+                            "USD",
+                            {{"coupon_rate", 0.050}, {"frequency", "Annual"}}),
+              trade_payload("T07",
+                            "rates",
+                            "floating_rate_note",
+                            "USD",
+                            {{"index_family", "IBOR_3M"}, {"frequency", "Quarterly"}, {"spread", 0.0012}}),
+              trade_payload("T08",
+                            "rates",
+                            "cap_floor",
+                            "USD",
+                            {{"option_type", "floor"},
+                             {"index_family", "IBOR_3M"},
+                             {"strike", 0.035},
+                             {"volatility", 0.21},
+                             {"vol_quote_id", "USD_CAP_VOL_2Y"}}),
+              trade_payload("T09",
+                            "rates",
+                            "european_swaption",
+                            "USD",
+                            {{"strike", 0.041},
+                             {"index_family", "IBOR_3M"},
+                             {"expiry_date", "2027-03-24"},
+                             {"volatility", 0.19},
+                             {"vol_quote_id", "USD_SWAPTION_VOL_1Y_5Y"}}),
+              trade_payload("T10",
+                            "rates",
+                            "bermudan_swaption",
+                            "USD",
+                            {{"exercise_dates", std::vector<std::string>{"2027-03-24", "2028-03-24"}},
+                             {"strike", 0.040},
+                             {"index_family", "IBOR_6M"},
+                             {"mean_reversion", 0.025},
+                             {"volatility", 0.18},
+                             {"vol_quote_id", "USD_BERM_VOL"}}),
+              trade_payload(
+                  "T11",
+                  "fx",
+                  "fx_spot",
+                  "USD",
+                  {{"base_currency", "EUR"}, {"quote_currency", "USD"}, {"spot_rate", 1.085}, {"quote_id", "EURUSD"}}),
+              trade_payload("T12",
+                            "fx",
+                            "fx_forward",
+                            "USD",
+                            {{"base_currency", "EUR"},
+                             {"quote_currency", "USD"},
+                             {"forward_rate", 1.1025},
+                             {"forward_points_quote_id", "EURUSD_FWDPTS_6M"},
+                             {"forward_quote_id", "EURUSD_FWD_6M"},
+                             {"quote_id", "EURUSD"}}),
+              trade_payload("T13",
+                            "fx",
+                            "fx_swap",
+                            "USD",
+                            {{"base_currency", "EUR"},
+                             {"quote_currency", "USD"},
+                             {"spot_rate", 1.085},
+                             {"forward_rate", 1.101},
+                             {"far_forward_points_quote_id", "EURUSD_FWDPTS_1Y"},
+                             {"far_forward_quote_id", "EURUSD_FWD_1Y"},
+                             {"near_forward_points_quote_id", "EURUSD_FWDPTS_1M"},
+                             {"near_forward_quote_id", "EURUSD_FWD_1M"},
+                             {"quote_id", "EURUSD"}}),
+              trade_payload("T14",
+                            "fx",
+                            "ndf",
+                            "USD",
+                            {{"base_currency", "BRL"},
+                             {"quote_currency", "USD"},
+                             {"forward_rate", 0.205},
+                             {"fixing_date", "2026-09-28"},
+                             {"fixing_quote_id", "BRLUSD_FIX"},
+                             {"forward_points_quote_id", "BRLUSD_FWDPTS"},
+                             {"forward_quote_id", "BRLUSD_FWD"},
+                             {"quote_id", "BRLUSD"}}),
+              trade_payload("T15",
+                            "fx",
+                            "fx_option",
+                            "USD",
+                            {{"base_currency", "EUR"},
+                             {"quote_currency", "USD"},
+                             {"strike", 1.12},
+                             {"volatility", 0.105},
+                             {"option_expiry_date", "2026-09-24"},
+                             {"call_put", "put"},
+                             {"maturity_date", "2026-09-26"},
+                             {"quote_id", "EURUSD"},
+                             {"vol_quote_id", "EURUSD_VOL_6M"}}),
+              trade_payload("T16",
+                            "credit",
+                            "credit_bond",
+                            "USD",
+                            {{"fixed_rate", 0.0575},
+                             {"z_spread", 0.012},
+                             {"frequency", "Semiannual"},
+                             {"reference_entity", "ACME"},
+                             {"quote_id", "ACME_BOND_SPREAD_5Y"}}),
+              trade_payload("T17",
+                            "credit",
+                            "cds",
+                            "USD",
+                            {{"running_spread", 0.0100},
+                             {"frequency", "Quarterly"},
+                             {"reference_entity", "ACME"},
+                             {"recovery_quote_id", "ACME_RECOVERY"},
+                             {"recovery_rate", 0.38},
+                             {"cds_quote_id", "ACME_CDS_5Y"}}),
+              trade_payload("T18",
+                            "credit",
+                            "cds_index",
+                            "USD",
+                            {{"spread", 0.0080},
+                             {"frequency", "Quarterly"},
+                             {"index_factor", 0.97},
+                             {"index_name", "CDX_IG"},
+                             {"recovery_quote_id", "CDX_RECOVERY"},
+                             {"recovery_rate", 0.40},
+                             {"cds_quote_id", "CDX_IG_5Y"}}),
+              trade_payload("T19",
+                            "credit",
+                            "cds_option",
+                            "USD",
+                            {{"option_expiry_date", "2026-09-24"},
+                             {"frequency", "Quarterly"},
+                             {"underlier", "ACME"},
+                             {"payer_receiver", "receiver"},
+                             {"recovery_quote_id", "ACME_RECOVERY"},
+                             {"recovery_rate", 0.38},
+                             {"cds_quote_id", "ACME_CDS_5Y"},
+                             {"strike_rate", 0.0110},
+                             {"volatility", 0.36},
+                             {"vol_quote_id", "ACME_CDS_VOL_6M"}}),
+              trade_payload("T20",
+                            "credit",
+                            "credit_index_option",
+                            "USD",
+                            {{"option_expiry_date", "2026-09-24"},
+                             {"frequency", "Quarterly"},
+                             {"index_factor", 0.95},
+                             {"underlier", "CDX_IG"},
+                             {"payer_receiver", "call"},
+                             {"recovery_quote_id", "CDX_RECOVERY"},
+                             {"recovery_rate", 0.40},
+                             {"cds_quote_id", "CDX_IG_5Y"},
+                             {"strike_rate", 0.0090},
+                             {"volatility", 0.30},
+                             {"vol_quote_id", "CDX_IG_VOL_6M"}}),
+              trade_payload("T21",
+                            "equity",
+                            "equity_spot",
+                            "USD",
+                            {{"reference_price", 187.20}, {"underlier", "AAPL"}})})}};
 
     auto portfolio = payload.get<domain::Portfolio>();
     ASSERT_EQ(portfolio.trades.size(), 21U);
@@ -641,50 +618,96 @@ TEST(TradeModelTest, PortfolioJsonParsesAllSupportedTradeEconomics) {
 TEST(TradeModelTest, PortfolioJsonParsesCommodityAndEquityTradeEconomics) {
     nlohmann::json payload = {
         {"portfolio_id", "P_COMMODITY_EQUITY"},
-        {"trades", nlohmann::json::array({
-            trade_payload("C01", "commodity", "commodity_spot", "USD", {
-                {"underlier", "WTI"}, {"reference_price", 77.0}, {"quote_id", "WTI_SPOT"}, {"unit", "bbl"}
-            }),
-            trade_payload("C02", "commodity", "commodity_forward", "USD", {
-                {"underlier", "WTI"}, {"contract_price", 78.0}, {"quote_id", "WTI_FWD_6M"}, {"tenor", "6M"}, {"unit", "bbl"}
-            }),
-            trade_payload("C03", "commodity", "commodity_future", "USD", {
-                {"underlier", "WTI"}, {"contract_size", 1000.0}, {"trade_price", 78.0}, {"quote_id", "WTI_FUT_6M"}, {"tenor", "6M"}
-            }),
-            trade_payload("C04", "commodity", "commodity_future_strip", "USD", {
-                {"underlier", "WTI"},
-                {"contract_size", 1000.0},
-                {"quote_ids", std::vector<std::string>{"WTI_FUT_6M", "WTI_FUT_9M"}},
-                {"weights", std::vector<double>{0.4, 0.6}},
-                {"trade_price", 79.0}
-            }),
-            trade_payload("C05", "commodity", "commodity_future_option", "USD", {
-                {"underlier", "WTI"}, {"strike", 80.0}, {"option_expiry_date", "2026-09-24"},
-                {"quote_id", "WTI_FUT_6M"}, {"vol_quote_id", "WTI_VOL_6M_ATM"}, {"option_type", "call"}
-            }),
-            trade_payload("C06", "commodity", "commodity_calendar_spread_option", "USD", {
-                {"underlier", "WTI"}, {"strike", 0.25}, {"option_expiry_date", "2026-09-24"},
-                {"near_quote_id", "WTI_FUT_6M"}, {"far_quote_id", "WTI_FUT_9M"}, {"volatility", 0.20}
-            }),
-            trade_payload("C07", "commodity", "commodity_swing", "USD", {
-                {"underlier", "TTF"}, {"min_quantity", 500.0}, {"max_quantity", 1000.0}, {"strike", 31.0},
-                {"quote_ids", std::vector<std::string>{"TTF_FWD_Q1", "TTF_FWD_Q2"}},
-                {"exercise_dates", std::vector<std::string>{"2026-06-24", "2026-09-24"}},
-                {"volatility", 0.40}
-            }),
-            trade_payload("E01", "equity", "equity_forward", "USD", {
-                {"underlier", "AAPL"}, {"forward_price", 190.0}, {"dividend_quote_id", "AAPL_DIVYLD_1Y"},
-                {"borrow_quote_id", "AAPL_BORROW_1Y"}
-            }),
-            trade_payload("E02", "equity", "equity_future", "USD", {
-                {"underlier", "SPX"}, {"contract_size", 50.0}, {"trade_price", 5350.0}, {"quote_id", "ES_FUT_6M"}
-            }),
-            trade_payload("E03", "equity", "equity_option", "USD", {
-                {"underlier", "AAPL"}, {"strike", 185.0}, {"option_expiry_date", "2026-09-24"},
-                {"exercise_style", "american"}, {"call_put", "put"}, {"vol_quote_id", "AAPL_VOL_6M_ATM"}
-            })
-        })}
-    };
+        {"trades",
+         nlohmann::json::array(
+             {trade_payload(
+                  "C01",
+                  "commodity",
+                  "commodity_spot",
+                  "USD",
+                  {{"underlier", "WTI"}, {"reference_price", 77.0}, {"quote_id", "WTI_SPOT"}, {"unit", "bbl"}}),
+              trade_payload("C02",
+                            "commodity",
+                            "commodity_forward",
+                            "USD",
+                            {{"underlier", "WTI"},
+                             {"contract_price", 78.0},
+                             {"quote_id", "WTI_FWD_6M"},
+                             {"tenor", "6M"},
+                             {"unit", "bbl"}}),
+              trade_payload("C03",
+                            "commodity",
+                            "commodity_future",
+                            "USD",
+                            {{"underlier", "WTI"},
+                             {"contract_size", 1000.0},
+                             {"trade_price", 78.0},
+                             {"quote_id", "WTI_FUT_6M"},
+                             {"tenor", "6M"}}),
+              trade_payload("C04",
+                            "commodity",
+                            "commodity_future_strip",
+                            "USD",
+                            {{"underlier", "WTI"},
+                             {"contract_size", 1000.0},
+                             {"quote_ids", std::vector<std::string>{"WTI_FUT_6M", "WTI_FUT_9M"}},
+                             {"weights", std::vector<double>{0.4, 0.6}},
+                             {"trade_price", 79.0}}),
+              trade_payload("C05",
+                            "commodity",
+                            "commodity_future_option",
+                            "USD",
+                            {{"underlier", "WTI"},
+                             {"strike", 80.0},
+                             {"option_expiry_date", "2026-09-24"},
+                             {"quote_id", "WTI_FUT_6M"},
+                             {"vol_quote_id", "WTI_VOL_6M_ATM"},
+                             {"option_type", "call"}}),
+              trade_payload("C06",
+                            "commodity",
+                            "commodity_calendar_spread_option",
+                            "USD",
+                            {{"underlier", "WTI"},
+                             {"strike", 0.25},
+                             {"option_expiry_date", "2026-09-24"},
+                             {"near_quote_id", "WTI_FUT_6M"},
+                             {"far_quote_id", "WTI_FUT_9M"},
+                             {"volatility", 0.20}}),
+              trade_payload("C07",
+                            "commodity",
+                            "commodity_swing",
+                            "USD",
+                            {{"underlier", "TTF"},
+                             {"min_quantity", 500.0},
+                             {"max_quantity", 1000.0},
+                             {"strike", 31.0},
+                             {"quote_ids", std::vector<std::string>{"TTF_FWD_Q1", "TTF_FWD_Q2"}},
+                             {"exercise_dates", std::vector<std::string>{"2026-06-24", "2026-09-24"}},
+                             {"volatility", 0.40}}),
+              trade_payload("E01",
+                            "equity",
+                            "equity_forward",
+                            "USD",
+                            {{"underlier", "AAPL"},
+                             {"forward_price", 190.0},
+                             {"dividend_quote_id", "AAPL_DIVYLD_1Y"},
+                             {"borrow_quote_id", "AAPL_BORROW_1Y"}}),
+              trade_payload(
+                  "E02",
+                  "equity",
+                  "equity_future",
+                  "USD",
+                  {{"underlier", "SPX"}, {"contract_size", 50.0}, {"trade_price", 5350.0}, {"quote_id", "ES_FUT_6M"}}),
+              trade_payload("E03",
+                            "equity",
+                            "equity_option",
+                            "USD",
+                            {{"underlier", "AAPL"},
+                             {"strike", 185.0},
+                             {"option_expiry_date", "2026-09-24"},
+                             {"exercise_style", "american"},
+                             {"call_put", "put"},
+                             {"vol_quote_id", "AAPL_VOL_6M_ATM"}})})}};
 
     auto portfolio = payload.get<domain::Portfolio>();
     ASSERT_EQ(portfolio.trades.size(), 10U);
@@ -698,8 +721,10 @@ TEST(TradeModelTest, PortfolioJsonParsesCommodityAndEquityTradeEconomics) {
     EXPECT_EQ(require_trade<domain::CommodityForwardTrade>(trades_by_id, "C02").forward_quote_id, "WTI_FWD_6M");
     EXPECT_DOUBLE_EQ(require_trade<domain::CommodityFutureTrade>(trades_by_id, "C03").contract_size, 1000.0);
     EXPECT_EQ(require_trade<domain::CommodityFutureStripTrade>(trades_by_id, "C04").future_quote_ids.size(), 2U);
-    EXPECT_EQ(require_trade<domain::CommodityFutureOptionTrade>(trades_by_id, "C05").volatility_quote_id, "WTI_VOL_6M_ATM");
-    EXPECT_EQ(require_trade<domain::CommodityCalendarSpreadOptionTrade>(trades_by_id, "C06").far_future_quote_id, "WTI_FUT_9M");
+    EXPECT_EQ(require_trade<domain::CommodityFutureOptionTrade>(trades_by_id, "C05").volatility_quote_id,
+              "WTI_VOL_6M_ATM");
+    EXPECT_EQ(require_trade<domain::CommodityCalendarSpreadOptionTrade>(trades_by_id, "C06").far_future_quote_id,
+              "WTI_FUT_9M");
     EXPECT_EQ(require_trade<domain::CommoditySwingTrade>(trades_by_id, "C07").exercise_dates.size(), 2U);
     EXPECT_EQ(require_trade<domain::EquityForwardTrade>(trades_by_id, "E01").dividend_yield_quote_id, "AAPL_DIVYLD_1Y");
     EXPECT_DOUBLE_EQ(require_trade<domain::EquityFutureTrade>(trades_by_id, "E02").contract_size, 50.0);
@@ -707,11 +732,9 @@ TEST(TradeModelTest, PortfolioJsonParsesCommodityAndEquityTradeEconomics) {
 }
 
 TEST(TradeModelTest, CoversPortfolioDetailHelpersAndTaxonomyFallbacks) {
-    const nlohmann::json details = {
-        {"exercise_dates", std::vector<std::string>{"2027-03-24", "2028-03-24"}},
-        {"index_family", "IBOR_6M"},
-        {"rate", 0.0525}
-    };
+    const nlohmann::json details = {{"exercise_dates", std::vector<std::string>{"2027-03-24", "2028-03-24"}},
+                                    {"index_family", "IBOR_6M"},
+                                    {"rate", 0.0525}};
 
     EXPECT_DOUBLE_EQ(domain::portfolio_detail::optional_double(details, {"missing", "rate"}, 0.01), 0.0525);
     EXPECT_DOUBLE_EQ(domain::portfolio_detail::optional_double(details, {"missing"}, 0.01), 0.01);
@@ -736,7 +759,8 @@ TEST(TradeModelTest, CoversPortfolioDetailHelpersAndTaxonomyFallbacks) {
 
     EXPECT_EQ(domain::parse_product_type("callable_bond"), domain::ProductType::CallableBond);
     EXPECT_EQ(domain::asset_class_from_product_type(domain::ProductType::CallableBond), domain::AssetClass::Rates);
-    EXPECT_EQ(domain::asset_class_from_product_type(domain::ProductType::CommodityFuture), domain::AssetClass::Commodity);
+    EXPECT_EQ(domain::asset_class_from_product_type(domain::ProductType::CommodityFuture),
+              domain::AssetClass::Commodity);
     EXPECT_EQ(domain::asset_class_from_product_type(domain::ProductType::CrossCurrencySwap), domain::AssetClass::FX);
     EXPECT_EQ(domain::asset_class_from_product_type(domain::ProductType::EquityOption), domain::AssetClass::Equity);
     EXPECT_EQ(domain::asset_class_from_product_type(static_cast<domain::ProductType>(-1)), domain::AssetClass::Unknown);

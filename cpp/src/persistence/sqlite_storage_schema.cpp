@@ -245,4 +245,3 @@ void SQLiteStorageBackend::initialize_schema() {
 }
 
 } // namespace qrp::persistence
-

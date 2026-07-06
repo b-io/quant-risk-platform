@@ -9,8 +9,11 @@
 
 namespace qrp::persistence {
 
-void SQLiteStorageBackend::store_portfolio(const std::string& portfolio_id, const std::string& name, const std::string& base_ccy) {
-    const char* sql = "INSERT OR REPLACE INTO portfolios (portfolio_id, portfolio_name, base_currency) VALUES (?, ?, ?);";
+void SQLiteStorageBackend::store_portfolio(const std::string& portfolio_id,
+                                           const std::string& name,
+                                           const std::string& base_ccy) {
+    const char* sql = "INSERT OR REPLACE INTO portfolios (portfolio_id, portfolio_name, "
+                      "base_currency) VALUES (?, ?, ?);";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) {
         throw std::runtime_error(fmt::format("Failed to prepare statement: {}", sqlite3_errmsg(db_)));
@@ -26,7 +29,9 @@ void SQLiteStorageBackend::store_portfolio(const std::string& portfolio_id, cons
     sqlite3_finalize(stmt);
 }
 
-void SQLiteStorageBackend::store_book(const std::string& book_id, const std::string& portfolio_id, const std::string& name) {
+void SQLiteStorageBackend::store_book(const std::string& book_id,
+                                      const std::string& portfolio_id,
+                                      const std::string& name) {
     const char* sql = "INSERT OR REPLACE INTO books (book_id, portfolio_id, book_name) VALUES (?, ?, ?);";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) {
@@ -43,11 +48,19 @@ void SQLiteStorageBackend::store_book(const std::string& book_id, const std::str
     sqlite3_finalize(stmt);
 }
 
-void SQLiteStorageBackend::store_trade(const std::string& trade_id, const std::string& portfolio_id, const std::string& book_id,
-                                       const std::string& asset_class, const std::string& trade_type, const std::string& ccy,
-                                       double notional, const std::string& start_date, const std::string& maturity_date,
-                                       const std::string& direction, const std::string& economics_json) {
-    const char* sql = "INSERT OR REPLACE INTO trades (trade_id, portfolio_id, book_id, asset_class, trade_type, currency, notional, start_date, maturity_date, direction, economics_json) "
+void SQLiteStorageBackend::store_trade(const std::string& trade_id,
+                                       const std::string& portfolio_id,
+                                       const std::string& book_id,
+                                       const std::string& asset_class,
+                                       const std::string& trade_type,
+                                       const std::string& ccy,
+                                       double notional,
+                                       const std::string& start_date,
+                                       const std::string& maturity_date,
+                                       const std::string& direction,
+                                       const std::string& economics_json) {
+    const char* sql = "INSERT OR REPLACE INTO trades (trade_id, portfolio_id, book_id, asset_class, trade_type, "
+                      "currency, notional, start_date, maturity_date, direction, economics_json) "
                       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) {
@@ -74,7 +87,8 @@ void SQLiteStorageBackend::store_trade(const std::string& trade_id, const std::s
 
 std::vector<std::shared_ptr<domain::Trade>> SQLiteStorageBackend::load_trades(const std::string& portfolio_id) {
     std::vector<std::shared_ptr<domain::Trade>> trades;
-    const char* sql = "SELECT trade_id, asset_class, trade_type, currency, notional, start_date, maturity_date, direction, economics_json FROM trades WHERE portfolio_id = ?;";
+    const char* sql = "SELECT trade_id, asset_class, trade_type, currency, notional, start_date, maturity_date, "
+                      "direction, economics_json FROM trades WHERE portfolio_id = ?;";
 
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) {
@@ -117,11 +131,15 @@ std::vector<std::shared_ptr<domain::Trade>> SQLiteStorageBackend::load_trades(co
             // Map flat columns if missing in econ
             if (!econ.contains("notional")) {
                 double notional = sqlite3_column_double(stmt, 4);
-                if (type == "equity_spot") full_j["quantity"] = notional;
-                else full_j["notional"] = notional;
+                if (type == "equity_spot")
+                    full_j["quantity"] = notional;
+                else
+                    full_j["notional"] = notional;
             }
-            if (!econ.contains("start_date")) full_j["start_date"] = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
-            if (!econ.contains("maturity_date")) full_j["maturity_date"] = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6));
+            if (!econ.contains("start_date"))
+                full_j["start_date"] = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
+            if (!econ.contains("maturity_date"))
+                full_j["maturity_date"] = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6));
 
             full_j["details"] = econ;
             t->from_json(full_j);
@@ -133,4 +151,3 @@ std::vector<std::shared_ptr<domain::Trade>> SQLiteStorageBackend::load_trades(co
 }
 
 } // namespace qrp::persistence
-

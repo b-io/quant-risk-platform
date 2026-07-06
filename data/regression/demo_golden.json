@@ -1,14 +1,14 @@
 {
   "monte_carlo": {
     "AgedHorizonRevaluation": {
-      "base_portfolio_value": 5157206.09,
-      "expected_shortfall_95": 248554.41,
-      "mean_pnl": 17507.9,
+      "base_portfolio_value": 5156639.09,
+      "expected_shortfall_95": 248517.91,
+      "mean_pnl": 17544.4,
       "tolerance": 50.0,
-      "var_95": 210853.72
+      "var_95": 210817.22
     },
     "HorizonShockOnly": {
-      "base_portfolio_value": 5157206.09,
+      "base_portfolio_value": 5156639.09,
       "expected_shortfall_95": 76197.21,
       "mean_pnl": 9360.91,
       "tolerance": 50.0,
@@ -166,9 +166,9 @@
     "demo_usd_bermudan_swaption_001": {
       "carry_pnl": 0.0,
       "cash_pnl": 0.0,
-      "market_move_pnl": 1563.0,
+      "market_move_pnl": 1534.0,
       "residual_pnl": 0.0,
-      "total_pnl": 1563.0
+      "total_pnl": 1534.0
     },
     "demo_usd_cap_001": {
       "carry_pnl": 0.81,
@@ -837,7 +837,7 @@
   },
   "valuation": {
     "tolerance": 1.0,
-    "total_npv": 5157206.09,
+    "total_npv": 5156639.09,
     "trades": {
       "demo_wti_calendar_option_001": {
         "asset_class": "commodity",
@@ -967,7 +967,7 @@
       },
       "demo_usd_bermudan_swaption_001": {
         "asset_class": "rates",
-        "npv": 47173.0,
+        "npv": 46606.0,
         "product_type": "bermudan_swaption",
         "support_status": "supported"
       },

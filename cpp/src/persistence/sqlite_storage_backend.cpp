@@ -6,8 +6,7 @@
 
 namespace qrp::persistence {
 
-SQLiteStorageBackend::SQLiteStorageBackend(const std::string& db_path)
-    : db_path_(db_path) {
+SQLiteStorageBackend::SQLiteStorageBackend(const std::string& db_path) : db_path_(db_path) {
     int rc = sqlite3_open(db_path.c_str(), &db_);
     if (rc != SQLITE_OK) {
         std::string err_msg = sqlite3_errmsg(db_);

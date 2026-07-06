@@ -7,9 +7,9 @@
 #include <qrp/market/market_snapshot.hpp>
 
 #include <gtest/gtest.h>
-#include <ql/math/matrix.hpp>
 
 #include <cmath>
+#include <ql/math/matrix.hpp>
 
 using namespace qrp::analytics;
 using namespace qrp::domain;

@@ -1,10 +1,11 @@
 // Implements market snapshot validation and QuantLib market-state construction.
 
+#include <qrp/conventions/market_convention_registry.hpp>
 #include <qrp/market/market_snapshot.hpp>
 
-#include <qrp/conventions/market_convention_registry.hpp>
-
 #include <fmt/format.h>
+
+#include <algorithm>
 #include <ql/currencies/america.hpp>
 #include <ql/currencies/asia.hpp>
 #include <ql/currencies/europe.hpp>
@@ -38,22 +39,25 @@
 #include <ql/time/daycounters/actualactual.hpp>
 #include <ql/time/daycounters/thirty360.hpp>
 #include <ql/time/imm.hpp>
-
-#include <algorithm>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
 /*
 Design note (see docs/architecture/CURVE_BOOTSTRAP_DESIGN.md):
-- We build yield curves with QuantLib::PiecewiseYieldCurve<Discount, LogLinear>.
+- We build yield curves with
+QuantLib::PiecewiseYieldCurve<Discount, LogLinear>.
 - Helpers use QuantLib::ext::shared_ptr so their pointer type matches the QuantLib build in vcpkg
-  (QuantLib maps ext::shared_ptr to boost::shared_ptr or std::shared_ptr depending on config).
-- Quotes are QuantLib::SimpleQuote handles owned by MarketState. Any bump on a handle propagates to the
-  curve via QuantLib's observer mechanism (no rebuild), which is essential for fast risk/scenario runs.
-- We support both OIS (discount) and IBOR/FRA/IRS helpers. The choice of helpers reflects market practice:
-  discounting from OIS, forwarding from term indices. Interpolation on discount factors via LogLinear keeps
-  positivity of discount factors and is an industry-standard choice for production curves.
+
+(QuantLib maps ext::shared_ptr to boost::shared_ptr or std::shared_ptr depending on config).
+-
+Quotes are QuantLib::SimpleQuote handles owned by MarketState. Any bump on a handle propagates to
+the curve via QuantLib's observer mechanism (no rebuild), which is essential for fast risk/scenario
+runs.
+- We support both OIS (discount) and IBOR/FRA/IRS helpers. The choice of helpers reflects market
+practice: discounting from OIS, forwarding from term indices. Interpolation on discount factors via
+LogLinear keeps positivity of discount factors and is an industry-standard choice for production
+curves.
 */
 namespace qrp::market {
 namespace {
@@ -85,11 +89,11 @@ bool is_iso_date_string(const std::string& value) {
 
 /**
  * @brief Resolves an interest-rate future expiry into the date consumed by QuantLib helpers.
+
  */
-QuantLib::Date resolve_future_expiry_date(
-    const domain::MarketQuote& quote,
-    const QuantLib::Date& valuation_date,
-    const QuantLib::Calendar& calendar) {
+QuantLib::Date resolve_future_expiry_date(const domain::MarketQuote& quote,
+                                          const QuantLib::Date& valuation_date,
+                                          const QuantLib::Calendar& calendar) {
     if (!quote.expiry.empty() && is_iso_date_string(quote.expiry)) {
         return CurveBuilder::parse_date(quote.expiry);
     }
@@ -117,21 +121,11 @@ double futures_price_from_quote(double value) {
 } // namespace
 
 QuantLib::Date CurveBuilder::parse_date(const std::string& date_str) {
-    auto is_digit = [](char c) {
-        return c >= '0' && c <= '9';
-    };
+    auto is_digit = [](char c) { return c >= '0' && c <= '9'; };
 
-    if (date_str.size() != 10 ||
-        date_str[4] != '-' ||
-        date_str[7] != '-' ||
-        !is_digit(date_str[0]) ||
-        !is_digit(date_str[1]) ||
-        !is_digit(date_str[2]) ||
-        !is_digit(date_str[3]) ||
-        !is_digit(date_str[5]) ||
-        !is_digit(date_str[6]) ||
-        !is_digit(date_str[8]) ||
-        !is_digit(date_str[9])) {
+    if (date_str.size() != 10 || date_str[4] != '-' || date_str[7] != '-' || !is_digit(date_str[0]) ||
+        !is_digit(date_str[1]) || !is_digit(date_str[2]) || !is_digit(date_str[3]) || !is_digit(date_str[5]) ||
+        !is_digit(date_str[6]) || !is_digit(date_str[8]) || !is_digit(date_str[9])) {
         throw std::invalid_argument("Invalid date format '" + date_str + "'; expected YYYY-MM-DD");
     }
 
@@ -164,10 +158,14 @@ QuantLib::Period CurveBuilder::parse_tenor(const std::string& tenor) {
         }
 
         switch (unit) {
-            case 'D': return QuantLib::Period(value, QuantLib::Days);
-            case 'W': return QuantLib::Period(value, QuantLib::Weeks);
-            case 'M': return QuantLib::Period(value, QuantLib::Months);
-            case 'Y': return QuantLib::Period(value, QuantLib::Years);
+            case 'D':
+                return QuantLib::Period(value, QuantLib::Days);
+            case 'W':
+                return QuantLib::Period(value, QuantLib::Weeks);
+            case 'M':
+                return QuantLib::Period(value, QuantLib::Months);
+            case 'Y':
+                return QuantLib::Period(value, QuantLib::Years);
             default:
                 throw std::invalid_argument("tenor unit must be one of D, W, M, Y");
         }
@@ -178,113 +176,176 @@ QuantLib::Period CurveBuilder::parse_tenor(const std::string& tenor) {
 
 QuantLib::DayCounter CurveBuilder::parse_day_count(domain::DayCount dc) {
     switch (dc) {
-        case domain::DayCount::ACT360: return QuantLib::Actual360();
+        case domain::DayCount::ACT360:
+            return QuantLib::Actual360();
         case domain::DayCount::ACT365:
-        case domain::DayCount::ACT365F: return QuantLib::Actual365Fixed();
+        case domain::DayCount::ACT365F:
+            return QuantLib::Actual365Fixed();
         case domain::DayCount::ACTACT:
-        case domain::DayCount::ACTACT_AFB: return QuantLib::ActualActual(QuantLib::ActualActual::AFB);
-        case domain::DayCount::ACTACT_EURO: return QuantLib::ActualActual(QuantLib::ActualActual::Euro);
-        case domain::DayCount::ACTACT_ISDA: return QuantLib::ActualActual(QuantLib::ActualActual::ISDA);
-        case domain::DayCount::ACTACT_ISMA: return QuantLib::ActualActual(QuantLib::ActualActual::ISMA);
-        case domain::DayCount::Thirty360: return QuantLib::Thirty360(QuantLib::Thirty360::BondBasis);
-        default: return QuantLib::Actual365Fixed();
+        case domain::DayCount::ACTACT_AFB:
+            return QuantLib::ActualActual(QuantLib::ActualActual::AFB);
+        case domain::DayCount::ACTACT_EURO:
+            return QuantLib::ActualActual(QuantLib::ActualActual::Euro);
+        case domain::DayCount::ACTACT_ISDA:
+            return QuantLib::ActualActual(QuantLib::ActualActual::ISDA);
+        case domain::DayCount::ACTACT_ISMA:
+            return QuantLib::ActualActual(QuantLib::ActualActual::ISMA);
+        case domain::DayCount::Thirty360:
+            return QuantLib::Thirty360(QuantLib::Thirty360::BondBasis);
+        default:
+            return QuantLib::Actual365Fixed();
     }
 }
 
 QuantLib::Calendar CurveBuilder::parse_calendar(domain::BusinessCalendar cal) {
     switch (cal) {
-        case domain::BusinessCalendar::CHF: return QuantLib::Switzerland();
-        case domain::BusinessCalendar::JP: return QuantLib::Japan();
-        case domain::BusinessCalendar::Target: return QuantLib::TARGET();
-        case domain::BusinessCalendar::UK: return QuantLib::UnitedKingdom();
-        case domain::BusinessCalendar::US: return QuantLib::UnitedStates(QuantLib::UnitedStates::GovernmentBond);
-        case domain::BusinessCalendar::WeekendsOnly: return QuantLib::NullCalendar();
-        default: return QuantLib::TARGET();
+        case domain::BusinessCalendar::CHF:
+            return QuantLib::Switzerland();
+        case domain::BusinessCalendar::JP:
+            return QuantLib::Japan();
+        case domain::BusinessCalendar::Target:
+            return QuantLib::TARGET();
+        case domain::BusinessCalendar::UK:
+            return QuantLib::UnitedKingdom();
+        case domain::BusinessCalendar::US:
+            return QuantLib::UnitedStates(QuantLib::UnitedStates::GovernmentBond);
+        case domain::BusinessCalendar::WeekendsOnly:
+            return QuantLib::NullCalendar();
+        default:
+            return QuantLib::TARGET();
     }
 }
 
 double CurveBuilder::tenor_to_years(const std::string& tenor) {
-    if (tenor.empty()) return 0.0;
+    if (tenor.empty())
+        return 0.0;
     QuantLib::Period p = parse_tenor(tenor);
-    if (p.units() == QuantLib::Days) return p.length() / 365.25;
-    if (p.units() == QuantLib::Weeks) return p.length() / 52.1786;
-    if (p.units() == QuantLib::Months) return p.length() / 12.0;
-    if (p.units() == QuantLib::Years) return static_cast<double>(p.length());
+    if (p.units() == QuantLib::Days)
+        return p.length() / 365.25;
+    if (p.units() == QuantLib::Weeks)
+        return p.length() / 52.1786;
+    if (p.units() == QuantLib::Months)
+        return p.length() / 12.0;
+    if (p.units() == QuantLib::Years)
+        return static_cast<double>(p.length());
     return 0.0;
 }
 
 QuantLib::BusinessDayConvention CurveBuilder::parse_business_day_convention(domain::BusinessDayConvention bdc) {
     switch (bdc) {
-        case domain::BusinessDayConvention::Following: return QuantLib::Following;
-        case domain::BusinessDayConvention::HalfMonthModifiedFollowing: return QuantLib::HalfMonthModifiedFollowing;
-        case domain::BusinessDayConvention::ModifiedFollowing: return QuantLib::ModifiedFollowing;
-        case domain::BusinessDayConvention::ModifiedPreceding: return QuantLib::ModifiedPreceding;
-        case domain::BusinessDayConvention::Nearest: return QuantLib::Nearest;
-        case domain::BusinessDayConvention::Preceding: return QuantLib::Preceding;
-        case domain::BusinessDayConvention::Unadjusted: return QuantLib::Unadjusted;
-        default: return QuantLib::Following;
+        case domain::BusinessDayConvention::Following:
+            return QuantLib::Following;
+        case domain::BusinessDayConvention::HalfMonthModifiedFollowing:
+            return QuantLib::HalfMonthModifiedFollowing;
+        case domain::BusinessDayConvention::ModifiedFollowing:
+            return QuantLib::ModifiedFollowing;
+        case domain::BusinessDayConvention::ModifiedPreceding:
+            return QuantLib::ModifiedPreceding;
+        case domain::BusinessDayConvention::Nearest:
+            return QuantLib::Nearest;
+        case domain::BusinessDayConvention::Preceding:
+            return QuantLib::Preceding;
+        case domain::BusinessDayConvention::Unadjusted:
+            return QuantLib::Unadjusted;
+        default:
+            return QuantLib::Following;
     }
 }
 
 QuantLib::Frequency CurveBuilder::parse_frequency(domain::Frequency freq) {
     switch (freq) {
-        case domain::Frequency::Annual: return QuantLib::Annual;
-        case domain::Frequency::Bimonthly: return QuantLib::Bimonthly;
-        case domain::Frequency::Biweekly: return QuantLib::Biweekly;
-        case domain::Frequency::Daily: return QuantLib::Daily;
-        case domain::Frequency::EveryFourthMonth: return QuantLib::EveryFourthMonth;
-        case domain::Frequency::EveryFourthWeek: return QuantLib::EveryFourthWeek;
-        case domain::Frequency::Monthly: return QuantLib::Monthly;
-        case domain::Frequency::Once: return QuantLib::Once;
-        case domain::Frequency::OtherFrequency: return QuantLib::OtherFrequency;
-        case domain::Frequency::Quarterly: return QuantLib::Quarterly;
-        case domain::Frequency::Semiannual: return QuantLib::Semiannual;
-        case domain::Frequency::Weekly: return QuantLib::Weekly;
-        default: return QuantLib::Annual;
+        case domain::Frequency::Annual:
+            return QuantLib::Annual;
+        case domain::Frequency::Bimonthly:
+            return QuantLib::Bimonthly;
+        case domain::Frequency::Biweekly:
+            return QuantLib::Biweekly;
+        case domain::Frequency::Daily:
+            return QuantLib::Daily;
+        case domain::Frequency::EveryFourthMonth:
+            return QuantLib::EveryFourthMonth;
+        case domain::Frequency::EveryFourthWeek:
+            return QuantLib::EveryFourthWeek;
+        case domain::Frequency::Monthly:
+            return QuantLib::Monthly;
+        case domain::Frequency::Once:
+            return QuantLib::Once;
+        case domain::Frequency::OtherFrequency:
+            return QuantLib::OtherFrequency;
+        case domain::Frequency::Quarterly:
+            return QuantLib::Quarterly;
+        case domain::Frequency::Semiannual:
+            return QuantLib::Semiannual;
+        case domain::Frequency::Weekly:
+            return QuantLib::Weekly;
+        default:
+            return QuantLib::Annual;
     }
 }
 
 QuantLib::DateGeneration::Rule CurveBuilder::parse_date_generation(domain::DateGeneration rule) {
     switch (rule) {
-        case domain::DateGeneration::Backward: return QuantLib::DateGeneration::Backward;
-        case domain::DateGeneration::CDS: return QuantLib::DateGeneration::CDS;
-        case domain::DateGeneration::CDS2015: return QuantLib::DateGeneration::CDS2015;
-        case domain::DateGeneration::Forward: return QuantLib::DateGeneration::Forward;
-        case domain::DateGeneration::OldCDS: return QuantLib::DateGeneration::OldCDS;
-        case domain::DateGeneration::ThirdWednesday: return QuantLib::DateGeneration::ThirdWednesday;
-        case domain::DateGeneration::Twentieth: return QuantLib::DateGeneration::Twentieth;
-        case domain::DateGeneration::TwentiethIMM: return QuantLib::DateGeneration::TwentiethIMM;
-        case domain::DateGeneration::Zero: return QuantLib::DateGeneration::Zero;
-        default: return QuantLib::DateGeneration::Forward;
+        case domain::DateGeneration::Backward:
+            return QuantLib::DateGeneration::Backward;
+        case domain::DateGeneration::CDS:
+            return QuantLib::DateGeneration::CDS;
+        case domain::DateGeneration::CDS2015:
+            return QuantLib::DateGeneration::CDS2015;
+        case domain::DateGeneration::Forward:
+            return QuantLib::DateGeneration::Forward;
+        case domain::DateGeneration::OldCDS:
+            return QuantLib::DateGeneration::OldCDS;
+        case domain::DateGeneration::ThirdWednesday:
+            return QuantLib::DateGeneration::ThirdWednesday;
+        case domain::DateGeneration::Twentieth:
+            return QuantLib::DateGeneration::Twentieth;
+        case domain::DateGeneration::TwentiethIMM:
+            return QuantLib::DateGeneration::TwentiethIMM;
+        case domain::DateGeneration::Zero:
+            return QuantLib::DateGeneration::Zero;
+        default:
+            return QuantLib::DateGeneration::Forward;
     }
 }
 
-QuantLib::ext::shared_ptr<QuantLib::OvernightIndex> CurveBuilder::create_overnight_index(
-    domain::Currency currency,
-    const QuantLib::Handle<QuantLib::YieldTermStructure>& h) {
+QuantLib::ext::shared_ptr<QuantLib::OvernightIndex>
+CurveBuilder::create_overnight_index(domain::Currency currency,
+                                     const QuantLib::Handle<QuantLib::YieldTermStructure>& h) {
 
     switch (currency) {
-        case domain::Currency::CHF: return QuantLib::ext::make_shared<QuantLib::Saron>(h);
-        case domain::Currency::EUR: return QuantLib::ext::make_shared<QuantLib::Estr>(h);
-        case domain::Currency::GBP: return QuantLib::ext::make_shared<QuantLib::Sonia>(h);
-        case domain::Currency::JPY: return QuantLib::ext::make_shared<QuantLib::Tonar>(h);
-        case domain::Currency::USD: return QuantLib::ext::make_shared<QuantLib::Sofr>(h);
-        default: return QuantLib::ext::make_shared<QuantLib::Sofr>(h);
+        case domain::Currency::CHF:
+            return QuantLib::ext::make_shared<QuantLib::Saron>(h);
+        case domain::Currency::EUR:
+            return QuantLib::ext::make_shared<QuantLib::Estr>(h);
+        case domain::Currency::GBP:
+            return QuantLib::ext::make_shared<QuantLib::Sonia>(h);
+        case domain::Currency::JPY:
+            return QuantLib::ext::make_shared<QuantLib::Tonar>(h);
+        case domain::Currency::USD:
+            return QuantLib::ext::make_shared<QuantLib::Sofr>(h);
+        default:
+            return QuantLib::ext::make_shared<QuantLib::Sofr>(h);
     }
 }
 
-QuantLib::ext::shared_ptr<QuantLib::IborIndex> CurveBuilder::create_ibor_index(
-    domain::Currency currency,
-    const QuantLib::Period& tenor,
-    const QuantLib::Handle<QuantLib::YieldTermStructure>& h) {
+QuantLib::ext::shared_ptr<QuantLib::IborIndex>
+CurveBuilder::create_ibor_index(domain::Currency currency,
+                                const QuantLib::Period& tenor,
+                                const QuantLib::Handle<QuantLib::YieldTermStructure>& h) {
 
     switch (currency) {
-        case domain::Currency::CHF: return QuantLib::ext::make_shared<QuantLib::CHFLibor>(tenor, h);
-        case domain::Currency::EUR: return QuantLib::ext::make_shared<QuantLib::Euribor>(tenor, h);
-        case domain::Currency::GBP: return QuantLib::ext::make_shared<QuantLib::GBPLibor>(tenor, h);
-        case domain::Currency::JPY: return QuantLib::ext::make_shared<QuantLib::JPYLibor>(tenor, h);
-        case domain::Currency::USD: return QuantLib::ext::make_shared<QuantLib::USDLibor>(tenor, h);
-        default: return QuantLib::ext::make_shared<QuantLib::USDLibor>(tenor, h);
+        case domain::Currency::CHF:
+            return QuantLib::ext::make_shared<QuantLib::CHFLibor>(tenor, h);
+        case domain::Currency::EUR:
+            return QuantLib::ext::make_shared<QuantLib::Euribor>(tenor, h);
+        case domain::Currency::GBP:
+            return QuantLib::ext::make_shared<QuantLib::GBPLibor>(tenor, h);
+        case domain::Currency::JPY:
+            return QuantLib::ext::make_shared<QuantLib::JPYLibor>(tenor, h);
+        case domain::Currency::USD:
+            return QuantLib::ext::make_shared<QuantLib::USDLibor>(tenor, h);
+        default:
+            return QuantLib::ext::make_shared<QuantLib::USDLibor>(tenor, h);
     }
 }
 
@@ -324,19 +385,21 @@ bool CurveBuilder::supports_rates_vol_quote(domain::QuoteInstrumentType type) {
     }
 }
 
-QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> CurveBuilder::build_rate_curve(
-    const domain::CurveSpec& spec,
-    const std::map<std::string, domain::MarketQuote>& quotes,
-    const QuantLib::Date& valuation_date,
-    std::shared_ptr<MarketState> state_ptr) {
+QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure>
+CurveBuilder::build_rate_curve(const domain::CurveSpec& spec,
+                               const std::map<std::string, domain::MarketQuote>& quotes,
+                               const QuantLib::Date& valuation_date,
+                               std::shared_ptr<MarketState> state_ptr) {
 
     std::vector<QuantLib::ext::shared_ptr<QuantLib::RateHelper>> helpers;
     QuantLib::Handle<QuantLib::YieldTermStructure> empty_term_structure;
 
     for (const auto& q_id : spec.quote_ids) {
-        if (!quotes.contains(q_id)) continue;
+        if (!quotes.contains(q_id))
+            continue;
         const auto& q = quotes.at(q_id);
-        if (!supports_rates_curve_quote(q.instrument_type)) continue;
+        if (!supports_rates_curve_quote(q.instrument_type))
+            continue;
 
         QuantLib::ext::shared_ptr<QuantLib::SimpleQuote> simple_quote;
         if (state_ptr && state_ptr->get_quote_handle(q_id)) {
@@ -354,49 +417,69 @@ QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> CurveBuilder::build_rate
         auto tenor = parse_tenor(q.tenor);
 
         // Resolve conventions (prefer per-quote index_family, fallback by type)
-        std::string idx_family = q.index_family.empty()
-            ? (q.instrument_type == domain::QuoteInstrumentType::OIS ? std::string("OIS") : std::string("IBOR_3M"))
-            : q.index_family;
+        std::string idx_family =
+            q.index_family.empty()
+                ? (q.instrument_type == domain::QuoteInstrumentType::OIS ? std::string("OIS") : std::string("IBOR_3M"))
+                : q.index_family;
         auto& reg = qrp::conventions::MarketConventionRegistry::instance();
         auto conv = reg.get_rates_convention(q.currency, idx_family);
 
         auto cal = parse_calendar(q.calendar != domain::BusinessCalendar::UNKNOWN ? q.calendar : conv.calendar);
-        auto bdc = parse_business_day_convention(q.bdc != domain::BusinessDayConvention::UNKNOWN ? q.bdc : conv.business_day_convention);
+        auto bdc = parse_business_day_convention(
+            q.bdc != domain::BusinessDayConvention::UNKNOWN ? q.bdc : conv.business_day_convention);
         auto dc = parse_day_count(q.day_count != domain::DayCount::UNKNOWN ? q.day_count : spec.day_count);
         int settlement_days = q.settlement_days >= 0 ? q.settlement_days : conv.settlement_days;
 
         if (q.instrument_type == domain::QuoteInstrumentType::Deposit) {
-            helpers.push_back(QuantLib::ext::make_shared<QuantLib::DepositRateHelper>(
-                quote_handle, tenor, settlement_days, cal, bdc, false, dc));
+            helpers.push_back(QuantLib::ext::make_shared<QuantLib::DepositRateHelper>(quote_handle,
+                                                                                      tenor,
+                                                                                      settlement_days,
+                                                                                      cal,
+                                                                                      bdc,
+                                                                                      false,
+                                                                                      dc));
         } else if (q.instrument_type == domain::QuoteInstrumentType::FRA) {
-            auto index = create_ibor_index(q.currency, QuantLib::Period(3, QuantLib::Months), empty_term_structure); // default 3M index convention
+            auto index = create_ibor_index(q.currency,
+                                           QuantLib::Period(3, QuantLib::Months),
+                                           empty_term_structure); // default 3M index convention
             helpers.push_back(QuantLib::ext::make_shared<QuantLib::FraRateHelper>(quote_handle, tenor, index));
         } else if (q.instrument_type == domain::QuoteInstrumentType::InterestRateFuture) {
             auto futures_quote_handle = quote_handle;
             if (q.value <= 1.0) {
-                auto futures_price_quote = QuantLib::ext::make_shared<QuantLib::SimpleQuote>(futures_price_from_quote(q.value));
+                auto futures_price_quote =
+                    QuantLib::ext::make_shared<QuantLib::SimpleQuote>(futures_price_from_quote(q.value));
                 futures_quote_handle = QuantLib::Handle<QuantLib::Quote>(futures_price_quote);
             }
             const auto expiry_date = resolve_future_expiry_date(q, valuation_date, cal);
             auto index = create_ibor_index(q.currency, QuantLib::Period(3, QuantLib::Months), empty_term_structure);
-            helpers.push_back(QuantLib::ext::make_shared<QuantLib::FuturesRateHelper>(futures_quote_handle, expiry_date, index));
+            helpers.push_back(
+                QuantLib::ext::make_shared<QuantLib::FuturesRateHelper>(futures_quote_handle, expiry_date, index));
         } else if (q.instrument_type == domain::QuoteInstrumentType::IRS) {
-            auto index = create_ibor_index(q.currency, QuantLib::Period(3, QuantLib::Months), empty_term_structure); // default 3M index convention
+            auto index = create_ibor_index(q.currency,
+                                           QuantLib::Period(3, QuantLib::Months),
+                                           empty_term_structure); // default 3M index convention
             auto fixed_freq = parse_frequency(conv.fixed_leg_frequency);
             auto fixed_dc = parse_day_count(conv.fixed_leg_day_count);
-            helpers.push_back(QuantLib::ext::make_shared<QuantLib::SwapRateHelper>(
-                quote_handle, tenor, cal, fixed_freq, bdc, fixed_dc, index));
+            helpers.push_back(QuantLib::ext::make_shared<QuantLib::SwapRateHelper>(quote_handle,
+                                                                                   tenor,
+                                                                                   cal,
+                                                                                   fixed_freq,
+                                                                                   bdc,
+                                                                                   fixed_dc,
+                                                                                   index));
         } else if (q.instrument_type == domain::QuoteInstrumentType::OIS) {
             auto index = create_overnight_index(q.currency, empty_term_structure);
-            helpers.push_back(QuantLib::ext::make_shared<QuantLib::OISRateHelper>(settlement_days, tenor, quote_handle, index));
+            helpers.push_back(
+                QuantLib::ext::make_shared<QuantLib::OISRateHelper>(settlement_days, tenor, quote_handle, index));
         }
     }
 
-    if (helpers.empty()) return nullptr;
+    if (helpers.empty())
+        return nullptr;
 
     using CurveT = QuantLib::PiecewiseYieldCurve<QuantLib::Discount, QuantLib::LogLinear>;
-    QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> curve = QuantLib::ext::make_shared<CurveT>(
-        valuation_date, helpers, parse_day_count(spec.day_count));
+    QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> curve =
+        QuantLib::ext::make_shared<CurveT>(valuation_date, helpers, parse_day_count(spec.day_count));
     curve->enableExtrapolation();
     if (state_ptr) {
         state_ptr->add_curve(spec.id, curve);
@@ -476,7 +559,10 @@ MarketSnapshot::MarketSnapshot(const domain::MarketSnapshot& dto) {
 
 domain::MarketSnapshot MarketState::capture_snapshot() const {
     domain::MarketSnapshot snapshot;
-    snapshot.valuation_date = fmt::format("{:4d}-{:02d}-{:02d}", (int)valuation_date_.year(), (int)valuation_date_.month(), (int)valuation_date_.dayOfMonth());
+    snapshot.valuation_date = fmt::format("{:4d}-{:02d}-{:02d}",
+                                          (int)valuation_date_.year(),
+                                          (int)valuation_date_.month(),
+                                          (int)valuation_date_.dayOfMonth());
 
     for (const auto& [id, handle] : quote_handles_) {
         domain::MarketQuote q;
@@ -491,7 +577,8 @@ domain::MarketSnapshot MarketState::capture_snapshot() const {
 
     for (const auto& [index_name, date_map] : fixings_) {
         for (const auto& [date, value] : date_map) {
-            std::string date_str = fmt::format("{:4d}-{:02d}-{:02d}", (int)date.year(), (int)date.month(), (int)date.dayOfMonth());
+            std::string date_str =
+                fmt::format("{:4d}-{:02d}-{:02d}", (int)date.year(), (int)date.month(), (int)date.dayOfMonth());
             snapshot.fixings[index_name][date_str] = value;
         }
     }

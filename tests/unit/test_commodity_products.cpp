@@ -16,13 +16,12 @@
 
 namespace {
 
-qrp::domain::MarketQuote make_quote(
-    const std::string& id,
-    qrp::domain::QuoteInstrumentType instrument_type,
-    qrp::domain::QuoteType quote_type,
-    const std::string& tenor,
-    double value,
-    const std::string& underlier = {}) {
+qrp::domain::MarketQuote make_quote(const std::string& id,
+                                    qrp::domain::QuoteInstrumentType instrument_type,
+                                    qrp::domain::QuoteType quote_type,
+                                    const std::string& tenor,
+                                    double value,
+                                    const std::string& underlier = {}) {
     qrp::domain::MarketQuote quote;
     quote.id = id;
     quote.instrument_type = instrument_type;
@@ -57,13 +56,42 @@ qrp::domain::MarketSnapshot make_commodity_market() {
     market.quotes = {
         make_quote("USD_ON", qrp::domain::QuoteInstrumentType::Deposit, qrp::domain::QuoteType::Deposit, "1D", 0.0525),
         make_quote("USD_OIS_1Y", qrp::domain::QuoteInstrumentType::OIS, qrp::domain::QuoteType::OIS, "1Y", 0.0535),
-        make_quote("WTI_SPOT", qrp::domain::QuoteInstrumentType::CommoditySpot, qrp::domain::QuoteType::Price, "SPOT", 77.50, "WTI"),
-        make_quote("WTI_FUT_6M", qrp::domain::QuoteInstrumentType::CommodityFuture, qrp::domain::QuoteType::CommodityForward, "6M", 78.25, "WTI"),
-        make_quote("WTI_FUT_9M", qrp::domain::QuoteInstrumentType::CommodityFuture, qrp::domain::QuoteType::CommodityForward, "9M", 79.10, "WTI"),
-        make_quote("WTI_VOL_6M_ATM", qrp::domain::QuoteInstrumentType::CommodityVol, qrp::domain::QuoteType::Volatility, "6M", 0.30, "WTI"),
-        make_quote("TTF_FWD_Q1", qrp::domain::QuoteInstrumentType::CommodityForward, qrp::domain::QuoteType::CommodityForward, "Q1", 32.00, "TTF"),
-        make_quote("TTF_FWD_Q2", qrp::domain::QuoteInstrumentType::CommodityForward, qrp::domain::QuoteType::CommodityForward, "Q2", 34.00, "TTF")
-    };
+        make_quote("WTI_SPOT",
+                   qrp::domain::QuoteInstrumentType::CommoditySpot,
+                   qrp::domain::QuoteType::Price,
+                   "SPOT",
+                   77.50,
+                   "WTI"),
+        make_quote("WTI_FUT_6M",
+                   qrp::domain::QuoteInstrumentType::CommodityFuture,
+                   qrp::domain::QuoteType::CommodityForward,
+                   "6M",
+                   78.25,
+                   "WTI"),
+        make_quote("WTI_FUT_9M",
+                   qrp::domain::QuoteInstrumentType::CommodityFuture,
+                   qrp::domain::QuoteType::CommodityForward,
+                   "9M",
+                   79.10,
+                   "WTI"),
+        make_quote("WTI_VOL_6M_ATM",
+                   qrp::domain::QuoteInstrumentType::CommodityVol,
+                   qrp::domain::QuoteType::Volatility,
+                   "6M",
+                   0.30,
+                   "WTI"),
+        make_quote("TTF_FWD_Q1",
+                   qrp::domain::QuoteInstrumentType::CommodityForward,
+                   qrp::domain::QuoteType::CommodityForward,
+                   "Q1",
+                   32.00,
+                   "TTF"),
+        make_quote("TTF_FWD_Q2",
+                   qrp::domain::QuoteInstrumentType::CommodityForward,
+                   qrp::domain::QuoteType::CommodityForward,
+                   "Q2",
+                   34.00,
+                   "TTF")};
     market.quotes[5].expiry = "6M";
     market.quotes[5].strike = "ATM";
     market.curves = {make_usd_ois_curve()};
@@ -132,7 +160,8 @@ qrp::domain::Portfolio make_commodity_portfolio() {
     option->underlier = "WTI";
     portfolio.trades.push_back(option);
 
-    auto spread_option = make_commodity_trade<qrp::domain::CommodityCalendarSpreadOptionTrade>("commodity_calendar_spread_wti", "long");
+    auto spread_option =
+        make_commodity_trade<qrp::domain::CommodityCalendarSpreadOptionTrade>("commodity_calendar_spread_wti", "long");
     spread_option->quantity = 1.0;
     spread_option->contract_size = 1000.0;
     spread_option->strike_spread = 0.50;
@@ -179,7 +208,8 @@ TEST(CommodityProductsTest, PricesCommodityProducts) {
     EXPECT_EQ(by_trade.at("commodity_future_wti").product_type, qrp::domain::ProductType::CommodityFuture);
     EXPECT_EQ(by_trade.at("commodity_strip_wti").product_type, qrp::domain::ProductType::CommodityFutureStrip);
     EXPECT_EQ(by_trade.at("commodity_future_option_wti").product_type, qrp::domain::ProductType::CommodityFutureOption);
-    EXPECT_EQ(by_trade.at("commodity_calendar_spread_wti").product_type, qrp::domain::ProductType::CommodityCalendarSpreadOption);
+    EXPECT_EQ(by_trade.at("commodity_calendar_spread_wti").product_type,
+              qrp::domain::ProductType::CommodityCalendarSpreadOption);
     EXPECT_EQ(by_trade.at("commodity_swing_ttf").product_type, qrp::domain::ProductType::CommoditySwing);
 
     EXPECT_EQ(by_trade.at("commodity_swing_ttf").support_status, qrp::domain::SupportStatus::PartiallySupported);
@@ -212,7 +242,8 @@ TEST(CommodityProductsTest, FactoriesReturnNullWhenCommodityQuotesAreMissing) {
 
     qrp::domain::CommodityFutureTrade future_without_maturity;
     future_without_maturity.future_quote_id = "MISSING";
-    EXPECT_FALSE(qrp::instruments::CommodityInstrumentFactory::create_commodity_future(future_without_maturity, context));
+    EXPECT_FALSE(
+        qrp::instruments::CommodityInstrumentFactory::create_commodity_future(future_without_maturity, context));
 
     qrp::domain::CommodityFutureTrade future;
     future.maturity_date = "2026-09-24";
@@ -228,7 +259,8 @@ TEST(CommodityProductsTest, FactoriesReturnNullWhenCommodityQuotesAreMissing) {
 
     qrp::domain::CommodityFutureOptionTrade option_without_expiry;
     option_without_expiry.future_quote_id = "MISSING";
-    EXPECT_FALSE(qrp::instruments::CommodityInstrumentFactory::create_commodity_future_option(option_without_expiry, context));
+    EXPECT_FALSE(
+        qrp::instruments::CommodityInstrumentFactory::create_commodity_future_option(option_without_expiry, context));
 
     qrp::domain::CommodityFutureOptionTrade option;
     option.expiry_date = "2026-09-24";
@@ -238,13 +270,16 @@ TEST(CommodityProductsTest, FactoriesReturnNullWhenCommodityQuotesAreMissing) {
     qrp::domain::CommodityCalendarSpreadOptionTrade spread_without_expiry;
     spread_without_expiry.near_future_quote_id = "MISSING_NEAR";
     spread_without_expiry.far_future_quote_id = "MISSING_FAR";
-    EXPECT_FALSE(qrp::instruments::CommodityInstrumentFactory::create_commodity_calendar_spread_option(spread_without_expiry, context));
+    EXPECT_FALSE(
+        qrp::instruments::CommodityInstrumentFactory::create_commodity_calendar_spread_option(spread_without_expiry,
+                                                                                              context));
 
     qrp::domain::CommodityCalendarSpreadOptionTrade spread_option;
     spread_option.expiry_date = "2026-09-24";
     spread_option.near_future_quote_id = "MISSING_NEAR";
     spread_option.far_future_quote_id = "MISSING_FAR";
-    EXPECT_FALSE(qrp::instruments::CommodityInstrumentFactory::create_commodity_calendar_spread_option(spread_option, context));
+    EXPECT_FALSE(
+        qrp::instruments::CommodityInstrumentFactory::create_commodity_calendar_spread_option(spread_option, context));
 
     qrp::domain::CommoditySwingTrade swing_without_maturity;
     swing_without_maturity.underlier = "TTF";

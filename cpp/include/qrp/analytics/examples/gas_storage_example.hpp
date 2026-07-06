@@ -18,12 +18,12 @@ public:
      * @brief Operational constraints and exercise costs for storage.
      */
     struct Params {
-        double min_inventory = 0.0;       // Minimum allowed inventory.
-        double max_inventory = 100.0;     // Maximum storage capacity.
-        double max_injection_rate = 10.0; // Maximum volume injected per step.
+        double min_inventory = 0.0;        // Minimum allowed inventory.
+        double max_inventory = 100.0;      // Maximum storage capacity.
+        double max_injection_rate = 10.0;  // Maximum volume injected per step.
         double max_withdrawal_rate = 10.0; // Maximum volume withdrawn per step.
-        double injection_cost = 0.5;      // Variable cost per injected unit.
-        double withdrawal_cost = 0.5;     // Variable cost per withdrawn unit.
+        double injection_cost = 0.5;       // Variable cost per injected unit.
+        double withdrawal_cost = 0.5;      // Variable cost per withdrawn unit.
     };
 
     /**
@@ -34,26 +34,18 @@ public:
     /**
      * @brief Returns idle, inject, and withdraw actions.
      */
-    std::vector<dynamic_programming::Action> feasibleActions(
-        const dynamic_programming::State& state,
-        std::size_t timeIndex
-    ) const override {
+    std::vector<dynamic_programming::Action> feasibleActions(const dynamic_programming::State& state,
+                                                             std::size_t timeIndex) const override {
         // The example uses a compact action set; production storage models can use finer volume grids.
-        return {
-            {0, "Idle", {}},
-            {1, "Inject", {}},
-            {2, "Withdraw", {}}
-        };
+        return {{0, "Idle", {}}, {1, "Inject", {}}, {2, "Withdraw", {}}};
     }
 
     /**
      * @brief Returns the cashflow from injection or withdrawal at the current price.
      */
-    double immediateCashflow(
-        const dynamic_programming::State& state,
-        const dynamic_programming::Action& action,
-        std::size_t timeIndex
-    ) const override {
+    double immediateCashflow(const dynamic_programming::State& state,
+                             const dynamic_programming::Action& action,
+                             std::size_t timeIndex) const override {
         double price = state.market_variables[0];
         double inventory = state.operational_variables[0];
 
@@ -70,12 +62,10 @@ public:
     /**
      * @brief Updates inventory after the selected storage action.
      */
-    dynamic_programming::State nextState(
-        const dynamic_programming::State& state,
-        const dynamic_programming::Action& action,
-        const std::vector<double>& market_variables_next,
-        std::size_t timeIndex
-    ) const override {
+    dynamic_programming::State nextState(const dynamic_programming::State& state,
+                                         const dynamic_programming::Action& action,
+                                         const std::vector<double>& market_variables_next,
+                                         std::size_t timeIndex) const override {
         double inventory = state.operational_variables[0];
         double next_inventory = inventory;
 
@@ -91,10 +81,8 @@ public:
     /**
      * @brief Returns polynomial features of price and inventory.
      */
-    std::vector<double> regressionFeatures(
-        const dynamic_programming::State& state,
-        std::size_t timeIndex
-    ) const override {
+    std::vector<double> regressionFeatures(const dynamic_programming::State& state,
+                                           std::size_t timeIndex) const override {
         double p = state.market_variables[0];
         double v = state.operational_variables[0];
         return {1.0, p, v, p * p, v * v, p * v};

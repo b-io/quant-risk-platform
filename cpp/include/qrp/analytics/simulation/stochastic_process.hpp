@@ -17,18 +17,21 @@ public:
     /**
      * @brief Allocates a path with fixed time steps and dimensions.
      */
-    MarketPath(std::size_t num_steps, std::size_t dimension)
-        : data_(num_steps, std::vector<double>(dimension)) {}
+    MarketPath(std::size_t num_steps, std::size_t dimension) : data_(num_steps, std::vector<double>(dimension)) {}
 
     /**
      * @brief Returns the number of simulated time steps.
      */
-    std::size_t num_steps() const { return data_.size(); }
+    std::size_t num_steps() const {
+        return data_.size();
+    }
 
     /**
      * @brief Returns the number of simulated state dimensions.
      */
-    std::size_t dimension() const { return data_.empty() ? 0 : data_[0].size(); }
+    std::size_t dimension() const {
+        return data_.empty() ? 0 : data_[0].size();
+    }
 
     /**
      * @brief Returns a mutable path value by time and dimension.
@@ -73,11 +76,7 @@ public:
     /**
      * @brief Simulates one path on the supplied time grid.
      */
-    virtual void simulatePath(
-        const TimeGrid& timeGrid,
-        std::mt19937& gen,
-        MarketPath& outputPath
-    ) const = 0;
+    virtual void simulatePath(const TimeGrid& timeGrid, std::mt19937& gen, MarketPath& outputPath) const = 0;
 };
 
 } // namespace qrp::analytics::simulation

@@ -13,7 +13,7 @@ namespace QuantLib {
  * @brief Forward declaration of QuantLib's pricing instrument base class.
  */
 class Instrument;
-}
+} // namespace QuantLib
 
 namespace qrp::analytics {
 
@@ -35,16 +35,13 @@ public:
     /**
      * @brief Prices a constructed QuantLib instrument using the trade's pricing profile.
      */
-    static double price_instrument(
-        const domain::Trade& trade,
-        const QuantLib::Instrument& instrument);
+    static double price_instrument(const domain::Trade& trade, const QuantLib::Instrument& instrument);
 
     /**
      * @brief Builds and prices each supported trade in the portfolio.
      */
-    static std::vector<ValuationResult> price_portfolio(
-        const domain::Portfolio& portfolio,
-        const PricingContext& context);
+    static std::vector<ValuationResult> price_portfolio(const domain::Portfolio& portfolio,
+                                                        const PricingContext& context);
 };
 
 } // namespace qrp::analytics

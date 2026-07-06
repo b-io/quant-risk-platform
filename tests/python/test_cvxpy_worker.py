@@ -131,7 +131,12 @@ class FakeMatrix:
     def __matmul__(self, other):  # noqa: ANN001
         if isinstance(other, FakeVector):
             return FakeExpression()
-        return FakeMatrix(self.rows, finite=self.finite, symmetric=self.symmetric, min_eigenvalue=self.min_eigenvalue)
+        return FakeMatrix(
+            self.rows,
+            finite=self.finite,
+            symmetric=self.symmetric,
+            min_eigenvalue=self.min_eigenvalue,
+        )
 
 
 class FakeEigenvalues(list):
@@ -314,7 +319,13 @@ class CvxpyWorkerHelperTest(unittest.TestCase):
         )
         self.assertEqual(
             worker._solver_options(config, "CLARABEL"),
-            {"tol_feas": 1.0e-6, "tol_gap_abs": 1.0e-6, "tol_gap_rel": 1.0e-6, "max_iter": 250, "time_limit": 5.0},
+            {
+                "tol_feas": 1.0e-6,
+                "tol_gap_abs": 1.0e-6,
+                "tol_gap_rel": 1.0e-6,
+                "max_iter": 250,
+                "time_limit": 5.0,
+            },
         )
         self.assertEqual(worker._solver_options({}, "OTHER"), {})
 
@@ -327,7 +338,11 @@ class CvxpyWorkerHelperTest(unittest.TestCase):
 
     def test_build_risk_expression_supports_full_covariance(self) -> None:
         risk_expression = worker._build_risk_expression(
-            {"type": "FullCovariance", "asset_ids": ["B", "A"], "covariance": [[0.2, 0.0], [0.0, 0.1]]},
+            {
+                "type": "FullCovariance",
+                "asset_ids": ["B", "A"],
+                "covariance": [[0.2, 0.0], [0.0, 0.1]],
+            },
             ["A", "B"],
             {"A": 0, "B": 1},
         )
@@ -340,7 +355,12 @@ class CvxpyWorkerHelperTest(unittest.TestCase):
         cases = [
             ({"type": "FullCovariance", "asset_ids": ["A"]}, "missing assets"),
             (
-                {"type": "FactorRisk", "asset_ids": ["A"], "exposures": [[1.0, 2.0]], "factor_covariance": [[1.0]]},
+                {
+                    "type": "FactorRisk",
+                    "asset_ids": ["A"],
+                    "exposures": [[1.0, 2.0]],
+                    "factor_covariance": [[1.0]],
+                },
                 "asset-by-factor",
             ),
             (
@@ -377,7 +397,9 @@ class CvxpyWorkerHelperTest(unittest.TestCase):
         for risk_model, message in cases:
             with self.subTest(message=message):
                 with self.assertRaisesRegex(ValueError, message):
-                    worker._build_risk_expression(risk_model, ["A", "B"] if message == "missing assets" else ["A"], {"A": 0})
+                    worker._build_risk_expression(
+                        risk_model, ["A", "B"] if message == "missing assets" else ["A"], {"A": 0}
+                    )
 
     def test_build_risk_expression_supports_factor_risk(self) -> None:
         risk_expression = worker._build_risk_expression(
@@ -426,10 +448,19 @@ class CvxpyWorkerHelperTest(unittest.TestCase):
 
     def test_solve_optimization_validates_constraints(self) -> None:
         cases = [
-            ({"type": "LinearEquality", "coefficients": {"B": 1.0}, "target": 1.0}, "unknown asset"),
+            (
+                {"type": "LinearEquality", "coefficients": {"B": 1.0}, "target": 1.0},
+                "unknown asset",
+            ),
             ({"type": "LinearInequality", "coefficients": {"A": 1.0}}, "at least one bound"),
-            ({"type": "LinearInequality", "coefficients": {"A": 1.0}, "lb": 2.0, "ub": 1.0}, "cannot exceed"),
-            ({"type": "Turnover", "current_weights": {"A": 0.5}, "max_turnover": -0.1}, "non-negative"),
+            (
+                {"type": "LinearInequality", "coefficients": {"A": 1.0}, "lb": 2.0, "ub": 1.0},
+                "cannot exceed",
+            ),
+            (
+                {"type": "Turnover", "current_weights": {"A": 0.5}, "max_turnover": -0.1},
+                "non-negative",
+            ),
             ({"type": "Unsupported"}, "Unsupported constraint type"),
         ]
         for constraint, message in cases:
@@ -440,8 +471,14 @@ class CvxpyWorkerHelperTest(unittest.TestCase):
 
     def test_solve_optimization_validates_objectives(self) -> None:
         cases = [
-            ({"type": "MeanVariance", "expected_returns": {"A": 0.05}, "risk_aversion": -1.0}, "non-negative"),
-            ({"type": "MeanVariance", "expected_returns": {"A": 0.05}, "risk_aversion": 1.0}, "requires a risk model"),
+            (
+                {"type": "MeanVariance", "expected_returns": {"A": 0.05}, "risk_aversion": -1.0},
+                "non-negative",
+            ),
+            (
+                {"type": "MeanVariance", "expected_returns": {"A": 0.05}, "risk_aversion": 1.0},
+                "requires a risk model",
+            ),
             ({"type": "MinimumVariance"}, "requires a risk model"),
             ({"type": "MaximizeReturn", "expected_returns": {"B": 0.05}}, "unknown asset"),
             ({"type": "TrackingError", "benchmark_weights": {"A": 1.0}}, "requires a risk model"),
@@ -456,7 +493,11 @@ class CvxpyWorkerHelperTest(unittest.TestCase):
     def test_solve_optimization_supports_risk_backed_mean_variance(self) -> None:
         request = base_request()
         request["objectives"] = [{"type": "MeanVariance", "expected_returns": {"A": 0.05}, "risk_aversion": 1.0}]
-        request["risk_model"] = {"type": "FullCovariance", "asset_ids": ["A"], "covariance": [[0.1]]}
+        request["risk_model"] = {
+            "type": "FullCovariance",
+            "asset_ids": ["A"],
+            "covariance": [[0.1]],
+        }
 
         result = worker.solve_optimization(request)
 
@@ -473,7 +514,11 @@ class CvxpyWorkerHelperTest(unittest.TestCase):
             {"type": "MinimumVariance"},
             {"type": "TrackingError", "benchmark_weights": {"A": 1.0}},
         ]
-        request["risk_model"] = {"type": "FullCovariance", "asset_ids": ["A"], "covariance": [[0.1]]}
+        request["risk_model"] = {
+            "type": "FullCovariance",
+            "asset_ids": ["A"],
+            "covariance": [[0.1]],
+        }
 
         result = worker.solve_optimization(request)
 
@@ -502,7 +547,10 @@ class CvxpyWorkerHelperTest(unittest.TestCase):
         self.assertEqual(response["status"], "optimal")
 
     def test_command_line_entrypoint_reports_usage_without_paths(self) -> None:
-        with mock.patch.object(sys, "argv", ["cvxpy_worker.py"]), mock.patch("sys.stdout", new_callable=io.StringIO) as stdout:
+        with (
+            mock.patch.object(sys, "argv", ["cvxpy_worker.py"]),
+            mock.patch("sys.stdout", new_callable=io.StringIO) as stdout,
+        ):
             with self.assertRaises(SystemExit) as exit_context:
                 runpy.run_path(
                     str(PROJECT_ROOT / "python" / "qrp" / "optimization" / "cvxpy_worker.py"),

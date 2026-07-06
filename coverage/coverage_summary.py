@@ -88,7 +88,7 @@ def write_badge(summary: CoverageSummary, path: Path) -> None:
         "\n".join(
             [
                 '<svg xmlns="http://www.w3.org/2000/svg" width="112" height="20" role="img" aria-label="coverage">',
-                '  <title>coverage</title>',
+                "  <title>coverage</title>",
                 '  <linearGradient id="s" x2="0" y2="100%">',
                 '    <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>',
                 '    <stop offset="1" stop-opacity=".1"/>',
@@ -99,7 +99,8 @@ def write_badge(summary: CoverageSummary, path: Path) -> None:
                 f'    <rect x="61" width="51" height="20" fill="{color}"/>',
                 '    <rect width="112" height="20" fill="url(#s)"/>',
                 "  </g>",
-                '  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">',
+                '  <g fill="#fff" text-anchor="middle" '
+                'font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">',
                 f'    <text x="31" y="15" fill="#010101" fill-opacity=".3">{label}</text>',
                 f'    <text x="31" y="14">{label}</text>',
                 f'    <text x="86" y="15" fill="#010101" fill-opacity=".3">{value}</text>',

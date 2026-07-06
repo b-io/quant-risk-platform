@@ -20,8 +20,7 @@ public:
     /**
      * @brief Prepares a SQL statement and throws on preparation failure.
      */
-    Statement(sqlite3* db, const char* sql)
-        : db_(db) {
+    Statement(sqlite3* db, const char* sql) : db_(db) {
         if (sqlite3_prepare_v2(db_, sql, -1, &stmt_, nullptr) != SQLITE_OK) {
             throw std::runtime_error(fmt::format("Failed to prepare statement: {}", sqlite3_errmsg(db_)));
         }
@@ -85,8 +84,10 @@ public:
      */
     bool step_row() {
         const int rc = sqlite3_step(stmt_);
-        if (rc == SQLITE_ROW) return true;
-        if (rc == SQLITE_DONE) return false;
+        if (rc == SQLITE_ROW)
+            return true;
+        if (rc == SQLITE_DONE)
+            return false;
         throw std::runtime_error(fmt::format("Failed to execute statement: {}", sqlite3_errmsg(db_)));
     }
 
@@ -107,8 +108,12 @@ private:
 
 } // namespace
 
-void SQLiteStorageBackend::store_analysis_run(const std::string& run_id, const std::string& type, const std::string& portfolio_id, const std::string& snapshot_id) {
-    const char* sql = "INSERT OR REPLACE INTO analysis_runs (run_id, run_type, portfolio_id, snapshot_id, status) VALUES (?, ?, ?, ?, 'COMPLETED');";
+void SQLiteStorageBackend::store_analysis_run(const std::string& run_id,
+                                              const std::string& type,
+                                              const std::string& portfolio_id,
+                                              const std::string& snapshot_id) {
+    const char* sql = "INSERT OR REPLACE INTO analysis_runs (run_id, run_type, portfolio_id, "
+                      "snapshot_id, status) VALUES (?, ?, ?, ?, 'COMPLETED');";
     Statement stmt(db_, sql);
     stmt.bind_text(1, run_id);
     stmt.bind_text(2, type);
@@ -117,18 +122,17 @@ void SQLiteStorageBackend::store_analysis_run(const std::string& run_id, const s
     stmt.step_done();
 }
 
-void SQLiteStorageBackend::store_valuation_result(
-    const std::string& run_id,
-    const std::string& trade_id,
-    double npv,
-    const std::string& ccy,
-    const std::string& status,
-    const std::string& error,
-    const std::string& asset_class,
-    const std::string& product_type,
-    const std::string& support_status,
-    const std::string& model_name,
-    const std::string& status_message) {
+void SQLiteStorageBackend::store_valuation_result(const std::string& run_id,
+                                                  const std::string& trade_id,
+                                                  double npv,
+                                                  const std::string& ccy,
+                                                  const std::string& status,
+                                                  const std::string& error,
+                                                  const std::string& asset_class,
+                                                  const std::string& product_type,
+                                                  const std::string& support_status,
+                                                  const std::string& model_name,
+                                                  const std::string& status_message) {
     const char* sql = R"(
         INSERT OR REPLACE INTO valuation_results (
             run_id,
@@ -160,8 +164,11 @@ void SQLiteStorageBackend::store_valuation_result(
     stmt.step_done();
 }
 
-void SQLiteStorageBackend::store_scenario_result(const std::string& run_id, const std::string& scenario_name, double portfolio_pnl) {
-    const char* sql = "INSERT OR REPLACE INTO scenario_results (run_id, scenario_name, portfolio_pnl) VALUES (?, ?, ?);";
+void SQLiteStorageBackend::store_scenario_result(const std::string& run_id,
+                                                 const std::string& scenario_name,
+                                                 double portfolio_pnl) {
+    const char* sql = "INSERT OR REPLACE INTO scenario_results (run_id, scenario_name, "
+                      "portfolio_pnl) VALUES (?, ?, ?);";
     Statement stmt(db_, sql);
     stmt.bind_text(1, run_id);
     stmt.bind_text(2, scenario_name);
@@ -169,8 +176,14 @@ void SQLiteStorageBackend::store_scenario_result(const std::string& run_id, cons
     stmt.step_done();
 }
 
-void SQLiteStorageBackend::store_var_result(const std::string& run_id, const std::string& method, double confidence_level, double var_value, double expected_shortfall, int scenario_count) {
-    const char* sql = "INSERT OR REPLACE INTO var_results (run_id, method, confidence_level, var_value, expected_shortfall, scenario_count) VALUES (?, ?, ?, ?, ?, ?);";
+void SQLiteStorageBackend::store_var_result(const std::string& run_id,
+                                            const std::string& method,
+                                            double confidence_level,
+                                            double var_value,
+                                            double expected_shortfall,
+                                            int scenario_count) {
+    const char* sql = "INSERT OR REPLACE INTO var_results (run_id, method, confidence_level, "
+                      "var_value, expected_shortfall, scenario_count) VALUES (?, ?, ?, ?, ?, ?);";
     Statement stmt(db_, sql);
     stmt.bind_text(1, run_id);
     stmt.bind_text(2, method);
@@ -181,8 +194,13 @@ void SQLiteStorageBackend::store_var_result(const std::string& run_id, const std
     stmt.step_done();
 }
 
-void SQLiteStorageBackend::store_risk_result(const std::string& run_id, const std::string& trade_id, const std::string& measure, const std::string& rf_id, double value) {
-    const char* sql = "INSERT OR REPLACE INTO risk_results (run_id, trade_id, risk_measure, risk_factor_id, value) VALUES (?, ?, ?, ?, ?);";
+void SQLiteStorageBackend::store_risk_result(const std::string& run_id,
+                                             const std::string& trade_id,
+                                             const std::string& measure,
+                                             const std::string& rf_id,
+                                             double value) {
+    const char* sql = "INSERT OR REPLACE INTO risk_results (run_id, trade_id, risk_measure, "
+                      "risk_factor_id, value) VALUES (?, ?, ?, ?, ?);";
     Statement stmt(db_, sql);
     stmt.bind_text(1, run_id);
     stmt.bind_text(2, trade_id);
@@ -200,8 +218,12 @@ void SQLiteStorageBackend::store_scenario_set(const std::string& set_id, const s
     stmt.step_done();
 }
 
-void SQLiteStorageBackend::store_scenario_factor_shock(const std::string& set_id, const std::string& scenario_name, const std::string& factor_id, double shock) {
-    const char* sql = "INSERT OR REPLACE INTO scenario_factor_shocks (scenario_set_id, scenario_name, factor_id, shock) VALUES (?, ?, ?, ?);";
+void SQLiteStorageBackend::store_scenario_factor_shock(const std::string& set_id,
+                                                       const std::string& scenario_name,
+                                                       const std::string& factor_id,
+                                                       double shock) {
+    const char* sql = "INSERT OR REPLACE INTO scenario_factor_shocks (scenario_set_id, "
+                      "scenario_name, factor_id, shock) VALUES (?, ?, ?, ?);";
     Statement stmt(db_, sql);
     stmt.bind_text(1, set_id);
     stmt.bind_text(2, scenario_name);
@@ -210,9 +232,11 @@ void SQLiteStorageBackend::store_scenario_factor_shock(const std::string& set_id
     stmt.step_done();
 }
 
-std::map<std::string, std::map<std::string, double>> SQLiteStorageBackend::load_scenario_set(const std::string& set_id) {
+std::map<std::string, std::map<std::string, double>>
+SQLiteStorageBackend::load_scenario_set(const std::string& set_id) {
     std::map<std::string, std::map<std::string, double>> set;
-    const char* sql = "SELECT scenario_name, factor_id, shock FROM scenario_factor_shocks WHERE scenario_set_id = ?;";
+    const char* sql = "SELECT scenario_name, factor_id, shock FROM scenario_factor_shocks WHERE "
+                      "scenario_set_id = ?;";
     Statement stmt(db_, sql);
     stmt.bind_text(1, set_id);
     while (stmt.step_row()) {
@@ -295,4 +319,3 @@ std::vector<StorageBackend::ValuationRecord> SQLiteStorageBackend::get_valuation
 }
 
 } // namespace qrp::persistence
-

@@ -13,8 +13,8 @@
 
 #include <map>
 #include <memory>
-#include <string>
 #include <stdexcept>
+#include <string>
 
 namespace {
 
@@ -72,7 +72,8 @@ TEST(ValuationServiceTest, ReportsProductSupportMetadataForPricedTrades) {
 
     qrp::domain::MarketSnapshot market_dto;
     market_dto.valuation_date = "2026-03-24";
-    market_dto.quotes.push_back({"AAPL", qrp::domain::QuoteInstrumentType::Future, qrp::domain::Currency::USD, "SPOT", 110.0});
+    market_dto.quotes.push_back(
+        {"AAPL", qrp::domain::QuoteInstrumentType::Future, qrp::domain::Currency::USD, "SPOT", 110.0});
 
     qrp::market::MarketSnapshot market(market_dto);
     qrp::analytics::PricingContext context(market.built_state());
@@ -168,10 +169,8 @@ TEST(ValuationServiceTest, RegistryFallbacksUseTradeAndProductTaxonomy) {
     qrp::domain::MarketSnapshot current_market = previous_market;
     current_market.valuation_date = "2026-03-25";
 
-    const auto cashflows = qrp::analytics::ProductPricingRegistry::extract_realized_cashflows(
-        trade,
-        previous_market,
-        current_market);
+    const auto cashflows =
+        qrp::analytics::ProductPricingRegistry::extract_realized_cashflows(trade, previous_market, current_market);
 
     EXPECT_FALSE(cashflows.extraction_supported);
     EXPECT_FALSE(cashflows.model_name.empty());
@@ -192,7 +191,8 @@ TEST(StressEngineTest, UsesAdjustedTradeNpvForEquitySpot) {
 
     qrp::domain::MarketSnapshot market_dto;
     market_dto.valuation_date = "2026-03-24";
-    market_dto.quotes.push_back({"AAPL", qrp::domain::QuoteInstrumentType::Future, qrp::domain::Currency::USD, "SPOT", 100.0});
+    market_dto.quotes.push_back(
+        {"AAPL", qrp::domain::QuoteInstrumentType::Future, qrp::domain::Currency::USD, "SPOT", 100.0});
 
     qrp::domain::FactorDefinition factor;
     factor.factor_id = "RF:EQ:AAPL:SPOT";
@@ -210,12 +210,8 @@ TEST(StressEngineTest, UsesAdjustedTradeNpvForEquitySpot) {
     scenario.name = "AAPL_UP_10_PERCENT";
     scenario.factor_shocks[factor.factor_id] = 0.10;
 
-    auto results = qrp::analytics::StressEngine::run_historical_stress(
-        portfolio,
-        market_dto,
-        {scenario},
-        {factor},
-        {binding});
+    auto results =
+        qrp::analytics::StressEngine::run_historical_stress(portfolio, market_dto, {scenario}, {factor}, {binding});
 
     ASSERT_EQ(results.size(), 1);
     EXPECT_NEAR(results[0].trade_pnls.at("equity_aapl"), 100.0, 1e-10);
@@ -236,10 +232,7 @@ TEST(PnlExplainServiceTest, PreservesValuationDiagnosticsAndComponentLines) {
     current_market.valuation_date = "2026-03-25";
     current_market.quotes[0].value = 110.0;
 
-    const auto results = qrp::analytics::PnlExplainService::explain_pnl(
-        portfolio,
-        previous_market,
-        current_market);
+    const auto results = qrp::analytics::PnlExplainService::explain_pnl(portfolio, previous_market, current_market);
 
     ASSERT_EQ(results.size(), 1);
     const auto& result = results[0];
@@ -300,11 +293,10 @@ TEST(RiskServiceTest, RejectsMissingFactorConfiguration) {
 
     qrp::domain::MarketSnapshot market_dto;
     market_dto.valuation_date = "2026-03-24";
-    market_dto.quotes.push_back({"AAPL", qrp::domain::QuoteInstrumentType::Future, qrp::domain::Currency::USD, "SPOT", 110.0});
+    market_dto.quotes.push_back(
+        {"AAPL", qrp::domain::QuoteInstrumentType::Future, qrp::domain::Currency::USD, "SPOT", 110.0});
 
-    EXPECT_THROW({
-        qrp::analytics::RiskService::compute_risk(portfolio, market_dto, {}, {});
-    }, std::runtime_error);
+    EXPECT_THROW({ qrp::analytics::RiskService::compute_risk(portfolio, market_dto, {}, {}); }, std::runtime_error);
 }
 
 TEST(StressEngineTest, RejectsMissingFactorConfiguration) {
@@ -314,12 +306,13 @@ TEST(StressEngineTest, RejectsMissingFactorConfiguration) {
 
     qrp::domain::MarketSnapshot market_dto;
     market_dto.valuation_date = "2026-03-24";
-    market_dto.quotes.push_back({"AAPL", qrp::domain::QuoteInstrumentType::Future, qrp::domain::Currency::USD, "SPOT", 110.0});
+    market_dto.quotes.push_back(
+        {"AAPL", qrp::domain::QuoteInstrumentType::Future, qrp::domain::Currency::USD, "SPOT", 110.0});
 
     qrp::market::ScenarioDefinition scenario;
     scenario.name = "NO_FACTORS";
 
-    EXPECT_THROW({
-        qrp::analytics::StressEngine::run_historical_stress(portfolio, market_dto, {scenario}, {}, {});
-    }, std::runtime_error);
+    EXPECT_THROW(
+        { qrp::analytics::StressEngine::run_historical_stress(portfolio, market_dto, {scenario}, {}, {}); },
+        std::runtime_error);
 }

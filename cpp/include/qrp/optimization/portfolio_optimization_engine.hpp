@@ -27,13 +27,12 @@ public:
     /**
      * @brief Optimizes a portfolio based on returns, risk model, and constraints.
      */
-    OptimizationResult optimize(
-        const std::map<std::string, double>& current_weights,
-        const std::map<std::string, double>& expected_returns,
-        const std::shared_ptr<RiskModel>& risk_model,
-        const std::vector<std::shared_ptr<OptimizationConstraint>>& constraints,
-        const std::shared_ptr<OptimizationObjective>& objective,
-        const SolverConfig& config = SolverConfig());
+    OptimizationResult optimize(const std::map<std::string, double>& current_weights,
+                                const std::map<std::string, double>& expected_returns,
+                                const std::shared_ptr<RiskModel>& risk_model,
+                                const std::vector<std::shared_ptr<OptimizationConstraint>>& constraints,
+                                const std::shared_ptr<OptimizationObjective>& objective,
+                                const SolverConfig& config = SolverConfig());
 
 private:
     std::shared_ptr<OptimizationSolver> solver_; // Solver adapter used for all optimization requests.

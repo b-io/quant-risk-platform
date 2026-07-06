@@ -22,16 +22,14 @@ public:
     /**
      * @brief Returns the single simulated state dimension.
      */
-    std::size_t dimension() const override { return 1; }
+    std::size_t dimension() const override {
+        return 1;
+    }
 
     /**
      * @brief Simulates one GBM path on the supplied time grid.
      */
-    void simulatePath(
-        const TimeGrid& timeGrid,
-        std::mt19937& gen,
-        MarketPath& outputPath
-    ) const override {
+    void simulatePath(const TimeGrid& timeGrid, std::mt19937& gen, MarketPath& outputPath) const override {
         std::normal_distribution<double> dist(0.0, 1.0);
         double current_val = initial_value_;
         outputPath(0, 0) = current_val;

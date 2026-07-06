@@ -1,35 +1,29 @@
 // Implements rates instrument construction.
 
-#include <qrp/instruments/instrument_factory.hpp>
-
-#include <qrp/instruments/instrument_factory_common.hpp>
-
 #include <qrp/analytics/lsmc/lsmc_engine.hpp>
 #include <qrp/analytics/simulation/stochastic_process.hpp>
+#include <qrp/instruments/instrument_factory.hpp>
+#include <qrp/instruments/instrument_factory_common.hpp>
 
+#include <cmath>
+#include <cstdint>
 #include <random>
-
 
 namespace qrp::instruments {
 namespace {
 
 class DepositInstrument final : public QuantLib::Instrument {
 public:
-    DepositInstrument(
-        double notional,
-        double deposit_rate,
-        double direction_sign,
-        QuantLib::Date start_date,
-        QuantLib::Date maturity_date,
-        QuantLib::DayCounter day_count,
-        QuantLib::Handle<QuantLib::YieldTermStructure> discount_handle)
-        : notional_(notional),
-          deposit_rate_(deposit_rate),
-          direction_sign_(direction_sign),
-          start_date_(std::move(start_date)),
-          maturity_date_(std::move(maturity_date)),
-          day_count_(std::move(day_count)),
-          discount_handle_(std::move(discount_handle)) {}
+    DepositInstrument(double notional,
+                      double deposit_rate,
+                      double direction_sign,
+                      QuantLib::Date start_date,
+                      QuantLib::Date maturity_date,
+                      QuantLib::DayCounter day_count,
+                      QuantLib::Handle<QuantLib::YieldTermStructure> discount_handle)
+        : notional_(notional), deposit_rate_(deposit_rate), direction_sign_(direction_sign),
+          start_date_(std::move(start_date)), maturity_date_(std::move(maturity_date)),
+          day_count_(std::move(day_count)), discount_handle_(std::move(discount_handle)) {}
 
     bool isExpired() const override {
         return maturity_date_ <= QuantLib::Settings::instance().evaluationDate();
@@ -58,16 +52,13 @@ private:
 
 class InterestRateFutureInstrument final : public QuantLib::Instrument {
 public:
-    InterestRateFutureInstrument(
-        QuantLib::Date start_date,
-        QuantLib::Date maturity_date,
-        QuantLib::DayCounter day_count,
-        QuantLib::Handle<QuantLib::YieldTermStructure> forecast_handle,
-        QuantLib::ext::shared_ptr<QuantLib::SimpleQuote> market_quote)
-        : start_date_(std::move(start_date)),
-          maturity_date_(std::move(maturity_date)),
-          day_count_(std::move(day_count)),
-          forecast_handle_(std::move(forecast_handle)),
+    InterestRateFutureInstrument(QuantLib::Date start_date,
+                                 QuantLib::Date maturity_date,
+                                 QuantLib::DayCounter day_count,
+                                 QuantLib::Handle<QuantLib::YieldTermStructure> forecast_handle,
+                                 QuantLib::ext::shared_ptr<QuantLib::SimpleQuote> market_quote)
+        : start_date_(std::move(start_date)), maturity_date_(std::move(maturity_date)),
+          day_count_(std::move(day_count)), forecast_handle_(std::move(forecast_handle)),
           market_quote_(std::move(market_quote)) {}
 
     bool isExpired() const override {
@@ -79,11 +70,8 @@ protected:
         if (market_quote_) {
             NPV_ = futures_price_from_quote(market_quote_->value());
         } else {
-            const auto forward_rate = forecast_handle_->forwardRate(
-                start_date_,
-                maturity_date_,
-                day_count_,
-                QuantLib::Simple).rate();
+            const auto forward_rate =
+                forecast_handle_->forwardRate(start_date_, maturity_date_, day_count_, QuantLib::Simple).rate();
             NPV_ = 100.0 * (1.0 - forward_rate);
         }
         errorEstimate_ = 0.0;
@@ -101,29 +89,40 @@ private:
 class MeanRevertingSwapRateProcess final : public analytics::simulation::StochasticProcess {
 public:
     MeanRevertingSwapRateProcess(double initial_rate, double mean_reversion, double volatility)
-        : initial_rate_(initial_rate),
-          mean_reversion_(mean_reversion),
-          volatility_(volatility) {}
+        : initial_rate_(initial_rate), mean_reversion_(mean_reversion), volatility_(volatility) {}
 
-    std::size_t dimension() const override { return 1; }
+    std::size_t dimension() const override {
+        return 1;
+    }
 
-    void simulatePath(
-        const analytics::simulation::TimeGrid& time_grid,
-        std::mt19937& generator,
-        analytics::simulation::MarketPath& output_path) const override {
-        std::normal_distribution<double> normal(0.0, 1.0);
+    void simulatePath(const analytics::simulation::TimeGrid& time_grid,
+                      std::mt19937& generator,
+                      analytics::simulation::MarketPath& output_path) const override {
         double rate = initial_rate_;
         output_path(0, 0) = rate;
 
         for (std::size_t i = 1; i < time_grid.size(); ++i) {
             const double dt = time_grid.dt(i);
-            const double dw = normal(generator) * std::sqrt(std::max(dt, 0.0));
+            const double dw = standard_normal(generator) * std::sqrt(std::max(dt, 0.0));
             rate += mean_reversion_ * (initial_rate_ - rate) * dt + volatility_ * dw;
             output_path(i, 0) = std::max(rate, -0.02);
         }
     }
 
 private:
+    static double open_unit_uniform(std::mt19937& generator) {
+        constexpr double denominator =
+            static_cast<double>(std::mt19937::max()) - static_cast<double>(std::mt19937::min()) + 2.0;
+        return (static_cast<double>(generator() - std::mt19937::min()) + 1.0) / denominator;
+    }
+
+    static double standard_normal(std::mt19937& generator) {
+        constexpr double two_pi = 6.283185307179586476925286766559;
+        const double u1 = open_unit_uniform(generator);
+        const double u2 = open_unit_uniform(generator);
+        return std::sqrt(-2.0 * std::log(u1)) * std::cos(two_pi * u2);
+    }
+
     double initial_rate_;
     double mean_reversion_;
     double volatility_;
@@ -131,54 +130,41 @@ private:
 
 class BermudanSwaptionDecisionProblem final : public analytics::dynamic_programming::DecisionProblem {
 public:
-    BermudanSwaptionDecisionProblem(
-        double strike_rate,
-        bool payer,
-        std::vector<double> exercise_annuities)
-        : strike_rate_(strike_rate),
-          payer_(payer),
-          exercise_annuities_(std::move(exercise_annuities)) {}
+    BermudanSwaptionDecisionProblem(double strike_rate, bool payer, std::vector<double> exercise_annuities)
+        : strike_rate_(strike_rate), payer_(payer), exercise_annuities_(std::move(exercise_annuities)) {}
 
-    std::vector<analytics::dynamic_programming::Action> feasibleActions(
-        const analytics::dynamic_programming::State&,
-        std::size_t time_index) const override {
+    std::vector<analytics::dynamic_programming::Action> feasibleActions(const analytics::dynamic_programming::State&,
+                                                                        std::size_t time_index) const override {
         if (time_index == 0 || time_index >= exercise_annuities_.size() || exercise_annuities_[time_index] <= 0.0) {
             return {{0, "Continue", {}}};
         }
-        return {
-            {0, "Continue", {}},
-            {1, "Exercise", {}}
-        };
+        return {{0, "Continue", {}}, {1, "Exercise", {}}};
     }
 
-    double immediateCashflow(
-        const analytics::dynamic_programming::State& state,
-        const analytics::dynamic_programming::Action& action,
-        std::size_t time_index) const override {
+    double immediateCashflow(const analytics::dynamic_programming::State& state,
+                             const analytics::dynamic_programming::Action& action,
+                             std::size_t time_index) const override {
         if (action.id != 1) {
             return 0.0;
         }
         return exercise_payoff(state.market_variables[0], time_index);
     }
 
-    analytics::dynamic_programming::State nextState(
-        const analytics::dynamic_programming::State&,
-        const analytics::dynamic_programming::Action&,
-        const std::vector<double>& market_variables_next,
-        std::size_t) const override {
+    analytics::dynamic_programming::State nextState(const analytics::dynamic_programming::State&,
+                                                    const analytics::dynamic_programming::Action&,
+                                                    const std::vector<double>& market_variables_next,
+                                                    std::size_t) const override {
         return {market_variables_next, {}};
     }
 
-    bool isTerminalAction(
-        const analytics::dynamic_programming::State&,
-        const analytics::dynamic_programming::Action& action,
-        std::size_t) const override {
+    bool isTerminalAction(const analytics::dynamic_programming::State&,
+                          const analytics::dynamic_programming::Action& action,
+                          std::size_t) const override {
         return action.id == 1;
     }
 
-    std::vector<double> regressionFeatures(
-        const analytics::dynamic_programming::State& state,
-        std::size_t) const override {
+    std::vector<double> regressionFeatures(const analytics::dynamic_programming::State& state,
+                                           std::size_t) const override {
         const double rate = state.market_variables[0];
         return {1.0, rate, rate * rate};
     }
@@ -200,33 +186,24 @@ private:
 
 class BermudanSwaptionLsmcInstrument final : public QuantLib::Instrument {
 public:
-    BermudanSwaptionLsmcInstrument(
-        double notional,
-        double fixed_rate,
-        bool payer,
-        double mean_reversion,
-        double volatility,
-        QuantLib::Date start_date,
-        QuantLib::Date maturity_date,
-        std::vector<QuantLib::Date> exercise_dates,
-        QuantLib::Schedule fixed_schedule,
-        QuantLib::DayCounter fixed_day_count,
-        QuantLib::Handle<QuantLib::YieldTermStructure> discount_handle)
-        : notional_(notional),
-          fixed_rate_(fixed_rate),
-          payer_(payer),
-          mean_reversion_(mean_reversion),
-          volatility_(volatility),
-          start_date_(std::move(start_date)),
-          maturity_date_(std::move(maturity_date)),
-          exercise_dates_(std::move(exercise_dates)),
-          fixed_schedule_(std::move(fixed_schedule)),
-          fixed_day_count_(std::move(fixed_day_count)),
-          discount_handle_(std::move(discount_handle)) {}
+    BermudanSwaptionLsmcInstrument(double notional,
+                                   double fixed_rate,
+                                   bool payer,
+                                   double mean_reversion,
+                                   double volatility,
+                                   QuantLib::Date start_date,
+                                   QuantLib::Date maturity_date,
+                                   std::vector<QuantLib::Date> exercise_dates,
+                                   QuantLib::Schedule fixed_schedule,
+                                   QuantLib::DayCounter fixed_day_count,
+                                   QuantLib::Handle<QuantLib::YieldTermStructure> discount_handle)
+        : notional_(notional), fixed_rate_(fixed_rate), payer_(payer), mean_reversion_(mean_reversion),
+          volatility_(volatility), start_date_(std::move(start_date)), maturity_date_(std::move(maturity_date)),
+          exercise_dates_(std::move(exercise_dates)), fixed_schedule_(std::move(fixed_schedule)),
+          fixed_day_count_(std::move(fixed_day_count)), discount_handle_(std::move(discount_handle)) {}
 
     bool isExpired() const override {
-        return exercise_dates_.empty() ||
-               exercise_dates_.back() <= QuantLib::Settings::instance().evaluationDate();
+        return exercise_dates_.empty() || exercise_dates_.back() <= QuantLib::Settings::instance().evaluationDate();
     }
 
 protected:
@@ -241,12 +218,11 @@ protected:
                 continue;
             }
             times.push_back(time_day_count.yearFraction(valuation_date, exercise_date));
-            annuities.push_back(swap_annuity_at_exercise(
-                exercise_date,
-                fixed_schedule_,
-                fixed_day_count_,
-                discount_handle_.currentLink(),
-                notional_));
+            annuities.push_back(swap_annuity_at_exercise(exercise_date,
+                                                         fixed_schedule_,
+                                                         fixed_day_count_,
+                                                         discount_handle_.currentLink(),
+                                                         notional_));
         }
 
         if (times.size() <= 1) {
@@ -256,18 +232,14 @@ protected:
             return;
         }
 
-        const double initial_swap_rate = std::max(
-            par_swap_rate(
-                start_date_,
-                maturity_date_,
-                fixed_schedule_,
-                fixed_day_count_,
-                discount_handle_.currentLink()),
-            1.0e-6);
-        const double discount_rate = discount_handle_->zeroRate(
-            times.back(),
-            QuantLib::Continuous,
-            QuantLib::Annual).rate();
+        const double initial_swap_rate = std::max(par_swap_rate(start_date_,
+                                                                maturity_date_,
+                                                                fixed_schedule_,
+                                                                fixed_day_count_,
+                                                                discount_handle_.currentLink()),
+                                                  1.0e-6);
+        const double discount_rate =
+            discount_handle_->zeroRate(times.back(), QuantLib::Continuous, QuantLib::Annual).rate();
 
         analytics::simulation::TimeGrid time_grid(times);
         MeanRevertingSwapRateProcess process(initial_swap_rate, mean_reversion_, volatility_);
@@ -301,16 +273,15 @@ private:
     QuantLib::Handle<QuantLib::YieldTermStructure> discount_handle_;
 };
 
-QuantLib::ext::shared_ptr<QuantLib::VanillaSwap> make_vanilla_swap(
-    double notional,
-    const std::string& direction,
-    const std::string& currency,
-    const std::string& start_date,
-    const std::string& maturity_date,
-    double fixed_rate,
-    const std::string& floating_index,
-    const analytics::PricingContext& context,
-    bool attach_engine) {
+QuantLib::ext::shared_ptr<QuantLib::VanillaSwap> make_vanilla_swap(double notional,
+                                                                   const std::string& direction,
+                                                                   const std::string& currency,
+                                                                   const std::string& start_date,
+                                                                   const std::string& maturity_date,
+                                                                   double fixed_rate,
+                                                                   const std::string& floating_index,
+                                                                   const analytics::PricingContext& context,
+                                                                   bool attach_engine) {
     const auto start = market::CurveBuilder::parse_date(start_date);
     const auto maturity = market::CurveBuilder::parse_date(maturity_date);
     const auto currency_code = domain::from_string(currency);
@@ -353,12 +324,10 @@ QuantLib::ext::shared_ptr<QuantLib::VanillaSwap> make_vanilla_swap(
     return swap;
 }
 
-
 } // namespace
 
-QuantLib::ext::shared_ptr<QuantLib::Instrument> RatesInstrumentFactory::create_deposit(
-    const domain::DepositTrade& trade,
-    const analytics::PricingContext& context) {
+QuantLib::ext::shared_ptr<QuantLib::Instrument>
+RatesInstrumentFactory::create_deposit(const domain::DepositTrade& trade, const analytics::PricingContext& context) {
     const auto currency_code = domain::from_string(trade.currency);
     const auto curve = discount_curve(context, currency_code);
     if (!curve) {
@@ -367,19 +336,17 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> RatesInstrumentFactory::create_d
 
     const auto convention = rates_convention(currency_code, "OIS");
     QuantLib::Handle<QuantLib::YieldTermStructure> discount_handle(curve);
-    return QuantLib::ext::make_shared<DepositInstrument>(
-        trade.notional,
-        trade.deposit_rate,
-        deposit_direction_sign(trade.direction),
-        market::CurveBuilder::parse_date(trade.start_date),
-        market::CurveBuilder::parse_date(trade.maturity_date),
-        market::CurveBuilder::parse_day_count(convention.day_count),
-        discount_handle);
+    return QuantLib::ext::make_shared<DepositInstrument>(trade.notional,
+                                                         trade.deposit_rate,
+                                                         deposit_direction_sign(trade.direction),
+                                                         market::CurveBuilder::parse_date(trade.start_date),
+                                                         market::CurveBuilder::parse_date(trade.maturity_date),
+                                                         market::CurveBuilder::parse_day_count(convention.day_count),
+                                                         discount_handle);
 }
 
-QuantLib::ext::shared_ptr<QuantLib::Instrument> RatesInstrumentFactory::create_fra(
-    const domain::FraTrade& trade,
-    const analytics::PricingContext& context) {
+QuantLib::ext::shared_ptr<QuantLib::Instrument>
+RatesInstrumentFactory::create_fra(const domain::FraTrade& trade, const analytics::PricingContext& context) {
     const auto currency_code = domain::from_string(trade.currency);
     const auto index_family = normalize_index_family(trade.floating_index);
     auto discount = discount_curve(context, currency_code);
@@ -402,9 +369,9 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> RatesInstrumentFactory::create_f
         discount_handle);
 }
 
-QuantLib::ext::shared_ptr<QuantLib::Instrument> RatesInstrumentFactory::create_interest_rate_future(
-    const domain::InterestRateFutureTrade& trade,
-    const analytics::PricingContext& context) {
+QuantLib::ext::shared_ptr<QuantLib::Instrument>
+RatesInstrumentFactory::create_interest_rate_future(const domain::InterestRateFutureTrade& trade,
+                                                    const analytics::PricingContext& context) {
     const auto currency_code = domain::from_string(trade.currency);
     const auto index_family = normalize_index_family(trade.floating_index);
     auto forecast = forecast_curve(context, currency_code, index_family);
@@ -414,9 +381,8 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> RatesInstrumentFactory::create_i
 
     const auto convention = rates_convention(currency_code, index_family);
     QuantLib::Handle<QuantLib::YieldTermStructure> forecast_handle(forecast);
-    auto quote = trade.future_quote_id.empty()
-        ? nullptr
-        : context.market_state().get_quote_handle(trade.future_quote_id);
+    auto quote =
+        trade.future_quote_id.empty() ? nullptr : context.market_state().get_quote_handle(trade.future_quote_id);
 
     return QuantLib::ext::make_shared<InterestRateFutureInstrument>(
         market::CurveBuilder::parse_date(trade.start_date),
@@ -426,24 +392,21 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> RatesInstrumentFactory::create_i
         quote);
 }
 
-QuantLib::ext::shared_ptr<QuantLib::Instrument> RatesInstrumentFactory::create_swap(
-    const domain::VanillaSwapTrade& trade,
-    const analytics::PricingContext& context) {
-    return make_vanilla_swap(
-        trade.notional,
-        trade.direction,
-        trade.currency,
-        trade.start_date,
-        trade.maturity_date,
-        trade.fixed_rate,
-        trade.floating_index,
-        context,
-        true);
+QuantLib::ext::shared_ptr<QuantLib::Instrument>
+RatesInstrumentFactory::create_swap(const domain::VanillaSwapTrade& trade, const analytics::PricingContext& context) {
+    return make_vanilla_swap(trade.notional,
+                             trade.direction,
+                             trade.currency,
+                             trade.start_date,
+                             trade.maturity_date,
+                             trade.fixed_rate,
+                             trade.floating_index,
+                             context,
+                             true);
 }
 
-QuantLib::ext::shared_ptr<QuantLib::Instrument> RatesInstrumentFactory::create_ois_swap(
-    const domain::OisSwapTrade& trade,
-    const analytics::PricingContext& context) {
+QuantLib::ext::shared_ptr<QuantLib::Instrument>
+RatesInstrumentFactory::create_ois_swap(const domain::OisSwapTrade& trade, const analytics::PricingContext& context) {
     const auto start = market::CurveBuilder::parse_date(trade.start_date);
     const auto maturity = market::CurveBuilder::parse_date(trade.maturity_date);
     const auto currency_code = domain::from_string(trade.currency);
@@ -474,9 +437,8 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> RatesInstrumentFactory::create_o
     return swap;
 }
 
-QuantLib::ext::shared_ptr<QuantLib::Instrument> RatesInstrumentFactory::create_bond(
-    const domain::FixedRateBondTrade& trade,
-    const analytics::PricingContext& context) {
+QuantLib::ext::shared_ptr<QuantLib::Instrument>
+RatesInstrumentFactory::create_bond(const domain::FixedRateBondTrade& trade, const analytics::PricingContext& context) {
     const auto start = market::CurveBuilder::parse_date(trade.start_date);
     const auto maturity = market::CurveBuilder::parse_date(trade.maturity_date);
     const auto currency_code = domain::from_string(trade.currency);
@@ -488,8 +450,8 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> RatesInstrumentFactory::create_b
     const auto convention = rates_convention(currency_code, "OIS");
     const auto calendar = market::CurveBuilder::parse_calendar(convention.calendar);
     const auto bdc = market::CurveBuilder::parse_business_day_convention(convention.business_day_convention);
-    const auto frequency = market::CurveBuilder::parse_frequency(
-        parse_frequency_string(trade.frequency, domain::Frequency::Annual));
+    const auto frequency =
+        market::CurveBuilder::parse_frequency(parse_frequency_string(trade.frequency, domain::Frequency::Annual));
     const auto day_count = market::CurveBuilder::parse_day_count(domain::DayCount::Thirty360);
 
     auto bond = QuantLib::ext::make_shared<QuantLib::FixedRateBond>(
@@ -506,9 +468,9 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> RatesInstrumentFactory::create_b
     return bond;
 }
 
-QuantLib::ext::shared_ptr<QuantLib::Instrument> RatesInstrumentFactory::create_floating_rate_note(
-    const domain::FloatingRateNoteTrade& trade,
-    const analytics::PricingContext& context) {
+QuantLib::ext::shared_ptr<QuantLib::Instrument>
+RatesInstrumentFactory::create_floating_rate_note(const domain::FloatingRateNoteTrade& trade,
+                                                  const analytics::PricingContext& context) {
     const auto start = market::CurveBuilder::parse_date(trade.start_date);
     const auto maturity = market::CurveBuilder::parse_date(trade.maturity_date);
     const auto currency_code = domain::from_string(trade.currency);
@@ -544,17 +506,14 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> RatesInstrumentFactory::create_f
         false,
         100.0,
         start);
-    QuantLib::setCouponPricer(
-        bond->cashflows(),
-        QuantLib::ext::make_shared<QuantLib::BlackIborCouponPricer>());
+    QuantLib::setCouponPricer(bond->cashflows(), QuantLib::ext::make_shared<QuantLib::BlackIborCouponPricer>());
     bond->setPricingEngine(QuantLib::ext::make_shared<QuantLib::DiscountingBondEngine>(
         QuantLib::Handle<QuantLib::YieldTermStructure>(discount)));
     return bond;
 }
 
-QuantLib::ext::shared_ptr<QuantLib::Instrument> RatesInstrumentFactory::create_cap_floor(
-    const domain::CapFloorTrade& trade,
-    const analytics::PricingContext& context) {
+QuantLib::ext::shared_ptr<QuantLib::Instrument>
+RatesInstrumentFactory::create_cap_floor(const domain::CapFloorTrade& trade, const analytics::PricingContext& context) {
     const auto start = market::CurveBuilder::parse_date(trade.start_date);
     const auto maturity = market::CurveBuilder::parse_date(trade.maturity_date);
     const auto currency_code = domain::from_string(trade.currency);
@@ -574,24 +533,21 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> RatesInstrumentFactory::create_c
 
     QuantLib::Handle<QuantLib::YieldTermStructure> forecast_handle(forecast);
     auto index = make_ibor_index(currency_code, index_family, forecast_handle, context, trade.floating_index);
-    QuantLib::Leg floating_leg = QuantLib::IborLeg(make_schedule(start, maturity, frequency, calendar, bdc, rule), index)
-        .withNotionals(trade.notional)
-        .withPaymentDayCounter(day_count)
-        .withPaymentAdjustment(bdc);
-    QuantLib::setCouponPricer(
-        floating_leg,
-        QuantLib::ext::make_shared<QuantLib::BlackIborCouponPricer>());
+    QuantLib::Leg floating_leg =
+        QuantLib::IborLeg(make_schedule(start, maturity, frequency, calendar, bdc, rule), index)
+            .withNotionals(trade.notional)
+            .withPaymentDayCounter(day_count)
+            .withPaymentAdjustment(bdc);
+    QuantLib::setCouponPricer(floating_leg, QuantLib::ext::make_shared<QuantLib::BlackIborCouponPricer>());
 
     QuantLib::ext::shared_ptr<QuantLib::CapFloor> instrument;
     const auto cap_floor_type = lower_copy(trade.cap_floor_type);
     if (cap_floor_type == "floor") {
-        instrument = QuantLib::ext::make_shared<QuantLib::Floor>(
-            floating_leg,
-            std::vector<QuantLib::Rate>{trade.strike_rate});
+        instrument =
+            QuantLib::ext::make_shared<QuantLib::Floor>(floating_leg, std::vector<QuantLib::Rate>{trade.strike_rate});
     } else {
-        instrument = QuantLib::ext::make_shared<QuantLib::Cap>(
-            floating_leg,
-            std::vector<QuantLib::Rate>{trade.strike_rate});
+        instrument =
+            QuantLib::ext::make_shared<QuantLib::Cap>(floating_leg, std::vector<QuantLib::Rate>{trade.strike_rate});
     }
 
     const double volatility = quote_or_default_volatility(context, trade.volatility_quote_id, trade.volatility, 0.20);
@@ -602,19 +558,18 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> RatesInstrumentFactory::create_c
     return instrument;
 }
 
-QuantLib::ext::shared_ptr<QuantLib::Instrument> RatesInstrumentFactory::create_european_swaption(
-    const domain::EuropeanSwaptionTrade& trade,
-    const analytics::PricingContext& context) {
-    auto underlying = make_vanilla_swap(
-        trade.notional,
-        trade.direction,
-        trade.currency,
-        trade.start_date,
-        trade.maturity_date,
-        trade.fixed_rate,
-        trade.floating_index,
-        context,
-        false);
+QuantLib::ext::shared_ptr<QuantLib::Instrument>
+RatesInstrumentFactory::create_european_swaption(const domain::EuropeanSwaptionTrade& trade,
+                                                 const analytics::PricingContext& context) {
+    auto underlying = make_vanilla_swap(trade.notional,
+                                        trade.direction,
+                                        trade.currency,
+                                        trade.start_date,
+                                        trade.maturity_date,
+                                        trade.fixed_rate,
+                                        trade.floating_index,
+                                        context,
+                                        false);
     if (!underlying) {
         return nullptr;
     }
@@ -634,9 +589,9 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> RatesInstrumentFactory::create_e
     return swaption;
 }
 
-QuantLib::ext::shared_ptr<QuantLib::Instrument> RatesInstrumentFactory::create_bermudan_swaption(
-    const domain::BermudanSwaptionTrade& trade,
-    const analytics::PricingContext& context) {
+QuantLib::ext::shared_ptr<QuantLib::Instrument>
+RatesInstrumentFactory::create_bermudan_swaption(const domain::BermudanSwaptionTrade& trade,
+                                                 const analytics::PricingContext& context) {
     const auto start = market::CurveBuilder::parse_date(trade.start_date);
     const auto maturity = market::CurveBuilder::parse_date(trade.maturity_date);
     const auto currency_code = domain::from_string(trade.currency);
@@ -677,6 +632,5 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> RatesInstrumentFactory::create_b
         fixed_day_count,
         QuantLib::Handle<QuantLib::YieldTermStructure>(discount));
 }
-
 
 } // namespace qrp::instruments

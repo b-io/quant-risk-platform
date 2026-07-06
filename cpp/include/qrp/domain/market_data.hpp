@@ -25,34 +25,52 @@ namespace qrp::domain {
  */
 inline CurvePurpose parse_curve_purpose(const std::string& s) {
     // Commodity
-    if (s == "CommodityForward") return CurvePurpose::CommodityForward;
-    if (s == "CommodityVolatility") return CurvePurpose::CommodityVolatility;
+    if (s == "CommodityForward")
+        return CurvePurpose::CommodityForward;
+    if (s == "CommodityVolatility")
+        return CurvePurpose::CommodityVolatility;
 
     // Credit
-    if (s == "Credit") return CurvePurpose::Credit;
-    if (s == "CreditSpread") return CurvePurpose::CreditSpread;
-    if (s == "Hazard") return CurvePurpose::Hazard;
-    if (s == "Recovery") return CurvePurpose::Recovery;
+    if (s == "Credit")
+        return CurvePurpose::Credit;
+    if (s == "CreditSpread")
+        return CurvePurpose::CreditSpread;
+    if (s == "Hazard")
+        return CurvePurpose::Hazard;
+    if (s == "Recovery")
+        return CurvePurpose::Recovery;
 
     // Equity
-    if (s == "EquityBorrow") return CurvePurpose::EquityBorrow;
-    if (s == "EquityDividend") return CurvePurpose::EquityDividend;
-    if (s == "EquityVolatility") return CurvePurpose::EquityVolatility;
+    if (s == "EquityBorrow")
+        return CurvePurpose::EquityBorrow;
+    if (s == "EquityDividend")
+        return CurvePurpose::EquityDividend;
+    if (s == "EquityVolatility")
+        return CurvePurpose::EquityVolatility;
 
     // FX
-    if (s == "FXForward") return CurvePurpose::FXForward;
-    if (s == "FXVolatility") return CurvePurpose::FXVolatility;
+    if (s == "FXForward")
+        return CurvePurpose::FXForward;
+    if (s == "FXVolatility")
+        return CurvePurpose::FXVolatility;
 
     // Generic
-    if (s == "Volatility") return CurvePurpose::Volatility;
+    if (s == "Volatility")
+        return CurvePurpose::Volatility;
 
     // Rates
-    if (s == "Discount") return CurvePurpose::Discount;
-    if (s == "Forward") return CurvePurpose::Forward;
-    if (s == "Forward3M") return CurvePurpose::Forward3M;
-    if (s == "Forward6M") return CurvePurpose::Forward6M;
-    if (s == "Inflation") return CurvePurpose::Inflation;
-    if (s == "OISDiscount") return CurvePurpose::OISDiscount;
+    if (s == "Discount")
+        return CurvePurpose::Discount;
+    if (s == "Forward")
+        return CurvePurpose::Forward;
+    if (s == "Forward3M")
+        return CurvePurpose::Forward3M;
+    if (s == "Forward6M")
+        return CurvePurpose::Forward6M;
+    if (s == "Inflation")
+        return CurvePurpose::Inflation;
+    if (s == "OISDiscount")
+        return CurvePurpose::OISDiscount;
 
     return CurvePurpose::UNKNOWN;
 }
@@ -62,45 +80,74 @@ inline CurvePurpose parse_curve_purpose(const std::string& s) {
  */
 inline QuoteInstrumentType parse_quote_instrument_type(const std::string& s) {
     // Commodity
-    if (s == "CommodityForward") return QuoteInstrumentType::CommodityForward;
-    if (s == "CommodityFuture") return QuoteInstrumentType::CommodityFuture;
-    if (s == "CommoditySpot") return QuoteInstrumentType::CommoditySpot;
-    if (s == "CommodityVol") return QuoteInstrumentType::CommodityVol;
-    if (s == "ConvenienceYield") return QuoteInstrumentType::ConvenienceYield;
+    if (s == "CommodityForward")
+        return QuoteInstrumentType::CommodityForward;
+    if (s == "CommodityFuture")
+        return QuoteInstrumentType::CommodityFuture;
+    if (s == "CommoditySpot")
+        return QuoteInstrumentType::CommoditySpot;
+    if (s == "CommodityVol")
+        return QuoteInstrumentType::CommodityVol;
+    if (s == "ConvenienceYield")
+        return QuoteInstrumentType::ConvenienceYield;
 
     // Credit
-    if (s == "Bond") return QuoteInstrumentType::Bond;
-    if (s == "BondPrice") return QuoteInstrumentType::BondPrice;
-    if (s == "BondSpread") return QuoteInstrumentType::BondSpread;
-    if (s == "CDS") return QuoteInstrumentType::CDS;
-    if (s == "CreditIndex") return QuoteInstrumentType::CreditIndex;
-    if (s == "CreditSpread") return QuoteInstrumentType::CreditSpread;
-    if (s == "HazardRate") return QuoteInstrumentType::HazardRate;
-    if (s == "RecoveryRate") return QuoteInstrumentType::RecoveryRate;
+    if (s == "Bond")
+        return QuoteInstrumentType::Bond;
+    if (s == "BondPrice")
+        return QuoteInstrumentType::BondPrice;
+    if (s == "BondSpread")
+        return QuoteInstrumentType::BondSpread;
+    if (s == "CDS")
+        return QuoteInstrumentType::CDS;
+    if (s == "CreditIndex")
+        return QuoteInstrumentType::CreditIndex;
+    if (s == "CreditSpread")
+        return QuoteInstrumentType::CreditSpread;
+    if (s == "HazardRate")
+        return QuoteInstrumentType::HazardRate;
+    if (s == "RecoveryRate")
+        return QuoteInstrumentType::RecoveryRate;
 
     // Equity
-    if (s == "BorrowRate") return QuoteInstrumentType::BorrowRate;
-    if (s == "DividendYield") return QuoteInstrumentType::DividendYield;
-    if (s == "EquitySpot") return QuoteInstrumentType::EquitySpot;
-    if (s == "EquityVol") return QuoteInstrumentType::EquityVol;
+    if (s == "BorrowRate")
+        return QuoteInstrumentType::BorrowRate;
+    if (s == "DividendYield")
+        return QuoteInstrumentType::DividendYield;
+    if (s == "EquitySpot")
+        return QuoteInstrumentType::EquitySpot;
+    if (s == "EquityVol")
+        return QuoteInstrumentType::EquityVol;
 
     // FX
-    if (s == "FXForward") return QuoteInstrumentType::FXForward;
-    if (s == "FXForwardPoint") return QuoteInstrumentType::FXForwardPoint;
-    if (s == "FXSpot") return QuoteInstrumentType::FXSpot;
-    if (s == "FXVol") return QuoteInstrumentType::FXVol;
+    if (s == "FXForward")
+        return QuoteInstrumentType::FXForward;
+    if (s == "FXForwardPoint")
+        return QuoteInstrumentType::FXForwardPoint;
+    if (s == "FXSpot")
+        return QuoteInstrumentType::FXSpot;
+    if (s == "FXVol")
+        return QuoteInstrumentType::FXVol;
 
     // Generic
-    if (s == "Future") return QuoteInstrumentType::Future;
+    if (s == "Future")
+        return QuoteInstrumentType::Future;
 
     // Rates
-    if (s == "CapFloorVol") return QuoteInstrumentType::CapFloorVol;
-    if (s == "Deposit") return QuoteInstrumentType::Deposit;
-    if (s == "FRA") return QuoteInstrumentType::FRA;
-    if (s == "InterestRateFuture") return QuoteInstrumentType::InterestRateFuture;
-    if (s == "IRS") return QuoteInstrumentType::IRS;
-    if (s == "OIS") return QuoteInstrumentType::OIS;
-    if (s == "SwaptionVol") return QuoteInstrumentType::SwaptionVol;
+    if (s == "CapFloorVol")
+        return QuoteInstrumentType::CapFloorVol;
+    if (s == "Deposit")
+        return QuoteInstrumentType::Deposit;
+    if (s == "FRA")
+        return QuoteInstrumentType::FRA;
+    if (s == "InterestRateFuture")
+        return QuoteInstrumentType::InterestRateFuture;
+    if (s == "IRS")
+        return QuoteInstrumentType::IRS;
+    if (s == "OIS")
+        return QuoteInstrumentType::OIS;
+    if (s == "SwaptionVol")
+        return QuoteInstrumentType::SwaptionVol;
 
     return QuoteInstrumentType::UNKNOWN;
 }
@@ -110,37 +157,58 @@ inline QuoteInstrumentType parse_quote_instrument_type(const std::string& s) {
  */
 inline QuoteType parse_quote_type(const std::string& s) {
     // Commodity
-    if (s == "CommodityForward") return QuoteType::CommodityForward;
+    if (s == "CommodityForward")
+        return QuoteType::CommodityForward;
 
     // Credit
-    if (s == "BondYield") return QuoteType::BondYield;
-    if (s == "CreditSpread") return QuoteType::CreditSpread;
-    if (s == "HazardRate") return QuoteType::HazardRate;
-    if (s == "RecoveryRate") return QuoteType::RecoveryRate;
+    if (s == "BondYield")
+        return QuoteType::BondYield;
+    if (s == "CreditSpread")
+        return QuoteType::CreditSpread;
+    if (s == "HazardRate")
+        return QuoteType::HazardRate;
+    if (s == "RecoveryRate")
+        return QuoteType::RecoveryRate;
 
     // Equity
-    if (s == "BorrowRate") return QuoteType::BorrowRate;
-    if (s == "DividendYield") return QuoteType::DividendYield;
-    if (s == "EquitySpot") return QuoteType::EquitySpot;
+    if (s == "BorrowRate")
+        return QuoteType::BorrowRate;
+    if (s == "DividendYield")
+        return QuoteType::DividendYield;
+    if (s == "EquitySpot")
+        return QuoteType::EquitySpot;
 
     // FX
-    if (s == "FXForward") return QuoteType::FXForward;
-    if (s == "FXForwardPoint") return QuoteType::FXForwardPoint;
-    if (s == "FXSpot") return QuoteType::FXSpot;
+    if (s == "FXForward")
+        return QuoteType::FXForward;
+    if (s == "FXForwardPoint")
+        return QuoteType::FXForwardPoint;
+    if (s == "FXSpot")
+        return QuoteType::FXSpot;
 
     // Generic
-    if (s == "Future") return QuoteType::Future;
-    if (s == "Price") return QuoteType::Price;
-    if (s == "Volatility") return QuoteType::Volatility;
+    if (s == "Future")
+        return QuoteType::Future;
+    if (s == "Price")
+        return QuoteType::Price;
+    if (s == "Volatility")
+        return QuoteType::Volatility;
 
     // Rates
-    if (s == "BasisSwap") return QuoteType::BasisSwap;
-    if (s == "Deposit") return QuoteType::Deposit;
-    if (s == "FRA") return QuoteType::FRA;
-    if (s == "InterestRateFuture") return QuoteType::InterestRateFuture;
-    if (s == "IRS") return QuoteType::IRS;
-    if (s == "OIS") return QuoteType::OIS;
-    if (s == "Swap") return QuoteType::Swap;
+    if (s == "BasisSwap")
+        return QuoteType::BasisSwap;
+    if (s == "Deposit")
+        return QuoteType::Deposit;
+    if (s == "FRA")
+        return QuoteType::FRA;
+    if (s == "InterestRateFuture")
+        return QuoteType::InterestRateFuture;
+    if (s == "IRS")
+        return QuoteType::IRS;
+    if (s == "OIS")
+        return QuoteType::OIS;
+    if (s == "Swap")
+        return QuoteType::Swap;
 
     return QuoteType::UNKNOWN;
 }
@@ -178,16 +246,26 @@ inline void from_json(const nlohmann::json& j, QuoteType& q) {
  */
 inline void from_json(const nlohmann::json& j, DayCount& d) {
     std::string s = j.get<std::string>();
-    if (s == "ACT360") d = DayCount::ACT360;
-    else if (s == "ACT365") d = DayCount::ACT365;
-    else if (s == "ACT365F") d = DayCount::ACT365F;
-    else if (s == "ACTACT") d = DayCount::ACTACT;
-    else if (s == "ACTACT_AFB") d = DayCount::ACTACT_AFB;
-    else if (s == "ACTACT_EURO") d = DayCount::ACTACT_EURO;
-    else if (s == "ACTACT_ISDA") d = DayCount::ACTACT_ISDA;
-    else if (s == "ACTACT_ISMA") d = DayCount::ACTACT_ISMA;
-    else if (s == "Thirty360") d = DayCount::Thirty360;
-    else d = DayCount::UNKNOWN;
+    if (s == "ACT360")
+        d = DayCount::ACT360;
+    else if (s == "ACT365")
+        d = DayCount::ACT365;
+    else if (s == "ACT365F")
+        d = DayCount::ACT365F;
+    else if (s == "ACTACT")
+        d = DayCount::ACTACT;
+    else if (s == "ACTACT_AFB")
+        d = DayCount::ACTACT_AFB;
+    else if (s == "ACTACT_EURO")
+        d = DayCount::ACTACT_EURO;
+    else if (s == "ACTACT_ISDA")
+        d = DayCount::ACTACT_ISDA;
+    else if (s == "ACTACT_ISMA")
+        d = DayCount::ACTACT_ISMA;
+    else if (s == "Thirty360")
+        d = DayCount::Thirty360;
+    else
+        d = DayCount::UNKNOWN;
 }
 
 /**
@@ -195,13 +273,20 @@ inline void from_json(const nlohmann::json& j, DayCount& d) {
  */
 inline void from_json(const nlohmann::json& j, BusinessCalendar& b) {
     std::string s = j.get<std::string>();
-    if (s == "CHF" || s == "CHE") b = BusinessCalendar::CHF;
-    else if (s == "JP" || s == "JPN") b = BusinessCalendar::JP;
-    else if (s == "Target") b = BusinessCalendar::Target;
-    else if (s == "UK" || s == "GBR") b = BusinessCalendar::UK;
-    else if (s == "US" || s == "USA") b = BusinessCalendar::US;
-    else if (s == "WeekendsOnly") b = BusinessCalendar::WeekendsOnly;
-    else b = BusinessCalendar::UNKNOWN;
+    if (s == "CHF" || s == "CHE")
+        b = BusinessCalendar::CHF;
+    else if (s == "JP" || s == "JPN")
+        b = BusinessCalendar::JP;
+    else if (s == "Target")
+        b = BusinessCalendar::Target;
+    else if (s == "UK" || s == "GBR")
+        b = BusinessCalendar::UK;
+    else if (s == "US" || s == "USA")
+        b = BusinessCalendar::US;
+    else if (s == "WeekendsOnly")
+        b = BusinessCalendar::WeekendsOnly;
+    else
+        b = BusinessCalendar::UNKNOWN;
 }
 
 /**
@@ -209,14 +294,22 @@ inline void from_json(const nlohmann::json& j, BusinessCalendar& b) {
  */
 inline void from_json(const nlohmann::json& j, BusinessDayConvention& b) {
     std::string s = j.get<std::string>();
-    if (s == "Following") b = BusinessDayConvention::Following;
-    else if (s == "HalfMonthModifiedFollowing") b = BusinessDayConvention::HalfMonthModifiedFollowing;
-    else if (s == "ModifiedFollowing") b = BusinessDayConvention::ModifiedFollowing;
-    else if (s == "ModifiedPreceding") b = BusinessDayConvention::ModifiedPreceding;
-    else if (s == "Nearest") b = BusinessDayConvention::Nearest;
-    else if (s == "Preceding") b = BusinessDayConvention::Preceding;
-    else if (s == "Unadjusted") b = BusinessDayConvention::Unadjusted;
-    else b = BusinessDayConvention::UNKNOWN;
+    if (s == "Following")
+        b = BusinessDayConvention::Following;
+    else if (s == "HalfMonthModifiedFollowing")
+        b = BusinessDayConvention::HalfMonthModifiedFollowing;
+    else if (s == "ModifiedFollowing")
+        b = BusinessDayConvention::ModifiedFollowing;
+    else if (s == "ModifiedPreceding")
+        b = BusinessDayConvention::ModifiedPreceding;
+    else if (s == "Nearest")
+        b = BusinessDayConvention::Nearest;
+    else if (s == "Preceding")
+        b = BusinessDayConvention::Preceding;
+    else if (s == "Unadjusted")
+        b = BusinessDayConvention::Unadjusted;
+    else
+        b = BusinessDayConvention::UNKNOWN;
 }
 
 /**
@@ -224,19 +317,32 @@ inline void from_json(const nlohmann::json& j, BusinessDayConvention& b) {
  */
 inline void from_json(const nlohmann::json& j, Frequency& f) {
     std::string s = j.get<std::string>();
-    if (s == "Annual") f = Frequency::Annual;
-    else if (s == "Bimonthly") f = Frequency::Bimonthly;
-    else if (s == "Biweekly") f = Frequency::Biweekly;
-    else if (s == "Daily") f = Frequency::Daily;
-    else if (s == "EveryFourthMonth") f = Frequency::EveryFourthMonth;
-    else if (s == "EveryFourthWeek") f = Frequency::EveryFourthWeek;
-    else if (s == "Monthly") f = Frequency::Monthly;
-    else if (s == "Once") f = Frequency::Once;
-    else if (s == "OtherFrequency") f = Frequency::OtherFrequency;
-    else if (s == "Quarterly") f = Frequency::Quarterly;
-    else if (s == "Semiannual") f = Frequency::Semiannual;
-    else if (s == "Weekly") f = Frequency::Weekly;
-    else f = Frequency::UNKNOWN;
+    if (s == "Annual")
+        f = Frequency::Annual;
+    else if (s == "Bimonthly")
+        f = Frequency::Bimonthly;
+    else if (s == "Biweekly")
+        f = Frequency::Biweekly;
+    else if (s == "Daily")
+        f = Frequency::Daily;
+    else if (s == "EveryFourthMonth")
+        f = Frequency::EveryFourthMonth;
+    else if (s == "EveryFourthWeek")
+        f = Frequency::EveryFourthWeek;
+    else if (s == "Monthly")
+        f = Frequency::Monthly;
+    else if (s == "Once")
+        f = Frequency::Once;
+    else if (s == "OtherFrequency")
+        f = Frequency::OtherFrequency;
+    else if (s == "Quarterly")
+        f = Frequency::Quarterly;
+    else if (s == "Semiannual")
+        f = Frequency::Semiannual;
+    else if (s == "Weekly")
+        f = Frequency::Weekly;
+    else
+        f = Frequency::UNKNOWN;
 }
 
 /**
@@ -244,16 +350,26 @@ inline void from_json(const nlohmann::json& j, Frequency& f) {
  */
 inline void from_json(const nlohmann::json& j, DateGeneration& d) {
     std::string s = j.get<std::string>();
-    if (s == "Backward") d = DateGeneration::Backward;
-    else if (s == "CDS") d = DateGeneration::CDS;
-    else if (s == "CDS2015") d = DateGeneration::CDS2015;
-    else if (s == "Forward") d = DateGeneration::Forward;
-    else if (s == "OldCDS") d = DateGeneration::OldCDS;
-    else if (s == "ThirdWednesday") d = DateGeneration::ThirdWednesday;
-    else if (s == "Twentieth") d = DateGeneration::Twentieth;
-    else if (s == "TwentiethIMM") d = DateGeneration::TwentiethIMM;
-    else if (s == "Zero") d = DateGeneration::Zero;
-    else d = DateGeneration::UNKNOWN;
+    if (s == "Backward")
+        d = DateGeneration::Backward;
+    else if (s == "CDS")
+        d = DateGeneration::CDS;
+    else if (s == "CDS2015")
+        d = DateGeneration::CDS2015;
+    else if (s == "Forward")
+        d = DateGeneration::Forward;
+    else if (s == "OldCDS")
+        d = DateGeneration::OldCDS;
+    else if (s == "ThirdWednesday")
+        d = DateGeneration::ThirdWednesday;
+    else if (s == "Twentieth")
+        d = DateGeneration::Twentieth;
+    else if (s == "TwentiethIMM")
+        d = DateGeneration::TwentiethIMM;
+    else if (s == "Zero")
+        d = DateGeneration::Zero;
+    else
+        d = DateGeneration::UNKNOWN;
 }
 
 /**
@@ -261,10 +377,14 @@ inline void from_json(const nlohmann::json& j, DateGeneration& d) {
  */
 inline void from_json(const nlohmann::json& j, InterpolationType& i) {
     std::string s = j.get<std::string>();
-    if (s == "CubicSpline") i = InterpolationType::CubicSpline;
-    else if (s == "Linear") i = InterpolationType::Linear;
-    else if (s == "LogLinear") i = InterpolationType::LogLinear;
-    else i = InterpolationType::UNKNOWN;
+    if (s == "CubicSpline")
+        i = InterpolationType::CubicSpline;
+    else if (s == "Linear")
+        i = InterpolationType::Linear;
+    else if (s == "LogLinear")
+        i = InterpolationType::LogLinear;
+    else
+        i = InterpolationType::UNKNOWN;
 }
 
 /**
@@ -277,22 +397,38 @@ inline void from_json(const nlohmann::json& j, MarketQuote& q) {
     j.at("tenor").get_to(q.tenor);
     j.at("value").get_to(q.value);
 
-    if (j.contains("risk_factor_id")) j.at("risk_factor_id").get_to(q.risk_factor_id);
-    if (j.contains("quote_type")) j.at("quote_type").get_to(q.quote_type);
-    if (j.contains("underlier")) j.at("underlier").get_to(q.underlier);
-    if (j.contains("expiry")) j.at("expiry").get_to(q.expiry);
-    if (j.contains("strike")) j.at("strike").get_to(q.strike);
-    if (j.contains("instrument_family")) j.at("instrument_family").get_to(q.instrument_family);
-    if (j.contains("index_family")) j.at("index_family").get_to(q.index_family);
-    if (j.contains("day_count")) j.at("day_count").get_to(q.day_count);
-    if (j.contains("calendar")) j.at("calendar").get_to(q.calendar);
-    if (j.contains("bdc")) j.at("bdc").get_to(q.bdc);
-    if (j.contains("settlement_days")) j.at("settlement_days").get_to(q.settlement_days);
-    if (j.contains("market_ts")) j.at("market_ts").get_to(q.market_ts);
-    if (j.contains("recorded_ts")) j.at("recorded_ts").get_to(q.recorded_ts);
-    if (j.contains("source_name")) j.at("source_name").get_to(q.source_name);
-    if (j.contains("source_ts")) j.at("source_ts").get_to(q.source_ts);
-    if (j.contains("stale_after_days")) j.at("stale_after_days").get_to(q.stale_after_days);
+    if (j.contains("risk_factor_id"))
+        j.at("risk_factor_id").get_to(q.risk_factor_id);
+    if (j.contains("quote_type"))
+        j.at("quote_type").get_to(q.quote_type);
+    if (j.contains("underlier"))
+        j.at("underlier").get_to(q.underlier);
+    if (j.contains("expiry"))
+        j.at("expiry").get_to(q.expiry);
+    if (j.contains("strike"))
+        j.at("strike").get_to(q.strike);
+    if (j.contains("instrument_family"))
+        j.at("instrument_family").get_to(q.instrument_family);
+    if (j.contains("index_family"))
+        j.at("index_family").get_to(q.index_family);
+    if (j.contains("day_count"))
+        j.at("day_count").get_to(q.day_count);
+    if (j.contains("calendar"))
+        j.at("calendar").get_to(q.calendar);
+    if (j.contains("bdc"))
+        j.at("bdc").get_to(q.bdc);
+    if (j.contains("settlement_days"))
+        j.at("settlement_days").get_to(q.settlement_days);
+    if (j.contains("market_ts"))
+        j.at("market_ts").get_to(q.market_ts);
+    if (j.contains("recorded_ts"))
+        j.at("recorded_ts").get_to(q.recorded_ts);
+    if (j.contains("source_name"))
+        j.at("source_name").get_to(q.source_name);
+    if (j.contains("source_ts"))
+        j.at("source_ts").get_to(q.source_ts);
+    if (j.contains("stale_after_days"))
+        j.at("stale_after_days").get_to(q.stale_after_days);
 }
 
 /**
@@ -308,15 +444,23 @@ inline void from_json(const nlohmann::json& j, CurveId& id) {
  */
 inline void from_json(const nlohmann::json& j, CurveSpec& s) {
     j.at("id").get_to(s.id);
-    if (j.contains("purpose")) j.at("purpose").get_to(s.purpose);
+    if (j.contains("purpose"))
+        j.at("purpose").get_to(s.purpose);
     j.at("quote_ids").get_to(s.quote_ids);
-    if (j.contains("day_count")) j.at("day_count").get_to(s.day_count);
-    if (j.contains("calendar")) j.at("calendar").get_to(s.calendar);
-    if (j.contains("interpolation")) j.at("interpolation").get_to(s.interpolation);
-    if (j.contains("construction_family")) j.at("construction_family").get_to(s.construction_family);
-    if (j.contains("collateral_curve_id")) j.at("collateral_curve_id").get_to(s.collateral_curve_id);
-    if (j.contains("discount_curve_id")) j.at("discount_curve_id").get_to(s.discount_curve_id);
-    if (j.contains("metadata_json")) j.at("metadata_json").get_to(s.metadata_json);
+    if (j.contains("day_count"))
+        j.at("day_count").get_to(s.day_count);
+    if (j.contains("calendar"))
+        j.at("calendar").get_to(s.calendar);
+    if (j.contains("interpolation"))
+        j.at("interpolation").get_to(s.interpolation);
+    if (j.contains("construction_family"))
+        j.at("construction_family").get_to(s.construction_family);
+    if (j.contains("collateral_curve_id"))
+        j.at("collateral_curve_id").get_to(s.collateral_curve_id);
+    if (j.contains("discount_curve_id"))
+        j.at("discount_curve_id").get_to(s.discount_curve_id);
+    if (j.contains("metadata_json"))
+        j.at("metadata_json").get_to(s.metadata_json);
 }
 
 /**
@@ -334,28 +478,33 @@ struct MarketDataDiagnostic {
  * @brief Deserializes a market-data diagnostic from JSON.
  */
 inline void from_json(const nlohmann::json& j, MarketDataDiagnostic& d) {
-    if (j.contains("severity")) j.at("severity").get_to(d.severity);
-    if (j.contains("code")) j.at("code").get_to(d.code);
-    if (j.contains("message")) j.at("message").get_to(d.message);
-    if (j.contains("quote_id")) j.at("quote_id").get_to(d.quote_id);
-    if (j.contains("curve_id")) j.at("curve_id").get_to(d.curve_id);
+    if (j.contains("severity"))
+        j.at("severity").get_to(d.severity);
+    if (j.contains("code"))
+        j.at("code").get_to(d.code);
+    if (j.contains("message"))
+        j.at("message").get_to(d.message);
+    if (j.contains("quote_id"))
+        j.at("quote_id").get_to(d.quote_id);
+    if (j.contains("curve_id"))
+        j.at("curve_id").get_to(d.curve_id);
 }
 
 /**
  * @brief Versioned market snapshot DTO used as raw input to market-state construction.
  */
 struct MarketSnapshot {
-    std::string valuation_date;       // Market state valuation date.
-    std::string snapshot_id;          // Stable market snapshot id.
-    int schema_version = 2;           // Market snapshot schema version.
-    Currency base_currency = Currency::UNKNOWN; // Reporting/base currency.
-    std::string source_name;          // Source system or fixture name.
-    std::string recorded_ts;          // Timestamp when the snapshot was recorded.
-    int default_stale_after_days = -1; // Default quote staleness threshold.
-    std::vector<MarketQuote> quotes;  // Raw market quotes included in the snapshot.
-    std::vector<CurveSpec> curves;    // Curve construction specifications.
+    std::string valuation_date;                                   // Market state valuation date.
+    std::string snapshot_id;                                      // Stable market snapshot id.
+    int schema_version = 2;                                       // Market snapshot schema version.
+    Currency base_currency = Currency::UNKNOWN;                   // Reporting/base currency.
+    std::string source_name;                                      // Source system or fixture name.
+    std::string recorded_ts;                                      // Timestamp when the snapshot was recorded.
+    int default_stale_after_days = -1;                            // Default quote staleness threshold.
+    std::vector<MarketQuote> quotes;                              // Raw market quotes included in the snapshot.
+    std::vector<CurveSpec> curves;                                // Curve construction specifications.
     std::map<std::string, std::map<std::string, double>> fixings; // index_name -> { date -> value }
-    std::vector<MarketDataDiagnostic> diagnostics; // Validation diagnostics captured with the snapshot.
+    std::vector<MarketDataDiagnostic> diagnostics;                // Validation diagnostics captured with the snapshot.
 };
 
 /**
@@ -363,12 +512,18 @@ struct MarketSnapshot {
  */
 inline void from_json(const nlohmann::json& j, MarketSnapshot& m) {
     j.at("valuation_date").get_to(m.valuation_date);
-    if (j.contains("snapshot_id")) j.at("snapshot_id").get_to(m.snapshot_id);
-    if (j.contains("schema_version")) j.at("schema_version").get_to(m.schema_version);
-    if (j.contains("base_currency")) j.at("base_currency").get_to(m.base_currency);
-    if (j.contains("source_name")) j.at("source_name").get_to(m.source_name);
-    if (j.contains("recorded_ts")) j.at("recorded_ts").get_to(m.recorded_ts);
-    if (j.contains("default_stale_after_days")) j.at("default_stale_after_days").get_to(m.default_stale_after_days);
+    if (j.contains("snapshot_id"))
+        j.at("snapshot_id").get_to(m.snapshot_id);
+    if (j.contains("schema_version"))
+        j.at("schema_version").get_to(m.schema_version);
+    if (j.contains("base_currency"))
+        j.at("base_currency").get_to(m.base_currency);
+    if (j.contains("source_name"))
+        j.at("source_name").get_to(m.source_name);
+    if (j.contains("recorded_ts"))
+        j.at("recorded_ts").get_to(m.recorded_ts);
+    if (j.contains("default_stale_after_days"))
+        j.at("default_stale_after_days").get_to(m.default_stale_after_days);
     j.at("quotes").get_to(m.quotes);
     j.at("curves").get_to(m.curves);
     if (j.contains("fixings")) {
@@ -392,27 +547,16 @@ inline bool is_digit_at(const std::string& value, std::size_t index) {
  * @brief Parses the date component of an ISO timestamp into a calendar day.
  */
 inline std::optional<std::chrono::sys_days> parse_iso_day(const std::string& value) {
-    if (value.size() < 10 ||
-        value[4] != '-' ||
-        value[7] != '-' ||
-        !is_digit_at(value, 0) ||
-        !is_digit_at(value, 1) ||
-        !is_digit_at(value, 2) ||
-        !is_digit_at(value, 3) ||
-        !is_digit_at(value, 5) ||
-        !is_digit_at(value, 6) ||
-        !is_digit_at(value, 8) ||
-        !is_digit_at(value, 9)) {
+    if (value.size() < 10 || value[4] != '-' || value[7] != '-' || !is_digit_at(value, 0) || !is_digit_at(value, 1) ||
+        !is_digit_at(value, 2) || !is_digit_at(value, 3) || !is_digit_at(value, 5) || !is_digit_at(value, 6) ||
+        !is_digit_at(value, 8) || !is_digit_at(value, 9)) {
         return std::nullopt;
     }
 
     const int year = std::stoi(value.substr(0, 4));
     const unsigned month = static_cast<unsigned>(std::stoi(value.substr(5, 2)));
     const unsigned day = static_cast<unsigned>(std::stoi(value.substr(8, 2)));
-    const std::chrono::year_month_day ymd{
-        std::chrono::year{year},
-        std::chrono::month{month},
-        std::chrono::day{day}};
+    const std::chrono::year_month_day ymd{std::chrono::year{year}, std::chrono::month{month}, std::chrono::day{day}};
     if (!ymd.ok()) {
         return std::nullopt;
     }
@@ -423,8 +567,10 @@ inline std::optional<std::chrono::sys_days> parse_iso_day(const std::string& val
  * @brief Orders diagnostics by severity for stable reporting.
  */
 inline int diagnostic_severity_rank(const std::string& severity) {
-    if (severity == "ERROR") return 0;
-    if (severity == "WARNING") return 1;
+    if (severity == "ERROR")
+        return 0;
+    if (severity == "WARNING")
+        return 1;
     return 2;
 }
 
@@ -443,13 +589,16 @@ inline std::string curve_id_to_string(const CurveId& id) {
 inline std::vector<MarketDataDiagnostic> validate_market_snapshot(const MarketSnapshot& snapshot) {
     std::vector<MarketDataDiagnostic> diagnostics;
 
-    auto add = [&](std::string severity, std::string code, std::string message, std::string quote_id = {}, std::string curve_id = {}) {
-        diagnostics.push_back(MarketDataDiagnostic{
-            std::move(severity),
-            std::move(code),
-            std::move(message),
-            std::move(quote_id),
-            std::move(curve_id)});
+    auto add = [&](std::string severity,
+                   std::string code,
+                   std::string message,
+                   std::string quote_id = {},
+                   std::string curve_id = {}) {
+        diagnostics.push_back(MarketDataDiagnostic{std::move(severity),
+                                                   std::move(code),
+                                                   std::move(message),
+                                                   std::move(quote_id),
+                                                   std::move(curve_id)});
     };
 
     const auto valuation_day = market_data_detail::parse_iso_day(snapshot.valuation_date);
@@ -484,15 +633,20 @@ inline std::vector<MarketDataDiagnostic> validate_market_snapshot(const MarketSn
         } else if (valuation_day) {
             const auto quote_day = market_data_detail::parse_iso_day(staleness_ts);
             if (!quote_day) {
-                add("WARNING", "INVALID_QUOTE_TIMESTAMP", "Market quote source_ts/market_ts must begin with YYYY-MM-DD", quote.id);
+                add("WARNING",
+                    "INVALID_QUOTE_TIMESTAMP",
+                    "Market quote source_ts/market_ts must begin with YYYY-MM-DD",
+                    quote.id);
             } else {
-                const int stale_after_days = quote.stale_after_days >= 0
-                    ? quote.stale_after_days
-                    : snapshot.default_stale_after_days;
+                const int stale_after_days =
+                    quote.stale_after_days >= 0 ? quote.stale_after_days : snapshot.default_stale_after_days;
                 if (stale_after_days >= 0) {
                     const auto age = std::chrono::duration_cast<std::chrono::days>(*valuation_day - *quote_day).count();
                     if (age > stale_after_days) {
-                        add("WARNING", "STALE_QUOTE", "Market quote is older than its stale_after_days threshold", quote.id);
+                        add("WARNING",
+                            "STALE_QUOTE",
+                            "Market quote is older than its stale_after_days threshold",
+                            quote.id);
                     }
                 }
             }
@@ -514,10 +668,18 @@ inline std::vector<MarketDataDiagnostic> validate_market_snapshot(const MarketSn
         std::set<std::string> curve_quote_ids;
         for (const auto& quote_id : curve.quote_ids) {
             if (!curve_quote_ids.insert(quote_id).second) {
-                add("WARNING", "DUPLICATE_CURVE_QUOTE_ID", "Curve quote_ids contains a duplicate quote id", quote_id, curve_id);
+                add("WARNING",
+                    "DUPLICATE_CURVE_QUOTE_ID",
+                    "Curve quote_ids contains a duplicate quote id",
+                    quote_id,
+                    curve_id);
             }
             if (!quote_ids.contains(quote_id)) {
-                add("ERROR", "MISSING_CURVE_QUOTE", "Curve references a quote_id that is absent from the snapshot", quote_id, curve_id);
+                add("ERROR",
+                    "MISSING_CURVE_QUOTE",
+                    "Curve references a quote_id that is absent from the snapshot",
+                    quote_id,
+                    curve_id);
             }
         }
     }
@@ -525,10 +687,14 @@ inline std::vector<MarketDataDiagnostic> validate_market_snapshot(const MarketSn
     std::sort(diagnostics.begin(), diagnostics.end(), [](const auto& lhs, const auto& rhs) {
         const auto lhs_rank = market_data_detail::diagnostic_severity_rank(lhs.severity);
         const auto rhs_rank = market_data_detail::diagnostic_severity_rank(rhs.severity);
-        if (lhs_rank != rhs_rank) return lhs_rank < rhs_rank;
-        if (lhs.code != rhs.code) return lhs.code < rhs.code;
-        if (lhs.curve_id != rhs.curve_id) return lhs.curve_id < rhs.curve_id;
-        if (lhs.quote_id != rhs.quote_id) return lhs.quote_id < rhs.quote_id;
+        if (lhs_rank != rhs_rank)
+            return lhs_rank < rhs_rank;
+        if (lhs.code != rhs.code)
+            return lhs.code < rhs.code;
+        if (lhs.curve_id != rhs.curve_id)
+            return lhs.curve_id < rhs.curve_id;
+        if (lhs.quote_id != rhs.quote_id)
+            return lhs.quote_id < rhs.quote_id;
         return lhs.message < rhs.message;
     });
 
@@ -566,10 +732,8 @@ inline std::vector<MarketDataDiagnostic> collect_market_snapshot_diagnostics(con
     auto diagnostics = validate_market_snapshot(snapshot);
     auto exists = [&](const MarketDataDiagnostic& candidate) {
         return std::any_of(diagnostics.begin(), diagnostics.end(), [&](const auto& diagnostic) {
-            return diagnostic.severity == candidate.severity &&
-                   diagnostic.code == candidate.code &&
-                   diagnostic.message == candidate.message &&
-                   diagnostic.quote_id == candidate.quote_id &&
+            return diagnostic.severity == candidate.severity && diagnostic.code == candidate.code &&
+                   diagnostic.message == candidate.message && diagnostic.quote_id == candidate.quote_id &&
                    diagnostic.curve_id == candidate.curve_id;
         });
     };
@@ -583,10 +747,14 @@ inline std::vector<MarketDataDiagnostic> collect_market_snapshot_diagnostics(con
     std::sort(diagnostics.begin(), diagnostics.end(), [](const auto& lhs, const auto& rhs) {
         const auto lhs_rank = market_data_detail::diagnostic_severity_rank(lhs.severity);
         const auto rhs_rank = market_data_detail::diagnostic_severity_rank(rhs.severity);
-        if (lhs_rank != rhs_rank) return lhs_rank < rhs_rank;
-        if (lhs.code != rhs.code) return lhs.code < rhs.code;
-        if (lhs.curve_id != rhs.curve_id) return lhs.curve_id < rhs.curve_id;
-        if (lhs.quote_id != rhs.quote_id) return lhs.quote_id < rhs.quote_id;
+        if (lhs_rank != rhs_rank)
+            return lhs_rank < rhs_rank;
+        if (lhs.code != rhs.code)
+            return lhs.code < rhs.code;
+        if (lhs.curve_id != rhs.curve_id)
+            return lhs.curve_id < rhs.curve_id;
+        if (lhs.quote_id != rhs.quote_id)
+            return lhs.quote_id < rhs.quote_id;
         return lhs.message < rhs.message;
     });
 
@@ -599,11 +767,10 @@ inline std::vector<MarketDataDiagnostic> collect_market_snapshot_diagnostics(con
 inline std::vector<MarketDataDiagnostic> blocking_market_snapshot_diagnostics(const MarketSnapshot& snapshot) {
     const auto diagnostics = collect_market_snapshot_diagnostics(snapshot);
     std::vector<MarketDataDiagnostic> blocking;
-    std::copy_if(
-        diagnostics.begin(),
-        diagnostics.end(),
-        std::back_inserter(blocking),
-        is_blocking_market_data_diagnostic);
+    std::copy_if(diagnostics.begin(),
+                 diagnostics.end(),
+                 std::back_inserter(blocking),
+                 is_blocking_market_data_diagnostic);
     return blocking;
 }
 

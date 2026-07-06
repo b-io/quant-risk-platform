@@ -1,8 +1,7 @@
 // Implements the high-level application facade used by CLI, tests, and Python bindings.
 
-#include <qrp/app/quant_risk_platform.hpp>
-
 #include <qrp/analytics/pricing_context.hpp>
+#include <qrp/app/quant_risk_platform.hpp>
 #include <qrp/domain/factors.hpp>
 #include <qrp/market/market_snapshot.hpp>
 #include <qrp/market/scenario_engine.hpp>
@@ -51,7 +50,8 @@ void QuantRiskPlatform::import_market_snapshot(const std::string& json_path) {
     spdlog::info("Importing market snapshot from: {}", json_path);
 
     std::ifstream f(json_path);
-    if (!f.is_open()) throw std::runtime_error("Could not open market snapshot file: " + json_path);
+    if (!f.is_open())
+        throw std::runtime_error("Could not open market snapshot file: " + json_path);
 
     json data = json::parse(f);
 
@@ -66,14 +66,21 @@ void QuantRiskPlatform::import_market_snapshot(const std::string& json_path) {
 
     for (const auto& q : data["quotes"]) {
         json metadata;
-        if (q.contains("tenor")) metadata["tenor"] = q["tenor"];
+        if (q.contains("tenor"))
+            metadata["tenor"] = q["tenor"];
         metadata["instrument_type"] = q.at("instrument_type");
-        if (q.contains("instrument_family")) metadata["instrument_family"] = q["instrument_family"];
-        if (q.contains("index_family")) metadata["index_family"] = q["index_family"];
-        if (q.contains("day_count")) metadata["day_count"] = q["day_count"];
-        if (q.contains("calendar")) metadata["calendar"] = q["calendar"];
-        if (q.contains("bdc")) metadata["bdc"] = q["bdc"];
-        if (q.contains("settlement_days")) metadata["settlement_days"] = q["settlement_days"];
+        if (q.contains("instrument_family"))
+            metadata["instrument_family"] = q["instrument_family"];
+        if (q.contains("index_family"))
+            metadata["index_family"] = q["index_family"];
+        if (q.contains("day_count"))
+            metadata["day_count"] = q["day_count"];
+        if (q.contains("calendar"))
+            metadata["calendar"] = q["calendar"];
+        if (q.contains("bdc"))
+            metadata["bdc"] = q["bdc"];
+        if (q.contains("settlement_days"))
+            metadata["settlement_days"] = q["settlement_days"];
 
         storage_->store_market_quote(snapshot_id, q["id"], q["value"], q["currency"], metadata.dump());
     }
@@ -85,7 +92,8 @@ void QuantRiskPlatform::import_portfolio(const std::string& json_path) {
     spdlog::info("Importing portfolio from: {}", json_path);
 
     std::ifstream f(json_path);
-    if (!f.is_open()) throw std::runtime_error("Could not open portfolio file: " + json_path);
+    if (!f.is_open())
+        throw std::runtime_error("Could not open portfolio file: " + json_path);
 
     json data = json::parse(f);
 
@@ -106,14 +114,27 @@ void QuantRiskPlatform::import_portfolio(const std::string& json_path) {
 
         std::string direction = t.value("direction", "unknown");
         std::string start_date = t.value("start_date", "");
-        if (start_date.empty()) start_date = t.value("effective_date", "");
+        if (start_date.empty())
+            start_date = t.value("effective_date", "");
 
         std::string maturity_date = t.value("maturity_date", "");
-        if (maturity_date.empty()) maturity_date = t.value("termination_date", "");
+        if (maturity_date.empty())
+            maturity_date = t.value("termination_date", "");
 
-        json economics = t.contains("details") ? t["details"] : (t.contains("economics") ? t["economics"] : json::object());
+        json economics =
+            t.contains("details") ? t["details"] : (t.contains("economics") ? t["economics"] : json::object());
 
-        storage_->store_trade(t["id"], portfolio_id, book_id, asset_class, trade_type, ccy, notional, start_date, maturity_date, direction, economics.dump());
+        storage_->store_trade(t["id"],
+                              portfolio_id,
+                              book_id,
+                              asset_class,
+                              trade_type,
+                              ccy,
+                              notional,
+                              start_date,
+                              maturity_date,
+                              direction,
+                              economics.dump());
     }
 
     spdlog::info("Successfully imported portfolio: {}", portfolio_id);
@@ -122,7 +143,8 @@ void QuantRiskPlatform::import_portfolio(const std::string& json_path) {
 void QuantRiskPlatform::import_scenario_set(const std::string& json_path) {
     spdlog::info("Importing scenario set from: {}", json_path);
     std::ifstream f(json_path);
-    if (!f.is_open()) throw std::runtime_error("Could not open scenario set file: " + json_path);
+    if (!f.is_open())
+        throw std::runtime_error("Could not open scenario set file: " + json_path);
 
     json data = json::parse(f);
     std::string set_id = data["scenario_set_id"];
@@ -199,18 +221,17 @@ std::string QuantRiskPlatform::run_valuation(const std::string& portfolio_id, co
         const bool failed = status_it != res.tags.end() && status_it->second == "failed";
         const auto error_it = res.tags.find("error");
         const std::string error = error_it != res.tags.end() ? error_it->second : "";
-        storage_->store_valuation_result(
-            run_id,
-            res.trade_id,
-            res.npv,
-            res.currency,
-            failed ? "FAILED" : "SUCCESS",
-            error,
-            domain::to_string(res.asset_class),
-            domain::to_string(res.product_type),
-            domain::to_string(res.support_status),
-            res.model_name,
-            res.status_message);
+        storage_->store_valuation_result(run_id,
+                                         res.trade_id,
+                                         res.npv,
+                                         res.currency,
+                                         failed ? "FAILED" : "SUCCESS",
+                                         error,
+                                         domain::to_string(res.asset_class),
+                                         domain::to_string(res.product_type),
+                                         domain::to_string(res.support_status),
+                                         res.model_name,
+                                         res.status_message);
     }
 
     return run_id;
@@ -249,8 +270,13 @@ std::string QuantRiskPlatform::run_risk(const std::string& portfolio_id, const s
     return run_id;
 }
 
-std::string QuantRiskPlatform::run_historical_var(const std::string& portfolio_id, const std::string& snapshot_id, const std::string& scenario_set_id) {
-    spdlog::info("Running Historical VaR for portfolio {} using snapshot {} and scenario set {}", portfolio_id, snapshot_id, scenario_set_id);
+std::string QuantRiskPlatform::run_historical_var(const std::string& portfolio_id,
+                                                  const std::string& snapshot_id,
+                                                  const std::string& scenario_set_id) {
+    spdlog::info("Running Historical VaR for portfolio {} using snapshot {} and scenario set {}",
+                 portfolio_id,
+                 snapshot_id,
+                 scenario_set_id);
 
     auto trades = storage_->load_trades(portfolio_id);
     auto market_dto = storage_->load_market_snapshot(snapshot_id);
@@ -274,7 +300,8 @@ std::string QuantRiskPlatform::run_historical_var(const std::string& portfolio_i
     analytics::PricingContext context(market.built_state());
     auto base_results = analytics::ValuationService::price_portfolio(portfolio, context);
     double base_npv = 0;
-    for (const auto& r : base_results) base_npv += r.npv;
+    for (const auto& r : base_results)
+        base_npv += r.npv;
 
     for (const auto& [sc_name, factor_shocks] : scenarios) {
         spdlog::debug("Applying scenario: {} with {} shocks", sc_name, factor_shocks.size());
@@ -288,17 +315,20 @@ std::string QuantRiskPlatform::run_historical_var(const std::string& portfolio_i
         auto shocked_results = analytics::ValuationService::price_portfolio(portfolio, shocked_context);
 
         double shocked_npv = 0;
-        for (const auto& r : shocked_results) shocked_npv += r.npv;
+        for (const auto& r : shocked_results)
+            shocked_npv += r.npv;
 
         double scenario_pnl = shocked_npv - base_npv;
         pnl_distribution.push_back(scenario_pnl);
         scenario_pnls.push_back({sc_name, scenario_pnl});
     }
 
-    if (pnl_distribution.empty()) throw std::runtime_error("No scenarios to run for VaR");
+    if (pnl_distribution.empty())
+        throw std::runtime_error("No scenarios to run for VaR");
 
     spdlog::debug("PnL distribution size: {}", pnl_distribution.size());
-    for(auto p : pnl_distribution) spdlog::trace("PnL: {}", p);
+    for (auto p : pnl_distribution)
+        spdlog::trace("PnL: {}", p);
 
     std::sort(pnl_distribution.begin(), pnl_distribution.end());
 
@@ -317,13 +347,12 @@ std::string QuantRiskPlatform::run_historical_var(const std::string& portfolio_i
     for (const auto& [scenario_name, scenario_pnl] : scenario_pnls) {
         storage_->store_scenario_result(run_id, scenario_name, scenario_pnl);
     }
-    storage_->store_var_result(
-        run_id,
-        "HISTORICAL",
-        0.95,
-        var_95,
-        expected_shortfall_95,
-        static_cast<int>(pnl_distribution.size()));
+    storage_->store_var_result(run_id,
+                               "HISTORICAL",
+                               0.95,
+                               var_95,
+                               expected_shortfall_95,
+                               static_cast<int>(pnl_distribution.size()));
 
     spdlog::info("Historical VaR 95% run completed. VaR: {}, ES: {}", var_95, expected_shortfall_95);
     return run_id;
@@ -340,23 +369,17 @@ void QuantRiskPlatform::get_run_report(const std::string& run_id) {
     double total_npv = 0;
     std::string base_ccy = results[0].ccy;
 
-    fmt::print(
-        "{:<20} | {:<15} | {:<10} | {:<18} | {:<20}\n",
-        "Trade ID",
-        "NPV",
-        "CCY",
-        "Product",
-        "Support");
+    fmt::print("{:<20} | {:<15} | {:<10} | {:<18} | {:<20}\n", "Trade ID", "NPV", "CCY", "Product", "Support");
     fmt::print("{:-<95}\n", "");
     for (const auto& r : results) {
-        fmt::print(
-            "{:<20} | {:>15.2f} | {:<10} | {:<18} | {:<20}\n",
-            r.trade_id,
-            r.npv,
-            r.ccy,
-            r.product_type,
-            r.support_status);
-        if (r.ccy == base_ccy) total_npv += r.npv;
+        fmt::print("{:<20} | {:>15.2f} | {:<10} | {:<18} | {:<20}\n",
+                   r.trade_id,
+                   r.npv,
+                   r.ccy,
+                   r.product_type,
+                   r.support_status);
+        if (r.ccy == base_ccy)
+            total_npv += r.npv;
     }
     fmt::print("{:-<95}\n", "");
     fmt::print("{:<20} | {:>15.2f} | {:<10}\n", "TOTAL (Base CCY)", total_npv, base_ccy);
@@ -368,7 +391,8 @@ void QuantRiskPlatform::compare_runs(const std::string& run_id_1, const std::str
     auto res2 = storage_->get_valuation_results(run_id_2);
 
     std::map<std::string, double> map1;
-    for (const auto& r : res1) map1[r.trade_id] = r.npv;
+    for (const auto& r : res1)
+        map1[r.trade_id] = r.npv;
 
     fmt::print("{:<20} | {:>15} | {:>15} | {:>15}\n", "Trade ID", "Run 1 NPV", "Run 2 NPV", "Diff");
     fmt::print("{:-<70}\n", "");

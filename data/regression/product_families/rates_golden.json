@@ -11,9 +11,9 @@
       "pnl_explain": {
         "carry_pnl": 0.0,
         "cash_pnl": 0.0,
-        "market_move_pnl": 1563.0,
+        "market_move_pnl": 1534.0,
         "residual_pnl": 0.0,
-        "total_pnl": 1563.0
+        "total_pnl": 1534.0
       },
       "product_type": "bermudan_swaption",
       "risk": {
@@ -26,7 +26,7 @@
       "stress": {},
       "support_status": "supported",
       "valuation": {
-        "npv": 47173.0
+        "npv": 46606.0
       }
     },
     "demo_usd_cap_001": {

@@ -1,8 +1,7 @@
 // Implements portfolio and trade valuation orchestration over QuantLib instruments.
 
-#include <qrp/analytics/valuation_service.hpp>
-
 #include <qrp/analytics/product_pricing_registry.hpp>
+#include <qrp/analytics/valuation_service.hpp>
 
 namespace qrp::analytics {
 
@@ -14,17 +13,14 @@ InstrumentPricingProfile ValuationService::pricing_profile(const domain::Trade& 
     return ProductPricingRegistry::pricing_profile(trade);
 }
 
-double ValuationService::price_instrument(
-    const domain::Trade& trade,
-    const QuantLib::Instrument& instrument) {
+double ValuationService::price_instrument(const domain::Trade& trade, const QuantLib::Instrument& instrument) {
 
     const auto profile = pricing_profile(trade);
     return instrument.NPV() * profile.multiplier + profile.additive_npv;
 }
 
-std::vector<ValuationResult> ValuationService::price_portfolio(
-    const domain::Portfolio& portfolio,
-    const PricingContext& context) {
+std::vector<ValuationResult> ValuationService::price_portfolio(const domain::Portfolio& portfolio,
+                                                               const PricingContext& context) {
 
     std::vector<ValuationResult> results;
     for (const auto& trade_ptr : portfolio.trades) {
@@ -53,8 +49,8 @@ std::vector<ValuationResult> ValuationService::price_portfolio(
         } else {
             res.npv = 0.0;
             res.support_status = support.status == domain::SupportStatus::Unsupported
-                ? domain::SupportStatus::Unsupported
-                : domain::SupportStatus::Failed;
+                                     ? domain::SupportStatus::Unsupported
+                                     : domain::SupportStatus::Failed;
             res.status_message = "Instrument construction failed: " + support.reason;
             res.tags["error"] = "Instrument construction failed";
             res.tags["status"] = domain::to_string(res.support_status);

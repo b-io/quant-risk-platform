@@ -17,14 +17,13 @@
 
 namespace {
 
-qrp::domain::MarketQuote make_quote(
-    const std::string& id,
-    qrp::domain::QuoteInstrumentType instrument_type,
-    qrp::domain::QuoteType quote_type,
-    qrp::domain::Currency currency,
-    const std::string& tenor,
-    double value,
-    const std::string& underlier = {}) {
+qrp::domain::MarketQuote make_quote(const std::string& id,
+                                    qrp::domain::QuoteInstrumentType instrument_type,
+                                    qrp::domain::QuoteType quote_type,
+                                    qrp::domain::Currency currency,
+                                    const std::string& tenor,
+                                    double value,
+                                    const std::string& underlier = {}) {
     qrp::domain::MarketQuote quote;
     quote.id = id;
     quote.instrument_type = instrument_type;
@@ -38,17 +37,14 @@ qrp::domain::MarketQuote make_quote(
     return quote;
 }
 
-qrp::domain::CurveSpec make_ois_curve(
-    qrp::domain::Currency currency,
-    std::vector<std::string> quote_ids) {
+qrp::domain::CurveSpec make_ois_curve(qrp::domain::Currency currency, std::vector<std::string> quote_ids) {
     qrp::domain::CurveSpec curve;
     curve.id = {currency, "OIS"};
     curve.purpose = qrp::domain::CurvePurpose::OISDiscount;
     curve.quote_ids = std::move(quote_ids);
     curve.day_count = qrp::domain::DayCount::ACT360;
-    curve.calendar = currency == qrp::domain::Currency::USD
-        ? qrp::domain::BusinessCalendar::US
-        : qrp::domain::BusinessCalendar::Target;
+    curve.calendar = currency == qrp::domain::Currency::USD ? qrp::domain::BusinessCalendar::US
+                                                            : qrp::domain::BusinessCalendar::Target;
     curve.interpolation = qrp::domain::InterpolationType::LogLinear;
     return curve;
 }
@@ -60,28 +56,94 @@ qrp::domain::MarketSnapshot make_fx_market() {
     market.base_currency = qrp::domain::Currency::USD;
     market.default_stale_after_days = 10;
 
-    market.quotes = {
-        make_quote("EUR_ON", qrp::domain::QuoteInstrumentType::Deposit, qrp::domain::QuoteType::Deposit, qrp::domain::Currency::EUR, "1D", 0.0340),
-        make_quote("EUR_OIS_1M", qrp::domain::QuoteInstrumentType::OIS, qrp::domain::QuoteType::OIS, qrp::domain::Currency::EUR, "1M", 0.0345),
-        make_quote("EUR_OIS_6M", qrp::domain::QuoteInstrumentType::OIS, qrp::domain::QuoteType::OIS, qrp::domain::Currency::EUR, "6M", 0.0350),
-        make_quote("EUR_OIS_1Y", qrp::domain::QuoteInstrumentType::OIS, qrp::domain::QuoteType::OIS, qrp::domain::Currency::EUR, "1Y", 0.0360),
-        make_quote("USD_ON", qrp::domain::QuoteInstrumentType::Deposit, qrp::domain::QuoteType::Deposit, qrp::domain::Currency::USD, "1D", 0.0525),
-        make_quote("USD_OIS_1M", qrp::domain::QuoteInstrumentType::OIS, qrp::domain::QuoteType::OIS, qrp::domain::Currency::USD, "1M", 0.0528),
-        make_quote("USD_OIS_6M", qrp::domain::QuoteInstrumentType::OIS, qrp::domain::QuoteType::OIS, qrp::domain::Currency::USD, "6M", 0.0532),
-        make_quote("USD_OIS_1Y", qrp::domain::QuoteInstrumentType::OIS, qrp::domain::QuoteType::OIS, qrp::domain::Currency::USD, "1Y", 0.0535),
-        make_quote("EURUSD", qrp::domain::QuoteInstrumentType::FXSpot, qrp::domain::QuoteType::FXSpot, qrp::domain::Currency::USD, "SPOT", 1.1000, "EURUSD"),
-        make_quote("EURUSD_FWDPTS_3M", qrp::domain::QuoteInstrumentType::FXForwardPoint, qrp::domain::QuoteType::FXForwardPoint, qrp::domain::Currency::USD, "3M", 0.0015, "EURUSD"),
-        make_quote("EURUSD_FWDPTS_6M", qrp::domain::QuoteInstrumentType::FXForwardPoint, qrp::domain::QuoteType::FXForwardPoint, qrp::domain::Currency::USD, "6M", 0.0020, "EURUSD"),
-        make_quote("EURUSD_FWDPTS_1Y", qrp::domain::QuoteInstrumentType::FXForwardPoint, qrp::domain::QuoteType::FXForwardPoint, qrp::domain::Currency::USD, "1Y", 0.0060, "EURUSD"),
-        make_quote("EURUSD_VOL_6M_ATM", qrp::domain::QuoteInstrumentType::FXVol, qrp::domain::QuoteType::Volatility, qrp::domain::Currency::USD, "6M", 0.10, "EURUSD")
-    };
+    market.quotes = {make_quote("EUR_ON",
+                                qrp::domain::QuoteInstrumentType::Deposit,
+                                qrp::domain::QuoteType::Deposit,
+                                qrp::domain::Currency::EUR,
+                                "1D",
+                                0.0340),
+                     make_quote("EUR_OIS_1M",
+                                qrp::domain::QuoteInstrumentType::OIS,
+                                qrp::domain::QuoteType::OIS,
+                                qrp::domain::Currency::EUR,
+                                "1M",
+                                0.0345),
+                     make_quote("EUR_OIS_6M",
+                                qrp::domain::QuoteInstrumentType::OIS,
+                                qrp::domain::QuoteType::OIS,
+                                qrp::domain::Currency::EUR,
+                                "6M",
+                                0.0350),
+                     make_quote("EUR_OIS_1Y",
+                                qrp::domain::QuoteInstrumentType::OIS,
+                                qrp::domain::QuoteType::OIS,
+                                qrp::domain::Currency::EUR,
+                                "1Y",
+                                0.0360),
+                     make_quote("USD_ON",
+                                qrp::domain::QuoteInstrumentType::Deposit,
+                                qrp::domain::QuoteType::Deposit,
+                                qrp::domain::Currency::USD,
+                                "1D",
+                                0.0525),
+                     make_quote("USD_OIS_1M",
+                                qrp::domain::QuoteInstrumentType::OIS,
+                                qrp::domain::QuoteType::OIS,
+                                qrp::domain::Currency::USD,
+                                "1M",
+                                0.0528),
+                     make_quote("USD_OIS_6M",
+                                qrp::domain::QuoteInstrumentType::OIS,
+                                qrp::domain::QuoteType::OIS,
+                                qrp::domain::Currency::USD,
+                                "6M",
+                                0.0532),
+                     make_quote("USD_OIS_1Y",
+                                qrp::domain::QuoteInstrumentType::OIS,
+                                qrp::domain::QuoteType::OIS,
+                                qrp::domain::Currency::USD,
+                                "1Y",
+                                0.0535),
+                     make_quote("EURUSD",
+                                qrp::domain::QuoteInstrumentType::FXSpot,
+                                qrp::domain::QuoteType::FXSpot,
+                                qrp::domain::Currency::USD,
+                                "SPOT",
+                                1.1000,
+                                "EURUSD"),
+                     make_quote("EURUSD_FWDPTS_3M",
+                                qrp::domain::QuoteInstrumentType::FXForwardPoint,
+                                qrp::domain::QuoteType::FXForwardPoint,
+                                qrp::domain::Currency::USD,
+                                "3M",
+                                0.0015,
+                                "EURUSD"),
+                     make_quote("EURUSD_FWDPTS_6M",
+                                qrp::domain::QuoteInstrumentType::FXForwardPoint,
+                                qrp::domain::QuoteType::FXForwardPoint,
+                                qrp::domain::Currency::USD,
+                                "6M",
+                                0.0020,
+                                "EURUSD"),
+                     make_quote("EURUSD_FWDPTS_1Y",
+                                qrp::domain::QuoteInstrumentType::FXForwardPoint,
+                                qrp::domain::QuoteType::FXForwardPoint,
+                                qrp::domain::Currency::USD,
+                                "1Y",
+                                0.0060,
+                                "EURUSD"),
+                     make_quote("EURUSD_VOL_6M_ATM",
+                                qrp::domain::QuoteInstrumentType::FXVol,
+                                qrp::domain::QuoteType::Volatility,
+                                qrp::domain::Currency::USD,
+                                "6M",
+                                0.10,
+                                "EURUSD")};
     market.quotes.back().expiry = "6M";
     market.quotes.back().strike = "ATM";
 
-    market.curves = {
-        make_ois_curve(qrp::domain::Currency::EUR, {"EUR_ON", "EUR_OIS_1M", "EUR_OIS_6M", "EUR_OIS_1Y"}),
-        make_ois_curve(qrp::domain::Currency::USD, {"USD_ON", "USD_OIS_1M", "USD_OIS_6M", "USD_OIS_1Y"})
-    };
+    market.curves = {make_ois_curve(qrp::domain::Currency::EUR, {"EUR_ON", "EUR_OIS_1M", "EUR_OIS_6M", "EUR_OIS_1Y"}),
+                     make_ois_curve(qrp::domain::Currency::USD, {"USD_ON", "USD_OIS_1M", "USD_OIS_6M", "USD_OIS_1Y"})};
     return market;
 }
 
@@ -174,10 +236,8 @@ std::vector<qrp::domain::FactorDefinition> make_fx_factors() {
 }
 
 std::vector<qrp::domain::FactorBinding> make_fx_bindings(const std::vector<qrp::domain::FactorDefinition>& factors) {
-    return {
-        {factors[0].factor_id, "EURUSD", qrp::domain::ShockMeasure::Relative, 1.0},
-        {factors[1].factor_id, "EURUSD_VOL_6M_ATM", qrp::domain::ShockMeasure::VolPoints, 1.0}
-    };
+    return {{factors[0].factor_id, "EURUSD", qrp::domain::ShockMeasure::Relative, 1.0},
+            {factors[1].factor_id, "EURUSD_VOL_6M_ATM", qrp::domain::ShockMeasure::VolPoints, 1.0}};
 }
 
 } // namespace
@@ -233,14 +293,13 @@ TEST(FxProductsTest, ComputesFxSpotAndVolatilityRiskForOptions) {
 
 TEST(FxProductsTest, PricesAlternativeDirectionsAndFallbackInputs) {
     auto market_dto = make_fx_market();
-    market_dto.quotes.push_back(make_quote(
-        "EURUSD_FWD_6M",
-        qrp::domain::QuoteInstrumentType::FXForward,
-        qrp::domain::QuoteType::FXForward,
-        qrp::domain::Currency::USD,
-        "6M",
-        1.1040,
-        "EURUSD"));
+    market_dto.quotes.push_back(make_quote("EURUSD_FWD_6M",
+                                           qrp::domain::QuoteInstrumentType::FXForward,
+                                           qrp::domain::QuoteType::FXForward,
+                                           qrp::domain::Currency::USD,
+                                           "6M",
+                                           1.1040,
+                                           "EURUSD"));
 
     qrp::market::MarketSnapshot market(market_dto);
     qrp::analytics::PricingContext context(market.built_state());

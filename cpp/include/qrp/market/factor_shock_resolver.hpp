@@ -32,11 +32,11 @@ public:
      * @param base_market The base market snapshot for relative transformations.
      * @return A map from quote_id to the shocked absolute value.
      */
-    static std::unordered_map<std::string, double> resolve_quote_values(
-        const ScenarioDefinition& scenario,
-        const std::vector<domain::FactorDefinition>& factors,
-        const std::vector<domain::FactorBinding>& bindings,
-        const domain::MarketSnapshot& base_market) {
+    static std::unordered_map<std::string, double>
+    resolve_quote_values(const ScenarioDefinition& scenario,
+                         const std::vector<domain::FactorDefinition>& factors,
+                         const std::vector<domain::FactorBinding>& bindings,
+                         const domain::MarketSnapshot& base_market) {
 
         std::unordered_map<std::string, double> base_quotes;
         for (const auto& q : base_market.quotes) {
@@ -63,12 +63,13 @@ public:
 
             bool found_binding = false;
             for (const auto& binding : bindings) {
-                if (binding.factor_id != factor_id) continue;
+                if (binding.factor_id != factor_id)
+                    continue;
                 found_binding = true;
 
                 if (!base_quotes.contains(binding.quote_id)) {
-                    throw std::invalid_argument(
-                        "Factor '" + factor_id + "' is bound to missing market quote: " + binding.quote_id);
+                    throw std::invalid_argument("Factor '" + factor_id +
+                                                "' is bound to missing market quote: " + binding.quote_id);
                 }
 
                 double q = base_quotes.at(binding.quote_id);

@@ -15,26 +15,30 @@ PortfolioOptimizationEngine::PortfolioOptimizationEngine(std::shared_ptr<Optimiz
     }
 }
 
-OptimizationResult PortfolioOptimizationEngine::optimize(
-    const std::map<std::string, double>& current_weights,
-    const std::map<std::string, double>& expected_returns,
-    const std::shared_ptr<RiskModel>& risk_model,
-    const std::vector<std::shared_ptr<OptimizationConstraint>>& constraints,
-    const std::shared_ptr<OptimizationObjective>& objective,
-    const SolverConfig& config) {
+OptimizationResult
+PortfolioOptimizationEngine::optimize(const std::map<std::string, double>& current_weights,
+                                      const std::map<std::string, double>& expected_returns,
+                                      const std::shared_ptr<RiskModel>& risk_model,
+                                      const std::vector<std::shared_ptr<OptimizationConstraint>>& constraints,
+                                      const std::shared_ptr<OptimizationObjective>& objective,
+                                      const SolverConfig& config) {
 
     OptimizationProblem problem;
     problem.name = "Portfolio Optimization";
 
     // 1. Identify all assets involved
     std::set<std::string> all_assets;
-    for (const auto& entry : expected_returns) all_assets.insert(entry.first);
-    for (const auto& entry : current_weights) all_assets.insert(entry.first);
+    for (const auto& entry : expected_returns)
+        all_assets.insert(entry.first);
+    for (const auto& entry : current_weights)
+        all_assets.insert(entry.first);
 
     if (auto full_risk = std::dynamic_pointer_cast<FullCovarianceModel>(risk_model)) {
-        for (const auto& asset_id : full_risk->asset_ids) all_assets.insert(asset_id);
+        for (const auto& asset_id : full_risk->asset_ids)
+            all_assets.insert(asset_id);
     } else if (auto factor_risk = std::dynamic_pointer_cast<FactorRiskModel>(risk_model)) {
-        for (const auto& asset_id : factor_risk->asset_ids) all_assets.insert(asset_id);
+        for (const auto& asset_id : factor_risk->asset_ids)
+            all_assets.insert(asset_id);
     }
 
     if (all_assets.empty()) {

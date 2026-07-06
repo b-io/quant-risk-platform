@@ -20,9 +20,7 @@
 
 namespace {
 
-std::map<std::string, double> material_bucketed_risk(
-    const std::map<std::string, double>& values,
-    double tolerance) {
+std::map<std::string, double> material_bucketed_risk(const std::map<std::string, double>& values, double tolerance) {
     std::map<std::string, double> material;
     for (const auto& [bucket, value] : values) {
         if (std::abs(value) > tolerance) {
@@ -48,10 +46,9 @@ std::set<std::string> map_keys(const std::map<std::string, double>& values) {
     return keys;
 }
 
-void load_factor_configuration(
-    const std::filesystem::path& scenario_path,
-    std::vector<qrp::domain::FactorDefinition>& factors,
-    std::vector<qrp::domain::FactorBinding>& bindings) {
+void load_factor_configuration(const std::filesystem::path& scenario_path,
+                               std::vector<qrp::domain::FactorDefinition>& factors,
+                               std::vector<qrp::domain::FactorBinding>& bindings) {
     std::ifstream scenario_stream(scenario_path);
     ASSERT_TRUE(scenario_stream.is_open()) << "Unable to open " << scenario_path.string();
 
@@ -142,10 +139,8 @@ TEST(RiskIntegrationTest, ComputeRiskSamplePortfolio) {
         EXPECT_EQ(map_keys(material_actual), json_object_keys(expected_buckets)) << trade_id;
         for (const auto& [bucket, expected_value] : expected_buckets.items()) {
             ASSERT_TRUE(material_actual.contains(bucket)) << trade_id << " missing bucket " << bucket;
-            EXPECT_NEAR(
-                material_actual.at(bucket),
-                expected_value.get<double>(),
-                tolerance) << trade_id << "/" << bucket;
+            EXPECT_NEAR(material_actual.at(bucket), expected_value.get<double>(), tolerance)
+                << trade_id << "/" << bucket;
         }
     }
 }
