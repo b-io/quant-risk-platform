@@ -33,7 +33,7 @@ cmake --build build/coverage --target coverage
 ```
 
 The coverage target runs CTest, writes HTML to `build/coverage/coverage/cpp/index.html`, writes XML to
-`build/coverage/coverage/cpp/coverage.xml`, and fails if line coverage is below `QRP_COVERAGE_MIN_LINE` percent.
-The default threshold is `95`; override it with `-DQRP_COVERAGE_MIN_LINE=<value>` for local experiments.
-It also writes `build/coverage/coverage/cpp/coverage_metric.json` for dashboards or CI ingestion and
-`build/coverage/coverage/cpp/coverage_metric.md` for quick review.
+`build/coverage/coverage/cpp/coverage.xml`, writes `build/coverage/coverage/cpp/coverage_metric.json` for dashboards
+or CI ingestion, and writes `build/coverage/coverage/cpp/coverage_metric.md` for quick review. The generated metric is
+marked as passing or failing against `QRP_COVERAGE_MIN_LINE`; the default threshold is `95`, and CI enforces the gate
+from the combined coverage summary after all language metrics have been generated.

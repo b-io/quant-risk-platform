@@ -411,7 +411,7 @@ jobs:
             --markdown "$PWD/build/coverage/coverage/python/coverage_metric.md" \
             --threshold 95
 
-      - name: Update coverage summary
+      - name: Update coverage summary and enforce gates
         run: |
           python coverage/coverage_summary.py \
             --cpp-json "$PWD/build/coverage/coverage/cpp/coverage_metric.json" \
@@ -419,6 +419,7 @@ jobs:
             --output-dir "$PWD/coverage"
 
       - name: Upload coverage artifacts
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: coverage-reports
@@ -427,7 +428,7 @@ jobs:
             coverage
 
       - name: Commit coverage summary on default branch
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        if: success() && github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

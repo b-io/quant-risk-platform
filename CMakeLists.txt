@@ -365,7 +365,6 @@ if(QRP_ENABLE_COVERAGE AND BUILD_TESTING AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|
         --xml ${CMAKE_BINARY_DIR}/coverage/cpp/coverage.xml
       COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/coverage/cpp/coverage_metric.py
-        --fail-under-threshold
         --html-report ${CMAKE_BINARY_DIR}/coverage/cpp/index.html
         --json ${CMAKE_BINARY_DIR}/coverage/cpp/coverage_metric.json
         --markdown ${CMAKE_BINARY_DIR}/coverage/cpp/coverage_metric.md
