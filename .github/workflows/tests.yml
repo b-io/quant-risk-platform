@@ -36,12 +36,16 @@ jobs:
     name: Linux Dev (C++ + Python)
     needs: quality
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     env:
       VCPKG_ROOT: ${{ github.workspace }}/.vcpkg
       VCPKG_TARGET_TRIPLET: x64-linux
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -55,6 +59,7 @@ jobs:
             autoconf \
             autoconf-archive \
             automake \
+            gcovr \
             libtool \
             linux-libc-dev \
             ninja-build \
@@ -133,120 +138,6 @@ jobs:
           fi
           exit "$status"
 
-  windows-dev:
-    name: Windows Dev (C++ + Python)
-    needs: quality
-    runs-on: windows-latest
-    env:
-      VCPKG_ROOT: ${{ github.workspace }}/.vcpkg
-      VCPKG_TARGET_TRIPLET: x64-windows-static-md
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Set up MSVC
-        uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Bootstrap vcpkg
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = "Stop"
-          $ciVcpkgRoot = Join-Path $env:GITHUB_WORKSPACE ".vcpkg"
-          $env:VCPKG_ROOT = $ciVcpkgRoot
-          "VCPKG_ROOT=$ciVcpkgRoot" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "Using VCPKG_ROOT=$env:VCPKG_ROOT"
-          $manifest = Get-Content -Path vcpkg.json -Raw | ConvertFrom-Json
-          $baseline = $manifest.'builtin-baseline'
-          git clone --filter=blob:none https://github.com/microsoft/vcpkg.git "$env:VCPKG_ROOT"
-          git -C "$env:VCPKG_ROOT" checkout --detach "$baseline"
-          & (Join-Path $env:VCPKG_ROOT "bootstrap-vcpkg.bat")
-
-      - name: Cache vcpkg artifacts
-        uses: actions/cache@v4
-        with:
-          path: |
-            ${{ env.VCPKG_ROOT }}\archives
-            ${{ env.VCPKG_ROOT }}\buildtrees
-            ${{ env.VCPKG_ROOT }}\downloads
-            ${{ env.VCPKG_ROOT }}\installed
-            ${{ env.VCPKG_ROOT }}\packages
-          key: vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-${{ hashFiles('vcpkg.json') }}
-          restore-keys: |
-            vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-
-
-      - name: Configure dev build
-        shell: pwsh
-        run: cmake --preset dev -DQRP_WARNINGS_AS_ERRORS=ON
-
-      - name: Run dev tests
-        shell: pwsh
-        run: .\scripts\test.ps1 -BuildDir build\dev -Config RelWithDebInfo -SkipCppCoverage -SkipPythonCoverage
-
-  linux-coverage:
-    name: Linux Coverage
-    needs: quality
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    env:
-      VCPKG_ROOT: ${{ github.workspace }}/.vcpkg
-      VCPKG_TARGET_TRIPLET: x64-linux
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install system packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            autoconf \
-            autoconf-archive \
-            automake \
-            gcovr \
-            libtool \
-            linux-libc-dev \
-            ninja-build \
-            pkg-config
-
-      - name: Bootstrap vcpkg
-        run: |
-          VCPKG_BASELINE="$(
-            python - <<'PY'
-          import json
-          from pathlib import Path
-
-          print(json.loads(Path("vcpkg.json").read_text(encoding="utf-8"))["builtin-baseline"])
-          PY
-          )"
-          git clone --filter=blob:none https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
-          git -C "$VCPKG_ROOT" checkout --detach "$VCPKG_BASELINE"
-          "$VCPKG_ROOT/bootstrap-vcpkg.sh"
-
-      - name: Cache vcpkg artifacts
-        uses: actions/cache@v4
-        with:
-          path: |
-            ${{ env.VCPKG_ROOT }}/archives
-            ${{ env.VCPKG_ROOT }}/buildtrees
-            ${{ env.VCPKG_ROOT }}/downloads
-            ${{ env.VCPKG_ROOT }}/installed
-            ${{ env.VCPKG_ROOT }}/packages
-          key: vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-${{ hashFiles('vcpkg.json') }}
-          restore-keys: |
-            vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-
-
       - name: Configure C++ coverage build
         run: |
           set +e
@@ -304,3 +195,57 @@ jobs:
             git commit -m "Update coverage summary [skip ci]"
             git push origin HEAD:${GITHUB_REF_NAME}
           fi
+
+  windows-dev:
+    name: Windows Dev (C++ + Python)
+    needs: quality
+    runs-on: windows-latest
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/.vcpkg
+      VCPKG_TARGET_TRIPLET: x64-windows-static-md
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Bootstrap vcpkg
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $ciVcpkgRoot = Join-Path $env:GITHUB_WORKSPACE ".vcpkg"
+          $env:VCPKG_ROOT = $ciVcpkgRoot
+          "VCPKG_ROOT=$ciVcpkgRoot" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "Using VCPKG_ROOT=$env:VCPKG_ROOT"
+          $manifest = Get-Content -Path vcpkg.json -Raw | ConvertFrom-Json
+          $baseline = $manifest.'builtin-baseline'
+          git clone --filter=blob:none https://github.com/microsoft/vcpkg.git "$env:VCPKG_ROOT"
+          git -C "$env:VCPKG_ROOT" checkout --detach "$baseline"
+          & (Join-Path $env:VCPKG_ROOT "bootstrap-vcpkg.bat")
+
+      - name: Cache vcpkg artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.VCPKG_ROOT }}\archives
+            ${{ env.VCPKG_ROOT }}\buildtrees
+            ${{ env.VCPKG_ROOT }}\downloads
+            ${{ env.VCPKG_ROOT }}\installed
+            ${{ env.VCPKG_ROOT }}\packages
+          key: vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-
+
+      - name: Configure dev build
+        shell: pwsh
+        run: cmake --preset dev -DQRP_WARNINGS_AS_ERRORS=ON
+
+      - name: Run dev tests
+        shell: pwsh
+        run: .\scripts\test.ps1 -BuildDir build\dev -Config RelWithDebInfo -SkipCppCoverage -SkipPythonCoverage
