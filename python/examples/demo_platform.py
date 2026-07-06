@@ -150,6 +150,10 @@ MONTE_CARLO_CASES = [
 ]
 
 DASHBOARD_PORTFOLIO_MONTE_CARLO_CASES = [MONTE_CARLO_CASES[0]]
+ASSET_COLUMN_WIDTH = 10
+PRODUCT_COLUMN_WIDTH = 34
+POSITION_COLUMN_WIDTH = 34
+POSITION_RULE_WIDTH = 120
 
 
 def sort_text(value):
@@ -174,12 +178,55 @@ def portfolio_trade_sort_map(portfolio, valuation_results=None):
     return sort_map
 
 
+def portfolio_trade_metadata_map(portfolio, valuation_results=None):
+    metadata = {
+        trade.id: {
+            "asset_class": trade.asset_class,
+            "product_type": trade.type,
+            "trade_id": trade.id,
+        }
+        for trade in portfolio.trades
+    }
+    for result in valuation_results or []:
+        metadata[result.trade_id] = {
+            "asset_class": result.tags.get("asset_class", ""),
+            "product_type": result.tags.get("product_type", ""),
+            "trade_id": result.trade_id,
+        }
+    return metadata
+
+
 def result_sort_key(result, sort_map):
     return sort_map.get(result.trade_id, trade_sort_tuple("", "", result.trade_id))
 
 
 def trade_id_sort_key(trade_id, sort_map):
     return sort_map.get(trade_id, trade_sort_tuple("", "", trade_id))
+
+
+def trade_metadata(metadata_by_trade, trade_id):
+    return metadata_by_trade.get(
+        trade_id,
+        {"asset_class": "", "product_type": "", "trade_id": trade_id},
+    )
+
+
+def position_header(*numeric_columns):
+    labels = (
+        f"{'Asset':<{ASSET_COLUMN_WIDTH}} "
+        f"{'Product':<{PRODUCT_COLUMN_WIDTH}} "
+        f"{'Position':<{POSITION_COLUMN_WIDTH}}"
+    )
+    numbers = " ".join(f"{label:>12}" for label in numeric_columns)
+    return f"{labels} {numbers}" if numbers else labels
+
+
+def position_prefix(metadata):
+    return (
+        f"{metadata['asset_class']:<{ASSET_COLUMN_WIDTH}} "
+        f"{metadata['product_type']:<{PRODUCT_COLUMN_WIDTH}} "
+        f"{metadata['trade_id']:<{POSITION_COLUMN_WIDTH}}"
+    )
 
 
 def trade_expectation_sort_key(trade_id, expectation, default_asset_class=""):
@@ -483,17 +530,21 @@ def print_portfolio_valuation(portfolio, market):
     section("2. Portfolio Valuation")
     valuation_results = qrp.price_portfolio(portfolio, market)
     total_npv = sum(result.npv for result in valuation_results)
+    metadata_by_trade = portfolio_trade_metadata_map(portfolio, valuation_results)
     sort_map = portfolio_trade_sort_map(portfolio, valuation_results)
+    print(f"{position_header('NPV')} {'CCY':<3} {'Status':<20}")
+    print("-" * POSITION_RULE_WIDTH)
     for result in sorted(
         valuation_results, key=lambda item: result_sort_key(item, sort_map)
     ):
         status = result.tags.get("status", "unknown")
-        product = result.tags.get("product_type", "unknown")
+        metadata = trade_metadata(metadata_by_trade, result.trade_id)
         print(
-            f"{result.trade_id:<28} {result.npv:>15,.2f} {result.currency:<3} {status:<20} {product}"
+            f"{position_prefix(metadata)} {result.npv:>12,.2f} "
+            f"{result.currency:<3} {status:<20}"
         )
-    print("-" * 52)
-    print(f"{'TOTAL':<28} {total_npv:>15,.2f} USD")
+    print("-" * POSITION_RULE_WIDTH)
+    print(f"{'TOTAL':<{ASSET_COLUMN_WIDTH + PRODUCT_COLUMN_WIDTH + POSITION_COLUMN_WIDTH + 2}} {total_npv:>12,.2f} USD")
     if not valuation_results:
         raise AssertionError("Expected at least one valuation result")
     return valuation_results, total_npv
@@ -528,6 +579,7 @@ def run_factor_resolution_checks(market, factors, bindings, scenarios):
 
 def run_stress(portfolio, market, factors, bindings, scenarios):
     section("4. Historical Stress")
+    metadata_by_trade = portfolio_trade_metadata_map(portfolio)
     sort_map = portfolio_trade_sort_map(portfolio)
     stress_results = qrp.run_historical_stress(
         portfolio, market, scenarios, factors, bindings
@@ -535,15 +587,19 @@ def run_stress(portfolio, market, factors, bindings, scenarios):
     if len(stress_results) != len(scenarios):
         raise AssertionError("Stress result count does not match scenario count")
 
-    for result in stress_results:
+    ordered_results = sorted(stress_results, key=lambda item: sort_text(item.scenario_name))
+    for result in ordered_results:
         print(f"{result.scenario_name:<28} total P&L = {result.total_pnl:>15,.2f}")
+        print(f"  {position_header('Trade P&L')}")
+        print(f"  {'-' * POSITION_RULE_WIDTH}")
         for trade_id, pnl in sorted(
             result.trade_pnls.items(),
             key=lambda item: trade_id_sort_key(item[0], sort_map),
         ):
             if abs(pnl) > 1e-8:
-                print(f"  {trade_id:<26} {pnl:>15,.2f}")
-    return stress_results
+                metadata = trade_metadata(metadata_by_trade, trade_id)
+                print(f"  {position_prefix(metadata)} {pnl:>12,.2f}")
+    return ordered_results
 
 
 def run_risk(portfolio, market, factors, bindings):
@@ -552,14 +608,20 @@ def run_risk(portfolio, market, factors, bindings):
     if not risk_results:
         raise AssertionError("Expected risk results")
 
+    metadata_by_trade = portfolio_trade_metadata_map(portfolio)
     sort_map = portfolio_trade_sort_map(portfolio)
+    print(position_header("PV01", "CS01"))
+    print("-" * POSITION_RULE_WIDTH)
     for result in sorted(
         risk_results, key=lambda item: result_sort_key(item, sort_map)
     ):
+        metadata = trade_metadata(metadata_by_trade, result.trade_id)
         print(
-            f"{result.trade_id:<28} PV01={result.pv01:>12,.2f} CS01={result.cs01:>12,.2f}"
+            f"{position_prefix(metadata)} {result.pv01:>12,.2f} {result.cs01:>12,.2f}"
         )
-        for node, value in result.bucketed_risk.items():
+        for node, value in sorted(
+            result.bucketed_risk.items(), key=lambda item: sort_text(item[0])
+        ):
             if abs(value) > 1e-8:
                 print(f"  {node:<24} {value:>12,.2f}")
     return risk_results
@@ -590,11 +652,15 @@ def compute_pnl_explain(portfolio, market_path):
 def run_pnl_explain(portfolio, market_path):
     section("6. P&L Explain")
     pnl_results = compute_pnl_explain(portfolio, market_path)
+    metadata_by_trade = portfolio_trade_metadata_map(portfolio)
     sort_map = portfolio_trade_sort_map(portfolio)
+    print(position_header("Total", "Carry", "Market"))
+    print("-" * POSITION_RULE_WIDTH)
     for result in sorted(pnl_results, key=lambda item: result_sort_key(item, sort_map)):
+        metadata = trade_metadata(metadata_by_trade, result.trade_id)
         print(
-            f"{result.trade_id:<28} total={result.total_pnl:>12,.2f} "
-            f"carry={result.carry_pnl:>12,.2f} market={result.market_move_pnl:>12,.2f}"
+            f"{position_prefix(metadata)} {result.total_pnl:>12,.2f} "
+            f"{result.carry_pnl:>12,.2f} {result.market_move_pnl:>12,.2f}"
         )
     return pnl_results
 
@@ -668,7 +734,9 @@ def print_traces(traces, mode):
             print(f"  Path P&L:     {trace.path_pnl:,.2f}")
 
         print("  Factor shocks:")
-        for factor_id, shock in trace.factor_shocks.items():
+        for factor_id, shock in sorted(
+            trace.factor_shocks.items(), key=lambda item: sort_text(item[0])
+        ):
             print(f"    {factor_id:<28} {shock:+.8f}")
 
 
