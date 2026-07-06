@@ -34,7 +34,15 @@ jobs:
       - name: Install system packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcovr ninja-build
+          sudo apt-get install -y \
+            autoconf \
+            autoconf-archive \
+            automake \
+            gcovr \
+            libtool \
+            linux-libc-dev \
+            ninja-build \
+            pkg-config
 
       - name: Bootstrap vcpkg
         run: |
