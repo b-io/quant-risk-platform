@@ -240,6 +240,58 @@ TEST(PortfolioOptimizationTest, IncludesCurrentWeightsAndFactorRiskAssets) {
     EXPECT_EQ(return_objective->expected_returns, returns);
 }
 
+TEST(PortfolioOptimizationTest, PreservesExplicitObjectiveReturnsAndPassesSolverConfig) {
+    auto solver = std::make_shared<RecordingSolver>();
+    PortfolioOptimizationEngine engine(solver);
+
+    std::map<std::string, double> returns = {{"AAPL", 0.15}, {"MSFT", 0.12}, {"TSLA", 0.30}};
+    auto objective = std::make_shared<MeanVarianceObjective>();
+    objective->expected_returns = {{"AAPL", 0.05}, {"MSFT", 0.04}};
+    objective->risk_aversion = 3.0;
+
+    SolverConfig config;
+    config.custom_params["warm_start"] = "false";
+    config.max_iterations = 77;
+    config.solver_name = "unit-solver";
+    config.time_limit_sec = 2.5;
+    config.tolerance = 1.0e-9;
+    config.verbose = true;
+
+    const auto result = engine.optimize({{"AAPL", 0.60}}, returns, make_two_asset_risk_model(), {}, objective, config);
+
+    ASSERT_TRUE(solver->called);
+    EXPECT_EQ(result.status, SolverStatus::Solved);
+    EXPECT_TRUE(result.optimal_values.contains("AAPL"));
+    EXPECT_TRUE(result.optimal_values.contains("MSFT"));
+    EXPECT_TRUE(result.optimal_values.contains("TSLA"));
+
+    auto mean_variance = std::dynamic_pointer_cast<MeanVarianceObjective>(solver->last_problem.objectives.front());
+    ASSERT_NE(mean_variance, nullptr);
+    EXPECT_EQ(mean_variance->expected_returns, objective->expected_returns);
+    EXPECT_DOUBLE_EQ(mean_variance->risk_aversion, 3.0);
+    EXPECT_EQ(solver->last_config.custom_params.at("warm_start"), "false");
+    EXPECT_EQ(solver->last_config.max_iterations, 77);
+    EXPECT_EQ(solver->last_config.solver_name, "unit-solver");
+    ASSERT_TRUE(solver->last_config.time_limit_sec.has_value());
+    EXPECT_DOUBLE_EQ(*solver->last_config.time_limit_sec, 2.5);
+    EXPECT_DOUBLE_EQ(solver->last_config.tolerance, 1.0e-9);
+    EXPECT_TRUE(solver->last_config.verbose);
+}
+
+TEST(PortfolioOptimizationTest, BuildsConstraintOnlyProblemFromCurrentWeights) {
+    auto solver = std::make_shared<RecordingSolver>();
+    PortfolioOptimizationEngine engine(solver);
+
+    const auto result = engine.optimize({{"CASH", 1.0}}, {}, nullptr, {}, nullptr);
+
+    ASSERT_TRUE(solver->called);
+    EXPECT_EQ(result.status, SolverStatus::Solved);
+    ASSERT_EQ(solver->last_problem.variables.size(), 1U);
+    EXPECT_EQ(solver->last_problem.variables.front().id, "CASH");
+    EXPECT_TRUE(solver->last_problem.objectives.empty());
+    EXPECT_EQ(solver->last_problem.risk_model, nullptr);
+}
+
 TEST(PortfolioOptimizationTest, RejectsNullSolver) {
     EXPECT_THROW(PortfolioOptimizationEngine(nullptr), std::invalid_argument);
 }

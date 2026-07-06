@@ -22,8 +22,8 @@ if (-not $EnvFile) {
     $EnvFile = Join-Path $ProjectRoot $EnvFile
 }
 
-$isWindows = [System.Environment]::OSVersion.Platform -eq [System.PlatformID]::Win32NT
-if (-not $isWindows) {
+$qrpIsWindows = [System.Environment]::OSVersion.Platform -eq [System.PlatformID]::Win32NT
+if (-not $qrpIsWindows) {
     if (-not $Quiet) {
         Write-Host "Skipping .env.cmd import on non-Windows platform." -ForegroundColor Yellow
     }

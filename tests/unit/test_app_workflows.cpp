@@ -3,11 +3,14 @@
 #include "test_paths.hpp"
 
 #include <qrp/app/quant_risk_platform.hpp>
+#include <qrp/domain/portfolio.hpp>
 #include <qrp/persistence/sqlite_storage_backend.hpp>
 
 #include <gtest/gtest.h>
 
+#include <chrono>
 #include <filesystem>
+#include <fstream>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -36,6 +39,28 @@ protected:
 
     std::string db_path;
     std::shared_ptr<persistence::SQLiteStorageBackend> storage;
+};
+
+class TemporaryJsonFile {
+public:
+    explicit TemporaryJsonFile(const std::string& body) {
+        const auto suffix = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+        path_ = std::filesystem::current_path() / ("qrp_app_workflow_" + std::to_string(suffix) + ".json");
+        std::ofstream out(path_);
+        out << body;
+    }
+
+    ~TemporaryJsonFile() {
+        std::error_code ec;
+        std::filesystem::remove(path_, ec);
+    }
+
+    std::string string() const {
+        return path_.string();
+    }
+
+private:
+    std::filesystem::path path_;
 };
 
 } // namespace
@@ -75,6 +100,247 @@ TEST_F(AppWorkflowTest, RiskWorkflowsRejectMissingFactorConfiguration) {
 
     EXPECT_THROW(
         { platform.run_historical_var("demo_portfolio", "SNAP:2026-03-24", "missing_scenarios"); },
+        std::runtime_error);
+}
+
+TEST_F(AppWorkflowTest, ImportWorkflowsRejectMissingInputFiles) {
+    app::QuantRiskPlatform platform(storage);
+    platform.initialize();
+
+    EXPECT_THROW({ platform.import_market_snapshot("missing_market_snapshot.json"); }, std::runtime_error);
+    EXPECT_THROW({ platform.import_portfolio("missing_portfolio.json"); }, std::runtime_error);
+    EXPECT_THROW({ platform.import_scenario_set("missing_scenario_set.json"); }, std::runtime_error);
+}
+
+TEST_F(AppWorkflowTest, ImportMarketSnapshotAppliesDefaultsAndQuoteMetadata) {
+    TemporaryJsonFile market_file(R"json(
+        {
+          "valuation_date": "2026-03-24",
+          "quotes": [
+            {
+              "id": "USD_OIS_2Y",
+              "instrument_type": "OIS",
+              "instrument_family": "ois",
+              "index_family": "SOFR",
+              "day_count": "ACT360",
+              "calendar": "US",
+              "bdc": "ModifiedFollowing",
+              "settlement_days": 2,
+              "tenor": "2Y",
+              "value": 0.0415,
+              "currency": "USD"
+            }
+          ]
+        }
+    )json");
+
+    app::QuantRiskPlatform platform(storage);
+    platform.initialize();
+    platform.import_market_snapshot(market_file.string());
+
+    const auto snapshots = storage->list_snapshots();
+    ASSERT_EQ(snapshots.size(), 1U);
+    EXPECT_EQ(snapshots.front(), "SNAP:2026-03-24");
+
+    const auto snapshot = storage->load_market_snapshot("SNAP:2026-03-24");
+    EXPECT_EQ(snapshot.base_currency, domain::Currency::USD);
+    EXPECT_EQ(snapshot.curves.size(), 0U);
+    ASSERT_EQ(snapshot.quotes.size(), 1U);
+
+    const auto& quote = snapshot.quotes.front();
+    EXPECT_EQ(quote.id, "USD_OIS_2Y");
+    EXPECT_EQ(quote.instrument_type, domain::QuoteInstrumentType::OIS);
+    EXPECT_EQ(quote.instrument_family, "ois");
+    EXPECT_EQ(quote.index_family, "SOFR");
+    EXPECT_EQ(quote.day_count, domain::DayCount::ACT360);
+    EXPECT_EQ(quote.calendar, domain::BusinessCalendar::US);
+    EXPECT_EQ(quote.bdc, domain::BusinessDayConvention::ModifiedFollowing);
+    EXPECT_EQ(quote.settlement_days, 2);
+    EXPECT_EQ(quote.tenor, "2Y");
+    EXPECT_DOUBLE_EQ(quote.value, 0.0415);
+}
+
+TEST_F(AppWorkflowTest, ImportPortfolioAppliesDefaultsAndEconomicsFallbacks) {
+    TemporaryJsonFile portfolio_file(R"json(
+        {
+          "portfolio_id": "P_DEFAULTS",
+          "trades": [
+            {
+              "id": "deposit_defaults",
+              "asset_class": "rates",
+              "type": "deposit",
+              "currency": "USD",
+              "quantity": 1250000.0,
+              "effective_date": "2026-03-24",
+              "termination_date": "2026-06-24",
+              "economics": {
+                "rate": 0.0525
+              }
+            }
+          ]
+        }
+    )json");
+
+    app::QuantRiskPlatform platform(storage);
+    platform.initialize();
+    platform.import_portfolio(portfolio_file.string());
+
+    const auto portfolios = storage->list_portfolios();
+    ASSERT_EQ(portfolios.size(), 1U);
+    EXPECT_EQ(portfolios.front(), "P_DEFAULTS");
+
+    const auto trades = storage->load_trades("P_DEFAULTS");
+    ASSERT_EQ(trades.size(), 1U);
+    const auto deposit = std::dynamic_pointer_cast<domain::DepositTrade>(trades.front());
+    ASSERT_NE(deposit, nullptr);
+    EXPECT_EQ(deposit->id, "deposit_defaults");
+    EXPECT_EQ(deposit->asset_class, "rates");
+    EXPECT_EQ(deposit->type, "deposit");
+    EXPECT_EQ(deposit->currency, "USD");
+    EXPECT_EQ(deposit->direction, "unknown");
+    EXPECT_EQ(deposit->start_date, "2026-03-24");
+    EXPECT_EQ(deposit->maturity_date, "2026-06-24");
+    EXPECT_DOUBLE_EQ(deposit->notional, 1250000.0);
+    EXPECT_DOUBLE_EQ(deposit->deposit_rate, 0.0525);
+}
+
+TEST_F(AppWorkflowTest, ImportScenarioSetRejectsUndefinedScenarioFactorIds) {
+    TemporaryJsonFile scenario_file(R"json(
+        {
+          "scenario_set_id": "bad_scenario_factor_set",
+          "factors": [
+            {
+              "factor_id": "RF:EQ:AAPL:SPOT",
+              "factor_type": "EquitySpot",
+              "shock_measure": "Relative"
+            }
+          ],
+          "bindings": [
+            {
+              "factor_id": "RF:EQ:AAPL:SPOT",
+              "quote_id": "AAPL_SPOT",
+              "shock_measure": "Relative"
+            }
+          ],
+          "scenarios": {
+            "BAD_FACTOR": {
+              "factor_shocks": {
+                "RF:EQ:MSFT:SPOT": -0.01
+              }
+            }
+          }
+        }
+    )json");
+
+    app::QuantRiskPlatform platform(storage);
+    platform.initialize();
+
+    EXPECT_THROW({ platform.import_scenario_set(scenario_file.string()); }, std::invalid_argument);
+}
+
+TEST_F(AppWorkflowTest, ImportScenarioSetPersistsDefinitionsBindingsAndShocks) {
+    TemporaryJsonFile scenario_file(R"json(
+        {
+          "scenario_set_id": "mini_scenario_set",
+          "name": "Mini Scenario Set",
+          "factors": [
+            {
+              "factor_id": "RF:RATES:USD:OIS:2Y",
+              "factor_type": "RateZero",
+              "shock_measure": "BasisPoints",
+              "currency": "USD",
+              "curve_id": "USD_OIS",
+              "tenor": "2Y",
+              "quote_ids": [
+                "USD_OIS_2Y"
+              ],
+              "description": "USD OIS two-year zero rate"
+            }
+          ],
+          "bindings": [
+            {
+              "factor_id": "RF:RATES:USD:OIS:2Y",
+              "quote_id": "USD_OIS_2Y",
+              "shock_measure": "BasisPoints",
+              "weight": 0.5,
+              "transform": "rate",
+              "selector_json": "{\"tenor\":\"2Y\"}"
+            }
+          ],
+          "scenarios": {
+            "USD_2Y_UP": {
+              "factor_shocks": {
+                "RF:RATES:USD:OIS:2Y": 10.0
+              }
+            }
+          }
+        }
+    )json");
+
+    app::QuantRiskPlatform platform(storage);
+    platform.initialize();
+    platform.import_scenario_set(scenario_file.string());
+
+    const auto factors = storage->load_factor_definitions("unused_portfolio");
+    ASSERT_EQ(factors.size(), 1U);
+    EXPECT_EQ(factors.front().factor_id, "RF:RATES:USD:OIS:2Y");
+    EXPECT_EQ(factors.front().factor_type, domain::FactorType::RateZero);
+    EXPECT_EQ(factors.front().shock_measure, domain::ShockMeasure::BasisPoints);
+    EXPECT_EQ(factors.front().currency, domain::Currency::USD);
+    EXPECT_EQ(factors.front().curve_id, "USD_OIS");
+    EXPECT_EQ(factors.front().tenor, "2Y");
+    ASSERT_EQ(factors.front().quote_ids.size(), 1U);
+    EXPECT_EQ(factors.front().quote_ids.front(), "USD_OIS_2Y");
+    EXPECT_EQ(factors.front().description, "USD OIS two-year zero rate");
+
+    const auto bindings = storage->load_factor_bindings({"RF:RATES:USD:OIS:2Y"});
+    ASSERT_EQ(bindings.size(), 1U);
+    EXPECT_EQ(bindings.front().factor_id, "RF:RATES:USD:OIS:2Y");
+    EXPECT_EQ(bindings.front().quote_id, "USD_OIS_2Y");
+    EXPECT_EQ(bindings.front().shock_measure, domain::ShockMeasure::BasisPoints);
+    EXPECT_DOUBLE_EQ(bindings.front().weight, 0.5);
+    EXPECT_EQ(bindings.front().transform, "rate");
+    EXPECT_EQ(bindings.front().selector_json, "{\"tenor\":\"2Y\"}");
+
+    const auto scenarios = storage->load_scenario_set("mini_scenario_set");
+    ASSERT_EQ(scenarios.size(), 1U);
+    EXPECT_DOUBLE_EQ(scenarios.at("USD_2Y_UP").at("RF:RATES:USD:OIS:2Y"), 10.0);
+}
+
+TEST_F(AppWorkflowTest, HistoricalVarRejectsImportedScenarioSetWithoutScenarios) {
+    TemporaryJsonFile scenario_file(R"json(
+        {
+          "scenario_set_id": "empty_scenario_set",
+          "factors": [
+            {
+              "factor_id": "RF:EQ:AAPL:SPOT",
+              "factor_type": "EquitySpot",
+              "shock_measure": "Relative",
+              "currency": "USD",
+              "quote_ids": [
+                "AAPL_SPOT"
+              ]
+            }
+          ],
+          "bindings": [
+            {
+              "factor_id": "RF:EQ:AAPL:SPOT",
+              "quote_id": "AAPL_SPOT",
+              "shock_measure": "Relative"
+            }
+          ],
+          "scenarios": {}
+        }
+    )json");
+
+    app::QuantRiskPlatform platform(storage);
+    platform.initialize();
+    platform.import_market_snapshot(test::data_file({"market", "demo_market.json"}).string());
+    platform.import_portfolio(test::data_file({"portfolios", "demo_portfolio.json"}).string());
+    platform.import_scenario_set(scenario_file.string());
+
+    EXPECT_THROW(
+        { platform.run_historical_var("demo_portfolio", "SNAP:2026-03-24", "empty_scenario_set"); },
         std::runtime_error);
 }
 
