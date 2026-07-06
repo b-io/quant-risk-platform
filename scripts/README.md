@@ -123,7 +123,7 @@ The public option names are intentionally shared across PowerShell and Bash wher
 - `-BuildDir`: select an existing build directory for CLI/test/database scripts.
 - `-Config`: select an existing build configuration for CLI/test/database scripts.
 - `-Coverage`: request C++ coverage generation in test scripts.
-- `-CppCoverageMinLine`: set the C++ coverage threshold used by test scripts.
+- `-CppCoverageMinLine`: set the C++ coverage threshold used by test scripts; defaults to `95`.
 - `-DbFile`: select the SQLite database for inspection.
 - `-ExtraArgs`: pass remaining arguments to CMake configure in build scripts.
 - `-Force`: reinitialize existing local data during database initialization.
@@ -133,7 +133,7 @@ The public option names are intentionally shared across PowerShell and Bash wher
 - `-PortfolioFile`: select the portfolio input file for database initialization.
 - `-PortfolioId`: select the compute-flow portfolio.
 - `-Preset`: select a CMake preset for build/install scripts.
-- `-PythonCoverageMinLine`: set the Python coverage threshold used by test scripts.
+- `-PythonCoverageMinLine`: set the Python coverage threshold used by test scripts; defaults to `95`.
 - `-PythonExecutable`: select the Python executable used by test and coverage scripts.
 - `-ScenarioFile`: select the scenario input file for database initialization.
 - `-ScenarioSetId`: select the compute-flow scenario set.

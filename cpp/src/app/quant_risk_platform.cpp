@@ -333,7 +333,7 @@ std::string QuantRiskPlatform::run_historical_var(const std::string& portfolio_i
     std::sort(pnl_distribution.begin(), pnl_distribution.end());
 
     // Simple 95% VaR (5th percentile of PnL)
-    size_t idx_95 = static_cast<size_t>(0.05 * pnl_distribution.size());
+    const auto idx_95 = std::min<std::size_t>((pnl_distribution.size() * 5U) / 100U, pnl_distribution.size() - 1U);
     double var_95 = -pnl_distribution[idx_95]; // VaR is usually reported as a positive loss
     double es_sum = 0.0;
     for (size_t i = 0; i <= idx_95; ++i) {

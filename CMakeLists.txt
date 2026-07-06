@@ -35,7 +35,7 @@ option(QRP_BUILD_PYTHON "Build Python bindings" OFF)
 option(QRP_BUILD_SHARED "Build qrp_core as a shared library" OFF)
 option(QRP_ENABLE_COVERAGE "Enable GCC/Clang coverage instrumentation" OFF)
 option(QRP_WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
-set(QRP_COVERAGE_MIN_LINE 85 CACHE STRING "Minimum line coverage percentage enforced by the coverage target")
+set(QRP_COVERAGE_MIN_LINE 95 CACHE STRING "Minimum line coverage percentage enforced by the coverage target")
 include(CTest) # defines BUILD_TESTING
 
 # -----------------------

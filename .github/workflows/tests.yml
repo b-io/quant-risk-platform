@@ -208,7 +208,7 @@ jobs:
             vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-
 
       - name: Configure C++ coverage build
-        run: cmake --preset coverage -DQRP_WARNINGS_AS_ERRORS=ON -DQRP_COVERAGE_MIN_LINE=0
+        run: cmake --preset coverage -DQRP_WARNINGS_AS_ERRORS=ON -DQRP_COVERAGE_MIN_LINE=95
 
       - name: Run C++ tests and coverage
         run: cmake --build build/coverage --target coverage
@@ -221,7 +221,7 @@ jobs:
             --tests "$PWD/tests/python" \
             --json "$PWD/build/coverage/coverage/python/coverage_metric.json" \
             --markdown "$PWD/build/coverage/coverage/python/coverage_metric.md" \
-            --threshold 0
+            --threshold 95
 
       - name: Update coverage summary
         run: |
