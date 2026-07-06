@@ -17,6 +17,17 @@
 
 namespace {
 
+qrp::domain::FactorBinding make_factor_binding(const std::string& factor_id,
+                                               const std::string& quote_id,
+                                               qrp::domain::ShockMeasure shock_measure) {
+    qrp::domain::FactorBinding binding;
+    binding.factor_id = factor_id;
+    binding.quote_id = quote_id;
+    binding.shock_measure = shock_measure;
+    binding.weight = 1.0;
+    return binding;
+}
+
 qrp::domain::MarketQuote make_quote(const std::string& id,
                                     qrp::domain::QuoteInstrumentType instrument_type,
                                     qrp::domain::QuoteType quote_type,
@@ -236,8 +247,8 @@ std::vector<qrp::domain::FactorDefinition> make_fx_factors() {
 }
 
 std::vector<qrp::domain::FactorBinding> make_fx_bindings(const std::vector<qrp::domain::FactorDefinition>& factors) {
-    return {{factors[0].factor_id, "EURUSD", qrp::domain::ShockMeasure::Relative, 1.0},
-            {factors[1].factor_id, "EURUSD_VOL_6M_ATM", qrp::domain::ShockMeasure::VolPoints, 1.0}};
+    return {make_factor_binding(factors[0].factor_id, "EURUSD", qrp::domain::ShockMeasure::Relative),
+            make_factor_binding(factors[1].factor_id, "EURUSD_VOL_6M_ATM", qrp::domain::ShockMeasure::VolPoints)};
 }
 
 } // namespace

@@ -9,9 +9,26 @@
 
 #include <cmath>
 #include <stdexcept>
+#include <string>
 
 using namespace qrp::market;
 using namespace qrp;
+
+namespace {
+
+domain::FactorBinding make_factor_binding(const std::string& factor_id,
+                                          const std::string& quote_id,
+                                          domain::ShockMeasure shock_measure,
+                                          double weight = 1.0) {
+    domain::FactorBinding binding;
+    binding.factor_id = factor_id;
+    binding.quote_id = quote_id;
+    binding.shock_measure = shock_measure;
+    binding.weight = weight;
+    return binding;
+}
+
+} // namespace
 
 TEST(ScenarioEngineTest, TestFactorBindingApplication) {
     domain::MarketSnapshot base;
@@ -103,10 +120,10 @@ TEST(ScenarioEngineTest, AppliesRelativeLogReturnBasisPointAndVolPointShocks) {
     }
 
     std::vector<domain::FactorBinding> bindings;
-    bindings.push_back({"EQ", "EQUITY", domain::ShockMeasure::Relative, 1.0});
-    bindings.push_back({"FX", "FX", domain::ShockMeasure::LogReturn, 1.0});
-    bindings.push_back({"RATE", "RATE", domain::ShockMeasure::BasisPoints, 1.0});
-    bindings.push_back({"VOL", "VOL", domain::ShockMeasure::VolPoints, 1.0});
+    bindings.push_back(make_factor_binding("EQ", "EQUITY", domain::ShockMeasure::Relative));
+    bindings.push_back(make_factor_binding("FX", "FX", domain::ShockMeasure::LogReturn));
+    bindings.push_back(make_factor_binding("RATE", "RATE", domain::ShockMeasure::BasisPoints));
+    bindings.push_back(make_factor_binding("VOL", "VOL", domain::ShockMeasure::VolPoints));
 
     ScenarioDefinition scenario;
     scenario.factor_shocks["EQ"] = 0.10;
@@ -135,8 +152,8 @@ TEST(ScenarioEngineTest, AppliesWeightedFactorToMultipleQuotes) {
     factor.factor_id = "PARALLEL_USD";
 
     std::vector<domain::FactorBinding> bindings;
-    bindings.push_back({"PARALLEL_USD", "Q1", domain::ShockMeasure::Absolute, 1.0});
-    bindings.push_back({"PARALLEL_USD", "Q2", domain::ShockMeasure::Absolute, 0.5});
+    bindings.push_back(make_factor_binding("PARALLEL_USD", "Q1", domain::ShockMeasure::Absolute));
+    bindings.push_back(make_factor_binding("PARALLEL_USD", "Q2", domain::ShockMeasure::Absolute, 0.5));
 
     ScenarioDefinition scenario;
     scenario.factor_shocks["PARALLEL_USD"] = 0.001;
