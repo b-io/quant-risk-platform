@@ -70,8 +70,7 @@ jobs:
           print(json.loads(Path("vcpkg.json").read_text(encoding="utf-8"))["builtin-baseline"])
           PY
           )"
-          git clone --depth 1 https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
-          git -C "$VCPKG_ROOT" fetch --depth 1 origin "$VCPKG_BASELINE"
+          git clone --filter=blob:none https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
           git -C "$VCPKG_ROOT" checkout --detach "$VCPKG_BASELINE"
           "$VCPKG_ROOT/bootstrap-vcpkg.sh"
 
@@ -99,7 +98,7 @@ jobs:
     needs: quality
     runs-on: windows-latest
     env:
-      VCPKG_ROOT: ${{ github.workspace }}\.vcpkg
+      VCPKG_ROOT: ${{ github.workspace }}/.vcpkg
       VCPKG_TARGET_TRIPLET: x64-windows-static-md
     steps:
       - name: Checkout
@@ -116,12 +115,12 @@ jobs:
       - name: Bootstrap vcpkg
         shell: pwsh
         run: |
+          $ErrorActionPreference = "Stop"
           $manifest = Get-Content -Path vcpkg.json -Raw | ConvertFrom-Json
           $baseline = $manifest.'builtin-baseline'
-          git clone --depth 1 https://github.com/microsoft/vcpkg.git $env:VCPKG_ROOT
-          git -C $env:VCPKG_ROOT fetch --depth 1 origin $baseline
-          git -C $env:VCPKG_ROOT checkout --detach $baseline
-          & "$env:VCPKG_ROOT\bootstrap-vcpkg.bat"
+          git clone --filter=blob:none https://github.com/microsoft/vcpkg.git "$env:VCPKG_ROOT"
+          git -C "$env:VCPKG_ROOT" checkout --detach "$baseline"
+          & (Join-Path $env:VCPKG_ROOT "bootstrap-vcpkg.bat")
 
       - name: Cache vcpkg artifacts
         uses: actions/cache@v4
@@ -187,8 +186,7 @@ jobs:
           print(json.loads(Path("vcpkg.json").read_text(encoding="utf-8"))["builtin-baseline"])
           PY
           )"
-          git clone --depth 1 https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
-          git -C "$VCPKG_ROOT" fetch --depth 1 origin "$VCPKG_BASELINE"
+          git clone --filter=blob:none https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
           git -C "$VCPKG_ROOT" checkout --detach "$VCPKG_BASELINE"
           "$VCPKG_ROOT/bootstrap-vcpkg.sh"
 
@@ -286,8 +284,7 @@ jobs:
           print(json.loads(Path("vcpkg.json").read_text(encoding="utf-8"))["builtin-baseline"])
           PY
           )"
-          git clone --depth 1 https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
-          git -C "$VCPKG_ROOT" fetch --depth 1 origin "$VCPKG_BASELINE"
+          git clone --filter=blob:none https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
           git -C "$VCPKG_ROOT" checkout --detach "$VCPKG_BASELINE"
           "$VCPKG_ROOT/bootstrap-vcpkg.sh"
 
