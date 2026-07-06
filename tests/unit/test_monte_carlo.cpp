@@ -8,10 +8,48 @@
 
 #include <gtest/gtest.h>
 
+#include <memory>
 #include <ql/math/matrix.hpp>
+#include <stdexcept>
 
 using namespace qrp::analytics;
 using namespace qrp::domain;
+
+namespace {
+
+MarketSnapshot make_single_quote_market() {
+    MarketSnapshot market;
+    market.valuation_date = "2024-03-24";
+
+    MarketQuote quote;
+    quote.id = "USD_OIS_1M";
+    quote.instrument_type = QuoteInstrumentType::OIS;
+    quote.currency = Currency::USD;
+    quote.tenor = "1M";
+    quote.value = 0.03;
+    market.quotes.push_back(quote);
+
+    return market;
+}
+
+FactorDefinition make_rate_factor() {
+    FactorDefinition factor;
+    factor.factor_id = "RF:RATES:USD:OIS:1M";
+    factor.factor_type = FactorType::RateZero;
+    factor.currency = Currency::USD;
+    factor.tenor = "1M";
+    return factor;
+}
+
+FactorBinding make_rate_binding() {
+    FactorBinding binding;
+    binding.factor_id = "RF:RATES:USD:OIS:1M";
+    binding.quote_id = "USD_OIS_1M";
+    binding.shock_measure = ShockMeasure::Absolute;
+    return binding;
+}
+
+} // namespace
 
 TEST(MonteCarloTest, TestAgedHorizonResetSemantics) {
     Portfolio portfolio;
@@ -81,4 +119,71 @@ TEST(MonteCarloTest, TestAgedHorizonResetSemantics) {
     double val_before_path1 = result.traces[1].quote_before_after.at("USD_OIS_1M").first;
 
     EXPECT_NEAR(val_before_path0, val_before_path1, 1e-10);
+}
+
+TEST(MonteCarloTest, ReturnsEmptyResultWhenPathCountIsNonPositive) {
+    MonteCarloConfig config;
+    config.num_paths = 0;
+
+    const auto result = MonteCarloEngine::run_simulation({}, {}, {}, {}, QuantLib::Matrix(), config);
+
+    EXPECT_TRUE(result.portfolio_values.empty());
+    EXPECT_TRUE(result.portfolio_pnls.empty());
+    EXPECT_TRUE(result.traces.empty());
+}
+
+TEST(MonteCarloTest, ValidatesFactorsBindingsAndCovarianceShapeBeforeSimulation) {
+    Portfolio portfolio;
+    const auto market = make_single_quote_market();
+    const auto factor = make_rate_factor();
+    const auto binding = make_rate_binding();
+
+    MonteCarloConfig config;
+    config.num_paths = 1;
+
+    EXPECT_THROW(
+        { MonteCarloEngine::run_simulation(portfolio, market, {}, {binding}, QuantLib::Matrix(1, 1, 0.0), config); },
+        std::runtime_error);
+
+    EXPECT_THROW(
+        { MonteCarloEngine::run_simulation(portfolio, market, {factor}, {}, QuantLib::Matrix(1, 1, 0.0), config); },
+        std::runtime_error);
+
+    config.require_bindings = false;
+    EXPECT_THROW(
+        { MonteCarloEngine::run_simulation(portfolio, market, {factor}, {}, QuantLib::Matrix(2, 2, 0.0), config); },
+        std::runtime_error);
+}
+
+TEST(MonteCarloTest, RecordsUnsupportedTradesAndStillProducesPathDiagnostics) {
+    Portfolio portfolio;
+    auto unsupported_trade = std::make_shared<Trade>();
+    unsupported_trade->id = "unsupported_trade";
+    unsupported_trade->asset_class = "unknown";
+    unsupported_trade->type = "unsupported";
+    unsupported_trade->currency = "USD";
+    portfolio.trades.push_back(unsupported_trade);
+
+    MonteCarloConfig config;
+    config.num_paths = 4;
+    config.seed = 7;
+
+    const auto result = MonteCarloEngine::run_simulation(portfolio,
+                                                         make_single_quote_market(),
+                                                         {make_rate_factor()},
+                                                         {make_rate_binding()},
+                                                         QuantLib::Matrix(1, 1, 0.0),
+                                                         config);
+
+    EXPECT_EQ(result.num_trades_total, 1);
+    EXPECT_EQ(result.num_trades_priced_t0, 0);
+    EXPECT_EQ(result.num_trades_failed_t0, 1);
+    ASSERT_TRUE(result.construction_errors.contains("unsupported_trade"));
+    EXPECT_EQ(result.portfolio_values.size(), 4U);
+    EXPECT_EQ(result.portfolio_pnls.size(), 4U);
+    ASSERT_EQ(result.traces.size(), 3U);
+    EXPECT_EQ(result.traces.front().path_index, 0);
+    EXPECT_EQ(result.traces.front().num_priced, 0);
+    EXPECT_EQ(result.traces.front().num_failed, 0);
+    EXPECT_TRUE(result.traces.front().quote_before_after.contains("USD_OIS_1M"));
 }

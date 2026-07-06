@@ -90,6 +90,54 @@ TEST_F(AppWorkflowTest, RunsDemoImportAnalyticsAndReports) {
     EXPECT_NO_THROW(platform.list_data());
 }
 
+TEST_F(AppWorkflowTest, ReportsMixedCurrencyRunsAndComparesNewTrades) {
+    app::QuantRiskPlatform platform(storage);
+    platform.initialize();
+
+    storage->store_portfolio("P_REPORT", "Reporting portfolio", "USD");
+    storage->store_market_snapshot("S_REPORT", "2026-03-24", "USD");
+    storage->store_analysis_run("RUN_REPORT_1", "VALUATION", "P_REPORT", "S_REPORT");
+    storage->store_analysis_run("RUN_REPORT_2", "VALUATION", "P_REPORT", "S_REPORT");
+
+    storage->store_valuation_result("RUN_REPORT_1",
+                                    "T_USD",
+                                    100.0,
+                                    "USD",
+                                    "SUCCESS",
+                                    "",
+                                    "rates",
+                                    "deposit",
+                                    "supported",
+                                    "UnitModel",
+                                    "");
+    storage->store_valuation_result("RUN_REPORT_2",
+                                    "T_USD",
+                                    125.0,
+                                    "USD",
+                                    "SUCCESS",
+                                    "",
+                                    "rates",
+                                    "deposit",
+                                    "supported",
+                                    "UnitModel",
+                                    "");
+    storage->store_valuation_result("RUN_REPORT_2",
+                                    "T_EUR_NEW",
+                                    75.0,
+                                    "EUR",
+                                    "SUCCESS",
+                                    "",
+                                    "fx",
+                                    "fx_forward",
+                                    "supported",
+                                    "UnitModel",
+                                    "");
+
+    EXPECT_NO_THROW(platform.get_run_report("RUN_REPORT_2"));
+    EXPECT_NO_THROW(platform.compare_runs("RUN_REPORT_1", "RUN_REPORT_2"));
+    EXPECT_NO_THROW(platform.list_data());
+}
+
 TEST_F(AppWorkflowTest, RiskWorkflowsRejectMissingFactorConfiguration) {
     app::QuantRiskPlatform platform(storage);
     platform.initialize();
