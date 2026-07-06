@@ -116,6 +116,10 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
+          $ciVcpkgRoot = Join-Path $env:GITHUB_WORKSPACE ".vcpkg"
+          $env:VCPKG_ROOT = $ciVcpkgRoot
+          "VCPKG_ROOT=$ciVcpkgRoot" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "Using VCPKG_ROOT=$env:VCPKG_ROOT"
           $manifest = Get-Content -Path vcpkg.json -Raw | ConvertFrom-Json
           $baseline = $manifest.'builtin-baseline'
           git clone --filter=blob:none https://github.com/microsoft/vcpkg.git "$env:VCPKG_ROOT"

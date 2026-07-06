@@ -75,7 +75,43 @@ function Resolve-VsCoverageTool {
     if ($command) {
         return $command.Source
     }
+
+    $candidateRoots = @(
+        "${env:ProgramFiles}\Microsoft Visual Studio",
+        "${env:ProgramFiles(x86)}\Microsoft Visual Studio"
+    )
+    foreach ($root in $candidateRoots) {
+        if (-not (Test-Path -LiteralPath $root)) {
+            continue
+        }
+
+        $candidate = Get-ChildItem `
+            -Path $root `
+            -Recurse `
+            -Filter "Microsoft.CodeCoverage.Console.exe" `
+            -ErrorAction SilentlyContinue |
+            Sort-Object FullName -Descending |
+            Select-Object -First 1
+        if ($candidate) {
+            return $candidate.FullName
+        }
+    }
     return $null
+}
+
+function Resolve-MsvcCoverageGTestArguments {
+    $filter = $env:QRP_MSVC_COVERAGE_GTEST_FILTER
+    if ([string]::IsNullOrWhiteSpace($filter)) {
+        # AppWorkflowTest is a full application smoke fixture. It passes normally, but MSVC native
+        # coverage currently terminates inside the instrumented valuation path with 0x80000003.
+        $filter = "-AppWorkflowTest.*"
+    }
+
+    if ($filter -eq "*") {
+        return @()
+    }
+
+    return @("--gtest_filter=$filter", "--gtest_color=no")
 }
 
 function Invoke-NativeProcess($FilePath, [string[]]$Arguments) {
@@ -107,6 +143,10 @@ function Invoke-MsvcCppCoverage($CoverageTool, $Python, $UnitExe) {
     # Integration tests run above, but MSVC native instrumentation currently crashes this Release integration binary.
     # Keep coverage deterministic with the unit test executable until a coverage-specific build profile is available.
     Write-Host "MSVC C++ coverage uses unit tests; integration tests were run normally before coverage." -ForegroundColor Yellow
+    $gtestArguments = Resolve-MsvcCoverageGTestArguments
+    if ($gtestArguments.Count -gt 0) {
+        Write-Host "MSVC C++ coverage test arguments: $($gtestArguments -join ' ')" -ForegroundColor Yellow
+    }
     $targets = @(
         @{ Name = "unit"; Exe = $UnitExe; Output = $unitCoverage }
     )
@@ -114,14 +154,15 @@ function Invoke-MsvcCppCoverage($CoverageTool, $Python, $UnitExe) {
         Write-Host "Collecting C++ coverage for $($target.Name) tests..." -ForegroundColor Cyan
         $targetExe = $target.Exe
         $targetOutput = $target.Output
-        $collectExitCode = Invoke-NativeProcess $CoverageTool @(
+        $coverageArguments = @(
             "collect",
             "--nologo",
             "--output", $targetOutput,
             "--output-format", "coverage",
             "--include-files", $targetExe,
             $targetExe
-        )
+        ) + $gtestArguments
+        $collectExitCode = Invoke-NativeProcess $CoverageTool $coverageArguments
         if ($collectExitCode -ne 0) {
             Write-Host "C++ coverage collection failed for $($target.Name) tests." -ForegroundColor Red
             return $collectExitCode

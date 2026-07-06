@@ -142,3 +142,8 @@ The public option names are intentionally shared across PowerShell and Bash wher
 - `-SkipPythonCoverage`: skip Python coverage generation in test scripts.
 - `-SnapshotId`: select the compute-flow market snapshot.
 - `-Table`: select the database table or result category for inspection.
+
+MSVC C++ coverage honors `QRP_MSVC_COVERAGE_GTEST_FILTER` when present. The
+default excludes the application workflow smoke fixture from coverage
+instrumentation because it is run normally before coverage but currently
+terminates inside the MSVC coverage collector.
