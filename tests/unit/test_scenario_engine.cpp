@@ -28,6 +28,19 @@ domain::FactorBinding make_factor_binding(const std::string& factor_id,
     return binding;
 }
 
+domain::MarketQuote make_market_quote(const std::string& quote_id,
+                                      domain::QuoteInstrumentType instrument_type,
+                                      const std::string& tenor,
+                                      double value) {
+    domain::MarketQuote quote;
+    quote.id = quote_id;
+    quote.instrument_type = instrument_type;
+    quote.currency = domain::Currency::USD;
+    quote.tenor = tenor;
+    quote.value = value;
+    return quote;
+}
+
 } // namespace
 
 TEST(ScenarioEngineTest, TestFactorBindingApplication) {
@@ -107,10 +120,10 @@ TEST(ScenarioEngineTest, ThrowsWhenBindingTargetsMissingQuote) {
 TEST(ScenarioEngineTest, AppliesRelativeLogReturnBasisPointAndVolPointShocks) {
     domain::MarketSnapshot base;
     base.valuation_date = "2024-01-02";
-    base.quotes.push_back({"EQUITY", domain::QuoteInstrumentType::Future, domain::Currency::USD, "SPOT", 100.0});
-    base.quotes.push_back({"FX", domain::QuoteInstrumentType::Future, domain::Currency::USD, "SPOT", 1.20});
-    base.quotes.push_back({"RATE", domain::QuoteInstrumentType::OIS, domain::Currency::USD, "5Y", 0.03});
-    base.quotes.push_back({"VOL", domain::QuoteInstrumentType::CapFloorVol, domain::Currency::USD, "1Y", 0.20});
+    base.quotes.push_back(make_market_quote("EQUITY", domain::QuoteInstrumentType::Future, "SPOT", 100.0));
+    base.quotes.push_back(make_market_quote("FX", domain::QuoteInstrumentType::Future, "SPOT", 1.20));
+    base.quotes.push_back(make_market_quote("RATE", domain::QuoteInstrumentType::OIS, "5Y", 0.03));
+    base.quotes.push_back(make_market_quote("VOL", domain::QuoteInstrumentType::CapFloorVol, "1Y", 0.20));
 
     std::vector<domain::FactorDefinition> factors;
     for (const auto& factor_id : {"EQ", "FX", "RATE", "VOL"}) {
@@ -145,8 +158,8 @@ TEST(ScenarioEngineTest, AppliesRelativeLogReturnBasisPointAndVolPointShocks) {
 TEST(ScenarioEngineTest, AppliesWeightedFactorToMultipleQuotes) {
     domain::MarketSnapshot base;
     base.valuation_date = "2024-01-02";
-    base.quotes.push_back({"Q1", domain::QuoteInstrumentType::OIS, domain::Currency::USD, "2Y", 0.02});
-    base.quotes.push_back({"Q2", domain::QuoteInstrumentType::OIS, domain::Currency::USD, "5Y", 0.03});
+    base.quotes.push_back(make_market_quote("Q1", domain::QuoteInstrumentType::OIS, "2Y", 0.02));
+    base.quotes.push_back(make_market_quote("Q2", domain::QuoteInstrumentType::OIS, "5Y", 0.03));
 
     domain::FactorDefinition factor;
     factor.factor_id = "PARALLEL_USD";
@@ -170,7 +183,7 @@ TEST(ScenarioEngineTest, AppliesWeightedFactorToMultipleQuotes) {
 TEST(ScenarioEngineTest, ThrowsWhenDefinedFactorHasNoBinding) {
     domain::MarketSnapshot base;
     base.valuation_date = "2024-01-02";
-    base.quotes.push_back({"Q1", domain::QuoteInstrumentType::OIS, domain::Currency::USD, "2Y", 0.02});
+    base.quotes.push_back(make_market_quote("Q1", domain::QuoteInstrumentType::OIS, "2Y", 0.02));
 
     domain::FactorDefinition factor;
     factor.factor_id = "UNBOUND";
