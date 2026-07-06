@@ -455,7 +455,9 @@ jobs:
           python-version: "3.12"
 
       - name: Set up MSVC
-        uses: ilammy/msvc-dev-cmd@v1
+        uses: TheMrMilchmann/setup-msvc-dev@v4
+        with:
+          arch: x64
 
       - name: Bootstrap vcpkg
         shell: pwsh
@@ -520,7 +522,9 @@ jobs:
           python-version: "3.12"
 
       - name: Set up MSVC
-        uses: ilammy/msvc-dev-cmd@v1
+        uses: TheMrMilchmann/setup-msvc-dev@v4
+        with:
+          arch: x64
 
       - name: Restore vcpkg artifacts
         uses: actions/cache/restore@v6

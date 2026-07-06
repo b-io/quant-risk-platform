@@ -467,6 +467,110 @@ TEST(MarketTest, ParsesMarketConventionsAndDiagnostics) {
     EXPECT_TRUE(domain::is_blocking_market_data_diagnostic(diagnostic));
 }
 
+TEST(MarketTest, CurveBuilderMapsSupportedConventionsAndIndexFamilies) {
+    const std::vector<domain::DayCount> day_counts = {domain::DayCount::ACT360,
+                                                      domain::DayCount::ACT365,
+                                                      domain::DayCount::ACT365F,
+                                                      domain::DayCount::ACTACT,
+                                                      domain::DayCount::ACTACT_AFB,
+                                                      domain::DayCount::ACTACT_EURO,
+                                                      domain::DayCount::ACTACT_ISDA,
+                                                      domain::DayCount::ACTACT_ISMA,
+                                                      domain::DayCount::Thirty360,
+                                                      domain::DayCount::UNKNOWN};
+    for (const auto day_count : day_counts) {
+        EXPECT_FALSE(CurveBuilder::parse_day_count(day_count).name().empty());
+    }
+
+    const std::vector<domain::BusinessCalendar> calendars = {domain::BusinessCalendar::CHF,
+                                                             domain::BusinessCalendar::JP,
+                                                             domain::BusinessCalendar::Target,
+                                                             domain::BusinessCalendar::UK,
+                                                             domain::BusinessCalendar::US,
+                                                             domain::BusinessCalendar::WeekendsOnly,
+                                                             domain::BusinessCalendar::UNKNOWN};
+    for (const auto calendar : calendars) {
+        EXPECT_FALSE(CurveBuilder::parse_calendar(calendar).name().empty());
+    }
+
+    const std::vector<std::pair<domain::BusinessDayConvention, QuantLib::BusinessDayConvention>>
+        business_day_conventions = {
+            {domain::BusinessDayConvention::Following, QuantLib::Following},
+            {domain::BusinessDayConvention::HalfMonthModifiedFollowing, QuantLib::HalfMonthModifiedFollowing},
+            {domain::BusinessDayConvention::ModifiedFollowing, QuantLib::ModifiedFollowing},
+            {domain::BusinessDayConvention::ModifiedPreceding, QuantLib::ModifiedPreceding},
+            {domain::BusinessDayConvention::Nearest, QuantLib::Nearest},
+            {domain::BusinessDayConvention::Preceding, QuantLib::Preceding},
+            {domain::BusinessDayConvention::Unadjusted, QuantLib::Unadjusted},
+            {domain::BusinessDayConvention::UNKNOWN, QuantLib::Following}};
+    for (const auto& [business_day_convention, expected] : business_day_conventions) {
+        EXPECT_EQ(CurveBuilder::parse_business_day_convention(business_day_convention), expected);
+    }
+
+    const std::vector<std::pair<domain::Frequency, QuantLib::Frequency>> frequencies = {
+        {domain::Frequency::Annual, QuantLib::Annual},
+        {domain::Frequency::Bimonthly, QuantLib::Bimonthly},
+        {domain::Frequency::Biweekly, QuantLib::Biweekly},
+        {domain::Frequency::Daily, QuantLib::Daily},
+        {domain::Frequency::EveryFourthMonth, QuantLib::EveryFourthMonth},
+        {domain::Frequency::EveryFourthWeek, QuantLib::EveryFourthWeek},
+        {domain::Frequency::Monthly, QuantLib::Monthly},
+        {domain::Frequency::Once, QuantLib::Once},
+        {domain::Frequency::OtherFrequency, QuantLib::OtherFrequency},
+        {domain::Frequency::Quarterly, QuantLib::Quarterly},
+        {domain::Frequency::Semiannual, QuantLib::Semiannual},
+        {domain::Frequency::Weekly, QuantLib::Weekly},
+        {domain::Frequency::UNKNOWN, QuantLib::Annual}};
+    for (const auto& [frequency, expected] : frequencies) {
+        EXPECT_EQ(CurveBuilder::parse_frequency(frequency), expected);
+    }
+
+    const std::vector<std::pair<domain::DateGeneration, QuantLib::DateGeneration::Rule>> date_generation_rules = {
+        {domain::DateGeneration::Backward, QuantLib::DateGeneration::Backward},
+        {domain::DateGeneration::CDS, QuantLib::DateGeneration::CDS},
+        {domain::DateGeneration::CDS2015, QuantLib::DateGeneration::CDS2015},
+        {domain::DateGeneration::Forward, QuantLib::DateGeneration::Forward},
+        {domain::DateGeneration::OldCDS, QuantLib::DateGeneration::OldCDS},
+        {domain::DateGeneration::ThirdWednesday, QuantLib::DateGeneration::ThirdWednesday},
+        {domain::DateGeneration::Twentieth, QuantLib::DateGeneration::Twentieth},
+        {domain::DateGeneration::TwentiethIMM, QuantLib::DateGeneration::TwentiethIMM},
+        {domain::DateGeneration::Zero, QuantLib::DateGeneration::Zero},
+        {domain::DateGeneration::UNKNOWN, QuantLib::DateGeneration::Forward}};
+    for (const auto& [rule, expected] : date_generation_rules) {
+        EXPECT_EQ(CurveBuilder::parse_date_generation(rule), expected);
+    }
+
+    const QuantLib::Handle<QuantLib::YieldTermStructure> empty_curve;
+    const QuantLib::Period three_months(3, QuantLib::Months);
+    for (const auto currency : {domain::Currency::CHF,
+                                domain::Currency::EUR,
+                                domain::Currency::GBP,
+                                domain::Currency::JPY,
+                                domain::Currency::USD,
+                                domain::Currency::UNKNOWN}) {
+        EXPECT_FALSE(CurveBuilder::create_overnight_index(currency, empty_curve)->name().empty());
+        EXPECT_FALSE(CurveBuilder::create_ibor_index(currency, three_months, empty_curve)->name().empty());
+    }
+
+    EXPECT_TRUE(CurveBuilder::supports_rates_curve_purpose(domain::CurvePurpose::Discount));
+    EXPECT_TRUE(CurveBuilder::supports_rates_curve_purpose(domain::CurvePurpose::Forward));
+    EXPECT_TRUE(CurveBuilder::supports_rates_curve_purpose(domain::CurvePurpose::Forward3M));
+    EXPECT_TRUE(CurveBuilder::supports_rates_curve_purpose(domain::CurvePurpose::Forward6M));
+    EXPECT_TRUE(CurveBuilder::supports_rates_curve_purpose(domain::CurvePurpose::OISDiscount));
+    EXPECT_FALSE(CurveBuilder::supports_rates_curve_purpose(domain::CurvePurpose::FXForward));
+
+    EXPECT_TRUE(CurveBuilder::supports_rates_curve_quote(domain::QuoteInstrumentType::Deposit));
+    EXPECT_TRUE(CurveBuilder::supports_rates_curve_quote(domain::QuoteInstrumentType::FRA));
+    EXPECT_TRUE(CurveBuilder::supports_rates_curve_quote(domain::QuoteInstrumentType::InterestRateFuture));
+    EXPECT_TRUE(CurveBuilder::supports_rates_curve_quote(domain::QuoteInstrumentType::IRS));
+    EXPECT_TRUE(CurveBuilder::supports_rates_curve_quote(domain::QuoteInstrumentType::OIS));
+    EXPECT_FALSE(CurveBuilder::supports_rates_curve_quote(domain::QuoteInstrumentType::FXSpot));
+
+    EXPECT_TRUE(CurveBuilder::supports_rates_vol_quote(domain::QuoteInstrumentType::CapFloorVol));
+    EXPECT_TRUE(CurveBuilder::supports_rates_vol_quote(domain::QuoteInstrumentType::SwaptionVol));
+    EXPECT_FALSE(CurveBuilder::supports_rates_vol_quote(domain::QuoteInstrumentType::OIS));
+}
+
 TEST(MarketTest, ParsesOptionalSnapshotFieldsAndValidationEdges) {
     const auto snapshot_json = nlohmann::json::parse(R"json({
         "valuation_date": "2026-03-24",
