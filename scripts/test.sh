@@ -14,6 +14,7 @@ CPP_COVERAGE_MIN_LINE="95.0"
 PYTHON_COVERAGE_MIN_LINE="95.0"
 RUN_CPP_COVERAGE=0
 SKIP_ENV=0
+SKIP_BUILD=0
 SKIP_CPP_COVERAGE=0
 SKIP_PYTHON_COVERAGE=0
 
@@ -26,6 +27,7 @@ while [[ "$#" -gt 0 ]]; do
         -PythonCoverageMinLine) PYTHON_COVERAGE_MIN_LINE="$2"; shift ;;
         -PythonExecutable) PYTHON_EXECUTABLE="$2"; shift ;;
         -SkipEnv) SKIP_ENV=1 ;;
+        -SkipBuild) SKIP_BUILD=1 ;;
         -SkipCppCoverage) SKIP_CPP_COVERAGE=1 ;;
         -SkipPythonCoverage) SKIP_PYTHON_COVERAGE=1 ;;
         *) echo "Unknown parameter: $1"; exit 1 ;;
@@ -167,13 +169,18 @@ PY
     fi
 }
 
-section "Build"
-echo "Building tests (Config: $CONFIG) in $RESOLVED_BUILD_DIR..."
-build_targets=(unit_tests integration_tests)
-if cmake --build "$RESOLVED_BUILD_DIR" --target help --config "$CONFIG" 2>&1 | grep -Eq '(^|[[:space:]])quant_risk_platform(:|[[:space:]]|$)'; then
-    build_targets+=(quant_risk_platform)
+if [ "$SKIP_BUILD" = "1" ]; then
+    section "Build"
+    echo "Build skipped; using existing artifacts in $RESOLVED_BUILD_DIR."
+else
+    section "Build"
+    echo "Building tests (Config: $CONFIG) in $RESOLVED_BUILD_DIR..."
+    build_targets=(unit_tests integration_tests)
+    if cmake --build "$RESOLVED_BUILD_DIR" --target help --config "$CONFIG" 2>&1 | grep -Eq '(^|[[:space:]])quant_risk_platform(:|[[:space:]]|$)'; then
+        build_targets+=(quant_risk_platform)
+    fi
+    cmake --build "$RESOLVED_BUILD_DIR" --target "${build_targets[@]}" --config "$CONFIG"
 fi
-cmake --build "$RESOLVED_BUILD_DIR" --target "${build_targets[@]}" --config "$CONFIG"
 
 # Helper to find executable in either $BUILD_DIR/tests/ or $BUILD_DIR/tests/$CONFIG/
 find_test_exe() {

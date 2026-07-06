@@ -6,6 +6,7 @@ param(
     [double]$PythonCoverageMinLine = 95.0,
     [switch]$Coverage,
     [switch]$SkipEnv,
+    [switch]$SkipBuild,
     [switch]$SkipCppCoverage,
     [switch]$SkipPythonCoverage
 )
@@ -255,17 +256,22 @@ function Update-CoverageSummary {
     }
 }
 
-Write-Section "Build"
-Write-Host "Building tests (Config: $Config) in $ResolvedBuildDir..." -ForegroundColor Cyan
-$buildTargets = @("unit_tests", "integration_tests")
-$targetHelp = & cmake --build $ResolvedBuildDir --target help --config $Config 2>&1
-if ($targetHelp | Select-String -Pattern "(^|\s)quant_risk_platform(:|\s|$)" -Quiet) {
-    $buildTargets += "quant_risk_platform"
-}
-cmake --build $ResolvedBuildDir --target $buildTargets --config $Config
-if ($LASTEXITCODE -ne 0) { 
-    Write-Host "Build failed." -ForegroundColor Red
-    exit $LASTEXITCODE 
+if ($SkipBuild) {
+    Write-Section "Build"
+    Write-Host "Build skipped; using existing artifacts in $ResolvedBuildDir." -ForegroundColor Yellow
+} else {
+    Write-Section "Build"
+    Write-Host "Building tests (Config: $Config) in $ResolvedBuildDir..." -ForegroundColor Cyan
+    $buildTargets = @("unit_tests", "integration_tests")
+    $targetHelp = & cmake --build $ResolvedBuildDir --target help --config $Config 2>&1
+    if ($targetHelp | Select-String -Pattern "(^|\s)quant_risk_platform(:|\s|$)" -Quiet) {
+        $buildTargets += "quant_risk_platform"
+    }
+    cmake --build $ResolvedBuildDir --target $buildTargets --config $Config
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Build failed." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
 }
 
 # Helper to find executable in either $BuildDir\tests\ or $BuildDir\tests\$Config\

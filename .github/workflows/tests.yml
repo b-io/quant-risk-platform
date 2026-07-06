@@ -32,9 +32,295 @@ jobs:
       - name: Check source formatting
         run: python scripts/format.py --check
 
-  linux-dev:
-    name: Linux Dev (C++ + Python)
+  linux-dev-build:
+    name: Linux Dev Build
     needs: quality
+    runs-on: ubuntu-latest
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/.vcpkg
+      VCPKG_TARGET_TRIPLET: x64-linux
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Linux build packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            autoconf \
+            autoconf-archive \
+            automake \
+            libtool \
+            linux-libc-dev \
+            ninja-build \
+            pkg-config
+
+      - name: Bootstrap vcpkg
+        run: |
+          VCPKG_BASELINE="$(
+            python - <<'PY'
+          import json
+          from pathlib import Path
+
+          print(json.loads(Path("vcpkg.json").read_text(encoding="utf-8"))["builtin-baseline"])
+          PY
+          )"
+          git clone --filter=blob:none https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
+          git -C "$VCPKG_ROOT" checkout --detach "$VCPKG_BASELINE"
+          "$VCPKG_ROOT/bootstrap-vcpkg.sh"
+
+      - name: Cache vcpkg artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.VCPKG_ROOT }}/archives
+            ${{ env.VCPKG_ROOT }}/buildtrees
+            ${{ env.VCPKG_ROOT }}/downloads
+            ${{ env.VCPKG_ROOT }}/installed
+            ${{ env.VCPKG_ROOT }}/packages
+          key: vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-
+
+      - name: Configure dev build (C++ + Python)
+        run: |
+          mkdir -p build
+          set +e
+          log_path="$PWD/build/linux-dev-configure.log"
+          cmake --preset dev -DQRP_WARNINGS_AS_ERRORS=ON 2>&1 | tee "$log_path"
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            python scripts/emit_ci_error_tail.py "$log_path" "Configure dev build failed"
+          fi
+          exit "$status"
+
+      - name: Build dev artifacts (C++ + Python)
+        run: |
+          mkdir -p build
+          set +e
+          log_path="$PWD/build/linux-dev-build.log"
+          cmake --build build/dev --config RelWithDebInfo 2>&1 | tee "$log_path"
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            python scripts/emit_ci_error_tail.py "$log_path" "Build dev artifacts failed"
+          fi
+          exit "$status"
+
+      - name: Package dev build
+        run: tar -czf build/linux-dev-build.tar.gz -C build dev
+
+      - name: Upload dev build
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-dev-build
+          path: build/linux-dev-build.tar.gz
+          retention-days: 1
+
+  linux-dev-test:
+    name: Linux Dev Test
+    needs: linux-dev-build
+    runs-on: ubuntu-latest
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/.vcpkg
+      VCPKG_TARGET_TRIPLET: x64-linux
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Restore vcpkg artifacts
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ${{ env.VCPKG_ROOT }}/archives
+            ${{ env.VCPKG_ROOT }}/buildtrees
+            ${{ env.VCPKG_ROOT }}/downloads
+            ${{ env.VCPKG_ROOT }}/installed
+            ${{ env.VCPKG_ROOT }}/packages
+          key: vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-
+
+      - name: Download dev build
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-dev-build
+          path: artifacts
+
+      - name: Extract dev build
+        run: |
+          mkdir -p build
+          tar -xzf artifacts/linux-dev-build.tar.gz -C build
+
+      - name: Run dev tests (C++ + Python)
+        run: |
+          mkdir -p build
+          set +e
+          log_path="$PWD/build/linux-dev-tests.log"
+          bash scripts/test.sh -BuildDir build/dev -Config RelWithDebInfo -SkipBuild -SkipCppCoverage -SkipPythonCoverage 2>&1 \
+            | tee "$log_path"
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            python scripts/emit_ci_error_tail.py "$log_path" "Run dev tests failed"
+          fi
+          exit "$status"
+
+  linux-release-build:
+    name: Linux Release Build
+    needs: linux-dev-test
+    runs-on: ubuntu-latest
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/.vcpkg
+      VCPKG_TARGET_TRIPLET: x64-linux
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Linux build packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            autoconf \
+            autoconf-archive \
+            automake \
+            libtool \
+            linux-libc-dev \
+            ninja-build \
+            pkg-config
+
+      - name: Bootstrap vcpkg
+        run: |
+          VCPKG_BASELINE="$(
+            python - <<'PY'
+          import json
+          from pathlib import Path
+
+          print(json.loads(Path("vcpkg.json").read_text(encoding="utf-8"))["builtin-baseline"])
+          PY
+          )"
+          git clone --filter=blob:none https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
+          git -C "$VCPKG_ROOT" checkout --detach "$VCPKG_BASELINE"
+          "$VCPKG_ROOT/bootstrap-vcpkg.sh"
+
+      - name: Cache vcpkg artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.VCPKG_ROOT }}/archives
+            ${{ env.VCPKG_ROOT }}/buildtrees
+            ${{ env.VCPKG_ROOT }}/downloads
+            ${{ env.VCPKG_ROOT }}/installed
+            ${{ env.VCPKG_ROOT }}/packages
+          key: vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-
+
+      - name: Configure release build
+        run: |
+          mkdir -p build
+          set +e
+          log_path="$PWD/build/linux-release-configure.log"
+          cmake --preset release -DQRP_WARNINGS_AS_ERRORS=ON 2>&1 | tee "$log_path"
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            python scripts/emit_ci_error_tail.py "$log_path" "Configure release build failed"
+          fi
+          exit "$status"
+
+      - name: Build release artifacts
+        run: |
+          mkdir -p build
+          set +e
+          log_path="$PWD/build/linux-release-build.log"
+          cmake --build build/release --config Release 2>&1 | tee "$log_path"
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            python scripts/emit_ci_error_tail.py "$log_path" "Build release artifacts failed"
+          fi
+          exit "$status"
+
+      - name: Package release build
+        run: tar -czf build/linux-release-build.tar.gz -C build release
+
+      - name: Upload release build
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-release-build
+          path: build/linux-release-build.tar.gz
+          retention-days: 1
+
+  linux-release-smoke:
+    name: Linux Release Smoke
+    needs: linux-release-build
+    runs-on: ubuntu-latest
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/.vcpkg
+      VCPKG_TARGET_TRIPLET: x64-linux
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Restore vcpkg artifacts
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ${{ env.VCPKG_ROOT }}/archives
+            ${{ env.VCPKG_ROOT }}/buildtrees
+            ${{ env.VCPKG_ROOT }}/downloads
+            ${{ env.VCPKG_ROOT }}/installed
+            ${{ env.VCPKG_ROOT }}/packages
+          key: vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-
+
+      - name: Download release build
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-release-build
+          path: artifacts
+
+      - name: Extract release build
+        run: |
+          mkdir -p build
+          tar -xzf artifacts/linux-release-build.tar.gz -C build
+
+      - name: Run release smoke tests
+        run: |
+          mkdir -p build
+          set +e
+          log_path="$PWD/build/linux-release-smoke.log"
+          bash scripts/test.sh -BuildDir build/release -Config Release -SkipBuild -SkipCppCoverage -SkipPythonCoverage 2>&1 \
+            | tee "$log_path"
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            python scripts/emit_ci_error_tail.py "$log_path" "Run release smoke tests failed"
+          fi
+          exit "$status"
+
+  linux-coverage:
+    name: Linux Coverage (95% Gate)
+    needs: linux-release-smoke
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -52,7 +338,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install system packages
+      - name: Install Linux build packages
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -92,54 +378,9 @@ jobs:
           restore-keys: |
             vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-
 
-      - name: Configure dev build
+      - name: Configure coverage build (C++ instrumentation)
         run: |
-          set +e
-          log_path="$PWD/build/linux-dev-configure.log"
-          cmake --preset dev -DQRP_WARNINGS_AS_ERRORS=ON 2>&1 | tee "$log_path"
-          status=${PIPESTATUS[0]}
-          if [ "$status" -ne 0 ]; then
-            python scripts/emit_ci_error_tail.py "$log_path" "Configure dev build failed"
-          fi
-          exit "$status"
-
-      - name: Run dev tests
-        run: |
-          set +e
-          log_path="$PWD/build/linux-dev-tests.log"
-          bash scripts/test.sh -BuildDir build/dev -Config RelWithDebInfo -SkipCppCoverage -SkipPythonCoverage 2>&1 \
-            | tee "$log_path"
-          status=${PIPESTATUS[0]}
-          if [ "$status" -ne 0 ]; then
-            python scripts/emit_ci_error_tail.py "$log_path" "Run dev tests failed"
-          fi
-          exit "$status"
-
-      - name: Configure release build
-        run: |
-          set +e
-          log_path="$PWD/build/linux-release-configure.log"
-          cmake --preset release -DQRP_WARNINGS_AS_ERRORS=ON 2>&1 | tee "$log_path"
-          status=${PIPESTATUS[0]}
-          if [ "$status" -ne 0 ]; then
-            python scripts/emit_ci_error_tail.py "$log_path" "Configure release build failed"
-          fi
-          exit "$status"
-
-      - name: Run release smoke tests
-        run: |
-          set +e
-          log_path="$PWD/build/linux-release-smoke.log"
-          bash scripts/test.sh -BuildDir build/release -Config Release -SkipCppCoverage -SkipPythonCoverage 2>&1 \
-            | tee "$log_path"
-          status=${PIPESTATUS[0]}
-          if [ "$status" -ne 0 ]; then
-            python scripts/emit_ci_error_tail.py "$log_path" "Run release smoke tests failed"
-          fi
-          exit "$status"
-
-      - name: Configure C++ coverage build
-        run: |
+          mkdir -p build
           set +e
           log_path="$PWD/build/linux-coverage-configure.log"
           cmake --preset coverage -DQRP_WARNINGS_AS_ERRORS=ON -DQRP_COVERAGE_MIN_LINE=95 2>&1 | tee "$log_path"
@@ -149,7 +390,7 @@ jobs:
           fi
           exit "$status"
 
-      - name: Run C++ tests and coverage
+      - name: Run C++ coverage (95% line gate)
         run: |
           set +e
           log_path="$PWD/build/linux-cpp-coverage.log"
@@ -160,7 +401,7 @@ jobs:
           fi
           exit "$status"
 
-      - name: Run Python tests and coverage
+      - name: Run Python coverage (95% line gate)
         run: |
           python coverage/python/coverage_metric.py \
             --project-root "$PWD" \
@@ -196,8 +437,8 @@ jobs:
             git push origin HEAD:${GITHUB_REF_NAME}
           fi
 
-  windows-dev:
-    name: Windows Dev (C++ + Python)
+  windows-dev-build:
+    name: Windows Dev Build
     needs: quality
     runs-on: windows-latest
     env:
@@ -242,10 +483,69 @@ jobs:
           restore-keys: |
             vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-
 
-      - name: Configure dev build
+      - name: Configure dev build (C++ + Python)
         shell: pwsh
         run: cmake --preset dev -DQRP_WARNINGS_AS_ERRORS=ON
 
-      - name: Run dev tests
+      - name: Build dev artifacts (C++ + Python)
         shell: pwsh
-        run: .\scripts\test.ps1 -BuildDir build\dev -Config RelWithDebInfo -SkipCppCoverage -SkipPythonCoverage
+        run: cmake --build build\dev --config RelWithDebInfo
+
+      - name: Package dev build
+        shell: pwsh
+        run: tar -czf build\windows-dev-build.tar.gz -C build dev
+
+      - name: Upload dev build
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-dev-build
+          path: build\windows-dev-build.tar.gz
+          retention-days: 1
+
+  windows-dev-test:
+    name: Windows Dev Test
+    needs: windows-dev-build
+    runs-on: windows-latest
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}\.vcpkg
+      VCPKG_TARGET_TRIPLET: x64-windows-static-md
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Restore vcpkg artifacts
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ${{ env.VCPKG_ROOT }}\archives
+            ${{ env.VCPKG_ROOT }}\buildtrees
+            ${{ env.VCPKG_ROOT }}\downloads
+            ${{ env.VCPKG_ROOT }}\installed
+            ${{ env.VCPKG_ROOT }}\packages
+          key: vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-
+
+      - name: Download dev build
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-dev-build
+          path: artifacts
+
+      - name: Extract dev build
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path build | Out-Null
+          tar -xzf artifacts\windows-dev-build.tar.gz -C build
+
+      - name: Run dev tests (C++ + Python)
+        shell: pwsh
+        run: .\scripts\test.ps1 -BuildDir build\dev -Config RelWithDebInfo -SkipBuild -SkipCppCoverage -SkipPythonCoverage
