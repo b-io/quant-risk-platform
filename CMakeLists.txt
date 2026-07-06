@@ -148,6 +148,11 @@ add_library(qrp_core ${_QRP_CORE_LIBRARY_TYPE}
     cpp/src/persistence/sqlite_storage_schema.cpp
     cpp/src/util/logger.cpp
 )
+if(QRP_BUILD_PYTHON)
+  # The Python extension is a shared module and may link the static core library.
+  # On ELF platforms that requires qrp_core objects to be compiled with -fPIC.
+  set_target_properties(qrp_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
 if(MSVC)
   target_compile_options(qrp_core PRIVATE /FS)
 endif()
