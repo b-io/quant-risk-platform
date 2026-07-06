@@ -4,6 +4,7 @@
 
 #include <qrp/app/quant_risk_platform.hpp>
 #include <qrp/domain/portfolio.hpp>
+#include <qrp/io/json_loader.hpp>
 #include <qrp/persistence/sqlite_storage_backend.hpp>
 
 #include <gtest/gtest.h>
@@ -110,6 +111,11 @@ TEST_F(AppWorkflowTest, ImportWorkflowsRejectMissingInputFiles) {
     EXPECT_THROW({ platform.import_market_snapshot("missing_market_snapshot.json"); }, std::runtime_error);
     EXPECT_THROW({ platform.import_portfolio("missing_portfolio.json"); }, std::runtime_error);
     EXPECT_THROW({ platform.import_scenario_set("missing_scenario_set.json"); }, std::runtime_error);
+}
+
+TEST_F(AppWorkflowTest, JsonLoadersRejectMissingInputFiles) {
+    EXPECT_THROW({ (void)io::load_market("missing_market_loader.json"); }, std::runtime_error);
+    EXPECT_THROW({ (void)io::load_portfolio("missing_portfolio_loader.json"); }, std::runtime_error);
 }
 
 TEST_F(AppWorkflowTest, ImportMarketSnapshotAppliesDefaultsAndQuoteMetadata) {

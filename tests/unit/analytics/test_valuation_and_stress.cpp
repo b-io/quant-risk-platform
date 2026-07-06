@@ -194,6 +194,23 @@ TEST(ValuationServiceTest, RegistryFallbacksUseTradeAndProductTaxonomy) {
     EXPECT_DOUBLE_EQ(pricing_profile.multiplier, -1.0);
 }
 
+TEST(ValuationServiceTest, RegistryInstrumentBuildersRejectMismatchedConcreteTradeTypes) {
+    qrp::domain::MarketSnapshot market_dto;
+    market_dto.valuation_date = "2026-03-24";
+    qrp::market::MarketSnapshot market(market_dto);
+    qrp::analytics::PricingContext context(market.built_state());
+
+    for (const auto product_type : qrp::domain::all_product_types()) {
+        qrp::domain::Trade trade;
+        trade.id = qrp::domain::to_string(product_type);
+        trade.product_type = product_type;
+
+        EXPECT_EQ(qrp::analytics::ProductPricingRegistry::create_instrument(trade, context), nullptr)
+            << "Product type " << qrp::domain::to_string(product_type)
+            << " should reject a non-concrete base Trade DTO";
+    }
+}
+
 TEST(StressEngineTest, UsesAdjustedTradeNpvForEquitySpot) {
     qrp::domain::Portfolio portfolio;
     portfolio.portfolio_id = "P1";
