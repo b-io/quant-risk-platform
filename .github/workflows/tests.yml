@@ -17,10 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -41,12 +41,12 @@ jobs:
       VCPKG_TARGET_TRIPLET: x64-linux
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -77,7 +77,7 @@ jobs:
           "$VCPKG_ROOT/bootstrap-vcpkg.sh"
 
       - name: Cache vcpkg artifacts
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ${{ env.VCPKG_ROOT }}/archives
@@ -117,7 +117,7 @@ jobs:
         run: tar -czf build/linux-dev-build.tar.gz -C build dev
 
       - name: Upload dev build
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: linux-dev-build
           path: build/linux-dev-build.tar.gz
@@ -132,15 +132,15 @@ jobs:
       VCPKG_TARGET_TRIPLET: x64-linux
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
       - name: Restore vcpkg artifacts
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: |
             ${{ env.VCPKG_ROOT }}/archives
@@ -153,7 +153,7 @@ jobs:
             vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-
 
       - name: Download dev build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: linux-dev-build
           path: artifacts
@@ -185,10 +185,10 @@ jobs:
       VCPKG_TARGET_TRIPLET: x64-linux
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -219,7 +219,7 @@ jobs:
           "$VCPKG_ROOT/bootstrap-vcpkg.sh"
 
       - name: Cache vcpkg artifacts
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ${{ env.VCPKG_ROOT }}/archives
@@ -259,7 +259,7 @@ jobs:
         run: tar -czf build/linux-release-build.tar.gz -C build release
 
       - name: Upload release build
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: linux-release-build
           path: build/linux-release-build.tar.gz
@@ -274,15 +274,15 @@ jobs:
       VCPKG_TARGET_TRIPLET: x64-linux
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
       - name: Restore vcpkg artifacts
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: |
             ${{ env.VCPKG_ROOT }}/archives
@@ -295,7 +295,7 @@ jobs:
             vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-
 
       - name: Download release build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: linux-release-build
           path: artifacts
@@ -329,12 +329,12 @@ jobs:
       VCPKG_TARGET_TRIPLET: x64-linux
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -366,7 +366,7 @@ jobs:
           "$VCPKG_ROOT/bootstrap-vcpkg.sh"
 
       - name: Cache vcpkg artifacts
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ${{ env.VCPKG_ROOT }}/archives
@@ -419,7 +419,7 @@ jobs:
             --output-dir "$PWD/coverage"
 
       - name: Upload coverage artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-reports
           path: |
@@ -446,10 +446,10 @@ jobs:
       VCPKG_TARGET_TRIPLET: x64-windows-static-md
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -471,7 +471,7 @@ jobs:
           & (Join-Path $env:VCPKG_ROOT "bootstrap-vcpkg.bat")
 
       - name: Cache vcpkg artifacts
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ${{ env.VCPKG_ROOT }}\archives
@@ -496,7 +496,7 @@ jobs:
         run: tar -czf build\windows-dev-build.tar.gz -C build dev
 
       - name: Upload dev build
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: windows-dev-build
           path: build\windows-dev-build.tar.gz
@@ -511,10 +511,10 @@ jobs:
       VCPKG_TARGET_TRIPLET: x64-windows-static-md
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -522,7 +522,7 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Restore vcpkg artifacts
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: |
             ${{ env.VCPKG_ROOT }}\archives
@@ -535,7 +535,7 @@ jobs:
             vcpkg-${{ runner.os }}-${{ env.VCPKG_TARGET_TRIPLET }}-
 
       - name: Download dev build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: windows-dev-build
           path: artifacts
