@@ -18,6 +18,17 @@
 
 namespace {
 
+qrp::domain::MarketQuote make_equity_quote(double value) {
+    qrp::domain::MarketQuote quote;
+    quote.id = "AAPL";
+    quote.instrument_type = qrp::domain::QuoteInstrumentType::Future;
+    quote.currency = qrp::domain::Currency::USD;
+    quote.tenor = "SPOT";
+    quote.value = value;
+    quote.underlier = "AAPL";
+    return quote;
+}
+
 std::shared_ptr<qrp::domain::EquitySpotTrade> make_equity_trade() {
     auto trade = std::make_shared<qrp::domain::EquitySpotTrade>();
     trade->id = "equity_aapl";
@@ -72,8 +83,7 @@ TEST(ValuationServiceTest, ReportsProductSupportMetadataForPricedTrades) {
 
     qrp::domain::MarketSnapshot market_dto;
     market_dto.valuation_date = "2026-03-24";
-    market_dto.quotes.push_back(
-        {"AAPL", qrp::domain::QuoteInstrumentType::Future, qrp::domain::Currency::USD, "SPOT", 110.0});
+    market_dto.quotes.push_back(make_equity_quote(110.0));
 
     qrp::market::MarketSnapshot market(market_dto);
     qrp::analytics::PricingContext context(market.built_state());
@@ -191,8 +201,7 @@ TEST(StressEngineTest, UsesAdjustedTradeNpvForEquitySpot) {
 
     qrp::domain::MarketSnapshot market_dto;
     market_dto.valuation_date = "2026-03-24";
-    market_dto.quotes.push_back(
-        {"AAPL", qrp::domain::QuoteInstrumentType::Future, qrp::domain::Currency::USD, "SPOT", 100.0});
+    market_dto.quotes.push_back(make_equity_quote(100.0));
 
     qrp::domain::FactorDefinition factor;
     factor.factor_id = "RF:EQ:AAPL:SPOT";
@@ -225,8 +234,7 @@ TEST(PnlExplainServiceTest, PreservesValuationDiagnosticsAndComponentLines) {
 
     qrp::domain::MarketSnapshot previous_market;
     previous_market.valuation_date = "2026-03-24";
-    previous_market.quotes.push_back(
-        {"AAPL", qrp::domain::QuoteInstrumentType::Future, qrp::domain::Currency::USD, "SPOT", 100.0});
+    previous_market.quotes.push_back(make_equity_quote(100.0));
 
     qrp::domain::MarketSnapshot current_market = previous_market;
     current_market.valuation_date = "2026-03-25";
@@ -293,8 +301,7 @@ TEST(RiskServiceTest, RejectsMissingFactorConfiguration) {
 
     qrp::domain::MarketSnapshot market_dto;
     market_dto.valuation_date = "2026-03-24";
-    market_dto.quotes.push_back(
-        {"AAPL", qrp::domain::QuoteInstrumentType::Future, qrp::domain::Currency::USD, "SPOT", 110.0});
+    market_dto.quotes.push_back(make_equity_quote(110.0));
 
     EXPECT_THROW({ qrp::analytics::RiskService::compute_risk(portfolio, market_dto, {}, {}); }, std::runtime_error);
 }
@@ -306,8 +313,7 @@ TEST(StressEngineTest, RejectsMissingFactorConfiguration) {
 
     qrp::domain::MarketSnapshot market_dto;
     market_dto.valuation_date = "2026-03-24";
-    market_dto.quotes.push_back(
-        {"AAPL", qrp::domain::QuoteInstrumentType::Future, qrp::domain::Currency::USD, "SPOT", 110.0});
+    market_dto.quotes.push_back(make_equity_quote(110.0));
 
     qrp::market::ScenarioDefinition scenario;
     scenario.name = "NO_FACTORS";
