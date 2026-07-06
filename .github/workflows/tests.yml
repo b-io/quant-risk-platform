@@ -91,7 +91,27 @@ jobs:
         run: cmake --preset dev -DQRP_WARNINGS_AS_ERRORS=ON
 
       - name: Run dev tests
-        run: bash scripts/test.sh -BuildDir build/dev -Config RelWithDebInfo -SkipCppCoverage -SkipPythonCoverage
+        run: |
+          set +e
+          log_path="$PWD/build/linux-dev-tests.log"
+          bash scripts/test.sh -BuildDir build/dev -Config RelWithDebInfo -SkipCppCoverage -SkipPythonCoverage 2>&1 \
+            | tee "$log_path"
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            python - "$log_path" "Run dev tests failed" <<'PY'
+          import sys
+          from pathlib import Path
+
+          log_path = Path(sys.argv[1])
+          title = sys.argv[2]
+          lines = log_path.read_text(encoding="utf-8", errors="replace").splitlines()[-80:]
+          message = "\n".join(lines)
+          message = message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+          title = title.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+          print(f"::error title={title}::{message}")
+          PY
+          fi
+          exit "$status"
 
   windows-dev:
     name: Windows Dev (C++ + Python)
@@ -211,7 +231,26 @@ jobs:
         run: cmake --preset coverage -DQRP_WARNINGS_AS_ERRORS=ON -DQRP_COVERAGE_MIN_LINE=95
 
       - name: Run C++ tests and coverage
-        run: cmake --build build/coverage --target coverage
+        run: |
+          set +e
+          log_path="$PWD/build/linux-cpp-coverage.log"
+          cmake --build build/coverage --target coverage 2>&1 | tee "$log_path"
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            python - "$log_path" "Run C++ tests and coverage failed" <<'PY'
+          import sys
+          from pathlib import Path
+
+          log_path = Path(sys.argv[1])
+          title = sys.argv[2]
+          lines = log_path.read_text(encoding="utf-8", errors="replace").splitlines()[-80:]
+          message = "\n".join(lines)
+          message = message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+          title = title.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+          print(f"::error title={title}::{message}")
+          PY
+          fi
+          exit "$status"
 
       - name: Run Python tests and coverage
         run: |
@@ -309,4 +348,24 @@ jobs:
         run: cmake --preset release -DQRP_WARNINGS_AS_ERRORS=ON
 
       - name: Run release smoke tests
-        run: bash scripts/test.sh -BuildDir build/release -Config Release -SkipCppCoverage -SkipPythonCoverage
+        run: |
+          set +e
+          log_path="$PWD/build/linux-release-smoke.log"
+          bash scripts/test.sh -BuildDir build/release -Config Release -SkipCppCoverage -SkipPythonCoverage 2>&1 \
+            | tee "$log_path"
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            python - "$log_path" "Run release smoke tests failed" <<'PY'
+          import sys
+          from pathlib import Path
+
+          log_path = Path(sys.argv[1])
+          title = sys.argv[2]
+          lines = log_path.read_text(encoding="utf-8", errors="replace").splitlines()[-80:]
+          message = "\n".join(lines)
+          message = message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+          title = title.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+          print(f"::error title={title}::{message}")
+          PY
+          fi
+          exit "$status"
