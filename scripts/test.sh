@@ -136,6 +136,7 @@ apply_cpp_coverage_threshold() {
         --json "$coverage_json" \
         --markdown "$coverage_markdown" \
         --threshold "$CPP_COVERAGE_MIN_LINE" \
+        --fail-under-threshold \
         --include-source-prefix "$PROJECT_ROOT/cpp"
 }
 
@@ -256,7 +257,8 @@ if [ -n "$RESOLVED_PYTHON" ]; then
             --tests "$PROJECT_ROOT/tests/python" \
             --json "$RESOLVED_BUILD_DIR/coverage/python/coverage_metric.json" \
             --markdown "$RESOLVED_BUILD_DIR/coverage/python/coverage_metric.md" \
-            --threshold "$PYTHON_COVERAGE_MIN_LINE" || PYTHON_COVERAGE_EXIT_CODE=$?
+            --threshold "$PYTHON_COVERAGE_MIN_LINE" \
+            --fail-under-threshold || PYTHON_COVERAGE_EXIT_CODE=$?
     fi
 else
     echo "Warning: Python executable was not found; Python tests and coverage were not generated." >&2

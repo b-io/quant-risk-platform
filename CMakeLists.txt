@@ -369,6 +369,7 @@ if(QRP_ENABLE_COVERAGE AND BUILD_TESTING AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|
         --json ${CMAKE_BINARY_DIR}/coverage/cpp/coverage_metric.json
         --markdown ${CMAKE_BINARY_DIR}/coverage/cpp/coverage_metric.md
         --threshold ${QRP_COVERAGE_MIN_LINE}
+        --fail-under-threshold
         --xml ${CMAKE_BINARY_DIR}/coverage/cpp/coverage.xml
       COMMENT "Running tests and generating coverage report"
       DEPENDS integration_tests unit_tests

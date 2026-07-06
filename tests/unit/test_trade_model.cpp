@@ -247,6 +247,55 @@ TEST(TradeModelTest, ParsesCanonicalAssetClassesAndProductTypes) {
     EXPECT_EQ(qrp::domain::parse_product_type("unknown_product_type"), qrp::domain::ProductType::Unknown);
 }
 
+TEST(TradeModelTest, ParsesEveryDeclaredProductTypeAndAssetMapping) {
+    const std::vector<std::tuple<std::string, domain::ProductType, domain::AssetClass>> cases = {
+        {"commodity_spot", domain::ProductType::CommoditySpot, domain::AssetClass::Commodity},
+        {"commodity_forward", domain::ProductType::CommodityForward, domain::AssetClass::Commodity},
+        {"commodity_future", domain::ProductType::CommodityFuture, domain::AssetClass::Commodity},
+        {"commodity_future_strip", domain::ProductType::CommodityFutureStrip, domain::AssetClass::Commodity},
+        {"commodity_future_option", domain::ProductType::CommodityFutureOption, domain::AssetClass::Commodity},
+        {"commodity_calendar_spread_option",
+         domain::ProductType::CommodityCalendarSpreadOption,
+         domain::AssetClass::Commodity},
+        {"commodity_swing", domain::ProductType::CommoditySwing, domain::AssetClass::Commodity},
+        {"credit_bond", domain::ProductType::CreditBond, domain::AssetClass::Credit},
+        {"cds", domain::ProductType::Cds, domain::AssetClass::Credit},
+        {"cds_index", domain::ProductType::CdsIndex, domain::AssetClass::Credit},
+        {"cds_option", domain::ProductType::CdsOption, domain::AssetClass::Credit},
+        {"credit_index_option", domain::ProductType::CreditIndexOption, domain::AssetClass::Credit},
+        {"equity_spot", domain::ProductType::EquitySpot, domain::AssetClass::Equity},
+        {"equity_forward", domain::ProductType::EquityForward, domain::AssetClass::Equity},
+        {"equity_future", domain::ProductType::EquityFuture, domain::AssetClass::Equity},
+        {"equity_option", domain::ProductType::EquityOption, domain::AssetClass::Equity},
+        {"fx_spot", domain::ProductType::FxSpot, domain::AssetClass::FX},
+        {"fx_forward", domain::ProductType::FxForward, domain::AssetClass::FX},
+        {"fx_swap", domain::ProductType::FxSwap, domain::AssetClass::FX},
+        {"ndf", domain::ProductType::Ndf, domain::AssetClass::FX},
+        {"fx_option", domain::ProductType::FxOption, domain::AssetClass::FX},
+        {"cross_currency_swap", domain::ProductType::CrossCurrencySwap, domain::AssetClass::FX},
+        {"deposit", domain::ProductType::Deposit, domain::AssetClass::Rates},
+        {"fra", domain::ProductType::Fra, domain::AssetClass::Rates},
+        {"interest_rate_future", domain::ProductType::InterestRateFuture, domain::AssetClass::Rates},
+        {"vanilla_swap", domain::ProductType::VanillaSwap, domain::AssetClass::Rates},
+        {"ois_swap", domain::ProductType::OisSwap, domain::AssetClass::Rates},
+        {"fixed_rate_bond", domain::ProductType::FixedRateBond, domain::AssetClass::Rates},
+        {"floating_rate_note", domain::ProductType::FloatingRateNote, domain::AssetClass::Rates},
+        {"cap_floor", domain::ProductType::CapFloor, domain::AssetClass::Rates},
+        {"european_swaption", domain::ProductType::EuropeanSwaption, domain::AssetClass::Rates},
+        {"bermudan_swaption", domain::ProductType::BermudanSwaption, domain::AssetClass::Rates},
+        {"callable_bond", domain::ProductType::CallableBond, domain::AssetClass::Rates},
+    };
+
+    for (const auto& [label, product_type, asset_class] : cases) {
+        SCOPED_TRACE(label);
+        EXPECT_EQ(domain::parse_product_type(label), product_type);
+        EXPECT_EQ(domain::to_string(product_type), label);
+        EXPECT_EQ(domain::asset_class_from_product_type(product_type), asset_class);
+    }
+
+    EXPECT_EQ(domain::asset_class_from_product_type(domain::ProductType::Unknown), domain::AssetClass::Unknown);
+}
+
 TEST(TradeModelTest, SerializesAssetClassesAndDeclaredProductTypes) {
     const std::vector<std::pair<domain::AssetClass, std::string>> asset_classes = {
         {domain::AssetClass::Commodity, "commodity"},

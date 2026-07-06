@@ -111,6 +111,35 @@ public:
     }
 };
 
+class NoActionDecisionProblem : public dynamic_programming::DecisionProblem {
+public:
+    std::vector<dynamic_programming::Action> feasibleActions(const dynamic_programming::State&,
+                                                             std::size_t) const override {
+        return {};
+    }
+
+    double immediateCashflow(const dynamic_programming::State&,
+                             const dynamic_programming::Action&,
+                             std::size_t) const override {
+        return 0.0;
+    }
+
+    dynamic_programming::State nextState(const dynamic_programming::State&,
+                                         const dynamic_programming::Action&,
+                                         const std::vector<double>& market_variables_next,
+                                         std::size_t) const override {
+        return {market_variables_next, {}};
+    }
+
+    std::vector<double> regressionFeatures(const dynamic_programming::State& state, std::size_t) const override {
+        return {1.0, state.market_variables[0]};
+    }
+
+    double terminalValue(const dynamic_programming::State& state) const override {
+        return state.market_variables[0];
+    }
+};
+
 TEST(LsmcTest, DecisionProblemDefaultsRemainUsableThroughBaseInterface) {
     std::unique_ptr<dynamic_programming::DecisionProblem> problem = std::make_unique<DefaultDecisionProblem>();
     const dynamic_programming::State state{{100.0}, {}};
@@ -120,4 +149,24 @@ TEST(LsmcTest, DecisionProblemDefaultsRemainUsableThroughBaseInterface) {
     EXPECT_DOUBLE_EQ(problem->terminalValue(state), 0.0);
 
     problem.reset();
+}
+
+TEST(LsmcTest, EmptyActionSetCarriesContinuationValue) {
+    simulation::TimeGrid grid({0.0, 0.5, 1.0});
+    simulation::GeometricBrownianMotion gbm(100.0, 0.02, 0.1);
+    NoActionDecisionProblem problem;
+
+    lsmc::LsmcConfig config;
+    config.num_paths = 64;
+    config.seed = 7;
+    config.discount_rate = 0.0;
+
+    lsmc::LsmcEngine engine(config);
+    const auto result = engine.run(grid, gbm, problem, {{100.0}, {}});
+
+    ASSERT_EQ(result.path_values.size(), config.num_paths);
+    EXPECT_GT(result.value, 80.0);
+    EXPECT_LT(result.value, 125.0);
+    EXPECT_GE(result.standard_error, 0.0);
+    EXPECT_LE(result.expected_shortfall_95, result.var_95);
 }

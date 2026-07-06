@@ -11,6 +11,7 @@ add_executable(unit_tests
     unit/test_credit_products.cpp
     unit/test_equity_products.cpp
     unit/test_fx_products.cpp
+    unit/test_instrument_factory_common.cpp
     unit/test_market.cpp
     unit/test_monte_carlo.cpp
     unit/test_monte_carlo_aging.cpp

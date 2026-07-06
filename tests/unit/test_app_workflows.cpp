@@ -9,6 +9,7 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -164,6 +165,101 @@ TEST_F(AppWorkflowTest, ImportWorkflowsRejectMissingInputFiles) {
 TEST_F(AppWorkflowTest, JsonLoadersRejectMissingInputFiles) {
     EXPECT_THROW({ (void)io::load_market("missing_market_loader.json"); }, std::runtime_error);
     EXPECT_THROW({ (void)io::load_portfolio("missing_portfolio_loader.json"); }, std::runtime_error);
+}
+
+TEST_F(AppWorkflowTest, JsonLoadersParseValidInputsAndAttachDiagnostics) {
+    TemporaryJsonFile market_file(R"json(
+        {
+          "valuation_date": "2026-03-24",
+          "snapshot_id": "MKT_LOADER",
+          "base_currency": "USD",
+          "default_stale_after_days": 1,
+          "quotes": [
+            {
+              "id": "USD_OIS_1Y",
+              "instrument_type": "OIS",
+              "currency": "USD",
+              "tenor": "1Y",
+              "value": 0.045,
+              "source_name": "unit-test",
+              "source_ts": "2026-03-20T17:00:00Z"
+            }
+          ],
+          "curves": [
+            {
+              "id": {
+                "currency": "USD",
+                "family": "OIS"
+              },
+              "purpose": "OISDiscount",
+              "quote_ids": [
+                "USD_OIS_1Y"
+              ],
+              "day_count": "ACT360"
+            }
+          ],
+          "diagnostics": [
+            {
+              "severity": "INFO",
+              "code": "SOURCE_NOTE",
+              "message": "Loaded by unit test",
+              "quote_id": "USD_OIS_1Y"
+            }
+          ]
+        }
+    )json");
+
+    const auto snapshot = io::load_market(market_file.string());
+
+    EXPECT_EQ(snapshot.snapshot_id, "MKT_LOADER");
+    EXPECT_EQ(snapshot.base_currency, domain::Currency::USD);
+    ASSERT_EQ(snapshot.quotes.size(), 1U);
+    EXPECT_EQ(snapshot.quotes.front().id, "USD_OIS_1Y");
+    ASSERT_EQ(snapshot.curves.size(), 1U);
+    EXPECT_EQ(snapshot.curves.front().id.family, "OIS");
+
+    auto has_diagnostic = [&](const std::string& code) {
+        return std::any_of(snapshot.diagnostics.begin(), snapshot.diagnostics.end(), [&](const auto& diagnostic) {
+            return diagnostic.code == code;
+        });
+    };
+    EXPECT_TRUE(has_diagnostic("SOURCE_NOTE"));
+    EXPECT_TRUE(has_diagnostic("STALE_QUOTE"));
+
+    TemporaryJsonFile portfolio_file(R"json(
+        {
+          "portfolio_id": "P_LOADER",
+          "trades": [
+            {
+              "id": "loader_deposit",
+              "asset_class": "rates",
+              "type": "deposit",
+              "currency": "USD",
+              "direction": "lend",
+              "book": "BOOK:UNIT:RATES",
+              "strategy": "LIQUIDITY",
+              "notional": 1000000.0,
+              "start_date": "2026-03-24",
+              "maturity_date": "2026-06-24",
+              "details": {
+                "rate": 0.0525
+              }
+            }
+          ]
+        }
+    )json");
+
+    const auto portfolio = io::load_portfolio(portfolio_file.string());
+
+    EXPECT_EQ(portfolio.portfolio_id, "P_LOADER");
+    ASSERT_EQ(portfolio.trades.size(), 1U);
+    const auto deposit = std::dynamic_pointer_cast<domain::DepositTrade>(portfolio.trades.front());
+    ASSERT_NE(deposit, nullptr);
+    EXPECT_EQ(deposit->id, "loader_deposit");
+    EXPECT_EQ(deposit->asset_class_type, domain::AssetClass::Rates);
+    EXPECT_EQ(deposit->product_type, domain::ProductType::Deposit);
+    EXPECT_DOUBLE_EQ(deposit->notional, 1000000.0);
+    EXPECT_DOUBLE_EQ(deposit->deposit_rate, 0.0525);
 }
 
 TEST_F(AppWorkflowTest, ImportMarketSnapshotAppliesDefaultsAndQuoteMetadata) {

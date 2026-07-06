@@ -409,7 +409,8 @@ jobs:
             --tests "$PWD/tests/python" \
             --json "$PWD/build/coverage/coverage/python/coverage_metric.json" \
             --markdown "$PWD/build/coverage/coverage/python/coverage_metric.md" \
-            --threshold 95
+            --threshold 95 \
+            --fail-under-threshold
 
       - name: Update coverage summary and enforce gates
         run: |

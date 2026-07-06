@@ -194,6 +194,97 @@ TEST(MarketTest, ParsesMarketDataJsonTaxonomyHelpers) {
     EXPECT_EQ(curve_id.family, "OIS");
 }
 
+TEST(MarketTest, ParsesAllCanonicalMarketDataTaxonomyValues) {
+    const std::vector<std::pair<std::string, domain::CurvePurpose>> curve_purposes = {
+        {"CommodityForward", domain::CurvePurpose::CommodityForward},
+        {"CommodityVolatility", domain::CurvePurpose::CommodityVolatility},
+        {"Credit", domain::CurvePurpose::Credit},
+        {"CreditSpread", domain::CurvePurpose::CreditSpread},
+        {"Discount", domain::CurvePurpose::Discount},
+        {"EquityBorrow", domain::CurvePurpose::EquityBorrow},
+        {"EquityDividend", domain::CurvePurpose::EquityDividend},
+        {"EquityVolatility", domain::CurvePurpose::EquityVolatility},
+        {"Forward", domain::CurvePurpose::Forward},
+        {"Forward3M", domain::CurvePurpose::Forward3M},
+        {"Forward6M", domain::CurvePurpose::Forward6M},
+        {"FXForward", domain::CurvePurpose::FXForward},
+        {"FXVolatility", domain::CurvePurpose::FXVolatility},
+        {"Hazard", domain::CurvePurpose::Hazard},
+        {"Inflation", domain::CurvePurpose::Inflation},
+        {"OISDiscount", domain::CurvePurpose::OISDiscount},
+        {"Recovery", domain::CurvePurpose::Recovery},
+        {"Volatility", domain::CurvePurpose::Volatility},
+        {"unsupported", domain::CurvePurpose::UNKNOWN},
+    };
+    for (const auto& [label, expected] : curve_purposes) {
+        EXPECT_EQ(domain::parse_curve_purpose(label), expected) << label;
+    }
+
+    const std::vector<std::pair<std::string, domain::QuoteInstrumentType>> instrument_types = {
+        {"Bond", domain::QuoteInstrumentType::Bond},
+        {"BondPrice", domain::QuoteInstrumentType::BondPrice},
+        {"BondSpread", domain::QuoteInstrumentType::BondSpread},
+        {"BorrowRate", domain::QuoteInstrumentType::BorrowRate},
+        {"CapFloorVol", domain::QuoteInstrumentType::CapFloorVol},
+        {"CDS", domain::QuoteInstrumentType::CDS},
+        {"CommodityForward", domain::QuoteInstrumentType::CommodityForward},
+        {"CommodityFuture", domain::QuoteInstrumentType::CommodityFuture},
+        {"CommoditySpot", domain::QuoteInstrumentType::CommoditySpot},
+        {"CommodityVol", domain::QuoteInstrumentType::CommodityVol},
+        {"ConvenienceYield", domain::QuoteInstrumentType::ConvenienceYield},
+        {"CreditIndex", domain::QuoteInstrumentType::CreditIndex},
+        {"CreditSpread", domain::QuoteInstrumentType::CreditSpread},
+        {"Deposit", domain::QuoteInstrumentType::Deposit},
+        {"DividendYield", domain::QuoteInstrumentType::DividendYield},
+        {"EquitySpot", domain::QuoteInstrumentType::EquitySpot},
+        {"EquityVol", domain::QuoteInstrumentType::EquityVol},
+        {"FRA", domain::QuoteInstrumentType::FRA},
+        {"Future", domain::QuoteInstrumentType::Future},
+        {"FXForward", domain::QuoteInstrumentType::FXForward},
+        {"FXForwardPoint", domain::QuoteInstrumentType::FXForwardPoint},
+        {"FXSpot", domain::QuoteInstrumentType::FXSpot},
+        {"FXVol", domain::QuoteInstrumentType::FXVol},
+        {"HazardRate", domain::QuoteInstrumentType::HazardRate},
+        {"InterestRateFuture", domain::QuoteInstrumentType::InterestRateFuture},
+        {"IRS", domain::QuoteInstrumentType::IRS},
+        {"OIS", domain::QuoteInstrumentType::OIS},
+        {"RecoveryRate", domain::QuoteInstrumentType::RecoveryRate},
+        {"SwaptionVol", domain::QuoteInstrumentType::SwaptionVol},
+        {"unsupported", domain::QuoteInstrumentType::UNKNOWN},
+    };
+    for (const auto& [label, expected] : instrument_types) {
+        EXPECT_EQ(domain::parse_quote_instrument_type(label), expected) << label;
+    }
+
+    const std::vector<std::pair<std::string, domain::QuoteType>> quote_types = {
+        {"BasisSwap", domain::QuoteType::BasisSwap},
+        {"BondYield", domain::QuoteType::BondYield},
+        {"BorrowRate", domain::QuoteType::BorrowRate},
+        {"CommodityForward", domain::QuoteType::CommodityForward},
+        {"CreditSpread", domain::QuoteType::CreditSpread},
+        {"Deposit", domain::QuoteType::Deposit},
+        {"DividendYield", domain::QuoteType::DividendYield},
+        {"EquitySpot", domain::QuoteType::EquitySpot},
+        {"FRA", domain::QuoteType::FRA},
+        {"Future", domain::QuoteType::Future},
+        {"FXForward", domain::QuoteType::FXForward},
+        {"FXForwardPoint", domain::QuoteType::FXForwardPoint},
+        {"FXSpot", domain::QuoteType::FXSpot},
+        {"HazardRate", domain::QuoteType::HazardRate},
+        {"InterestRateFuture", domain::QuoteType::InterestRateFuture},
+        {"IRS", domain::QuoteType::IRS},
+        {"OIS", domain::QuoteType::OIS},
+        {"Price", domain::QuoteType::Price},
+        {"RecoveryRate", domain::QuoteType::RecoveryRate},
+        {"Swap", domain::QuoteType::Swap},
+        {"Volatility", domain::QuoteType::Volatility},
+        {"unsupported", domain::QuoteType::UNKNOWN},
+    };
+    for (const auto& [label, expected] : quote_types) {
+        EXPECT_EQ(domain::parse_quote_type(label), expected) << label;
+    }
+}
+
 TEST(MarketTest, MarketStateResetRestoresQuoteValues) {
     MarketState state(QuantLib::Date(24, QuantLib::March, 2024));
     state.add_quote("USD_OIS_5Y", 0.03);

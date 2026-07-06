@@ -190,6 +190,7 @@ function Invoke-MsvcCppCoverage($CoverageTool, $Python, $UnitExe) {
         "--json", $coverageJson,
         "--markdown", $coverageMarkdown,
         "--threshold", $CppCoverageMinLine,
+        "--fail-under-threshold",
         "--include-source-prefix", (Join-Path $projectRoot "cpp")
     )
 }
@@ -365,7 +366,8 @@ if ($null -eq $ResolvedPython) {
             --tests (Join-Path $projectRoot "tests\python") `
             --json (Join-Path $ResolvedBuildDir "coverage\python\coverage_metric.json") `
             --markdown (Join-Path $ResolvedBuildDir "coverage\python\coverage_metric.md") `
-            --threshold $PythonCoverageMinLine
+            --threshold $PythonCoverageMinLine `
+            --fail-under-threshold
         $PythonCoverageExitCode = $LASTEXITCODE
     }
 }
