@@ -64,9 +64,9 @@ The commodity-specific additions are delivery-period aggregation, physical
 location, product unit, delivery calendar, storage or exercise constraints, and
 linked risk factors such as power, gas, carbon, weather, and outages.
 
-## Product Coverage Sequence
+## Product Coverage
 
-Commodity product support follows this implementation order:
+Commodity product coverage is organized around these product families:
 
 1. commodity spot and forward exposure;
 2. futures;
@@ -74,7 +74,7 @@ Commodity product support follows this implementation order:
 4. options on futures;
 5. calendar spread options;
 6. swing and storage contracts using LSMC;
-7. multi-commodity spread options after the core infrastructure is stable.
+7. multi-commodity spread options.
 
 Current platform coverage:
 
@@ -86,6 +86,7 @@ Current platform coverage:
 - Swing valuation is available as an intrinsic exercise-envelope approximation
   and remains marked partially supported until the full storage/LSMC engine is
   promoted into product pricing.
+- Multi-commodity spread options are outside current product coverage.
 - The portfolio-backed golden fixtures under `data/portfolios/` link
   commodity products to book-level structural coverage.
 

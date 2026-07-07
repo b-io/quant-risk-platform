@@ -46,6 +46,8 @@ find_exe() {
         local paths=(
             "$BUILD_DIR/$name"
             "$BUILD_DIR/$CONFIG/$name"
+            "$BUILD_DIR/cpp/cli/$name"
+            "$BUILD_DIR/cpp/cli/$CONFIG/$name"
             "$BUILD_DIR/bin/$name"
             "$BUILD_DIR/bin/$CONFIG/$name"
         )

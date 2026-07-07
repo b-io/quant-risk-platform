@@ -13,6 +13,8 @@ PYTHON_EXECUTABLE=""
 CPP_COVERAGE_MIN_LINE="95.0"
 PYTHON_COVERAGE_MIN_LINE="95.0"
 RUN_CPP_COVERAGE=0
+RUN_PERFORMANCE=0
+PERFORMANCE_ITERATIONS=100
 SKIP_ENV=0
 SKIP_BUILD=0
 SKIP_CPP_COVERAGE=0
@@ -23,6 +25,8 @@ while [[ "$#" -gt 0 ]]; do
         -BuildDir) BUILD_DIR="$2"; shift ;;
         -Config) CONFIG="$2"; shift ;;
         -Coverage) RUN_CPP_COVERAGE=1 ;;
+        -Performance) RUN_PERFORMANCE=1 ;;
+        -PerformanceIterations) PERFORMANCE_ITERATIONS="$2"; shift ;;
         -CppCoverageMinLine) CPP_COVERAGE_MIN_LINE="$2"; shift ;;
         -PythonCoverageMinLine) PYTHON_COVERAGE_MIN_LINE="$2"; shift ;;
         -PythonExecutable) PYTHON_EXECUTABLE="$2"; shift ;;
@@ -43,6 +47,19 @@ resolve_project_path() {
 }
 
 RESOLVED_BUILD_DIR="$(resolve_project_path "$BUILD_DIR")"
+
+case "$PERFORMANCE_ITERATIONS" in
+    ''|*[!0-9]*)
+        echo "PerformanceIterations must be a positive integer." >&2
+        exit 1
+        ;;
+    *)
+        if [ "$PERFORMANCE_ITERATIONS" -le 0 ]; then
+            echo "PerformanceIterations must be a positive integer." >&2
+            exit 1
+        fi
+        ;;
+esac
 
 section() {
     echo
@@ -140,6 +157,19 @@ apply_cpp_coverage_threshold() {
         --include-source-prefix "$PROJECT_ROOT/cpp"
 }
 
+enable_cmake_cpp_coverage_target() {
+    echo "Configuring CMake coverage target in $RESOLVED_BUILD_DIR..."
+    cmake -S "$PROJECT_ROOT" -B "$RESOLVED_BUILD_DIR" \
+        -DQRP_ENABLE_COVERAGE=ON \
+        -DQRP_COVERAGE_MIN_LINE="$CPP_COVERAGE_MIN_LINE"
+
+    if ! cmake --build "$RESOLVED_BUILD_DIR" --target help --config "$CONFIG" 2>&1 |
+        grep -Eq '(^|[[:space:]])coverage(:|[[:space:]]|$)'; then
+        echo "CMake coverage target is not available for this build. Use a GCC/Clang coverage build." >&2
+        exit 1
+    fi
+}
+
 show_python_coverage_score() {
     if [ "$SKIP_PYTHON_COVERAGE" = "1" ]; then
         echo "Python Coverage Score: skipped."
@@ -175,10 +205,18 @@ if [ "$SKIP_BUILD" = "1" ]; then
     echo "Build skipped; using existing artifacts in $RESOLVED_BUILD_DIR."
 else
     section "Build"
+    if [ "$RUN_PERFORMANCE" = "1" ]; then
+        echo "Enabling benchmark targets in $RESOLVED_BUILD_DIR..."
+        cmake -S "$PROJECT_ROOT" -B "$RESOLVED_BUILD_DIR" -DQRP_BUILD_BENCHMARKS=ON
+    fi
+
     echo "Building tests (Config: $CONFIG) in $RESOLVED_BUILD_DIR..."
     build_targets=(unit_tests integration_tests)
     if cmake --build "$RESOLVED_BUILD_DIR" --target help --config "$CONFIG" 2>&1 | grep -Eq '(^|[[:space:]])quant_risk_platform(:|[[:space:]]|$)'; then
         build_targets+=(quant_risk_platform)
+    fi
+    if [ "$RUN_PERFORMANCE" = "1" ]; then
+        build_targets+=(benchmark_portfolio)
     fi
     cmake --build "$RESOLVED_BUILD_DIR" --target "${build_targets[@]}" --config "$CONFIG"
 fi
@@ -208,6 +246,49 @@ find_test_exe() {
     return 1
 }
 
+find_benchmark_exe() {
+    local exe_name=$1
+    local names=("$exe_name")
+    case "$exe_name" in
+        *.exe) ;;
+        *) names+=("$exe_name.exe") ;;
+    esac
+
+    local name
+    for name in "${names[@]}"; do
+        local paths=(
+            "$RESOLVED_BUILD_DIR/$name"
+            "$RESOLVED_BUILD_DIR/$CONFIG/$name"
+            "$RESOLVED_BUILD_DIR/cpp/benchmarks/$name"
+            "$RESOLVED_BUILD_DIR/cpp/benchmarks/$CONFIG/$name"
+        )
+        local path
+        for path in "${paths[@]}"; do
+            if [ -f "$path" ]; then
+                echo "$path"
+                return 0
+            fi
+        done
+    done
+    return 1
+}
+
+run_performance_benchmark() {
+    if [ "$RUN_PERFORMANCE" != "1" ]; then
+        return 0
+    fi
+
+    section "Performance Benchmarks"
+    local benchmark_exe
+    if ! benchmark_exe="$(find_benchmark_exe "benchmark_portfolio")"; then
+        echo "Error: benchmark_portfolio executable not found. Re-run without -SkipBuild so benchmarks can be configured and built." >&2
+        exit 1
+    fi
+
+    echo "Running Portfolio Benchmark: $benchmark_exe"
+    "$benchmark_exe" --iterations "$PERFORMANCE_ITERATIONS" --data-root "$PROJECT_ROOT/data"
+}
+
 UNIT_TEST_EXE=$(find_test_exe "unit_tests")
 INTEGRATION_TEST_EXE=$(find_test_exe "integration_tests")
 
@@ -229,6 +310,7 @@ echo "Running Integration Tests: $INTEGRATION_TEST_EXE"
 "$INTEGRATION_TEST_EXE"
 
 if [ "$RUN_CPP_COVERAGE" = "1" ] && [ "$SKIP_CPP_COVERAGE" != "1" ]; then
+    enable_cmake_cpp_coverage_target
     echo "Building C++ coverage target in $RESOLVED_BUILD_DIR..."
     cmake --build "$RESOLVED_BUILD_DIR" --target coverage --config "$CONFIG"
     apply_cpp_coverage_threshold
@@ -270,6 +352,8 @@ show_python_coverage_score
 if [ "$PYTHON_COVERAGE_EXIT_CODE" != "0" ]; then
     exit "$PYTHON_COVERAGE_EXIT_CODE"
 fi
+
+run_performance_benchmark
 
 if [ "$RUN_CPP_COVERAGE" = "1" ] && [ "$SKIP_CPP_COVERAGE" != "1" ] &&
    [ "$SKIP_PYTHON_COVERAGE" != "1" ] && [ -n "${RESOLVED_PYTHON:-}" ] &&

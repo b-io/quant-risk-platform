@@ -51,6 +51,8 @@ find_exe() {
         local paths=(
             "$BUILD_DIR/$name"
             "$BUILD_DIR/$CONFIG/$name"
+            "$BUILD_DIR/cpp/cli/$name"
+            "$BUILD_DIR/cpp/cli/$CONFIG/$name"
             "$BUILD_DIR/bin/$name"
             "$BUILD_DIR/bin/$CONFIG/$name"
         )
@@ -126,7 +128,7 @@ case $TABLE in
         echo "=== Risk Results for $ID ==="
         run_query "SELECT trade_id, risk_measure, risk_factor_id, value FROM risk_results WHERE run_id = '$ID';"
         ;;
-    summary|*)
+    summary)
         echo "=== Platform Data Summary ==="
         if command -v sqlite3 &> /dev/null; then
             echo -n "Portfolios: "; sqlite3 "$DB_FILE" "SELECT count(*) FROM portfolios;"
@@ -138,5 +140,10 @@ case $TABLE in
         fi
         echo ""
         echo "Usage: $0 [portfolios | trades | runs | results | risk] [-Id <id>] [-DbFile <path>]"
+        ;;
+    *)
+        echo "Unknown option: $TABLE"
+        echo "Usage: $0 [portfolios | trades | runs | results | risk] [-Id <id>] [-DbFile <path>]"
+        exit 1
         ;;
 esac

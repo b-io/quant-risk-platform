@@ -47,6 +47,20 @@ Validation standard:
 - An unsupported trade must fail with a stable diagnostic rather than an
   implicit exception or silent zero value.
 
+Current implementation checkpoint:
+
+- The canonical domain model includes `Trade`, `Portfolio`, `TradeType`,
+  `ProductType`, `AssetClass`, and `SupportStatus` values shared by JSON
+  loading, pricing, persistence, CLI, Python bindings, and tests.
+- Normalized valuation, risk, stress, Monte Carlo, PnL explain, and optimization
+  result structures exist, with persisted application workflows for valuation,
+  risk, HVaR, and PnL explain.
+- Product support profiles expose `Supported`, `PartiallySupported`,
+  `Unsupported`, and `Failed` states with model names and diagnostic messages.
+- Portfolio-backed golden fixtures and integration tests cover the supported
+  multi-asset product set; the remaining hardening work is richer schema
+  migration, validation diagnostics, and built-position caching.
+
 ## Phase 2: Market Data Foundation
 
 This phase makes market data reusable across products and risk workflows.
@@ -73,6 +87,19 @@ Validation standard:
 - Missing or stale inputs should block valuation when no documented fallback
   exists.
 
+Current implementation checkpoint:
+
+- `MarketQuote`, `CurveSpec`, `MarketSnapshot`, factor definitions, and factor
+  bindings carry quote identity, source/provenance fields, risk-factor IDs,
+  curve purpose, and market metadata.
+- Rates curves are bootstrapped from QuantLib helpers, with a rates convention
+  registry and reusable `SimpleQuote` handles held in `MarketState`.
+- Scenario, risk, stress/HVaR, and PnL explain workflows reuse the same
+  factor-bound quote handles and restore the base market state after shocks.
+- Market snapshots, scenario sets, factors, and factor bindings are persisted in
+  SQLite. Typed credit, volatility, commodity, and equity market-object builders
+  remain the main Phase 2 hardening gap.
+
 ## Phase 3: Common Rates Products
 
 Rates products should be implemented before exotic expansion because rates
@@ -97,6 +124,20 @@ Validation standard:
   and regression tests should use the same market-state and schedule objects.
 - OIS discounting and projection curves should remain distinct.
 
+Current implementation checkpoint:
+
+- Deposits, FRAs, interest-rate futures, vanilla swaps, OIS swaps, fixed-rate
+  bonds, floating-rate notes, caps/floors, European swaptions, and Bermudan
+  swaptions are represented in the canonical portfolio DTO.
+- These products are wired into the product-pricing registry and covered by the
+  multi-asset demo portfolio and portfolio-backed golden fixtures.
+- Rates valuation uses bootstrapped discount/projection curves, quote handles,
+  and volatility quotes where applicable. PnL explain currently extracts
+  realized cash for deposit maturities.
+- Remaining rates work is mainly convention hardening: schedule generation,
+  calendars, day-count defaults, coupon/fixing event extraction, and reusable
+  built-position caching.
+
 ## Phase 4: FX Products
 
 FX support should begin with linear exposure and then move to volatility and
@@ -117,6 +158,18 @@ Validation standard:
 
 - Currency-pair conventions, spot lag, settlement currency, forward points, and
   discount-curve selection must be explicit in trade and market data.
+
+Current implementation checkpoint:
+
+- FX spot, forwards, swaps, NDFs, and vanilla European FX options are represented
+  in the canonical portfolio DTO and pricing registry.
+- FX pricing consumes spot rates, forward points, domestic/foreign discounting
+  inputs, and volatility quotes where applicable.
+- FX spot, forward-point, and volatility risk-factor IDs are available for
+  deterministic risk, scenario replay, HVaR, and PnL explain market-move
+  attribution.
+- Barriers, digitals, TARFs, richer smile/surface conventions, and broader
+  settlement/fixing event extraction remain future FX extensions.
 
 ## Phase 5: Credit Products
 
@@ -140,6 +193,20 @@ Validation standard:
 - Recovery assumptions, reference entity, issuer identity, default event
   conventions, accrual-on-default logic, and curve calibration inputs must be
   explicit.
+
+Current implementation checkpoint:
+
+- Credit bonds, single-name CDS, CDS indices, CDS options, and credit index
+  options are represented in the canonical portfolio DTO and pricing registry.
+- Credit products consume spread, recovery, discount, and spread-volatility
+  inputs from market snapshots and expose credit factor bindings for CS01-style
+  risk.
+- The first implementation uses deterministic spread/recovery inputs and simple
+  spread or hazard interpolation from live quote handles when multiple tenors
+  are available.
+- CDO/tranche products, detailed accrual-on-default conventions, counterparty
+  credit risk, and richer typed credit-curve builders remain outside current
+  scope.
 
 ## Phase 6: Commodities
 
@@ -176,8 +243,8 @@ Current implementation checkpoint:
   and LSMC exercise engine is promoted into the product path.
 - The portfolio-backed structural golden set includes commodity coverage through
   the model ladder and thematic portfolios, notably Growth Global Macro and
-  Adventurous Commodity Volatility; numeric golden outputs should be regenerated
-  after the next build.
+  Adventurous Commodity Volatility, with current regression coverage maintained
+  through the portfolio-backed golden fixtures.
 
 ## Phase 7: Equity Products
 
@@ -235,6 +302,28 @@ Validation standard:
 - Explain results must reconcile numerically and identify residuals by trade,
   book, asset class, currency, and risk-factor group.
 
+Current implementation checkpoint:
+
+- `PnlExplainService` now produces trade-level explain rows with carry,
+  roll-down, market move, realized cash, trade activity, FX translation,
+  model/configuration change, and residual components.
+- Market move can be decomposed by risk factor through sequential full
+  revaluation of factor-bound quotes. When factor definitions or bindings are
+  absent, the service falls back to aggregate market-move revaluation.
+- Deposit maturity principal and simple ACT/360 interest are recognized as
+  realized cash when maturity falls between the previous and current snapshots.
+- PnL explain results and components are persisted in dedicated SQLite tables
+  and exposed through the application workflow and `run-pnl-explain` CLI
+  command.
+- Reconciliation diagnostics are stored per trade, with residual components
+  tagged by asset class, book, currency, product type, and reconciliation
+  status.
+- Roll-down is currently reported as a separate zero component while
+  frozen-market aging is carried in the carry line; trade activity, FX
+  translation, and model-change lines are explicit zero components until
+  separate trade-population, reporting-currency, and model-version inputs are
+  introduced.
+
 ## Phase 9: VaR And ES Contributions
 
 VaR and Expected Shortfall should support contribution analysis as well as
@@ -253,6 +342,18 @@ Validation standard:
 
 - Contribution calculations must state sign convention, horizon, confidence
   level, scenario set, aggregation rule, and residual or approximation error.
+
+Current implementation checkpoint:
+
+- Historical VaR is available as an application workflow over stored scenario
+  sets, persisted aggregate VaR/ES metrics, and run reports.
+- Monte Carlo simulation results include aggregate VaR and Expected Shortfall
+  metrics for one-step factor simulations.
+- Trade, book, strategy, currency, asset-class, and risk-factor contribution
+  analytics are not yet implemented as first-class result models.
+- Phase 9 is therefore the active next risk milestone: component, marginal, and
+  incremental VaR/ES need dedicated calculations, persistence, diagnostics, and
+  reporting.
 
 ## Phase 10: LSMC Integration
 
@@ -276,6 +377,22 @@ Validation standard:
   regression diagnostics, seed, path count, exercise dates, and convergence
   metrics.
 
+Current implementation checkpoint:
+
+- A generic LSMC module exists with `LsmcEngine`, `LsmcConfig`, `LsmcResult`,
+  dynamic-programming decision-problem interfaces, stochastic-process
+  primitives, and ordinary-least-squares regression support.
+- The LSMC result captures value, standard error, path values, VaR, and Expected
+  Shortfall, and unit coverage includes an American put exercise-policy example.
+- Bermudan swaption pricing already uses the generic LSMC engine through a
+  product-specific one-factor approximation.
+- American equity options and commodity swing/storage products still use
+  product-specific approximations or partial support rather than the shared LSMC
+  exercise-policy layer.
+- Phase 10 remains a model-integration milestone: expose LSMC through bindings,
+  serialize full diagnostics, and connect the reusable engine to all
+  early-exercise and physical-flexibility products.
+
 ## Phase 11: Production Controls
 
 Production controls should make every analytics run reproducible and
@@ -298,6 +415,20 @@ Validation standard:
   and model configuration were used, which products were unsupported, which
   diagnostics were raised, and whether valuation, risk, and explain outputs
   passed reconciliation gates.
+
+Current implementation checkpoint:
+
+- SQLite persistence stores portfolios, trades, market snapshots, factors,
+  scenario sets, analysis runs, valuation results, risk results, HVaR results,
+  and PnL explain results/components.
+- CLI and application workflows can initialize storage, import inputs, run
+  valuation/risk/HVaR/PnL explain, list stored data, print run reports, and
+  compare runs.
+- Coverage gates are enforced by the test scripts and CI artifacts, with the
+  current threshold at 95% line coverage for C++ and Python.
+- Full production run manifests, model/version manifests, benchmark portfolio
+  governance, performance gates, validation reports, and operational lineage
+  controls remain Phase 11 hardening work.
 
 ## Phase 12: Portfolio Optimization And Recommendations
 
@@ -329,6 +460,20 @@ Validation standard:
   benchmark, expected-return source, covariance source, solver configuration,
   feasibility status, binding constraints, turnover, and residual constraint
   violations.
+
+Current implementation checkpoint:
+
+- A solver-neutral optimization layer exists with `OptimizationProblem`,
+  `OptimizationResult`, solver capabilities, portfolio optimization objectives,
+  linear constraints, turnover constraints, risk-model inputs, and a high-level
+  `PortfolioOptimizationEngine`.
+- A CVXPY adapter and Python worker are present for solving supported
+  optimization problems, with unit tests covering serialization, validation, and
+  solver behavior.
+- Mean-variance, minimum-variance, return-maximization, tracking-error, and
+  turnover-constrained workflows are represented at the engine/adapter level.
+- Efficient-frontier persistence, recommendation-tree generation, accepted-action
+  workflows, and dashboard recommendation paths are not yet implemented.
 
 ## Cross-Phase Dashboard Requirements
 

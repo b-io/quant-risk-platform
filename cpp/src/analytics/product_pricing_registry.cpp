@@ -5,7 +5,9 @@
 
 #include <algorithm>
 #include <cctype>
+#include <chrono>
 #include <map>
+#include <optional>
 #include <utility>
 
 namespace qrp::analytics {
@@ -60,8 +62,96 @@ bool is_short_direction(const std::string& direction) {
     return lowered == "short" || lowered == "sell" || lowered == "sold" || lowered == "written";
 }
 
+double deposit_cashflow_direction_sign(const std::string& direction) {
+    const auto lowered = lower_copy(direction);
+    if (lowered == "borrow" || lowered == "borrower" || lowered == "short") {
+        return -1.0;
+    }
+    return 1.0;
+}
+
 double option_position_sign(const std::string& direction) {
     return is_short_direction(direction) ? -1.0 : 1.0;
+}
+
+std::optional<std::chrono::sys_days> parse_iso_day(const std::string& value) {
+    if (value.size() != 10 || value[4] != '-' || value[7] != '-') {
+        return std::nullopt;
+    }
+    for (std::size_t i = 0; i < value.size(); ++i) {
+        if (i == 4 || i == 7) {
+            continue;
+        }
+        if (value[i] < '0' || value[i] > '9') {
+            return std::nullopt;
+        }
+    }
+
+    const int year = std::stoi(value.substr(0, 4));
+    const unsigned month = static_cast<unsigned>(std::stoi(value.substr(5, 2)));
+    const unsigned day = static_cast<unsigned>(std::stoi(value.substr(8, 2)));
+    const std::chrono::year_month_day ymd{std::chrono::year{year}, std::chrono::month{month}, std::chrono::day{day}};
+    if (!ymd.ok()) {
+        return std::nullopt;
+    }
+    return std::chrono::sys_days{ymd};
+}
+
+bool date_is_realized_between(const std::string& event_date,
+                              const std::string& previous_date,
+                              const std::string& current_date) {
+    const auto event_day = parse_iso_day(event_date);
+    const auto previous_day = parse_iso_day(previous_date);
+    const auto current_day = parse_iso_day(current_date);
+    if (!event_day || !previous_day || !current_day) {
+        return false;
+    }
+    return *previous_day < *event_day && *event_day <= *current_day;
+}
+
+double actual_360_year_fraction(const std::string& start_date, const std::string& end_date) {
+    const auto start_day = parse_iso_day(start_date);
+    const auto end_day = parse_iso_day(end_date);
+    if (!start_day || !end_day) {
+        return 0.0;
+    }
+    const auto days = std::chrono::duration_cast<std::chrono::days>(*end_day - *start_day).count();
+    return static_cast<double>(days) / 360.0;
+}
+
+CashflowExtractionResult deposit_realized_cashflows(const domain::Trade& trade,
+                                                    const domain::MarketSnapshot& previous_market,
+                                                    const domain::MarketSnapshot& current_market) {
+    CashflowExtractionResult result;
+    result.extraction_supported = true;
+    result.model_name = "QRP::DepositCashflowExtractor/ACT360";
+    result.support_status = domain::SupportStatus::Supported;
+    result.tags["cashflow_type"] = "maturity_principal_and_interest";
+    result.tags["day_count"] = "ACT360";
+    result.tags["trade_id"] = trade.id;
+
+    const auto* deposit = dynamic_cast<const domain::DepositTrade*>(&trade);
+    if (!deposit) {
+        result.support_status = domain::SupportStatus::Failed;
+        result.status_message = "Deposit cashflow extractor received a non-deposit trade";
+        return result;
+    }
+
+    if (!date_is_realized_between(deposit->maturity_date,
+                                  previous_market.valuation_date,
+                                  current_market.valuation_date)) {
+        result.status_message = "No deposit maturity cashflow is realized in the explain interval";
+        result.tags["event_count"] = "0";
+        return result;
+    }
+
+    const double accrual = actual_360_year_fraction(deposit->start_date, deposit->maturity_date);
+    const double maturity_amount = deposit->notional * (1.0 + deposit->deposit_rate * accrual);
+    result.realized_cash_pnl = deposit_cashflow_direction_sign(deposit->direction) * maturity_amount;
+    result.status_message = "Deposit maturity cashflow realized in the explain interval";
+    result.tags["event_count"] = "1";
+    result.tags["maturity_date"] = deposit->maturity_date;
+    return result;
 }
 
 InstrumentPricingProfile equity_spot_pricing_profile(const domain::Trade& trade) {
@@ -418,7 +508,7 @@ const std::map<domain::ProductType, ProductPricingDefinition>& definitions() {
          unsupported_definition(domain::ProductType::CrossCurrencySwap,
                                 "Product is declared in the taxonomy but no pricing model is registered yet")},
         {domain::ProductType::Deposit,
-         ProductPricingDefinition{no_realized_cashflows,
+         ProductPricingDefinition{deposit_realized_cashflows,
                                   build_deposit,
                                   "QRP::DepositInstrument/discounted cashflow",
                                   default_pricing_profile,

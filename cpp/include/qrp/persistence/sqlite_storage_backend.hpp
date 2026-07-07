@@ -165,6 +165,16 @@ public:
                                 const std::string& status_message) override;
 
     /**
+     * @brief Stores one trade-level PnL explain reconciliation row.
+     */
+    void store_pnl_explain_result(const PnlExplainRecord& record) override;
+
+    /**
+     * @brief Stores one PnL explain component row.
+     */
+    void store_pnl_explain_component(const PnlExplainComponentRecord& record) override;
+
+    /**
      * @brief Stores aggregate VaR and ES metrics for a run.
      */
     void store_var_result(const std::string& run_id,

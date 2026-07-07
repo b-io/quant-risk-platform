@@ -12,7 +12,7 @@ The target system is a production-shaped quantitative risk engine with the follo
 - reusable market objects and reactive quote handles,
 - clear separation between market construction, instruments, and analytics,
 - deterministic risk, historical stress, and Monte Carlo,
-- scalable revaluation and future parallelization,
+- scalable revaluation and parallel execution,
 - application-level interfaces for CLI and Python.
 
 ## 2. High-level architecture
@@ -171,9 +171,12 @@ Files:
 
 Current state:
 
-- basic DTOs exist,
-- typed curve identifiers exist,
-- schema is still too thin for full convention-aware curve building.
+- canonical DTOs cover rates, FX, credit, commodity, and equity products,
+- typed curve identifiers, market quotes, scenarios, portfolios, valuation results, risk results, HVaR results, and PnL
+  explain results exist,
+- product support flags and structural portfolio fixtures make implemented versus partial support visible,
+- remaining schema work is mainly governance-oriented: richer validation diagnostics, version migration policy, and
+  broader event-source payloads.
 
 ### Market layer
 
@@ -187,22 +190,26 @@ Files:
 
 Current state:
 
-- quote handles and bootstrapped yield curves exist,
-- scenario application can mutate quote handles in place,
-- credit curves, vol surfaces, and richer curve families are missing,
-- conventions are still embedded in builder logic rather than registered centrally.
+- quote handles, quote metadata, factor bindings, and bootstrapped yield curves exist,
+- scenario application mutates quote handles in place and restores the base state after revaluation,
+- market snapshots include rates, FX, credit, commodity, equity, and volatility inputs,
+- the rates convention registry is active for curve construction,
+- remaining work is to split typed credit, volatility, commodity, and equity builders behind stable interfaces and add
+  richer diagnostics for calibration and stale-data governance.
 
 ### Pricing context
 
 File:
 
 - `cpp/include/qrp/analytics/pricing_context.hpp`
+- `cpp/src/analytics/pricing_context.cpp`
 
 Current state:
 
-- basic curve lookup exists,
-- curve-family mismatch bug appears fixed (`OIS` is used consistently now),
-- still needs a proper `MarketConventionRegistry` to avoid hardcoded instrument assumptions.
+- curve, quote, factor, and market-object lookup is centralized for pricing services,
+- instrument pricers resolve discount, projection, spot, forward, spread, recovery, dividend, borrow, and volatility
+  inputs through the context,
+- remaining work is to make all product construction convention-driven and to expose more explicit pricing diagnostics.
 
 ### Instrument layer
 
@@ -213,9 +220,10 @@ Files:
 
 Current state:
 
-- vanilla swaps and fixed-rate bonds are implemented,
-- calendars, schedules, and day-count conventions are mostly hardcoded,
-- there is not yet a reusable built-position cache.
+- rates, FX, credit, commodity, and equity product families are represented in the factory and pricing registry,
+- vanilla and option-style products are priced through product-specific pricers with explicit support statuses,
+- calendars, schedules, and day-count conventions are still more hardcoded than the full convention-driven design,
+- there is not yet a reusable built-position or built-portfolio cache.
 
 ### Analytics layer
 
@@ -229,63 +237,68 @@ Files:
 
 Current state:
 
-- valuation works for the current sample instruments,
+- valuation works across the current multi-asset sample portfolios,
 - risk is deterministic bump-and-revalue over reactive quote handles,
-- P&L explain now reconciles previous, current, rolled, cash, market-move, and residual components,
+- historical stress and HVaR replay scenario sets over the same market/factor map,
+- PnL explain reconciles previous, current, carry, realized cash, market-move, trade-activity, FX translation,
+  model-change, and residual components,
+- market-move explain can run sequential full revaluation by factor and falls back to aggregate revaluation when factor
+  bindings are absent,
 - Monte Carlo is currently a one-step Gaussian scenario engine rather than a true path engine,
-- historical stress is still scenario replay over generic shocked quotes.
+- realized cash explain currently includes deposit maturities, while coupons, fixings, exercises, and settlement events
+  need broader event-source integration.
 
-## 8. Main design gaps to close next
+## 8. Current Design Boundaries
 
 ```mermaid
 flowchart LR
-    A[Thin market schema] --> B[No convention registry]
-    B --> C[Hardcoded schedules and day counts]
-    C --> D[Fragile multi-curve support]
-    D --> E[Prototype risk and explain engines]
+    A[Convention gaps] --> B[Hardcoded schedules and day counts]
+    B --> C[No built-portfolio cache]
+    C --> D[Limited event-source integration]
+    D --> E[Contribution analytics and LSMC integration]
 ```
 
-The main gaps are:
+The main boundaries are:
 
-1. **Market conventions are not centralized.**
-2. **Curve families are not yet modeled beyond simple yield curves.**
-3. **Instrument construction is not driven by conventions.**
-4. **The analytics services do not yet share a built-position cache.**
-5. **Stress and Monte Carlo require richer models, and P&L explain still needs realized event sources beyond the current deterministic reconciliation.**
+1. **Not all market and product conventions are centralized yet.**
+2. **Instrument construction still contains hardcoded schedule and day-count assumptions.**
+3. **The analytics services do not yet share a built-position cache.**
+4. **PnL explain needs broader product event sources beyond deposit maturities.**
+5. **VaR/ES contribution analytics, reusable LSMC integration, and production controls are not yet first-class across
+   the platform.**
 
-## 9. Target architecture evolution
+## 9. Extension Areas
 
-### Step 1: solid deterministic rates engine
+### Cache and convention hardening
 
-- central `MarketConventionRegistry`,
-- richer market schema,
-- OIS discount + projection curves,
-- reusable built-position cache,
-- deterministic PV01 / key-rate / scenario engines,
-- production-shaped P&L explain with event-source integration.
+- reusable built-position and built-portfolio cache,
+- product construction driven by convention registries,
+- richer market-state validation and calibration diagnostics,
+- broader event-source integration for explain.
 
-### Step 2: credit and volatility market objects
+### Contribution analytics
 
-- hazard / survival curves,
-- credit spread factors,
-- vol surfaces and smile inputs,
-- richer factor mapping and risk attribution.
+- VaR and Expected Shortfall contributions by trade, book, strategy, currency, asset class, and risk factor,
+- marginal and incremental contribution workflows,
+- richer aggregation and run-comparison reports.
 
-### Step 3: scalable simulation architecture
+### Exercise and simulation architecture
 
-- Monte Carlo path engine,
-- historical scenario store,
-- cached factor mappings,
-- parallel scenario execution.
+- LSMC as a reusable exercise-policy engine,
+- Monte Carlo path engine separated from one-step factor simulation,
+- cached factor mappings and parallel scenario execution,
+- production controls for manifests, lineage, benchmark portfolios, and performance gates.
 
 ## 10. Current Design As A Stable Base
 
-Even though the implementation is incomplete, the chosen direction is good because:
+The chosen direction remains a stable base because:
 
 - QuantLib handles are the right primitive for fast revaluation,
 - rate helpers are the right primitive for market-consistent curve construction,
 - layering is already service-oriented rather than notebook-oriented,
-- the current gaps are mainly missing abstractions and incomplete analytics, not a fundamentally wrong architecture.
+- the result and persistence models now span valuation, risk, HVaR, and PnL explain,
+- the current gaps are mainly hardening, caching, contribution analytics, and production controls rather than a
+  fundamentally wrong architecture.
 
 ## 11. Documentation policy going forward
 
@@ -297,5 +310,5 @@ To keep the design coherent:
     - the chosen design,
     - why that design is preferred over simpler alternatives,
 - every important QuantLib choice should be justified in terms of correctness, performance, and extensibility,
-- whenever a milestone changes the implementation shape, refresh the corresponding design files in the same pass,
+- whenever implementation changes the platform shape, refresh the corresponding design files in the same pass,
 - do not allow code, docs, and sample JSON schemas to drift apart.

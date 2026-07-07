@@ -60,23 +60,20 @@ $$
    Reusable model families such as volatility surfaces and LSMC should be read
    across asset classes, not as part of one asset class.
 
-## Implementation Sequence
+## Current Coverage
 
-The asset-class expansion should follow the broader platform plan in
-`docs/implementation/PHASED_BUILD_PLAN.md`:
+The repository currently represents and prices product families across rates,
+FX, credit, commodities, and equities. The canonical trade model, market-data
+foundation, pricing registry, valuation workflows, risk workflows, stress/HVaR,
+and PnL explain all share the same multi-asset coverage.
 
-1. harden the trade model, result model, risk-factor taxonomy, support flags,
-   and golden datasets;
-2. build the market-data foundation;
-3. implement rates products;
-4. add FX products;
-5. add credit products;
-6. add commodity products;
-7. add equity products;
-8. complete PnL explain;
-9. complete VaR and Expected Shortfall contributions;
-10. integrate LSMC as a reusable exercise-policy engine;
-11. add production controls.
+Known boundaries are:
+
+- VaR and Expected Shortfall contribution analytics are not yet first-class
+  outputs;
+- reusable LSMC exercise-policy integration is not yet wired across all
+  early-exercise and physical-flexibility products;
+- production controls and validation reports remain hardening areas.
 
 ## Maintenance Rule
 

@@ -5,8 +5,9 @@
 Production-shaped C++ and Python platform for pricing, risk analytics, scenario analysis, and P&L across asset
 classes, with QuantLib at the core and Python used as an interface layer.
 
-> The current implementation covers common rates, FX, and credit products. The architecture is intentionally designed
-> to extend toward commodities, equities, and volatility-driven analytics without changing the core layering.
+> Current implementation covers rates, FX, credit, commodity, and equity products, with valuation, risk,
+> stress/HVaR, persistence, and PnL explain workflows wired through the C++ core, CLI, Python bindings, and SQLite
+> storage.
 
 ## Quickstart
 
@@ -25,14 +26,14 @@ For the auto-commit step, enable repository write tokens in GitHub:
 - Select `Read and write permissions`
 - Keep pull-request workflows restricted unless you intentionally need write access from forks
 
-The local equivalent is:
+The local equivalent for the full coverage gate is:
 
 ```powershell
-.\scripts\test.ps1
+.\scripts\test.ps1 -Coverage
 ```
 
-The script prints C++ coverage at the end of the C++ section, Python coverage at the end of the Python section, and a
-final combined summary.
+The script uses 95% minimum line coverage thresholds for C++ and Python by default. It prints C++ coverage at the end of
+the C++ section, Python coverage at the end of the Python section, and a final combined summary.
 
 ### Supported builds on Windows (summary)
 
@@ -103,45 +104,53 @@ The repository is beyond scaffold stage and already contains:
 - tests under `tests/`,
 - canonical documentation under `docs/`.
 
-Current implementation maturity is best described as a
-**multi-asset platform with rates, FX, and credit pricing coverage plus persistent storage and reactive risk
-foundation**. The next architecture milestones are commodities, equities, stronger product-family goldens, and
-production controls.
+Current implementation maturity is best described as a **multi-asset analytics platform**: rates, FX, credit,
+commodities, and equities are represented in the canonical trade model and pricing registry, scenario/risk workflows
+are persisted, and PnL explain is exposed through the service layer, CLI, Python bindings, and SQLite result tables.
+
+Known boundaries are VaR and Expected Shortfall contribution analytics, reusable LSMC exercise-policy integration,
+broader realized-event sources for explain, built-portfolio caching, and production-control hardening.
 
 ## Implemented today
 
 The current codebase already includes:
 
 - market loading and JSON DTOs,
-- convention-aware rates market construction,
-- QuantLib helper-based rates curve bootstrapping,
-- pricing for common rates, FX, credit, and equity spot instruments,
-- high-performance reactive risk (Observer pattern),
-- SQLite-backed persistence for portfolios, market snapshots, and results,
-- end-to-end persisted valuation and risk workflows,
+- normalized market, portfolio, scenario, valuation, risk, VaR, and PnL explain result models,
+- convention-aware rates market construction and QuantLib helper-based curve bootstrapping,
+- quote/factor metadata for rates, FX, credit, commodity, equity, and volatility inputs,
+- pricing for supported rates, FX, credit, commodity, and equity products,
+- high-performance reactive risk using QuantLib handles and the Observer pattern,
+- historical stress and HVaR scenario workflows,
+- SQLite-backed persistence for portfolios, market snapshots, scenarios, and analytics results,
+- end-to-end persisted valuation, risk, HVaR, and PnL explain workflows,
+- PnL explain with carry, realized cash, sequential factor market move, residual reconciliation, and persisted
+  components,
 - Python bindings and a C++ CLI.
 
-## Planned next steps
+## Known boundaries
 
-- expand pricing coverage to commodities and fuller equity derivatives,
-- refine the risk factor taxonomy for consistent aggregation,
-- separate historical, parametric, and Monte Carlo VaR,
-- evolve Monte Carlo from one-step factor simulation toward a fuller path-based framework,
-- add BI-style ad hoc analysis over stored results.
+- VaR and Expected Shortfall contribution analytics are not yet first-class outputs.
+- LSMC exists conceptually in the modeling docs, but is not yet exposed as a reusable exercise-policy engine for every
+  early-exercise or physical-flexibility product.
+- Realized cash/event-source integration currently covers deposit maturity support and does not yet cover every coupon,
+  fixing, exercise, and settlement event source.
+- Built-position and built-portfolio caching are not yet shared across repeated analytics.
+- Production controls, run manifests, benchmark governance, performance gates, and validation reports remain hardening
+  areas.
 
 ## Documentation layout
 
 ```text
 docs/
-|-- design/      # architecture, layering, market and service design
-|-- pricing/     # pricing and market-construction notes by subdomain
-|   |-- market-data/
-|   |-- rates/
-|   |-- credit/
-|   `-- volatility/
-|-- energy/      # power, gas, carbon, flexibility, and energy-market risk notes
-|-- risk/        # risk measures, scenarios, stress, VaR, and Monte Carlo
-`-- theory/      # mathematical and statistical foundations
+|-- architecture/    # platform layering, market objects, services, persistence, and bindings
+|-- market-data/     # normalized quotes, snapshots, curves, surfaces, provenance, and validation
+|-- asset-classes/   # rates, credit, FX, commodities, and equity
+|-- models/          # reusable model families such as volatility and exercise models
+|-- risk/            # risk factors, PnL explain, stress, VaR, ES, Monte Carlo, and attribution
+|-- foundations/     # probability, statistics, stochastic processes, and asset pricing
+|-- reference/       # shared lexis, formulas, and public sources
+`-- implementation/  # implementation notes, standards, and checkpoints
 ```
 
 ## Repository structure
@@ -164,6 +173,7 @@ quant-risk-platform/
 |   |   |-- io/
 |   |   |-- market/
 |   |   `-- util/
+|   |-- benchmarks/
 |   |-- bindings/
 |   |-- cli/
 |   `-- src/
@@ -172,15 +182,14 @@ quant-risk-platform/
 |   |-- portfolios/
 |   `-- scenarios/
 |-- docs/
-|   |-- design/
-|   |-- pricing/
-|   |   |-- market-data/
-|   |   |-- rates/
-|   |   |-- credit/
-|   |   `-- volatility/
-|   |-- energy/
+|   |-- architecture/
+|   |-- market-data/
+|   |-- asset-classes/
+|   |-- models/
 |   |-- risk/
-|   `-- theory/
+|   |-- foundations/
+|   |-- reference/
+|   `-- implementation/
 |-- python/
 |   |-- examples/
 |   |-- notebooks/
@@ -201,11 +210,12 @@ quant-risk-platform/
 ## Example workflows
 
 - build rates curves from market quotes,
-- price a portfolio of vanilla rates instruments,
-- compute PV01 or bucketed curve risk,
-- apply market shocks and generate stressed P&L,
-- compare base and shocked market states,
-- drive the same workflows through Python for demos and orchestration.
+- price portfolios spanning rates, FX, credit, commodities, and equities,
+- compute deterministic sensitivities such as PV01, FX delta, CS01, and option Greeks where supported,
+- apply market shocks, replay historical scenarios, and generate stressed P&L,
+- run persisted valuation, risk, HVaR, and PnL explain workflows,
+- compare stored runs and generate run reports,
+- drive the same workflows through the C++ CLI or Python bindings for demos and orchestration.
 
 ## Technology stack
 
@@ -224,7 +234,7 @@ quant-risk-platform/
 - **Extensible** across asset classes,
 - **Transparent** in valuation and risk decomposition,
 - **Testable** with deterministic samples and regression coverage,
-- **Scalable** toward larger portfolios, repeated scenarios, and future parallelization,
+- **Scalable** toward larger portfolios, repeated scenarios, and parallel execution,
 - **Pragmatic** about valuation, risk, and reporting workflows.
 
 ## Disclaimer

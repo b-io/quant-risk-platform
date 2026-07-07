@@ -26,9 +26,9 @@ semantics.
    Premium leg, protection leg, calibration logic, CS01, basis, and analytics
    usage.
 
-## Product Coverage Sequence
+## Product Coverage
 
-Credit product support follows this implementation order:
+Credit product coverage is organized around these product families:
 
 1. credit bonds with spread discounting;
 2. single-name CDS;

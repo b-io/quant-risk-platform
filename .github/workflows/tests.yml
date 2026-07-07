@@ -97,7 +97,7 @@ jobs:
           cmake --preset dev -DQRP_WARNINGS_AS_ERRORS=ON 2>&1 | tee "$log_path"
           status=${PIPESTATUS[0]}
           if [ "$status" -ne 0 ]; then
-            python scripts/emit_ci_error_tail.py "$log_path" "Configure dev build failed"
+            python python/github/emit_ci_error_tail.py "$log_path" "Configure dev build failed"
           fi
           exit "$status"
 
@@ -109,7 +109,7 @@ jobs:
           cmake --build build/dev --config RelWithDebInfo 2>&1 | tee "$log_path"
           status=${PIPESTATUS[0]}
           if [ "$status" -ne 0 ]; then
-            python scripts/emit_ci_error_tail.py "$log_path" "Build dev artifacts failed"
+            python python/github/emit_ci_error_tail.py "$log_path" "Build dev artifacts failed"
           fi
           exit "$status"
 
@@ -172,7 +172,7 @@ jobs:
             | tee "$log_path"
           status=${PIPESTATUS[0]}
           if [ "$status" -ne 0 ]; then
-            python scripts/emit_ci_error_tail.py "$log_path" "Run dev tests failed"
+            python python/github/emit_ci_error_tail.py "$log_path" "Run dev tests failed"
           fi
           exit "$status"
 
@@ -239,7 +239,7 @@ jobs:
           cmake --preset release -DQRP_WARNINGS_AS_ERRORS=ON 2>&1 | tee "$log_path"
           status=${PIPESTATUS[0]}
           if [ "$status" -ne 0 ]; then
-            python scripts/emit_ci_error_tail.py "$log_path" "Configure release build failed"
+            python python/github/emit_ci_error_tail.py "$log_path" "Configure release build failed"
           fi
           exit "$status"
 
@@ -251,7 +251,7 @@ jobs:
           cmake --build build/release --config Release 2>&1 | tee "$log_path"
           status=${PIPESTATUS[0]}
           if [ "$status" -ne 0 ]; then
-            python scripts/emit_ci_error_tail.py "$log_path" "Build release artifacts failed"
+            python python/github/emit_ci_error_tail.py "$log_path" "Build release artifacts failed"
           fi
           exit "$status"
 
@@ -314,7 +314,7 @@ jobs:
             | tee "$log_path"
           status=${PIPESTATUS[0]}
           if [ "$status" -ne 0 ]; then
-            python scripts/emit_ci_error_tail.py "$log_path" "Run release smoke tests failed"
+            python python/github/emit_ci_error_tail.py "$log_path" "Run release smoke tests failed"
           fi
           exit "$status"
 
@@ -386,7 +386,7 @@ jobs:
           cmake --preset coverage -DQRP_WARNINGS_AS_ERRORS=ON -DQRP_COVERAGE_MIN_LINE=95 2>&1 | tee "$log_path"
           status=${PIPESTATUS[0]}
           if [ "$status" -ne 0 ]; then
-            python scripts/emit_ci_error_tail.py "$log_path" "Configure C++ coverage build failed"
+            python python/github/emit_ci_error_tail.py "$log_path" "Configure C++ coverage build failed"
           fi
           exit "$status"
 
@@ -397,7 +397,7 @@ jobs:
           cmake --build build/coverage --target coverage 2>&1 | tee "$log_path"
           status=${PIPESTATUS[0]}
           if [ "$status" -ne 0 ]; then
-            python scripts/emit_ci_error_tail.py "$log_path" "Run C++ tests and coverage failed"
+            python python/github/emit_ci_error_tail.py "$log_path" "Run C++ tests and coverage failed"
           fi
           exit "$status"
 

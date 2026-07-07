@@ -17,16 +17,16 @@ Equity documentation should cover:
 - index methodology, corporate actions, and settlement conventions;
 - equity volatility surfaces and Greeks.
 
-## Product Coverage Sequence
+## Product Coverage
 
-Equity product support follows this implementation order:
+Equity product coverage is organized around these product families:
 
 1. equity spot exposure;
 2. equity forwards and futures;
 3. European equity and index options;
 4. American equity options using LSMC or finite difference;
 5. dividend curve and borrow curve support;
-6. baskets, Asians, and barriers after the core infrastructure is stable.
+6. baskets, Asians, and barriers.
 
 Current platform coverage:
 
@@ -40,6 +40,7 @@ Current platform coverage:
 - The portfolio-backed golden fixtures under `data/portfolios/` link equity
   forwards, futures, and European/American options to book-level structural
   coverage.
+- Baskets, Asians, and barriers are outside current product coverage.
 
 ## Required Platform Objects
 

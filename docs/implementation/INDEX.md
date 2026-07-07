@@ -11,6 +11,14 @@ the repository implementation.
    asset-class product coverage, PnL explain, VaR contributions, LSMC, and
    production controls.
 
+## Current Milestone
+
+The codebase is currently through Phase 8. Rates, FX, credit, commodities, and
+equities are wired into the canonical trade model and pricing registry, and PnL
+explain is implemented as a persisted workflow. The active next milestones are
+VaR/Expected Shortfall contribution analytics, reusable LSMC, broader event
+sources, and production controls.
+
 ## Maintenance Rule
 
 Implementation plans should be written as durable engineering documents. They

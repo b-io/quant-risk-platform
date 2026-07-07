@@ -115,7 +115,7 @@ Properties:
 For the stochastic component, the horizon variance is:
 
 $$
-\operatorname{Var}(r_t)
+\mathrm{Var}(r_t)
 =
 \int_0^t e^{-2a(t-u)}\sigma(u)^2du.
 $$

@@ -81,7 +81,7 @@ $$
 This implies a covariance form:
 
 $$
-\mathbb{E}_t[R_{i,t+1}] - R_{f,t} = -\frac{\operatorname{Cov}_t(m_{t+1},R_{i,t+1})}{\mathbb{E}_t[m_{t+1}]}
+\mathbb{E}_t[R_{i,t+1}] - R_{f,t} = -\frac{\mathrm{Cov}_t(m_{t+1},R_{i,t+1})}{\mathbb{E}_t[m_{t+1}]}
 $$
 
 So expected excess return is high when the asset performs badly in high-value states and therefore has poor hedging
@@ -146,7 +146,7 @@ where:
 Beta is defined by:
 
 $$
-\beta_i = \frac{\operatorname{Cov}(R_i,R_M)}{\operatorname{Var}(R_M)}
+\beta_i = \frac{\mathrm{Cov}(R_i,R_M)}{\mathrm{Var}(R_M)}
 $$
 
 Interpretation:

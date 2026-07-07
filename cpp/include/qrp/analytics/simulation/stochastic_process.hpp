@@ -17,42 +17,32 @@ public:
     /**
      * @brief Allocates a path with fixed time steps and dimensions.
      */
-    MarketPath(std::size_t num_steps, std::size_t dimension) : data_(num_steps, std::vector<double>(dimension)) {}
+    MarketPath(std::size_t num_steps, std::size_t dimension);
 
     /**
      * @brief Returns the number of simulated time steps.
      */
-    std::size_t num_steps() const {
-        return data_.size();
-    }
+    std::size_t num_steps() const;
 
     /**
      * @brief Returns the number of simulated state dimensions.
      */
-    std::size_t dimension() const {
-        return data_.empty() ? 0 : data_[0].size();
-    }
+    std::size_t dimension() const;
 
     /**
      * @brief Returns a mutable path value by time and dimension.
      */
-    double& operator()(std::size_t time_index, std::size_t dim_index) {
-        return data_[time_index][dim_index];
-    }
+    double& operator()(std::size_t time_index, std::size_t dim_index);
 
     /**
      * @brief Returns a path value by time and dimension.
      */
-    double operator()(std::size_t time_index, std::size_t dim_index) const {
-        return data_[time_index][dim_index];
-    }
+    double operator()(std::size_t time_index, std::size_t dim_index) const;
 
     /**
      * @brief Returns all dimension values at one time index.
      */
-    const std::vector<double>& at(std::size_t time_index) const {
-        return data_.at(time_index);
-    }
+    const std::vector<double>& at(std::size_t time_index) const;
 
 private:
     std::vector<std::vector<double>> data_; // Path values by time step and state dimension.

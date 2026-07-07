@@ -33,6 +33,8 @@ function Find-Exe($ExeName) {
         $Paths = @(
             "$BuildDir\$name",
             "$BuildDir\$Config\$name",
+            "$BuildDir\cpp\cli\$name",
+            "$BuildDir\cpp\cli\$Config\$name",
             "$BuildDir\bin\$name",
             "$BuildDir\bin\$Config\$name"
         )

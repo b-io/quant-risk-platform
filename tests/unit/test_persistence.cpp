@@ -325,6 +325,72 @@ TEST_F(PersistenceTest, ValuationResultsPersistence) {
         "QuantLib::VanillaSwap/DiscountingSwapEngine");
 }
 
+TEST_F(PersistenceTest, PnlExplainResultsPersistence) {
+    storage->store_portfolio("P1", "P1", "USD");
+    storage->store_market_snapshot("S2", "2026-03-25", "USD", "[]");
+    const std::string run_id = "RUN_PNL_1";
+    storage->store_analysis_run(run_id, "PNL_EXPLAIN", "P1", "S2");
+
+    persistence::StorageBackend::PnlExplainRecord result;
+    result.run_id = run_id;
+    result.trade_id = "T_EQ";
+    result.asset_class = "equity";
+    result.book = "BOOK:EQUITY";
+    result.currency = "USD";
+    result.product_type = "equity_spot";
+    result.strategy = "DELTA";
+    result.prev_npv = 0.0;
+    result.curr_npv = 100.0;
+    result.total_pnl = 100.0;
+    result.market_move_pnl = 100.0;
+    result.explained_pnl = 100.0;
+    result.reconciliation_passed = true;
+    result.support_status = "supported";
+    result.model_name = "QuantLib::Stock";
+    storage->store_pnl_explain_result(result);
+
+    persistence::StorageBackend::PnlExplainComponentRecord factor_component;
+    factor_component.run_id = run_id;
+    factor_component.trade_id = "T_EQ";
+    factor_component.sequence = 3;
+    factor_component.component_id = "market_move:RF:EQ:AAPL:SPOT";
+    factor_component.component_type = "market_move";
+    factor_component.label = "Market move RF:EQ:AAPL:SPOT";
+    factor_component.amount = 100.0;
+    factor_component.factor_id = "RF:EQ:AAPL:SPOT";
+    factor_component.risk_factor_group = "equity";
+    factor_component.model_name = "QuantLib::Stock";
+    factor_component.support_status = "supported";
+    factor_component.tags_json = R"json({"quote_ids":"AAPL"})json";
+    storage->store_pnl_explain_component(factor_component);
+
+    persistence::StorageBackend::PnlExplainComponentRecord residual_component = factor_component;
+    residual_component.sequence = 7;
+    residual_component.component_id = "residual";
+    residual_component.component_type = "residual";
+    residual_component.label = "Residual";
+    residual_component.amount = 0.0;
+    residual_component.factor_id = "";
+    residual_component.risk_factor_group = "none";
+    residual_component.tags_json = R"json({"reconciliation_passed":"true"})json";
+    storage->store_pnl_explain_component(residual_component);
+
+    EXPECT_NEAR(QueryDouble(db_path,
+                            "SELECT total_pnl FROM pnl_explain_results WHERE run_id = 'RUN_PNL_1' "
+                            "AND trade_id = 'T_EQ';"),
+                100.0,
+                1e-10);
+    EXPECT_EQ(QueryString(db_path,
+                          "SELECT risk_factor_group FROM pnl_explain_components WHERE run_id = "
+                          "'RUN_PNL_1' AND component_id = 'market_move:RF:EQ:AAPL:SPOT';"),
+              "equity");
+    EXPECT_NEAR(QueryDouble(db_path,
+                            "SELECT count(*) FROM pnl_explain_components WHERE run_id = 'RUN_PNL_1' "
+                            "AND trade_id = 'T_EQ';"),
+                2.0,
+                1e-10);
+}
+
 TEST_F(PersistenceTest, ScenarioAndVarResultsPersistence) {
     storage->store_portfolio("P1", "P1", "USD");
     storage->store_market_snapshot("S1", "2023-01-01", "USD", "[]");

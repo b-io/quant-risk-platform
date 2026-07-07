@@ -11,10 +11,10 @@ validation standards.
    Option-pricing foundations, exercise styles, Greeks, volatility surfaces, and
    volatility-model calibration trade-offs.
 
-## Planned Sections
+## Additional Model Families
 
-Future model-family chapters should be added here when they are reusable across
-asset classes. Natural candidates include:
+Additional model-family chapters belong here when they are reusable across asset
+classes. Natural candidates include:
 
 - LSMC and exercise-policy modeling;
 - finite-difference methods;

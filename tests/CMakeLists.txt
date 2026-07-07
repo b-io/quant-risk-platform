@@ -1,5 +1,6 @@
 add_executable(unit_tests
     unit/analytics/test_lsmc_american_put.cpp
+    unit/analytics/test_pnl_explain.cpp
     unit/analytics/test_regression.cpp
     unit/analytics/test_simulation.cpp
     unit/analytics/test_valuation_and_stress.cpp

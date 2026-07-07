@@ -275,6 +275,8 @@ TEST(PnlExplainServiceTest, PreservesValuationDiagnosticsAndComponentLines) {
     EXPECT_NEAR(result.cash_pnl, 0.0, 1e-10);
     EXPECT_NEAR(result.market_move_pnl, 100.0, 1e-10);
     EXPECT_NEAR(result.residual, 0.0, 1e-10);
+    EXPECT_NEAR(result.residual_pnl, 0.0, 1e-10);
+    EXPECT_TRUE(result.reconciliation_passed);
     EXPECT_FALSE(result.cashflow_extraction.extraction_supported);
     EXPECT_EQ(result.cashflow_extraction.support_status, qrp::domain::SupportStatus::Unsupported);
     EXPECT_EQ(result.diagnostics.at("cashflow_extraction_supported"), "false");
@@ -285,13 +287,18 @@ TEST(PnlExplainServiceTest, PreservesValuationDiagnosticsAndComponentLines) {
         components[component.component_id] = component;
     }
 
-    ASSERT_EQ(components.size(), 4);
+    ASSERT_EQ(components.size(), 8);
     EXPECT_EQ(components.at("carry").component_type, qrp::analytics::PnlExplainComponentType::Carry);
     EXPECT_EQ(components.at("cash").component_type, qrp::analytics::PnlExplainComponentType::Cash);
+    EXPECT_EQ(components.at("fx_translation").component_type, qrp::analytics::PnlExplainComponentType::FxTranslation);
     EXPECT_EQ(components.at("market_move").component_type, qrp::analytics::PnlExplainComponentType::MarketMove);
+    EXPECT_EQ(components.at("model_change").component_type, qrp::analytics::PnlExplainComponentType::ModelChange);
     EXPECT_EQ(components.at("residual").component_type, qrp::analytics::PnlExplainComponentType::Residual);
+    EXPECT_EQ(components.at("roll_down").component_type, qrp::analytics::PnlExplainComponentType::RollDown);
+    EXPECT_EQ(components.at("trade_activity").component_type, qrp::analytics::PnlExplainComponentType::TradeActivity);
     EXPECT_NEAR(components.at("market_move").amount, 100.0, 1e-10);
     EXPECT_EQ(components.at("cash").tags.at("extraction_supported"), "false");
+    EXPECT_EQ(components.at("residual").tags.at("reconciliation_passed"), "true");
 }
 
 TEST(ValuationServiceTest, RegistryPricingProfilesCoverDirectionalMultipliers) {

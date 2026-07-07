@@ -31,6 +31,7 @@ project(quant-risk-platform VERSION 0.1.0 LANGUAGES CXX)
 # Build options
 # -----------------------
 option(QRP_BUILD_CLI "Build the C++ CLI" ON)
+option(QRP_BUILD_BENCHMARKS "Build benchmark targets" OFF)
 option(QRP_BUILD_PYTHON "Build Python bindings" OFF)
 option(QRP_BUILD_SHARED "Build qrp_core as a shared library" OFF)
 option(QRP_ENABLE_COVERAGE "Enable GCC/Clang coverage instrumentation" OFF)
@@ -61,6 +62,7 @@ message(STATUS "Binary dir           : ${CMAKE_BINARY_DIR}")
 message(STATUS "C++ compiler         : ${CMAKE_CXX_COMPILER}")
 message(STATUS "C++ compiler version : ${CMAKE_CXX_COMPILER_VERSION}")
 message(STATUS "Build CLI            : ${QRP_BUILD_CLI}")
+message(STATUS "Build benchmarks     : ${QRP_BUILD_BENCHMARKS}")
 message(STATUS "Build coverage       : ${QRP_ENABLE_COVERAGE}")
 message(STATUS "Build Python         : ${QRP_BUILD_PYTHON}")
 message(STATUS "Build shared core    : ${QRP_BUILD_SHARED}")
@@ -121,8 +123,10 @@ add_library(qrp_core ${_QRP_CORE_LIBRARY_TYPE}
     cpp/src/analytics/lsmc/lsmc_engine.cpp
     cpp/src/analytics/monte_carlo_engine.cpp
     cpp/src/analytics/pnl_explain_service.cpp
+    cpp/src/analytics/pricing_context.cpp
     cpp/src/analytics/product_pricing_registry.cpp
     cpp/src/analytics/risk_service.cpp
+    cpp/src/analytics/simulation_primitives.cpp
     cpp/src/analytics/stress_engine.cpp
     cpp/src/analytics/valuation_service.cpp
     cpp/src/app/quant_risk_platform.cpp
@@ -383,12 +387,10 @@ endif()
 # -----------------------
 # Benchmarks (guarded)
 # -----------------------
-option(QRP_BUILD_BENCHMARKS "Build benchmark targets" OFF)
 if(QRP_BUILD_BENCHMARKS)
-  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/benchmarks/benchmark_portfolio.cpp")
-    add_executable(benchmark_portfolio benchmarks/benchmark_portfolio.cpp)
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/cpp/benchmarks/benchmark_portfolio.cpp")
+    add_executable(benchmark_portfolio cpp/benchmarks/benchmark_portfolio.cpp)
     target_link_libraries(benchmark_portfolio PRIVATE qrp_core)
-    qrp_apply_coverage(benchmark_portfolio)
     qrp_apply_project_warnings(benchmark_portfolio)
     qrp_apply_msvc_debug_symbols(benchmark_portfolio)
     qrp_copy_core_runtime(benchmark_portfolio)

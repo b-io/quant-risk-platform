@@ -19,6 +19,7 @@ void print_help() {
     fmt::print("  import-scenarios <json_path>\n");
     fmt::print("  run-valuation --portfolio <id> --snapshot <id>\n");
     fmt::print("  run-risk --portfolio <id> --snapshot <id>\n");
+    fmt::print("  run-pnl-explain --portfolio <id> --previous-snapshot <id> --snapshot <id>\n");
     fmt::print("  run-hvar --portfolio <id> --snapshot <id> --scenarios <id>\n");
     fmt::print("  report <run_id>\n");
     fmt::print("  compare <run_id_1> <run_id_2>\n");
@@ -78,6 +79,19 @@ int main(int argc, char** argv) {
                     snapshot = argv[++i];
             }
             std::string run_id = platform.run_risk(portfolio, snapshot);
+            fmt::print("Run ID: {}\n", run_id);
+            return 0;
+        } else if (cmd == "run-pnl-explain") {
+            std::string portfolio, previous_snapshot, snapshot;
+            for (int i = 2; i < argc; ++i) {
+                if (std::string(argv[i]) == "--portfolio" && i + 1 < argc)
+                    portfolio = argv[++i];
+                if (std::string(argv[i]) == "--previous-snapshot" && i + 1 < argc)
+                    previous_snapshot = argv[++i];
+                if (std::string(argv[i]) == "--snapshot" && i + 1 < argc)
+                    snapshot = argv[++i];
+            }
+            std::string run_id = platform.run_pnl_explain(portfolio, previous_snapshot, snapshot);
             fmt::print("Run ID: {}\n", run_id);
             return 0;
         } else if (cmd == "run-hvar") {

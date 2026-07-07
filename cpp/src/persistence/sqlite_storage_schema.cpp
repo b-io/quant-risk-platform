@@ -140,6 +140,57 @@ void SQLiteStorageBackend::initialize_schema() {
     )");
 
     execute_sql(R"(
+        CREATE TABLE IF NOT EXISTS pnl_explain_results (
+            run_id TEXT,
+            trade_id TEXT,
+            asset_class TEXT,
+            book TEXT,
+            currency TEXT,
+            product_type TEXT,
+            strategy TEXT,
+            prev_npv REAL,
+            curr_npv REAL,
+            total_pnl REAL,
+            carry_pnl REAL,
+            roll_down_pnl REAL,
+            market_move_pnl REAL,
+            cash_pnl REAL,
+            trade_activity_pnl REAL,
+            fx_translation_pnl REAL,
+            model_change_pnl REAL,
+            residual_pnl REAL,
+            explained_pnl REAL,
+            reconciliation_difference REAL,
+            reconciliation_passed INTEGER,
+            support_status TEXT,
+            model_name TEXT,
+            status_message TEXT,
+            PRIMARY KEY(run_id, trade_id),
+            FOREIGN KEY(run_id) REFERENCES analysis_runs(run_id)
+        );
+    )");
+
+    execute_sql(R"(
+        CREATE TABLE IF NOT EXISTS pnl_explain_components (
+            run_id TEXT,
+            trade_id TEXT,
+            component_sequence INTEGER,
+            component_id TEXT,
+            component_type TEXT,
+            label TEXT,
+            amount REAL,
+            factor_id TEXT,
+            risk_factor_group TEXT,
+            model_name TEXT,
+            support_status TEXT,
+            status_message TEXT,
+            tags_json TEXT,
+            PRIMARY KEY(run_id, trade_id, component_id),
+            FOREIGN KEY(run_id, trade_id) REFERENCES pnl_explain_results(run_id, trade_id)
+        );
+    )");
+
+    execute_sql(R"(
         CREATE TABLE IF NOT EXISTS factor_definitions (
             factor_id TEXT PRIMARY KEY,
             factor_type TEXT,

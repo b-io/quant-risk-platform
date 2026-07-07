@@ -28,9 +28,13 @@ Current limitations:
 
 - instruments are rebuilt inside multiple services,
 - risk is still mostly bump-and-revalue,
-- explain is deterministic and componentized, but realized cashflow extraction still needs product event sources,
+- explain is deterministic, componentized, persisted, and supports sequential factor revaluation,
+- realized cashflow extraction currently recognizes deposit maturities and still needs broader product event sources for
+  coupons, fixings, exercises, and settlements,
 - Monte Carlo is a one-step factor simulation rather than a general path framework,
-- there is no explicit historical VaR vs. parametric VaR split,
+- HVaR is implemented as historical scenario replay, while parametric and Monte Carlo VaR are not dedicated service
+  methods,
+- VaR and Expected Shortfall contribution analytics are not yet first-class service outputs,
 - there is no built portfolio cache.
 
 ## 3. Target service split
@@ -56,10 +60,14 @@ Current limitations:
 P&L explain reconciles the change in portfolio value between two dates into interpretable drivers:
 
 - **Carry / Roll-down**: Natural aging of the portfolio.
-- **Market Move**: Effect of shifts in curves, spreads, and spots.
+- **Market Move**: Effect of shifts in curves, spreads, spots, forwards, and volatilities, with sequential factor
+  revaluation when factor bindings are available.
 - **New Trades / Unwinds**: Impact of portfolio changes.
 - **Cash / Fixing**: Effect of realized cashflows.
 - **Residual**: Unexplained discrepancy.
+
+The current implementation persists explain runs and components in SQLite. Deposit maturity cash is extracted today;
+broader coupon, fixing, exercise, and settlement event sources remain outside current explain coverage.
 
 ### VaR and Stress
 
@@ -90,10 +98,11 @@ This design choice is fundamental to the project.
 - **Comparison:** Brute-force (rebuilding curves per scenario) is 10x-100x slower depending on the number of instruments
   and curve complexity.
 
-## 5. Immediate priorities
+## 5. Current service boundaries
 
-1. add a built-instrument / built-portfolio cache,
-2. separate factor definitions from scenario definitions,
-3. split Monte Carlo one-step simulation from path simulation,
-4. add explicit VaR engines by methodology,
-5. add product event-source integration for realized cashflow explain.
+1. Built-instrument and built-portfolio caching are not shared service capabilities.
+2. VaR and Expected Shortfall contribution analytics are not yet first-class outputs.
+3. Monte Carlo one-step simulation and path simulation are not separated into production service APIs.
+4. LSMC is not yet exposed as a reusable exercise-policy engine.
+5. Product event-source integration for realized cashflow explain is limited.
+6. Production controls, manifests, lineage reports, and benchmark governance remain hardening areas.

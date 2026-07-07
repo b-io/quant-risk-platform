@@ -153,6 +153,159 @@ TEST_F(AppWorkflowTest, RiskWorkflowsRejectMissingFactorConfiguration) {
         std::runtime_error);
 }
 
+TEST_F(AppWorkflowTest, RunsPnlExplainWorkflowWithImportedFactors) {
+    TemporaryJsonFile previous_market_file(R"json(
+        {
+          "valuation_date": "2026-03-24",
+          "quotes": [
+            {
+              "id": "AAPL",
+              "instrument_type": "EquitySpot",
+              "currency": "USD",
+              "tenor": "SPOT",
+              "value": 100.0
+            }
+          ]
+        }
+    )json");
+    TemporaryJsonFile current_market_file(R"json(
+        {
+          "valuation_date": "2026-03-25",
+          "quotes": [
+            {
+              "id": "AAPL",
+              "instrument_type": "EquitySpot",
+              "currency": "USD",
+              "tenor": "SPOT",
+              "value": 110.0
+            }
+          ]
+        }
+    )json");
+    TemporaryJsonFile portfolio_file(R"json(
+        {
+          "portfolio_id": "P_APP_PNL",
+          "trades": [
+            {
+              "id": "equity_aapl",
+              "asset_class": "equity",
+              "type": "equity_spot",
+              "currency": "USD",
+              "direction": "long",
+              "book": "BOOK:EQUITY",
+              "strategy": "DELTA",
+              "quantity": 10.0,
+              "details": {
+                "reference_price": 100.0,
+                "underlier": "AAPL"
+              }
+            }
+          ]
+        }
+    )json");
+    TemporaryJsonFile scenario_file(R"json(
+        {
+          "scenario_set_id": "pnl_factor_set",
+          "factors": [
+            {
+              "factor_id": "RF:EQ:AAPL:SPOT",
+              "factor_type": "EquitySpot",
+              "shock_measure": "Relative",
+              "currency": "USD",
+              "quote_ids": [
+                "AAPL"
+              ]
+            }
+          ],
+          "bindings": [
+            {
+              "factor_id": "RF:EQ:AAPL:SPOT",
+              "quote_id": "AAPL",
+              "shock_measure": "Relative"
+            }
+          ],
+          "scenarios": {}
+        }
+    )json");
+
+    app::QuantRiskPlatform platform(storage);
+    platform.initialize();
+    platform.import_market_snapshot(previous_market_file.string());
+    platform.import_market_snapshot(current_market_file.string());
+    platform.import_portfolio(portfolio_file.string());
+    platform.import_scenario_set(scenario_file.string());
+
+    const auto run_id = platform.run_pnl_explain("P_APP_PNL", "SNAP:2026-03-24", "SNAP:2026-03-25");
+
+    EXPECT_FALSE(run_id.empty());
+    const auto runs = storage->list_runs("P_APP_PNL");
+    EXPECT_NE(std::find(runs.begin(), runs.end(), run_id), runs.end());
+}
+
+TEST_F(AppWorkflowTest, RunsPnlExplainWorkflowWithoutImportedFactors) {
+    TemporaryJsonFile previous_market_file(R"json(
+        {
+          "valuation_date": "2026-03-24",
+          "quotes": [
+            {
+              "id": "AAPL",
+              "instrument_type": "EquitySpot",
+              "currency": "USD",
+              "tenor": "SPOT",
+              "value": 100.0
+            }
+          ]
+        }
+    )json");
+    TemporaryJsonFile current_market_file(R"json(
+        {
+          "valuation_date": "2026-03-25",
+          "quotes": [
+            {
+              "id": "AAPL",
+              "instrument_type": "EquitySpot",
+              "currency": "USD",
+              "tenor": "SPOT",
+              "value": 105.0
+            }
+          ]
+        }
+    )json");
+    TemporaryJsonFile portfolio_file(R"json(
+        {
+          "portfolio_id": "P_APP_PNL_NO_FACTORS",
+          "trades": [
+            {
+              "id": "equity_aapl",
+              "asset_class": "equity",
+              "type": "equity_spot",
+              "currency": "USD",
+              "direction": "long",
+              "book": "BOOK:EQUITY",
+              "strategy": "DELTA",
+              "quantity": 10.0,
+              "details": {
+                "reference_price": 100.0,
+                "underlier": "AAPL"
+              }
+            }
+          ]
+        }
+    )json");
+
+    app::QuantRiskPlatform platform(storage);
+    platform.initialize();
+    platform.import_market_snapshot(previous_market_file.string());
+    platform.import_market_snapshot(current_market_file.string());
+    platform.import_portfolio(portfolio_file.string());
+
+    const auto run_id = platform.run_pnl_explain("P_APP_PNL_NO_FACTORS", "SNAP:2026-03-24", "SNAP:2026-03-25");
+
+    EXPECT_FALSE(run_id.empty());
+    const auto runs = storage->list_runs("P_APP_PNL_NO_FACTORS");
+    EXPECT_NE(std::find(runs.begin(), runs.end(), run_id), runs.end());
+}
+
 TEST_F(AppWorkflowTest, ImportWorkflowsRejectMissingInputFiles) {
     app::QuantRiskPlatform platform(storage);
     platform.initialize();
