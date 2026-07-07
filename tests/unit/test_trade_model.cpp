@@ -358,8 +358,19 @@ TEST(TradeModelTest, ParsesAndSerializesFactorEnums) {
         EXPECT_EQ(domain::to_string(factor_type), label);
     }
 
-    EXPECT_EQ(qrp::domain::parse_shock_measure("BasisPoints"), qrp::domain::ShockMeasure::BasisPoints);
-    EXPECT_EQ(qrp::domain::to_string(qrp::domain::ShockMeasure::VolPoints), "VolPoints");
+    const std::vector<std::pair<domain::ShockMeasure, std::string>> shock_measures = {
+        {domain::ShockMeasure::Absolute, "Absolute"},
+        {domain::ShockMeasure::BasisPoints, "BasisPoints"},
+        {domain::ShockMeasure::LogReturn, "LogReturn"},
+        {domain::ShockMeasure::Relative, "Relative"},
+        {domain::ShockMeasure::VolPoints, "VolPoints"}};
+    for (const auto& [shock_measure, label] : shock_measures) {
+        EXPECT_EQ(domain::parse_shock_measure(label), shock_measure);
+        EXPECT_EQ(domain::to_string(shock_measure), label);
+    }
+
+    EXPECT_EQ(domain::to_string(static_cast<domain::FactorType>(-1)), "Custom");
+    EXPECT_EQ(domain::to_string(static_cast<domain::ShockMeasure>(-1)), "Absolute");
 
     EXPECT_THROW(qrp::domain::parse_factor_type("UnsupportedFactor"), std::invalid_argument);
     EXPECT_THROW(qrp::domain::parse_shock_measure("UnsupportedShock"), std::invalid_argument);
@@ -393,10 +404,14 @@ TEST(TradeModelTest, ValidatesCanonicalFactorIds) {
     EXPECT_TRUE(qrp::domain::is_canonical_factor_id("RF:EQVOL:SPX:3M:ATM"));
     EXPECT_TRUE(qrp::domain::is_canonical_factor_id("RF:FX:EURUSD:SPOT"));
     EXPECT_TRUE(qrp::domain::is_canonical_factor_id("RF:FX:EURUSD:FWDPTS_6M"));
+    EXPECT_TRUE(qrp::domain::is_canonical_factor_id("RF:FX:EURUSD:FWDPTS:6M"));
     EXPECT_TRUE(qrp::domain::is_canonical_factor_id("RF:FXVOL:EURUSD:1M:25D_RR"));
     EXPECT_TRUE(qrp::domain::is_canonical_factor_id("RF:RATES:USD:OIS:5Y"));
     EXPECT_TRUE(qrp::domain::is_canonical_factor_id("RF:RATESVOL:USD:SWAPTION:1Y:5Y"));
 
+    EXPECT_FALSE(qrp::domain::is_canonical_factor_id(""));
+    EXPECT_FALSE(qrp::domain::is_canonical_factor_id("RF"));
+    EXPECT_FALSE(qrp::domain::is_canonical_factor_id("RF::USD"));
     EXPECT_FALSE(qrp::domain::is_canonical_factor_id("RF:COM:WTI:PRICE:3M"));
     EXPECT_FALSE(qrp::domain::is_canonical_factor_id("RF:CREDIT:CDX_IG:RECOVERY"));
     EXPECT_FALSE(qrp::domain::is_canonical_factor_id("RF:EQ:AAPL:DVD:1Y"));
@@ -796,7 +811,14 @@ TEST(TradeModelTest, CoversPortfolioDetailHelpersAndTaxonomyFallbacks) {
     EXPECT_EQ(domain::to_string(domain::Currency::EUR), "EUR");
     EXPECT_EQ(domain::to_string(domain::Currency::GBP), "GBP");
     EXPECT_EQ(domain::to_string(domain::Currency::JPY), "JPY");
+    EXPECT_EQ(domain::to_string(domain::Currency::USD), "USD");
     EXPECT_EQ(domain::to_string(static_cast<domain::Currency>(-1)), "UNKNOWN");
+    EXPECT_EQ(domain::from_string("CHF"), domain::Currency::CHF);
+    EXPECT_EQ(domain::from_string("EUR"), domain::Currency::EUR);
+    EXPECT_EQ(domain::from_string("GBP"), domain::Currency::GBP);
+    EXPECT_EQ(domain::from_string("JPY"), domain::Currency::JPY);
+    EXPECT_EQ(domain::from_string("USD"), domain::Currency::USD);
+    EXPECT_EQ(domain::from_string("AUD"), domain::Currency::UNKNOWN);
 
     EXPECT_EQ(domain::to_string(static_cast<domain::AssetClass>(-1)), "unknown");
     EXPECT_EQ(domain::to_string(domain::ProductType::CallableBond), "callable_bond");
