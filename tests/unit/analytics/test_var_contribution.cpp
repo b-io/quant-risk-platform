@@ -67,7 +67,7 @@ TEST(VarContributionServiceTest, CalculatesHistoricalContributionsAcrossReportin
     EXPECT_DOUBLE_EQ(report.var_value, 100.0);
     EXPECT_DOUBLE_EQ(report.expected_shortfall, 100.0);
 
-    const auto& rates_trade = find_contribution(report, "trade", "T_RATES");
+    const auto rates_trade = find_contribution(report, "trade", "T_RATES");
     EXPECT_DOUBLE_EQ(rates_trade.var_contribution, 70.0);
     EXPECT_DOUBLE_EQ(rates_trade.expected_shortfall_contribution, 70.0);
     EXPECT_DOUBLE_EQ(rates_trade.portfolio_var_share, 0.7);
@@ -75,15 +75,15 @@ TEST(VarContributionServiceTest, CalculatesHistoricalContributionsAcrossReportin
     EXPECT_DOUBLE_EQ(rates_trade.incremental_var, 70.0);
     EXPECT_EQ(rates_trade.sign_convention, "positive_loss");
 
-    const auto& equity_book = find_contribution(report, "book", "BOOK:EQUITY");
+    const auto equity_book = find_contribution(report, "book", "BOOK:EQUITY");
     EXPECT_DOUBLE_EQ(equity_book.var_contribution, 30.0);
     EXPECT_DOUBLE_EQ(equity_book.incremental_expected_shortfall, 30.0);
 
-    const auto& rates_factor = find_contribution(report, "risk_factor", "RF:RATES:USD:OIS:2Y");
+    const auto rates_factor = find_contribution(report, "risk_factor", "RF:RATES:USD:OIS:2Y");
     EXPECT_NEAR(rates_factor.var_contribution, 100.0 / 3.0, 1e-10);
     EXPECT_NEAR(rates_factor.expected_shortfall_contribution, 100.0 / 3.0, 1e-10);
 
-    const auto& equity_factor = find_contribution(report, "risk_factor", "RF:EQ:AAPL:SPOT");
+    const auto equity_factor = find_contribution(report, "risk_factor", "RF:EQ:AAPL:SPOT");
     EXPECT_NEAR(equity_factor.var_contribution, 200.0 / 3.0, 1e-10);
     EXPECT_NEAR(equity_factor.portfolio_var_share, 2.0 / 3.0, 1e-10);
 
