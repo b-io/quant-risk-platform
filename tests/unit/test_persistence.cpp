@@ -400,6 +400,38 @@ TEST_F(PersistenceTest, ScenarioAndVarResultsPersistence) {
     storage->store_scenario_result(run_id, "RATES_UP", 350.0);
     storage->store_var_result(run_id, "HISTORICAL", 0.95, 1250.0, 1250.0, 2);
 
+    persistence::StorageBackend::VarScenarioPnlRecord pnl_path;
+    pnl_path.run_id = run_id;
+    pnl_path.scenario_name = "RISK_OFF";
+    pnl_path.trade_id = "T_RATES";
+    pnl_path.portfolio_pnl = -1250.0;
+    pnl_path.trade_pnl = -1000.0;
+    storage->store_var_scenario_pnl(pnl_path);
+
+    persistence::StorageBackend::VarContributionRecord contribution;
+    contribution.run_id = run_id;
+    contribution.method = "HISTORICAL";
+    contribution.confidence_level = 0.95;
+    contribution.aggregation_type = "trade";
+    contribution.aggregation_key = "T_RATES";
+    contribution.var_contribution = 1000.0;
+    contribution.expected_shortfall_contribution = 1000.0;
+    contribution.portfolio_var_share = 0.8;
+    contribution.portfolio_expected_shortfall_share = 0.8;
+    contribution.standalone_var = 1000.0;
+    contribution.standalone_expected_shortfall = 1000.0;
+    contribution.incremental_var = 900.0;
+    contribution.incremental_expected_shortfall = 900.0;
+    contribution.marginal_var = 900.0;
+    contribution.marginal_expected_shortfall = 900.0;
+    contribution.scenario_count = 2;
+    contribution.tail_scenario_count = 1;
+    contribution.var_scenario_name = "RISK_OFF";
+    contribution.sign_convention = "positive_loss";
+    contribution.aggregation_rule = "trade scenario PnL summed by trade";
+    contribution.calculation_method = "historical_component_var_es";
+    storage->store_var_contribution(contribution);
+
     EXPECT_EQ(QueryDouble(db_path, "SELECT count(*) FROM scenario_results WHERE run_id = 'RUN_HVAR_1';"), 2.0);
     EXPECT_NEAR(QueryDouble(db_path, "SELECT portfolio_pnl FROM scenario_results WHERE scenario_name = 'RISK_OFF';"),
                 -1250.0,
@@ -408,6 +440,20 @@ TEST_F(PersistenceTest, ScenarioAndVarResultsPersistence) {
     EXPECT_NEAR(QueryDouble(db_path, "SELECT expected_shortfall FROM var_results WHERE run_id = 'RUN_HVAR_1';"),
                 1250.0,
                 1e-10);
+    EXPECT_NEAR(QueryDouble(db_path,
+                            "SELECT trade_pnl FROM var_scenario_pnls WHERE run_id = 'RUN_HVAR_1' "
+                            "AND scenario_name = 'RISK_OFF' AND trade_id = 'T_RATES';"),
+                -1000.0,
+                1e-10);
+    EXPECT_NEAR(QueryDouble(db_path,
+                            "SELECT portfolio_var_share FROM var_contributions WHERE run_id = 'RUN_HVAR_1' "
+                            "AND aggregation_type = 'trade' AND aggregation_key = 'T_RATES';"),
+                0.8,
+                1e-10);
+    EXPECT_EQ(QueryString(db_path,
+                          "SELECT sign_convention FROM var_contributions WHERE run_id = 'RUN_HVAR_1' "
+                          "AND aggregation_type = 'trade' AND aggregation_key = 'T_RATES';"),
+              "positive_loss");
 }
 
 TEST_F(PersistenceTest, FactorsHistoryBindingsAndScenarioSetsRoundTrip) {

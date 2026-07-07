@@ -185,6 +185,16 @@ public:
                           int scenario_count) override;
 
     /**
+     * @brief Stores one scenario/trade PnL row used by VaR contribution analytics.
+     */
+    void store_var_scenario_pnl(const VarScenarioPnlRecord& record) override;
+
+    /**
+     * @brief Stores one VaR/ES contribution row.
+     */
+    void store_var_contribution(const VarContributionRecord& record) override;
+
+    /**
      * @brief Stores a single risk measure result (e.g., PV01, Delta).
      * Maps the result to a specific risk factor (or 'ALL' for aggregate risk).
      */

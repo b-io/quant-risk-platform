@@ -346,14 +346,24 @@ Validation standard:
 Current implementation checkpoint:
 
 - Historical VaR is available as an application workflow over stored scenario
-  sets, persisted aggregate VaR/ES metrics, and run reports.
+  sets, persisted aggregate VaR/ES metrics, path-level trade PnL rows, and run
+  reports.
 - Monte Carlo simulation results include aggregate VaR and Expected Shortfall
   metrics for one-step factor simulations.
-- Trade, book, strategy, currency, asset-class, and risk-factor contribution
-  analytics are not yet implemented as first-class result models.
-- Phase 9 is therefore the active next risk milestone: component, marginal, and
-  incremental VaR/ES need dedicated calculations, persistence, diagnostics, and
-  reporting.
+- Historical VaR/ES contribution analytics are first-class C++ and Python
+  service outputs for trade, book, strategy, currency, asset-class, and
+  risk-factor aggregation.
+- Component VaR/ES uses the positive-loss convention. Component VaR is read from
+  the portfolio VaR scenario; component ES is averaged over the portfolio tail.
+- Standalone, incremental, and marginal rows are calculated per aggregation
+  group. Marginal rows currently use the remove-group approximation.
+- SQLite persists `var_scenario_pnls` and `var_contributions`, including
+  sign-convention, confidence-level, tail-count, aggregation-rule,
+  calculation-method, concentration-share, and residual metadata.
+- Top-contributor helpers and `python/examples/demo_platform.py` demonstrate
+  contribution reporting.
+- Monte Carlo contribution decomposition remains aggregate-only; dedicated
+  Monte Carlo path-level contribution persistence is still an extension area.
 
 ## Phase 10: LSMC Integration
 

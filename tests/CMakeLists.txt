@@ -4,6 +4,7 @@ add_executable(unit_tests
     unit/analytics/test_regression.cpp
     unit/analytics/test_simulation.cpp
     unit/analytics/test_valuation_and_stress.cpp
+    unit/analytics/test_var_contribution.cpp
     unit/optimization/test_optimization_engine.cpp
     unit/test_app_workflows.cpp
     unit/test_commodity_products.cpp

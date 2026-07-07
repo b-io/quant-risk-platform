@@ -65,12 +65,13 @@ $$
 The repository currently represents and prices product families across rates,
 FX, credit, commodities, and equities. The canonical trade model, market-data
 foundation, pricing registry, valuation workflows, risk workflows, stress/HVaR,
-and PnL explain all share the same multi-asset coverage.
+historical VaR/Expected Shortfall contribution analytics, and PnL explain all
+share the same multi-asset coverage.
 
 Known boundaries are:
 
-- VaR and Expected Shortfall contribution analytics are not yet first-class
-  outputs;
+- Monte Carlo and parametric VaR contribution decomposition are not yet
+  first-class outputs;
 - reusable LSMC exercise-policy integration is not yet wired across all
   early-exercise and physical-flexibility products;
 - production controls and validation reports remain hardening areas.

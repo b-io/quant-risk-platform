@@ -2,6 +2,7 @@
 
 #include <qrp/analytics/pnl_explain_service.hpp>
 #include <qrp/analytics/pricing_context.hpp>
+#include <qrp/analytics/var_contribution_service.hpp>
 #include <qrp/app/quant_risk_platform.hpp>
 #include <qrp/domain/factors.hpp>
 #include <qrp/market/market_snapshot.hpp>
@@ -105,6 +106,57 @@ make_pnl_explain_component_record(const std::string& run_id,
     record.support_status = domain::to_string(component.support_status);
     record.status_message = component.status_message;
     record.tags_json = json(component.tags).dump();
+    return record;
+}
+
+std::map<std::string, double> npv_by_trade(const std::vector<analytics::ValuationResult>& results) {
+    std::map<std::string, double> values;
+    for (const auto& result : results) {
+        values[result.trade_id] = result.npv;
+    }
+    return values;
+}
+
+persistence::StorageBackend::VarScenarioPnlRecord
+make_var_scenario_pnl_record(const std::string& run_id,
+                             const analytics::HistoricalScenarioPnl& scenario,
+                             const std::string& trade_id,
+                             double trade_pnl) {
+    persistence::StorageBackend::VarScenarioPnlRecord record;
+    record.run_id = run_id;
+    record.scenario_name = scenario.scenario_name;
+    record.trade_id = trade_id;
+    record.portfolio_pnl = scenario.portfolio_pnl;
+    record.trade_pnl = trade_pnl;
+    return record;
+}
+
+persistence::StorageBackend::VarContributionRecord
+make_var_contribution_record(const std::string& run_id,
+                             const analytics::VarContributionReport& report,
+                             const analytics::VarContribution& contribution) {
+    persistence::StorageBackend::VarContributionRecord record;
+    record.run_id = run_id;
+    record.method = report.method;
+    record.confidence_level = contribution.confidence_level;
+    record.aggregation_type = contribution.aggregation_type;
+    record.aggregation_key = contribution.aggregation_key;
+    record.var_contribution = contribution.var_contribution;
+    record.expected_shortfall_contribution = contribution.expected_shortfall_contribution;
+    record.portfolio_var_share = contribution.portfolio_var_share;
+    record.portfolio_expected_shortfall_share = contribution.portfolio_expected_shortfall_share;
+    record.standalone_var = contribution.standalone_var;
+    record.standalone_expected_shortfall = contribution.standalone_expected_shortfall;
+    record.incremental_var = contribution.incremental_var;
+    record.incremental_expected_shortfall = contribution.incremental_expected_shortfall;
+    record.marginal_var = contribution.marginal_var;
+    record.marginal_expected_shortfall = contribution.marginal_expected_shortfall;
+    record.scenario_count = contribution.scenario_count;
+    record.tail_scenario_count = contribution.tail_scenario_count;
+    record.var_scenario_name = contribution.var_scenario_name;
+    record.sign_convention = contribution.sign_convention;
+    record.aggregation_rule = contribution.aggregation_rule;
+    record.calculation_method = contribution.calculation_method;
     return record;
 }
 
@@ -408,16 +460,17 @@ std::string QuantRiskPlatform::run_historical_var(const std::string& portfolio_i
     portfolio.portfolio_id = portfolio_id;
     portfolio.trades = trades;
 
-    std::vector<double> pnl_distribution;
-    std::vector<std::pair<std::string, double>> scenario_pnls;
+    std::vector<analytics::HistoricalScenarioPnl> scenario_pnls;
 
     // Initial NPV
     market::MarketSnapshot market(market_dto);
     analytics::PricingContext context(market.built_state());
     auto base_results = analytics::ValuationService::price_portfolio(portfolio, context);
-    double base_npv = 0;
-    for (const auto& r : base_results)
+    const auto base_trade_npvs = npv_by_trade(base_results);
+    double base_npv = 0.0;
+    for (const auto& r : base_results) {
         base_npv += r.npv;
+    }
 
     for (const auto& [sc_name, factor_shocks] : scenarios) {
         spdlog::debug("Applying scenario: {} with {} shocks", sc_name, factor_shocks.size());
@@ -430,47 +483,54 @@ std::string QuantRiskPlatform::run_historical_var(const std::string& portfolio_i
         analytics::PricingContext shocked_context(shocked_state);
         auto shocked_results = analytics::ValuationService::price_portfolio(portfolio, shocked_context);
 
-        double shocked_npv = 0;
-        for (const auto& r : shocked_results)
-            shocked_npv += r.npv;
+        analytics::HistoricalScenarioPnl scenario_pnl;
+        scenario_pnl.scenario_name = sc_name;
+        scenario_pnl.factor_shocks = factor_shocks;
 
-        double scenario_pnl = shocked_npv - base_npv;
-        pnl_distribution.push_back(scenario_pnl);
-        scenario_pnls.push_back({sc_name, scenario_pnl});
+        double shocked_npv = 0.0;
+        for (const auto& r : shocked_results) {
+            shocked_npv += r.npv;
+            const auto base_it = base_trade_npvs.find(r.trade_id);
+            const double base_trade_npv = base_it == base_trade_npvs.end() ? 0.0 : base_it->second;
+            scenario_pnl.trade_pnls[r.trade_id] = r.npv - base_trade_npv;
+        }
+
+        scenario_pnl.portfolio_pnl = shocked_npv - base_npv;
+        scenario_pnls.push_back(std::move(scenario_pnl));
     }
 
-    if (pnl_distribution.empty())
+    if (scenario_pnls.empty())
         throw std::runtime_error("No scenarios to run for VaR");
 
-    spdlog::debug("PnL distribution size: {}", pnl_distribution.size());
-    for (auto p : pnl_distribution)
-        spdlog::trace("PnL: {}", p);
-
-    std::sort(pnl_distribution.begin(), pnl_distribution.end());
-
-    // Simple 95% VaR (5th percentile of PnL)
-    const auto idx_95 = std::min<std::size_t>((pnl_distribution.size() * 5U) / 100U, pnl_distribution.size() - 1U);
-    double var_95 = -pnl_distribution[idx_95]; // VaR is usually reported as a positive loss
-    double es_sum = 0.0;
-    for (size_t i = 0; i <= idx_95; ++i) {
-        es_sum += pnl_distribution[i];
+    auto contribution_report =
+        analytics::VarContributionService::calculate_historical_contributions(portfolio, scenario_pnls, 0.95);
+    spdlog::debug("PnL distribution size: {}", contribution_report.scenario_count);
+    for (const auto& scenario_pnl : scenario_pnls) {
+        spdlog::trace("Scenario {} PnL: {}", scenario_pnl.scenario_name, scenario_pnl.portfolio_pnl);
     }
-    double expected_shortfall_95 = -(es_sum / static_cast<double>(idx_95 + 1));
 
     std::string run_id = fmt::format("RUN:HVAR:{}", std::chrono::system_clock::now().time_since_epoch().count());
     storage_->store_analysis_run(run_id, "HISTORICAL_VAR", portfolio_id, snapshot_id);
 
-    for (const auto& [scenario_name, scenario_pnl] : scenario_pnls) {
-        storage_->store_scenario_result(run_id, scenario_name, scenario_pnl);
+    for (const auto& scenario_pnl : contribution_report.scenario_pnls) {
+        storage_->store_scenario_result(run_id, scenario_pnl.scenario_name, scenario_pnl.portfolio_pnl);
+        for (const auto& [trade_id, trade_pnl] : scenario_pnl.trade_pnls) {
+            storage_->store_var_scenario_pnl(make_var_scenario_pnl_record(run_id, scenario_pnl, trade_id, trade_pnl));
+        }
     }
     storage_->store_var_result(run_id,
-                               "HISTORICAL",
-                               0.95,
-                               var_95,
-                               expected_shortfall_95,
-                               static_cast<int>(pnl_distribution.size()));
+                               contribution_report.method,
+                               contribution_report.confidence_level,
+                               contribution_report.var_value,
+                               contribution_report.expected_shortfall,
+                               contribution_report.scenario_count);
+    for (const auto& contribution : contribution_report.contributions) {
+        storage_->store_var_contribution(make_var_contribution_record(run_id, contribution_report, contribution));
+    }
 
-    spdlog::info("Historical VaR 95% run completed. VaR: {}, ES: {}", var_95, expected_shortfall_95);
+    spdlog::info("Historical VaR 95% run completed. VaR: {}, ES: {}",
+                 contribution_report.var_value,
+                 contribution_report.expected_shortfall);
     return run_id;
 }
 

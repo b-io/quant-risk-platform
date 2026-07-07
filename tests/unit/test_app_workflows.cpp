@@ -14,11 +14,36 @@
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <sqlite3.h>
 #include <stdexcept>
 #include <string>
 
 namespace qrp::testing {
 namespace {
+
+double QueryDouble(const std::string& db_path, const std::string& sql) {
+    sqlite3* db = nullptr;
+    if (sqlite3_open(db_path.c_str(), &db) != SQLITE_OK) {
+        throw std::runtime_error("Failed to open test database");
+    }
+
+    sqlite3_stmt* stmt = nullptr;
+    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+        sqlite3_close(db);
+        throw std::runtime_error("Failed to prepare test query");
+    }
+
+    if (sqlite3_step(stmt) != SQLITE_ROW) {
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        throw std::runtime_error("Test query returned no rows");
+    }
+
+    const double value = sqlite3_column_double(stmt, 0);
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    return value;
+}
 
 class AppWorkflowTest : public ::testing::Test {
 protected:
@@ -84,6 +109,12 @@ TEST_F(AppWorkflowTest, RunsDemoImportAnalyticsAndReports) {
 
     const auto var_run = platform.run_historical_var("demo_portfolio", "SNAP:2026-03-24", "demo_factor_scenarios");
     EXPECT_FALSE(var_run.empty());
+    EXPECT_GT(QueryDouble(db_path, "SELECT count(*) FROM var_scenario_pnls WHERE run_id = '" + var_run + "';"), 0.0);
+    EXPECT_GT(QueryDouble(db_path, "SELECT count(*) FROM var_contributions WHERE run_id = '" + var_run + "';"), 0.0);
+    EXPECT_GT(QueryDouble(db_path,
+                          "SELECT count(*) FROM var_contributions WHERE run_id = '" + var_run +
+                              "' AND aggregation_type = 'risk_factor';"),
+              0.0);
 
     EXPECT_NO_THROW(platform.compare_runs(valuation_run, valuation_run));
     EXPECT_NO_THROW(platform.get_run_report(valuation_run));

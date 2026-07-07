@@ -557,7 +557,7 @@ def run_stress(portfolio, market, factors, bindings, scenarios):
 
 
 def run_risk(portfolio, market, factors, bindings):
-    section("5. Risk Sensitivities")
+    section("6. Risk Sensitivities")
     risk_results = qrp.compute_risk(portfolio, market, factors, bindings)
     if not risk_results:
         raise AssertionError("Expected risk results")
@@ -573,6 +573,54 @@ def run_risk(portfolio, market, factors, bindings):
             if abs(value) > 1e-8:
                 print(f"  {node:<24} {value:>12,.2f}")
     return risk_results
+
+
+def calculate_var_contribution_report(portfolio, stress_results, scenarios):
+    scenarios_by_name = {scenario.name: scenario for scenario in scenarios}
+    scenario_pnls = []
+    for result in stress_results:
+        path = qrp.HistoricalScenarioPnl()
+        path.scenario_name = result.scenario_name
+        path.portfolio_pnl = result.total_pnl
+        path.trade_pnls = dict(result.trade_pnls)
+        path.factor_shocks = dict(scenarios_by_name[result.scenario_name].factor_shocks)
+        scenario_pnls.append(path)
+    return qrp.calculate_historical_var_contributions(portfolio, scenario_pnls, 0.95)
+
+
+def run_var_contributions(portfolio, stress_results, scenarios):
+    section("5. Historical VaR Contributions")
+    report = calculate_var_contribution_report(portfolio, stress_results, scenarios)
+    if not report.contributions:
+        raise AssertionError("Expected VaR contribution rows")
+
+    print(
+        f"VaR95={report.var_value:,.2f} ES95={report.expected_shortfall:,.2f} "
+        f"scenarios={report.scenario_count} VaR scenario={report.var_scenario_name}"
+    )
+
+    metadata_by_trade = portfolio_trade_metadata_map(portfolio)
+    print(f"\n{position_header('VaR', 'ES', 'VaR Share')}")
+    print("-" * POSITION_RULE_WIDTH)
+    for contribution in qrp.top_var_contributors(report, "trade", 8):
+        metadata = trade_metadata(metadata_by_trade, contribution.aggregation_key)
+        print(
+            f"{position_prefix(metadata)} {contribution.var_contribution:>12,.2f} "
+            f"{contribution.expected_shortfall_contribution:>12,.2f} "
+            f"{100.0 * contribution.portfolio_var_share:>11,.2f}%"
+        )
+
+    print("\nTop risk-factor contributors")
+    for contribution in qrp.top_var_contributors(report, "risk_factor", 8):
+        print(
+            f"  {contribution.aggregation_key:<42} "
+            f"VaR={contribution.var_contribution:>12,.2f} "
+            f"ES={contribution.expected_shortfall_contribution:>12,.2f}"
+        )
+
+    trade_residual = report.var_component_residuals.get("trade", 0.0)
+    print(f"\nTrade component residual: {trade_residual:,.8f}")
+    return report
 
 
 def compute_pnl_explain(portfolio, market_path):
@@ -598,7 +646,7 @@ def compute_pnl_explain(portfolio, market_path):
 
 
 def run_pnl_explain(portfolio, market_path):
-    section("6. P&L Explain")
+    section("7. P&L Explain")
     pnl_results = compute_pnl_explain(portfolio, market_path)
     metadata_by_trade = portfolio_trade_metadata_map(portfolio)
     sort_map = portfolio_trade_sort_map(portfolio)
@@ -677,7 +725,7 @@ def print_traces(traces, mode):
 
 
 def run_monte_carlo(portfolio, market, factors, bindings):
-    section("7. Monte Carlo")
+    section("8. Monte Carlo")
     results = compute_monte_carlo(portfolio, market, factors, bindings, MONTE_CARLO_CASES)
     for (label, mode, horizon_days), (_, result, mean_pnl) in zip(MONTE_CARLO_CASES, results):
         print(
@@ -985,7 +1033,7 @@ def validate_product_family_outputs(product_families, valuation_results, stress_
 
 
 def run_optional_cvxpy_worker_check():
-    section("8. Optional CVXPY Worker Check")
+    section("9. Optional CVXPY Worker Check")
     worker_path = project_root / "python" / "qrp" / "optimization" / "cvxpy_worker.py"
     spec = importlib.util.spec_from_file_location("qrp_cvxpy_worker", worker_path)
     if spec is None or spec.loader is None:
@@ -1066,6 +1114,7 @@ def run_demo(dashboard=False):
     valuation_results, total_npv = print_portfolio_valuation(portfolio, market)
     run_factor_resolution_checks(market, factors, bindings, scenarios)
     stress_results = run_stress(portfolio, market, factors, bindings, scenarios)
+    run_var_contributions(portfolio, stress_results, scenarios)
     risk_results = run_risk(portfolio, market, factors, bindings)
     pnl_results = run_pnl_explain(portfolio, market_path)
     mc_results = run_monte_carlo(portfolio, market, factors, bindings)
