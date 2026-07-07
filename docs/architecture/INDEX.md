@@ -7,7 +7,7 @@ bindings, and implementation rationale.
 ## Scope
 
 Architecture chapters should explain how the platform is shaped. They should
-not duplicate asset-class formulas, glossary entries, or temporary roadmap
+not duplicate asset-class formulas, glossary entries, or temporary delivery
 notes.
 
 This section is the home for:
@@ -104,7 +104,7 @@ $f$. This is the central link between architecture, market data, and controls.
 - `docs/models/INDEX.md` defines reusable model families.
 - `docs/risk/INDEX.md` defines factor mapping, scenario semantics, and output
   controls.
-- `docs/implementation/INDEX.md` defines the implementation roadmap.
+- `docs/implementation/INDEX.md` defines the implementation plan and checkpoints.
 
 ## Maintenance Rule
 

@@ -38,9 +38,9 @@ projection curves are platform-wide dependencies.
    Time-dependent volatility, mean reversion, calibration, and scenario
    generation.
 
-## Product Coverage Sequence
+## Product Coverage
 
-Rates product support follows this implementation order:
+Rates product coverage is organized around these product families:
 
 1. cash and deposits;
 2. FRAs;
@@ -51,7 +51,20 @@ Rates product support follows this implementation order:
 7. floating-rate notes;
 8. caps and floors;
 9. European swaptions;
-10. Bermudan swaptions using LSMC.
+10. Bermudan swaptions, with reusable LSMC identified as the broader exercise-engine integration.
+
+Current platform coverage:
+
+- The canonical portfolio DTO supports deposits, FRAs, interest-rate futures,
+  fixed-float swaps, OIS swaps, fixed-rate bonds, floating-rate notes, caps and
+  floors, European swaptions, and Bermudan swaptions.
+- The pricing registry wires these products to deterministic valuation engines
+  using bootstrapped rates curves, quote handles, and volatility inputs where
+  applicable.
+- Caps/floors and European swaptions use Black-style volatility inputs.
+- Bermudan swaptions are represented and priced with the current early-exercise
+  approximation. Broader reusable LSMC integration remains a model-integration
+  boundary rather than a trade-model gap.
 
 ## Shared References
 

@@ -5,6 +5,8 @@ param(
     [double]$CppCoverageMinLine = 95.0,
     [double]$PythonCoverageMinLine = 95.0,
     [switch]$Coverage,
+    [switch]$Performance,
+    [int]$PerformanceIterations = 100,
     [switch]$SkipEnv,
     [switch]$SkipBuild,
     [switch]$SkipCppCoverage,
@@ -33,6 +35,11 @@ function Resolve-ProjectPath($Path) {
 }
 
 $ResolvedBuildDir = Resolve-ProjectPath $BuildDir
+
+if ($PerformanceIterations -le 0) {
+    Write-Host "PerformanceIterations must be positive." -ForegroundColor Red
+    exit 1
+}
 
 if (-not $SkipEnv) {
     $envScript = Join-Path $projectRoot "scripts\env.ps1"
@@ -103,13 +110,11 @@ function Resolve-VsCoverageTool {
 function Resolve-MsvcCoverageGTestArguments {
     $filter = $env:QRP_MSVC_COVERAGE_GTEST_FILTER
     if ([string]::IsNullOrWhiteSpace($filter)) {
-        # AppWorkflowTest is a full application smoke fixture. It passes normally, but MSVC native
-        # coverage currently terminates inside the instrumented valuation path with 0x80000003.
-        $filter = "-AppWorkflowTest.*"
+        return @("--gtest_color=no")
     }
 
     if ($filter -eq "*") {
-        return @()
+        return @("--gtest_color=no")
     }
 
     return @("--gtest_filter=$filter", "--gtest_color=no")
@@ -122,6 +127,21 @@ function Invoke-NativeProcess($FilePath, [string[]]$Arguments) {
         Write-Host $line
     }
     return $exitCode
+}
+
+function Enable-CMakeCppCoverageTarget {
+    Write-Host "Configuring CMake coverage target in $ResolvedBuildDir..." -ForegroundColor Cyan
+    cmake -S $projectRoot -B $ResolvedBuildDir -DQRP_ENABLE_COVERAGE=ON -DQRP_COVERAGE_MIN_LINE=$CppCoverageMinLine
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "CMake coverage configuration failed." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+
+    $targetHelp = & cmake --build $ResolvedBuildDir --target help --config $Config 2>&1
+    if (-not ($targetHelp | Select-String -Pattern "(^|\s)coverage(:|\s|$)" -Quiet)) {
+        Write-Host "CMake coverage target is not available for this build. Use MSVC coverage on Windows or a GCC/Clang coverage build." -ForegroundColor Red
+        exit 1
+    }
 }
 
 function Invoke-MsvcCppCoverage($CoverageTool, $Python, $UnitExe) {
@@ -262,11 +282,23 @@ if ($SkipBuild) {
     Write-Host "Build skipped; using existing artifacts in $ResolvedBuildDir." -ForegroundColor Yellow
 } else {
     Write-Section "Build"
+    if ($Performance) {
+        Write-Host "Enabling benchmark targets in $ResolvedBuildDir..." -ForegroundColor Cyan
+        cmake -S $projectRoot -B $ResolvedBuildDir -DQRP_BUILD_BENCHMARKS=ON
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "Benchmark target configuration failed." -ForegroundColor Red
+            exit $LASTEXITCODE
+        }
+    }
+
     Write-Host "Building tests (Config: $Config) in $ResolvedBuildDir..." -ForegroundColor Cyan
     $buildTargets = @("unit_tests", "integration_tests")
     $targetHelp = & cmake --build $ResolvedBuildDir --target help --config $Config 2>&1
     if ($targetHelp | Select-String -Pattern "(^|\s)quant_risk_platform(:|\s|$)" -Quiet) {
         $buildTargets += "quant_risk_platform"
+    }
+    if ($Performance) {
+        $buildTargets += "benchmark_portfolio"
     }
     cmake --build $ResolvedBuildDir --target $buildTargets --config $Config
     if ($LASTEXITCODE -ne 0) {
@@ -292,6 +324,44 @@ function Find-TestExe($ExeName) {
         }
     }
     return $null
+}
+
+function Find-BenchmarkExe($ExeName) {
+    $names = @($ExeName)
+    if (-not $ExeName.EndsWith(".exe", [System.StringComparison]::OrdinalIgnoreCase)) {
+        $names += "$ExeName.exe"
+    }
+
+    foreach ($name in $names) {
+        $Paths = @(
+            "$ResolvedBuildDir\$name",
+            "$ResolvedBuildDir\$Config\$name",
+            "$ResolvedBuildDir\cpp\benchmarks\$name",
+            "$ResolvedBuildDir\cpp\benchmarks\$Config\$name"
+        )
+        foreach ($Path in $Paths) {
+            if (Test-Path $Path) { return $Path }
+        }
+    }
+    return $null
+}
+
+function Invoke-PerformanceBenchmark {
+    if (-not $Performance) {
+        return
+    }
+
+    Write-Section "Performance Benchmarks"
+    $BenchmarkExe = Find-BenchmarkExe "benchmark_portfolio"
+    if ($null -eq $BenchmarkExe) {
+        Write-Host "Error: benchmark_portfolio executable not found. Re-run without -SkipBuild so benchmarks can be configured and built." -ForegroundColor Red
+        exit 1
+    }
+
+    $dataRoot = Join-Path $projectRoot "data"
+    Write-Host "Running Portfolio Benchmark: $BenchmarkExe" -ForegroundColor Green
+    & $BenchmarkExe --iterations $PerformanceIterations --data-root $dataRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 
 $UnitTestExe = Find-TestExe "unit_tests"
@@ -325,6 +395,7 @@ if (-not $SkipCppCoverage) {
             $CppCoverageExitCode = Invoke-MsvcCppCoverage $vsCoverageTool $ResolvedPython $UnitTestExe
         } else {
             Write-Host "Visual Studio coverage tool was not found; trying the CMake coverage target." -ForegroundColor Yellow
+            Enable-CMakeCppCoverageTarget
             cmake --build $ResolvedBuildDir --target coverage --config $Config
             $CppCoverageExitCode = $LASTEXITCODE
         }
@@ -378,6 +449,8 @@ Show-PythonCoverageScore
 if ($PythonCoverageExitCode -ne 0) {
     exit $PythonCoverageExitCode
 }
+
+Invoke-PerformanceBenchmark
 
 Update-CoverageSummary
 

@@ -164,3 +164,41 @@ A stable daily explain workflow is:
 6. isolate trade-flow effects,
 7. isolate model-change effects,
 8. report the residual with diagnostics and lineage.
+
+## 9. Current platform mapping
+
+The platform implementation follows this workflow through `PnlExplainService`.
+For each trade it prices the previous snapshot, the current snapshot, and the
+previous market rolled to the current valuation date. Actual P&L is
+
+$$
+P\&L_{actual}=V_t-V_{t-1}+CF_t
+$$
+
+where `CF_t` is supplied by product-specific realized-cash extractors.
+
+Implemented behavior:
+
+- Carry is the rolled previous-market valuation less previous NPV.
+- Market move is either aggregate full revaluation or sequential full
+  revaluation by factor-bound quote.
+- Deposit maturity principal and simple ACT/360 interest are recognized in the
+  cash line when the maturity date is inside the explain interval.
+- Every explain row includes explicit carry, roll-down, market move, cash,
+  trade activity, FX translation, model-change, and residual components.
+- Results and components are stored in `pnl_explain_results` and
+  `pnl_explain_components`, with component sequence, type, factor id,
+  risk-factor group, model, support status, and tags.
+
+Current boundaries:
+
+- Roll-down is not yet split from frozen-market carry for curve products.
+- Trade activity is zero because the current request shape explains one
+  continuing portfolio rather than two trade populations.
+- FX translation is zero until valuation currency and reporting currency are
+  separated.
+- Model-change P&L is zero until model-version or configuration snapshots are
+  introduced.
+- The residual is computed explicitly as actual P&L less the non-residual
+  components and is tagged by trade, book, asset class, currency, product type,
+  and reconciliation status.

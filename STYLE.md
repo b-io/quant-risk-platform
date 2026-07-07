@@ -317,3 +317,7 @@ $$
 
 Every displayed formula should be followed or preceded by enough text to define
 the symbols, units, convention, and implementation meaning.
+
+GitHub Markdown math does not allow every LaTeX macro. Avoid custom macros and
+avoid `\operatorname{...}`. For named statistical operators, prefer
+`\mathrm{Var}(X)`, `\mathrm{Cov}(X,Y)`, or plain prose around the formula.

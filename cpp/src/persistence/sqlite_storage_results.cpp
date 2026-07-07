@@ -20,18 +20,12 @@ public:
     /**
      * @brief Prepares a SQL statement and throws on preparation failure.
      */
-    Statement(sqlite3* db, const char* sql) : db_(db) {
-        if (sqlite3_prepare_v2(db_, sql, -1, &stmt_, nullptr) != SQLITE_OK) {
-            throw std::runtime_error(fmt::format("Failed to prepare statement: {}", sqlite3_errmsg(db_)));
-        }
-    }
+    Statement(sqlite3* db, const char* sql);
 
     /**
      * @brief Finalizes the prepared statement.
      */
-    ~Statement() {
-        sqlite3_finalize(stmt_);
-    }
+    ~Statement();
 
     /**
      * @brief Statement wrappers own sqlite3_stmt and are not copyable.
@@ -46,65 +40,89 @@ public:
     /**
      * @brief Binds a double parameter by 1-based SQLite index.
      */
-    void bind_double(int index, double value) {
-        sqlite3_bind_double(stmt_, index, value);
-    }
+    void bind_double(int index, double value);
 
     /**
      * @brief Binds an integer parameter by 1-based SQLite index.
      */
-    void bind_int(int index, int value) {
-        sqlite3_bind_int(stmt_, index, value);
-    }
+    void bind_int(int index, int value);
 
     /**
      * @brief Binds a text parameter by 1-based SQLite index.
      */
-    void bind_text(int index, const std::string& value) {
-        sqlite3_bind_text(stmt_, index, value.c_str(), -1, SQLITE_TRANSIENT);
-    }
+    void bind_text(int index, const std::string& value);
 
     /**
      * @brief Reads a text column from the current row.
      */
-    std::string column_text(int index) const {
-        const auto* text = reinterpret_cast<const char*>(sqlite3_column_text(stmt_, index));
-        return text ? text : "";
-    }
+    std::string column_text(int index) const;
 
     /**
      * @brief Reads a double column from the current row.
      */
-    double column_double(int index) const {
-        return sqlite3_column_double(stmt_, index);
-    }
+    double column_double(int index) const;
 
     /**
      * @brief Steps to the next row and returns false at the end of the result set.
      */
-    bool step_row() {
-        const int rc = sqlite3_step(stmt_);
-        if (rc == SQLITE_ROW)
-            return true;
-        if (rc == SQLITE_DONE)
-            return false;
-        throw std::runtime_error(fmt::format("Failed to execute statement: {}", sqlite3_errmsg(db_)));
-    }
+    bool step_row();
 
     /**
      * @brief Executes a non-row statement and requires SQLITE_DONE.
      */
-    void step_done() {
-        const int rc = sqlite3_step(stmt_);
-        if (rc != SQLITE_DONE) {
-            throw std::runtime_error(fmt::format("Failed to execute statement: {}", sqlite3_errmsg(db_)));
-        }
-    }
+    void step_done();
 
 private:
     sqlite3* db_;
     sqlite3_stmt* stmt_ = nullptr;
 };
+
+Statement::Statement(sqlite3* db, const char* sql) : db_(db) {
+    if (sqlite3_prepare_v2(db_, sql, -1, &stmt_, nullptr) != SQLITE_OK) {
+        throw std::runtime_error(fmt::format("Failed to prepare statement: {}", sqlite3_errmsg(db_)));
+    }
+}
+
+Statement::~Statement() {
+    sqlite3_finalize(stmt_);
+}
+
+void Statement::bind_double(int index, double value) {
+    sqlite3_bind_double(stmt_, index, value);
+}
+
+void Statement::bind_int(int index, int value) {
+    sqlite3_bind_int(stmt_, index, value);
+}
+
+void Statement::bind_text(int index, const std::string& value) {
+    sqlite3_bind_text(stmt_, index, value.c_str(), -1, SQLITE_TRANSIENT);
+}
+
+std::string Statement::column_text(int index) const {
+    const auto* text = reinterpret_cast<const char*>(sqlite3_column_text(stmt_, index));
+    return text ? text : "";
+}
+
+double Statement::column_double(int index) const {
+    return sqlite3_column_double(stmt_, index);
+}
+
+bool Statement::step_row() {
+    const int rc = sqlite3_step(stmt_);
+    if (rc == SQLITE_ROW)
+        return true;
+    if (rc == SQLITE_DONE)
+        return false;
+    throw std::runtime_error(fmt::format("Failed to execute statement: {}", sqlite3_errmsg(db_)));
+}
+
+void Statement::step_done() {
+    const int rc = sqlite3_step(stmt_);
+    if (rc != SQLITE_DONE) {
+        throw std::runtime_error(fmt::format("Failed to execute statement: {}", sqlite3_errmsg(db_)));
+    }
+}
 
 } // namespace
 
@@ -173,6 +191,100 @@ void SQLiteStorageBackend::store_scenario_result(const std::string& run_id,
     stmt.bind_text(1, run_id);
     stmt.bind_text(2, scenario_name);
     stmt.bind_double(3, portfolio_pnl);
+    stmt.step_done();
+}
+
+void SQLiteStorageBackend::store_pnl_explain_result(const PnlExplainRecord& record) {
+    const char* sql = R"(
+        INSERT OR REPLACE INTO pnl_explain_results (
+            run_id,
+            trade_id,
+            asset_class,
+            book,
+            currency,
+            product_type,
+            strategy,
+            prev_npv,
+            curr_npv,
+            total_pnl,
+            carry_pnl,
+            roll_down_pnl,
+            market_move_pnl,
+            cash_pnl,
+            trade_activity_pnl,
+            fx_translation_pnl,
+            model_change_pnl,
+            residual_pnl,
+            explained_pnl,
+            reconciliation_difference,
+            reconciliation_passed,
+            support_status,
+            model_name,
+            status_message
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    )";
+    Statement stmt(db_, sql);
+    stmt.bind_text(1, record.run_id);
+    stmt.bind_text(2, record.trade_id);
+    stmt.bind_text(3, record.asset_class);
+    stmt.bind_text(4, record.book);
+    stmt.bind_text(5, record.currency);
+    stmt.bind_text(6, record.product_type);
+    stmt.bind_text(7, record.strategy);
+    stmt.bind_double(8, record.prev_npv);
+    stmt.bind_double(9, record.curr_npv);
+    stmt.bind_double(10, record.total_pnl);
+    stmt.bind_double(11, record.carry_pnl);
+    stmt.bind_double(12, record.roll_down_pnl);
+    stmt.bind_double(13, record.market_move_pnl);
+    stmt.bind_double(14, record.cash_pnl);
+    stmt.bind_double(15, record.trade_activity_pnl);
+    stmt.bind_double(16, record.fx_translation_pnl);
+    stmt.bind_double(17, record.model_change_pnl);
+    stmt.bind_double(18, record.residual_pnl);
+    stmt.bind_double(19, record.explained_pnl);
+    stmt.bind_double(20, record.reconciliation_difference);
+    stmt.bind_int(21, record.reconciliation_passed ? 1 : 0);
+    stmt.bind_text(22, record.support_status);
+    stmt.bind_text(23, record.model_name);
+    stmt.bind_text(24, record.status_message);
+    stmt.step_done();
+}
+
+void SQLiteStorageBackend::store_pnl_explain_component(const PnlExplainComponentRecord& record) {
+    const char* sql = R"(
+        INSERT OR REPLACE INTO pnl_explain_components (
+            run_id,
+            trade_id,
+            component_sequence,
+            component_id,
+            component_type,
+            label,
+            amount,
+            factor_id,
+            risk_factor_group,
+            model_name,
+            support_status,
+            status_message,
+            tags_json
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    )";
+    Statement stmt(db_, sql);
+    stmt.bind_text(1, record.run_id);
+    stmt.bind_text(2, record.trade_id);
+    stmt.bind_int(3, record.sequence);
+    stmt.bind_text(4, record.component_id);
+    stmt.bind_text(5, record.component_type);
+    stmt.bind_text(6, record.label);
+    stmt.bind_double(7, record.amount);
+    stmt.bind_text(8, record.factor_id);
+    stmt.bind_text(9, record.risk_factor_group);
+    stmt.bind_text(10, record.model_name);
+    stmt.bind_text(11, record.support_status);
+    stmt.bind_text(12, record.status_message);
+    stmt.bind_text(13, record.tags_json);
     stmt.step_done();
 }
 

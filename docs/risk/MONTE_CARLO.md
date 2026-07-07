@@ -205,37 +205,32 @@ flexible approach, but it is also the most computationally expensive.
 
 ---
 
-## 8. What the current project should implement first
+## 8. Current Project Mapping
 
-For a first production-shaped implementation, the most reasonable starting point is not a full exotic path engine. It is
-a coherent factor Monte Carlo around the deterministic pricing engine.
+The current project mapping is a coherent one-step factor Monte Carlo around the deterministic pricing engine rather
+than a full exotic path engine.
 
-### First milestone
+### Implemented shape
 
-- define a vector of market factors,
-- estimate or mock a covariance matrix,
-- generate correlated Gaussian shocks,
-- apply shocks to curve nodes or factor handles,
-- reprice the portfolio under each scenario,
-- compute portfolio P&L, VaR, and Expected Shortfall.
+- define a vector of market factors;
+- estimate or provide a covariance matrix;
+- generate correlated Gaussian shocks;
+- apply shocks to curve nodes or factor handles;
+- reprice the portfolio under each scenario;
+- compute portfolio P&L and distribution statistics.
 
-This gives a first Monte Carlo layer for a rates and macro risk platform.
+This gives a reusable simulation layer around the same market-state and pricing abstractions used by deterministic risk.
 
-### Second milestone
+### Outside current Monte Carlo coverage
 
-Add simple path dynamics, for example:
+Current Monte Carlo coverage does not yet include:
 
-- one-factor short-rate simulation,
-- spread-factor simulation,
-- multi-step exposure simulation.
-
-### Third milestone
-
-Only after the deterministic risk and market architecture are solid, extend toward:
-
-- path-dependent pricing,
-- multi-step scenario cubes,
-- variance reduction,
+- dedicated one-factor short-rate path simulation;
+- spread-factor path simulation;
+- multi-step exposure simulation;
+- path-dependent pricing;
+- multi-step scenario cubes;
+- variance reduction;
 - parallel path generation and repricing.
 
 ---

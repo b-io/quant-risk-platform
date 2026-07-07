@@ -41,6 +41,9 @@ The easiest way to build and verify the platform is to use the canonical scripts
 # Build and run all tests
 .\scripts\test.ps1
 
+# Build and run tests plus the C++ portfolio benchmark
+.\scripts\test.ps1 -Performance
+
 # Install Python/package dependencies
 .\scripts\install.ps1
 ```
@@ -53,24 +56,38 @@ chmod +x scripts/*.sh
 ./scripts/build.sh
 ./scripts/test.sh
 
+# Build and run tests plus the C++ portfolio benchmark
+./scripts/test.sh -Performance
+
 # Install Python/package dependencies
 ./scripts/install.sh
 ```
 
 ## 4. Coverage
 
-Coverage is supported for GCC/Clang-style toolchains via `gcovr`:
+The canonical local coverage workflow is the PowerShell test script:
+
+```powershell
+.\scripts\test.ps1 -Coverage
+```
+
+On Windows with MSVC this uses the native Visual Studio coverage collector when available. The Bash script uses the
+CMake/gcovr coverage target for GCC/Clang builds. The repository coverage gate is 95% line coverage for both C++ and
+Python. MSVC coverage runs the full unit test executable by default. To narrow the instrumented GoogleTest set while
+debugging coverage collector issues, set `QRP_MSVC_COVERAGE_GTEST_FILTER` explicitly.
+
+The committed summary artifacts are refreshed under `coverage/`:
+
+- `coverage/coverage-badge.svg`
+- `coverage/coverage_summary.json`
+- `coverage/coverage_summary.md`
+
+GCC/Clang-style coverage remains available through the CMake coverage preset:
 
 ```bash
 cmake --preset coverage
 cmake --build build/coverage --target coverage
 ```
-
-The coverage target runs tests and fails below `QRP_COVERAGE_MIN_LINE`, which defaults to `85`.
-Use `-DQRP_COVERAGE_MIN_LINE=90` if you want to enforce a 90% line-coverage gate.
-
-It also writes a machine-readable metric to `build/coverage/coverage/cpp/coverage_metric.json`
-and a compact human summary to `build/coverage/coverage/cpp/coverage_metric.md`.
 
 ## 5. Run a Demo
 
@@ -88,9 +105,20 @@ uv run --project python python python\examples\demo_platform.py
 
 ### C++ CLI
 
-```bash
-# Adjust the path to your build directory (e.g., build/debug or build/dev)
-./build/debug/qrp_cli price --market data/market/demo_market.json --portfolio data/portfolios/demo_portfolio.json
+```powershell
+# Adjust the path to your build directory if you use a preset other than dev.
+$cli = ".\build\dev\cpp\cli\qrp_cli.exe"
+
+& $cli init-db
+& $cli import-market data\market\demo_market.json
+& $cli import-portfolio data\portfolios\demo_portfolio.json
+& $cli import-scenarios data\scenarios\demo_scenarios.json
+
+& $cli run-valuation --portfolio demo_portfolio --snapshot DEMO_MKT_2026_03_24
+& $cli run-risk --portfolio demo_portfolio --snapshot DEMO_MKT_2026_03_24
+& $cli run-pnl-explain --portfolio demo_portfolio --previous-snapshot DEMO_MKT_2026_03_24 --snapshot DEMO_MKT_2026_03_24
+& $cli run-hvar --portfolio demo_portfolio --snapshot DEMO_MKT_2026_03_24 --scenarios demo_factor_scenarios
+& $cli list
 ```
 
 ## 6. Artifacts and Outputs

@@ -60,6 +60,13 @@ public:
     std::string run_risk(const std::string& portfolio_id, const std::string& snapshot_id);
 
     /**
+     * @brief Runs PnL explain between two stored market snapshots.
+     */
+    std::string run_pnl_explain(const std::string& portfolio_id,
+                                const std::string& previous_snapshot_id,
+                                const std::string& current_snapshot_id);
+
+    /**
      * @brief Runs historical VaR over a stored scenario set.
      */
     std::string run_historical_var(const std::string& portfolio_id,

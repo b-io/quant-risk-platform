@@ -1,5 +1,6 @@
 // Implements the high-level application facade used by CLI, tests, and Python bindings.
 
+#include <qrp/analytics/pnl_explain_service.hpp>
 #include <qrp/analytics/pricing_context.hpp>
 #include <qrp/app/quant_risk_platform.hpp>
 #include <qrp/domain/factors.hpp>
@@ -32,6 +33,79 @@ std::vector<std::string> collect_factor_ids(const std::vector<domain::FactorDefi
         factor_ids.push_back(factor.factor_id);
     }
     return factor_ids;
+}
+
+std::string component_type_to_string(analytics::PnlExplainComponentType component_type) {
+    switch (component_type) {
+        case analytics::PnlExplainComponentType::Carry:
+            return "carry";
+        case analytics::PnlExplainComponentType::Cash:
+            return "cash";
+        case analytics::PnlExplainComponentType::FxTranslation:
+            return "fx_translation";
+        case analytics::PnlExplainComponentType::MarketMove:
+            return "market_move";
+        case analytics::PnlExplainComponentType::ModelChange:
+            return "model_change";
+        case analytics::PnlExplainComponentType::RollDown:
+            return "roll_down";
+        case analytics::PnlExplainComponentType::TradeActivity:
+            return "trade_activity";
+        case analytics::PnlExplainComponentType::Residual:
+            return "residual";
+    }
+    return "residual";
+}
+
+persistence::StorageBackend::PnlExplainRecord make_pnl_explain_record(const std::string& run_id,
+                                                                      const analytics::PnlExplainResult& result) {
+    persistence::StorageBackend::PnlExplainRecord record;
+    record.run_id = run_id;
+    record.trade_id = result.trade_id;
+    record.asset_class = result.asset_class;
+    record.book = result.book;
+    record.currency = result.currency;
+    record.product_type = result.product_type;
+    record.strategy = result.strategy;
+    record.prev_npv = result.prev_npv;
+    record.curr_npv = result.curr_npv;
+    record.total_pnl = result.total_pnl;
+    record.carry_pnl = result.carry_pnl;
+    record.roll_down_pnl = result.roll_down_pnl;
+    record.market_move_pnl = result.market_move_pnl;
+    record.cash_pnl = result.cash_pnl;
+    record.trade_activity_pnl = result.trade_activity_pnl;
+    record.fx_translation_pnl = result.fx_translation_pnl;
+    record.model_change_pnl = result.model_change_pnl;
+    record.residual_pnl = result.residual_pnl;
+    record.explained_pnl = result.explained_pnl;
+    record.reconciliation_difference = result.reconciliation_difference;
+    record.reconciliation_passed = result.reconciliation_passed;
+    record.support_status = domain::to_string(result.curr_valuation.support_status);
+    record.model_name = result.curr_valuation.model_name;
+    record.status_message = result.curr_valuation.status_message;
+    return record;
+}
+
+persistence::StorageBackend::PnlExplainComponentRecord
+make_pnl_explain_component_record(const std::string& run_id,
+                                  const analytics::PnlExplainResult& result,
+                                  const analytics::PnlExplainComponent& component) {
+    persistence::StorageBackend::PnlExplainComponentRecord record;
+    record.run_id = run_id;
+    record.trade_id = result.trade_id;
+    record.sequence = component.sequence;
+    record.component_id = component.component_id;
+    record.component_type = component_type_to_string(component.component_type);
+    record.label = component.label;
+    record.amount = component.amount;
+    record.factor_id = component.factor_id;
+    record.risk_factor_group = component.risk_factor_group;
+    record.model_name = component.model_name;
+    record.support_status = domain::to_string(component.support_status);
+    record.status_message = component.status_message;
+    record.tags_json = json(component.tags).dump();
+    return record;
 }
 
 } // namespace
@@ -264,6 +338,48 @@ std::string QuantRiskPlatform::run_risk(const std::string& portfolio_id, const s
         storage_->store_risk_result(run_id, res.trade_id, "FX_VEGA", "ALL", res.fx_vega);
         for (const auto& [tenor, risk] : res.bucketed_risk) {
             storage_->store_risk_result(run_id, res.trade_id, "BUCKETED_RISK", tenor, risk);
+        }
+    }
+
+    return run_id;
+}
+
+std::string QuantRiskPlatform::run_pnl_explain(const std::string& portfolio_id,
+                                               const std::string& previous_snapshot_id,
+                                               const std::string& current_snapshot_id) {
+    spdlog::info("Running PnL explain for portfolio {} from snapshot {} to {}",
+                 portfolio_id,
+                 previous_snapshot_id,
+                 current_snapshot_id);
+
+    auto trades = storage_->load_trades(portfolio_id);
+    auto previous_market_dto = storage_->load_market_snapshot(previous_snapshot_id);
+    auto current_market_dto = storage_->load_market_snapshot(current_snapshot_id);
+
+    domain::Portfolio portfolio;
+    portfolio.portfolio_id = portfolio_id;
+    portfolio.trades = trades;
+
+    auto factors = storage_->load_factor_definitions(portfolio_id);
+    auto bindings = storage_->load_factor_bindings(collect_factor_ids(factors));
+    if (factors.empty() || bindings.empty()) {
+        factors.clear();
+        bindings.clear();
+    }
+
+    auto results = analytics::PnlExplainService::explain_pnl(portfolio,
+                                                             previous_market_dto,
+                                                             current_market_dto,
+                                                             factors,
+                                                             bindings);
+
+    std::string run_id = fmt::format("RUN_PNL_{}", std::chrono::system_clock::now().time_since_epoch().count());
+    storage_->store_analysis_run(run_id, "PNL_EXPLAIN", portfolio_id, current_snapshot_id);
+
+    for (const auto& result : results) {
+        storage_->store_pnl_explain_result(make_pnl_explain_record(run_id, result));
+        for (const auto& component : result.components) {
+            storage_->store_pnl_explain_component(make_pnl_explain_component_record(run_id, result, component));
         }
     }
 

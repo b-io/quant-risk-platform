@@ -168,6 +168,65 @@ public:
                                         const std::string& status_message) = 0;
 
     /**
+     * @brief Normalized trade-level PnL explain reconciliation row.
+     */
+    struct PnlExplainRecord {
+        std::string run_id;                     // Analysis run id.
+        std::string trade_id;                   // Explained trade id.
+        std::string asset_class;                // Trade asset-class label.
+        std::string book;                       // Owning book.
+        std::string currency;                   // Valuation currency.
+        std::string product_type;               // Product taxonomy label.
+        std::string strategy;                   // Strategy or mandate label.
+        double prev_npv = 0.0;                  // Previous snapshot NPV.
+        double curr_npv = 0.0;                  // Current snapshot NPV.
+        double total_pnl = 0.0;                 // Actual PnL including realized cash.
+        double carry_pnl = 0.0;                 // Carry contribution.
+        double roll_down_pnl = 0.0;             // Roll-down contribution.
+        double market_move_pnl = 0.0;           // Market move contribution.
+        double cash_pnl = 0.0;                  // Realized cash contribution.
+        double trade_activity_pnl = 0.0;        // Trade activity contribution.
+        double fx_translation_pnl = 0.0;        // FX translation contribution.
+        double model_change_pnl = 0.0;          // Model/configuration change contribution.
+        double residual_pnl = 0.0;              // Unexplained residual.
+        double explained_pnl = 0.0;             // Sum of explicit non-residual components.
+        double reconciliation_difference = 0.0; // Difference after residual is applied.
+        bool reconciliation_passed = false;     // Reconciliation gate result.
+        std::string support_status;             // Current valuation support status.
+        std::string model_name;                 // Current pricing model.
+        std::string status_message;             // Current valuation diagnostic.
+    };
+
+    /**
+     * @brief Normalized PnL explain component row.
+     */
+    struct PnlExplainComponentRecord {
+        std::string run_id;            // Analysis run id.
+        std::string trade_id;          // Explained trade id.
+        int sequence = 0;              // Component order in the explain ladder.
+        std::string component_id;      // Stable component identifier.
+        std::string component_type;    // Component taxonomy label.
+        std::string label;             // Human-readable label.
+        double amount = 0.0;           // Component amount.
+        std::string factor_id;         // Risk factor id when applicable.
+        std::string risk_factor_group; // Broad risk-factor group.
+        std::string model_name;        // Model or extraction name.
+        std::string support_status;    // Component support status.
+        std::string status_message;    // Component diagnostic.
+        std::string tags_json;         // Extra component metadata.
+    };
+
+    /**
+     * @brief Stores one trade-level PnL explain reconciliation row.
+     */
+    virtual void store_pnl_explain_result(const PnlExplainRecord& record) = 0;
+
+    /**
+     * @brief Stores one PnL explain component row.
+     */
+    virtual void store_pnl_explain_component(const PnlExplainComponentRecord& record) = 0;
+
+    /**
      * @brief Stores aggregate VaR and ES metrics for a run.
      */
     virtual void store_var_result(const std::string& run_id,

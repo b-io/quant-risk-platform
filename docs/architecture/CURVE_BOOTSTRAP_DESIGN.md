@@ -48,7 +48,8 @@ Implementation:
 
 Tradeoffs:
 
-- Requires multiple curves and conventions. We encapsulate this via typed IDs and (future) `MarketConventionRegistry`.
+- Requires multiple curves and conventions. We encapsulate this via typed IDs and the rates
+  `MarketConventionRegistry`.
 
 ## Technique 3: Handle-Based Quotes and Reactive Curves
 

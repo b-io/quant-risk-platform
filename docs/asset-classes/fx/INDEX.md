@@ -1,8 +1,8 @@
 # FX Documentation Index
 
 This section is the home for FX product conventions and implementation notes.
-Detailed chapters should be added here as FX support moves through the build
-plan.
+Detailed chapters belong here when they describe FX-specific coverage,
+conventions, or valuation choices.
 
 ## Scope
 
@@ -17,9 +17,9 @@ FX documentation should cover:
 - FX volatility surfaces, delta conventions, smiles, and Greeks;
 - settlement currency, cashflow currency, and reporting currency.
 
-## Product Coverage Sequence
+## Product Coverage
 
-FX product support follows this implementation order:
+FX product coverage is organized around these product families:
 
 1. FX spot exposure;
 2. FX forwards;
@@ -27,8 +27,19 @@ FX product support follows this implementation order:
 4. non-deliverable forwards;
 5. vanilla European FX options;
 6. FX option Greeks and volatility-surface risk;
-7. barriers, digitals, and TARFs only after vanilla options and surface risk are
-   stable.
+7. barriers, digitals, and TARFs.
+
+Current platform coverage:
+
+- The canonical portfolio DTO supports FX spot, forwards, swaps, NDFs, and
+  vanilla European FX options.
+- Pricing uses spot rates, forward points, domestic and foreign discounting
+  inputs, and volatility quotes where applicable.
+- Risk factor bindings cover FX spot, forward points, and FX volatility inputs,
+  and PnL explain includes explicit FX translation and market-move component
+  slots.
+- Barriers, digitals, TARFs, and richer smile/surface risk are outside current
+  product coverage.
 
 ## Required Platform Objects
 

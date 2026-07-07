@@ -62,16 +62,23 @@ explicit pricing objects and reproducible market state.
    Application of the generic risk framework to power, gas, carbon, flexible
    assets, and commodity-specific validation.
 
-## Implementation Sequence
+## Current Implementation Coverage
 
-Risk expansion should follow the implementation roadmap in
-`docs/implementation/PHASED_BUILD_PLAN.md`:
+Current risk implementation includes:
 
-- PnL explain with realized cashflows, sequential revaluation, persistence, and
-  reconciliation;
+- PnL explain with persisted result/component tables, sequential factor
+  revaluation, realized deposit maturity cash, and reconciliation;
+- HVaR and historical stress replay factor-bound scenarios over the current
+  market state;
+- deterministic sensitivities for the supported product families.
+
+Known boundaries are:
+
 - VaR and Expected Shortfall contributions by trade, book, strategy, currency,
   asset class, and risk factor;
-- LSMC integration where early exercise and physical flexibility affect risk;
+- reusable LSMC integration where early exercise and physical flexibility affect
+  risk;
+- broader realized cashflow/event sources for explain;
 - production controls for run manifests, lineage, benchmark portfolios,
   performance gates, coverage gates, and validation reports.
 

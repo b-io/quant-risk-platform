@@ -452,7 +452,7 @@ $$
 Then:
 
 $$
-\Sigma = \operatorname{Cov}(\Delta f_t)
+\Sigma = \mathrm{Cov}(\Delta f_t)
 $$
 
 For lognormal-style relative moves, use log changes:

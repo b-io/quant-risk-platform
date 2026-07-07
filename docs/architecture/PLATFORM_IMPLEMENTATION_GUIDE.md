@@ -44,7 +44,7 @@ This improves:
 - testability,
 - performance,
 - traceability,
-- future extension to credit and macro strategies.
+- extensibility to credit and macro strategies.
 
 ---
 

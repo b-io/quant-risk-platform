@@ -32,7 +32,11 @@ void bind_analytics(py::module_& m) {
     py::enum_<analytics::PnlExplainComponentType>(m, "PnlExplainComponentType")
         .value("Carry", analytics::PnlExplainComponentType::Carry)
         .value("Cash", analytics::PnlExplainComponentType::Cash)
+        .value("FxTranslation", analytics::PnlExplainComponentType::FxTranslation)
         .value("MarketMove", analytics::PnlExplainComponentType::MarketMove)
+        .value("ModelChange", analytics::PnlExplainComponentType::ModelChange)
+        .value("RollDown", analytics::PnlExplainComponentType::RollDown)
+        .value("TradeActivity", analytics::PnlExplainComponentType::TradeActivity)
         .value("Residual", analytics::PnlExplainComponentType::Residual);
 
     py::class_<analytics::CashflowExtractionResult>(m, "CashflowExtractionResult")
@@ -111,28 +115,43 @@ void bind_analytics(py::module_& m) {
         .def_readwrite("factor_id", &analytics::PnlExplainComponent::factor_id)
         .def_readwrite("label", &analytics::PnlExplainComponent::label)
         .def_readwrite("model_name", &analytics::PnlExplainComponent::model_name)
+        .def_readwrite("risk_factor_group", &analytics::PnlExplainComponent::risk_factor_group)
+        .def_readwrite("sequence", &analytics::PnlExplainComponent::sequence)
         .def_readwrite("status_message", &analytics::PnlExplainComponent::status_message)
         .def_readwrite("support_status", &analytics::PnlExplainComponent::support_status)
         .def_readwrite("tags", &analytics::PnlExplainComponent::tags);
 
     py::class_<analytics::PnlExplainResult>(m, "PnlExplainResult")
         .def(py::init<>())
+        .def_readwrite("asset_class", &analytics::PnlExplainResult::asset_class)
+        .def_readwrite("book", &analytics::PnlExplainResult::book)
         .def_readwrite("carry_pnl", &analytics::PnlExplainResult::carry_pnl)
         .def_readwrite("cash_pnl", &analytics::PnlExplainResult::cash_pnl)
         .def_readwrite("cashflow_extraction", &analytics::PnlExplainResult::cashflow_extraction)
         .def_readwrite("components", &analytics::PnlExplainResult::components)
+        .def_readwrite("currency", &analytics::PnlExplainResult::currency)
         .def_readwrite("curr_npv", &analytics::PnlExplainResult::curr_npv)
         .def_readwrite("curr_valuation", &analytics::PnlExplainResult::curr_valuation)
         .def_readwrite("curr_valuation_available", &analytics::PnlExplainResult::curr_valuation_available)
         .def_readwrite("diagnostics", &analytics::PnlExplainResult::diagnostics)
+        .def_readwrite("explained_pnl", &analytics::PnlExplainResult::explained_pnl)
+        .def_readwrite("fx_translation_pnl", &analytics::PnlExplainResult::fx_translation_pnl)
         .def_readwrite("market_move_pnl", &analytics::PnlExplainResult::market_move_pnl)
+        .def_readwrite("model_change_pnl", &analytics::PnlExplainResult::model_change_pnl)
         .def_readwrite("prev_npv", &analytics::PnlExplainResult::prev_npv)
         .def_readwrite("prev_valuation", &analytics::PnlExplainResult::prev_valuation)
         .def_readwrite("prev_valuation_available", &analytics::PnlExplainResult::prev_valuation_available)
+        .def_readwrite("product_type", &analytics::PnlExplainResult::product_type)
+        .def_readwrite("reconciliation_difference", &analytics::PnlExplainResult::reconciliation_difference)
+        .def_readwrite("reconciliation_passed", &analytics::PnlExplainResult::reconciliation_passed)
         .def_readwrite("residual", &analytics::PnlExplainResult::residual)
+        .def_readwrite("residual_pnl", &analytics::PnlExplainResult::residual_pnl)
+        .def_readwrite("roll_down_pnl", &analytics::PnlExplainResult::roll_down_pnl)
         .def_readwrite("rolled_valuation", &analytics::PnlExplainResult::rolled_valuation)
         .def_readwrite("rolled_valuation_available", &analytics::PnlExplainResult::rolled_valuation_available)
+        .def_readwrite("strategy", &analytics::PnlExplainResult::strategy)
         .def_readwrite("total_pnl", &analytics::PnlExplainResult::total_pnl)
+        .def_readwrite("trade_activity_pnl", &analytics::PnlExplainResult::trade_activity_pnl)
         .def_readwrite("trade_id", &analytics::PnlExplainResult::trade_id);
 
     py::class_<analytics::RiskResult>(m, "RiskResult")
@@ -192,7 +211,14 @@ void bind_analytics(py::module_& m) {
           py::arg("bindings"),
           "Compute risk for a portfolio");
 
-    m.def("explain_pnl", &analytics::PnlExplainService::explain_pnl, "Explain P&L between two market states");
+    m.def("explain_pnl",
+          &analytics::PnlExplainService::explain_pnl,
+          py::arg("portfolio"),
+          py::arg("prev_market_dto"),
+          py::arg("curr_market_dto"),
+          py::arg("factors") = std::vector<domain::FactorDefinition>(),
+          py::arg("bindings") = std::vector<domain::FactorBinding>(),
+          "Explain P&L between two market states");
     m.def(
         "price_portfolio",
         [](const domain::Portfolio& p, const domain::MarketSnapshot& m_dto) {

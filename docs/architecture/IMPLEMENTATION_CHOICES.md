@@ -91,17 +91,17 @@ When we update a `SimpleQuote` value:
 - **Consistency:** It reuses the same scenario application logic as our stress testing and deterministic risk (PV01).
 - **Data-driven:** It leverages our persistence layer to store and replay historical shock vectors.
 
-## 5. Rationale For Completing Rates While Generalizing Multi-Asset Ingestion
+## 5. Rationale For Multi-Asset Ingestion With Explicit Support Status
 
-**Choice:** We implement full pricing for Rates products first, but the database schema and ingestion logic are already
-multi-asset.
+**Choice:** The database schema, ingestion logic, pricing registry, and portfolio fixtures are multi-asset, while each
+product family still carries explicit support status and diagnostics.
 
 **Reason:**
 
-- **Vertical Slice:** Delivering a complete end-to-end slice for one asset class (Rates) proves the architecture
-  (Load → Store → Price → Risk → Persist).
-- **Future-proofing:** By generalizing the ingestion layer now, we avoid a costly redesign when adding FX, Credit, or
-  Equity pricing later.
+- **Vertical Slice:** Every supported product should flow through the same path: load -> store -> price -> risk ->
+  persist.
+- **Multi-Asset Shape:** Rates, FX, credit, commodities, and equities can share portfolio loading, market snapshots,
+  factor bindings, result storage, and workflow orchestration.
 - **Graceful Failure:** Unsupported products are stored and reported with structured diagnostics rather than crashing
   the engine.
 

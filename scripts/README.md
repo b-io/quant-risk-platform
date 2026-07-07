@@ -106,11 +106,13 @@ List all portfolios or view results of a specific run:
 ```powershell
 # PowerShell
 .\scripts\test.ps1
+.\scripts\test.ps1 -Performance
 ```
 
 ```bash
 # Bash
 ./scripts/test.sh
+./scripts/test.sh -Performance
 ```
 
 #### Note on Parameters
@@ -132,6 +134,8 @@ The public option names are intentionally shared across PowerShell and Bash wher
 - `-MarketFile`: select the market-data input file for database initialization.
 - `-PortfolioFile`: select the portfolio input file for database initialization.
 - `-PortfolioId`: select the compute-flow portfolio.
+- `-Performance`: configure, build, and run the C++ portfolio benchmark after tests.
+- `-PerformanceIterations`: set the portfolio benchmark valuation iteration count; defaults to `100`.
 - `-Preset`: select a CMake preset for build/install scripts.
 - `-PythonCoverageMinLine`: set the Python coverage threshold used by test scripts; defaults to `95`.
 - `-PythonExecutable`: select the Python executable used by test and coverage scripts.
@@ -143,7 +147,8 @@ The public option names are intentionally shared across PowerShell and Bash wher
 - `-SnapshotId`: select the compute-flow market snapshot.
 - `-Table`: select the database table or result category for inspection.
 
-MSVC C++ coverage honors `QRP_MSVC_COVERAGE_GTEST_FILTER` when present. The
-default excludes the application workflow smoke fixture from coverage
-instrumentation because it is run normally before coverage but currently
-terminates inside the MSVC coverage collector.
+MSVC C++ coverage runs the full unit test executable by default and honors
+`QRP_MSVC_COVERAGE_GTEST_FILTER` only when present. Use that environment
+variable to narrow the instrumented GoogleTest set while debugging coverage
+collector issues. Bash C++ coverage uses the CMake/gcovr coverage target and
+configures `QRP_ENABLE_COVERAGE=ON` automatically when `-Coverage` is passed.

@@ -8,8 +8,8 @@ The market layer is responsible for converting raw external market inputs into r
 
 - yield and discount curves,
 - projection curves,
-- later credit curves,
-- later volatility term structures and surfaces,
+- credit, FX, equity, commodity, and volatility market inputs,
+- factor bindings for scenario, risk, HVaR, and PnL explain workflows,
 - mutable quote handles for fast revaluation.
 
 The design goal is to separate:
@@ -27,15 +27,16 @@ Implemented today:
 - a first `MarketConventionRegistry` for rates conventions,
 - `MarketState` holding built curves and `SimpleQuote` handles,
 - bootstrapped rates curves using QuantLib `RateHelper`s,
-- handle-based scenario application without rebuilding the whole portfolio.
+- explicit curve purpose and quote/factor metadata in the market schema,
+- handle-based scenario application without rebuilding the whole portfolio,
+- factor-bound quote updates reused by risk, stress/HVaR, and PnL explain.
 
 Still missing or thin:
 
-- explicit curve purpose (`discount`, `projection`, `credit`, `volatility`),
-- richer quote metadata for helpers and fixing conventions,
-- typed credit and volatility builders,
+- typed credit, volatility, commodity, and equity builders behind stable interfaces,
 - relinkable-handle design for larger scenario and simulation workflows,
-- validation and schema versioning.
+- richer calibration, stale-data, and market-schema diagnostics,
+- schema-version migration policy.
 
 ## 3. Recommended market schema direction
 
@@ -90,7 +91,7 @@ prototype still sometimes falls back to one curve, the design should preserve a 
 
 The role of `MarketConventionRegistry` is to keep conventions out of pricing logic.
 
-It should eventually own:
+Its coverage should remain visible around:
 
 - currency calendars,
 - day counts,
@@ -110,10 +111,9 @@ The main QuantLib choices in the market layer are:
 - piecewise term structures for production calibration,
 - later `RelinkableHandle` for efficient scenario and simulation reuse.
 
-## 7. Next concrete implementation steps
+## 7. Current Market-Layer Boundaries
 
-1. enrich `MarketQuote` and `CurveSpec`,
-2. expand the convention registry beyond rates,
-3. split the current monolithic builder into typed builders,
-4. add explicit `MarketSnapshot` diagnostics,
-5. introduce credit and volatility builders behind stable interfaces.
+1. The convention registry is rates-first and does not yet cover every product family.
+2. Typed credit, volatility, commodity, and equity builders are not separated behind stable interfaces.
+3. `MarketSnapshot` calibration and validation diagnostics are intentionally lightweight.
+4. Relinkable-handle patterns are not yet generalized for larger simulation and scenario workflows.
