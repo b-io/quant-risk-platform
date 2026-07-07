@@ -342,6 +342,7 @@ TEST(StressEngineTest, RejectsMissingFactorConfiguration) {
     qrp::market::ScenarioDefinition scenario;
     scenario.name = "NO_FACTORS";
 
-    EXPECT_THROW({ qrp::analytics::StressEngine::run_historical_stress(portfolio, market_dto, {scenario}, {}, {}); },
-                 std::runtime_error);
+    EXPECT_THROW(
+        { qrp::analytics::StressEngine::run_historical_stress(portfolio, market_dto, {scenario}, {}, {}); },
+        std::runtime_error);
 }

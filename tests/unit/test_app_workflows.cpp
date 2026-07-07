@@ -148,8 +148,9 @@ TEST_F(AppWorkflowTest, RiskWorkflowsRejectMissingFactorConfiguration) {
 
     EXPECT_THROW({ platform.run_risk("demo_portfolio", "SNAP:2026-03-24"); }, std::runtime_error);
 
-    EXPECT_THROW({ platform.run_historical_var("demo_portfolio", "SNAP:2026-03-24", "missing_scenarios"); },
-                 std::runtime_error);
+    EXPECT_THROW(
+        { platform.run_historical_var("demo_portfolio", "SNAP:2026-03-24", "missing_scenarios"); },
+        std::runtime_error);
 }
 
 TEST_F(AppWorkflowTest, RunsPnlExplainWorkflowWithImportedFactors) {
@@ -641,8 +642,9 @@ TEST_F(AppWorkflowTest, HistoricalVarRejectsImportedScenarioSetWithoutScenarios)
     platform.import_portfolio(test::data_file({"portfolios", "demo_portfolio.json"}).string());
     platform.import_scenario_set(scenario_file.string());
 
-    EXPECT_THROW({ platform.run_historical_var("demo_portfolio", "SNAP:2026-03-24", "empty_scenario_set"); },
-                 std::runtime_error);
+    EXPECT_THROW(
+        { platform.run_historical_var("demo_portfolio", "SNAP:2026-03-24", "empty_scenario_set"); },
+        std::runtime_error);
 }
 
 } // namespace qrp::testing
