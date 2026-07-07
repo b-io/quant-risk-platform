@@ -255,7 +255,7 @@ flowchart LR
     A[Convention gaps] --> B[Hardcoded schedules and day counts]
     B --> C[No built-portfolio cache]
     C --> D[Limited event-source integration]
-    D --> E[Contribution analytics and LSMC integration]
+    D --> E[Monte Carlo contributions and LSMC integration]
 ```
 
 The main boundaries are:
@@ -264,8 +264,8 @@ The main boundaries are:
 2. **Instrument construction still contains hardcoded schedule and day-count assumptions.**
 3. **The analytics services do not yet share a built-position cache.**
 4. **PnL explain needs broader product event sources beyond deposit maturities.**
-5. **VaR/ES contribution analytics, reusable LSMC integration, and production controls are not yet first-class across
-   the platform.**
+5. **Monte Carlo contribution decomposition, reusable LSMC integration, and production controls are not yet first-class
+   across the platform.**
 
 ## 9. Extension Areas
 
@@ -278,8 +278,9 @@ The main boundaries are:
 
 ### Contribution analytics
 
-- VaR and Expected Shortfall contributions by trade, book, strategy, currency, asset class, and risk factor,
+- historical VaR and Expected Shortfall contributions by trade, book, strategy, currency, asset class, and risk factor,
 - marginal and incremental contribution workflows,
+- Monte Carlo contribution decomposition,
 - richer aggregation and run-comparison reports.
 
 ### Exercise and simulation architecture

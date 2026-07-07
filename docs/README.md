@@ -32,13 +32,14 @@ The top-level folders have distinct roles.
 
 The repository currently covers rates, FX, credit, commodities, and equities in
 the canonical trade model and pricing registry. Valuation, deterministic risk,
-stress/HVaR, persistence, CLI, Python entry points, and PnL explain are wired
-through the platform. PnL explain is persisted with component reconciliation,
-sequential factor revaluation, and realized deposit maturity cash support.
+stress/HVaR, historical VaR/Expected Shortfall contribution analytics,
+persistence, CLI, Python entry points, and PnL explain are wired through the
+platform. PnL explain is persisted with component reconciliation, sequential
+factor revaluation, and realized deposit maturity cash support.
 
-Known boundaries are VaR/Expected Shortfall contribution analytics, reusable LSMC
-exercise-policy integration, broader realized-event sources, built-portfolio
-caching, and production-control hardening.
+Known boundaries are reusable LSMC exercise-policy integration, broader
+realized-event sources, built-portfolio caching, Monte Carlo contribution
+decomposition, and production-control hardening.
 
 ## Reading Paths
 

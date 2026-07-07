@@ -106,10 +106,11 @@ The repository is beyond scaffold stage and already contains:
 
 Current implementation maturity is best described as a **multi-asset analytics platform**: rates, FX, credit,
 commodities, and equities are represented in the canonical trade model and pricing registry, scenario/risk workflows
-are persisted, and PnL explain is exposed through the service layer, CLI, Python bindings, and SQLite result tables.
+are persisted, and PnL explain plus historical VaR/Expected Shortfall contribution analytics are exposed through the
+service layer, CLI, Python bindings, and SQLite result tables.
 
-Known boundaries are VaR and Expected Shortfall contribution analytics, reusable LSMC exercise-policy integration,
-broader realized-event sources for explain, built-portfolio caching, and production-control hardening.
+Known boundaries are reusable LSMC exercise-policy integration, broader realized-event sources for explain,
+built-portfolio caching, Monte Carlo contribution decomposition, and production-control hardening.
 
 ## Implemented today
 
@@ -122,6 +123,8 @@ The current codebase already includes:
 - pricing for supported rates, FX, credit, commodity, and equity products,
 - high-performance reactive risk using QuantLib handles and the Observer pattern,
 - historical stress and HVaR scenario workflows,
+- historical VaR and Expected Shortfall contribution analytics by trade, book, strategy, currency, asset class, and
+  risk factor,
 - SQLite-backed persistence for portfolios, market snapshots, scenarios, and analytics results,
 - end-to-end persisted valuation, risk, HVaR, and PnL explain workflows,
 - PnL explain with carry, realized cash, sequential factor market move, residual reconciliation, and persisted
@@ -130,7 +133,7 @@ The current codebase already includes:
 
 ## Known boundaries
 
-- VaR and Expected Shortfall contribution analytics are not yet first-class outputs.
+- Monte Carlo and parametric VaR contribution decomposition are not yet first-class outputs.
 - LSMC exists conceptually in the modeling docs, but is not yet exposed as a reusable exercise-policy engine for every
   early-exercise or physical-flexibility product.
 - Realized cash/event-source integration currently covers deposit maturity support and does not yet cover every coupon,
