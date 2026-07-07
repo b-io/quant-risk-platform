@@ -9,6 +9,7 @@
 #include <qrp/analytics/risk_service.hpp>
 #include <qrp/analytics/stress_engine.hpp>
 #include <qrp/analytics/valuation_service.hpp>
+#include <qrp/analytics/var_contribution_service.hpp>
 #include <qrp/domain/factors.hpp>
 #include <qrp/domain/market_data.hpp>
 #include <qrp/domain/portfolio.hpp>
@@ -107,6 +108,13 @@ void bind_analytics(py::module_& m) {
         .def_readwrite("valuation_date_after", &analytics::PathTrace::valuation_date_after)
         .def_readwrite("valuation_date_before", &analytics::PathTrace::valuation_date_before);
 
+    py::class_<analytics::HistoricalScenarioPnl>(m, "HistoricalScenarioPnl")
+        .def(py::init<>())
+        .def_readwrite("factor_shocks", &analytics::HistoricalScenarioPnl::factor_shocks)
+        .def_readwrite("portfolio_pnl", &analytics::HistoricalScenarioPnl::portfolio_pnl)
+        .def_readwrite("scenario_name", &analytics::HistoricalScenarioPnl::scenario_name)
+        .def_readwrite("trade_pnls", &analytics::HistoricalScenarioPnl::trade_pnls);
+
     py::class_<analytics::PnlExplainComponent>(m, "PnlExplainComponent")
         .def(py::init<>())
         .def_readwrite("amount", &analytics::PnlExplainComponent::amount)
@@ -185,6 +193,45 @@ void bind_analytics(py::module_& m) {
         .def_readwrite("traces", &analytics::SimulationResult::traces)
         .def_readwrite("var_95", &analytics::SimulationResult::var_95);
 
+    py::class_<analytics::VarContribution>(m, "VarContribution")
+        .def(py::init<>())
+        .def_readwrite("aggregation_key", &analytics::VarContribution::aggregation_key)
+        .def_readwrite("aggregation_rule", &analytics::VarContribution::aggregation_rule)
+        .def_readwrite("aggregation_type", &analytics::VarContribution::aggregation_type)
+        .def_readwrite("calculation_method", &analytics::VarContribution::calculation_method)
+        .def_readwrite("confidence_level", &analytics::VarContribution::confidence_level)
+        .def_readwrite("expected_shortfall_contribution", &analytics::VarContribution::expected_shortfall_contribution)
+        .def_readwrite("incremental_expected_shortfall", &analytics::VarContribution::incremental_expected_shortfall)
+        .def_readwrite("incremental_var", &analytics::VarContribution::incremental_var)
+        .def_readwrite("marginal_expected_shortfall", &analytics::VarContribution::marginal_expected_shortfall)
+        .def_readwrite("marginal_var", &analytics::VarContribution::marginal_var)
+        .def_readwrite("portfolio_expected_shortfall_share",
+                       &analytics::VarContribution::portfolio_expected_shortfall_share)
+        .def_readwrite("portfolio_var_share", &analytics::VarContribution::portfolio_var_share)
+        .def_readwrite("scenario_count", &analytics::VarContribution::scenario_count)
+        .def_readwrite("sign_convention", &analytics::VarContribution::sign_convention)
+        .def_readwrite("standalone_expected_shortfall", &analytics::VarContribution::standalone_expected_shortfall)
+        .def_readwrite("standalone_var", &analytics::VarContribution::standalone_var)
+        .def_readwrite("tail_scenario_count", &analytics::VarContribution::tail_scenario_count)
+        .def_readwrite("var_contribution", &analytics::VarContribution::var_contribution)
+        .def_readwrite("var_scenario_name", &analytics::VarContribution::var_scenario_name);
+
+    py::class_<analytics::VarContributionReport>(m, "VarContributionReport")
+        .def(py::init<>())
+        .def_readwrite("confidence_level", &analytics::VarContributionReport::confidence_level)
+        .def_readwrite("contributions", &analytics::VarContributionReport::contributions)
+        .def_readwrite("diagnostics", &analytics::VarContributionReport::diagnostics)
+        .def_readwrite("expected_shortfall", &analytics::VarContributionReport::expected_shortfall)
+        .def_readwrite("expected_shortfall_component_residuals",
+                       &analytics::VarContributionReport::expected_shortfall_component_residuals)
+        .def_readwrite("method", &analytics::VarContributionReport::method)
+        .def_readwrite("scenario_count", &analytics::VarContributionReport::scenario_count)
+        .def_readwrite("scenario_pnls", &analytics::VarContributionReport::scenario_pnls)
+        .def_readwrite("tail_scenario_count", &analytics::VarContributionReport::tail_scenario_count)
+        .def_readwrite("var_component_residuals", &analytics::VarContributionReport::var_component_residuals)
+        .def_readwrite("var_scenario_name", &analytics::VarContributionReport::var_scenario_name)
+        .def_readwrite("var_value", &analytics::VarContributionReport::var_value);
+
     py::class_<analytics::StressResult>(m, "StressResult")
         .def(py::init<>())
         .def_readwrite("scenario_name", &analytics::StressResult::scenario_name)
@@ -219,6 +266,12 @@ void bind_analytics(py::module_& m) {
           py::arg("factors") = std::vector<domain::FactorDefinition>(),
           py::arg("bindings") = std::vector<domain::FactorBinding>(),
           "Explain P&L between two market states");
+    m.def("calculate_historical_var_contributions",
+          &analytics::VarContributionService::calculate_historical_contributions,
+          py::arg("portfolio"),
+          py::arg("scenario_pnls"),
+          py::arg("confidence_level") = 0.95,
+          "Calculate historical VaR and ES contribution analytics");
     m.def(
         "price_portfolio",
         [](const domain::Portfolio& p, const domain::MarketSnapshot& m_dto) {
@@ -245,6 +298,18 @@ void bind_analytics(py::module_& m) {
           py::arg("covariance"),
           py::arg("config"),
           "Run Monte Carlo simulation");
+    m.def("top_expected_shortfall_contributors",
+          &analytics::VarContributionService::top_expected_shortfall_contributors,
+          py::arg("report"),
+          py::arg("aggregation_type") = "trade",
+          py::arg("limit") = 10,
+          "Return top absolute Expected Shortfall contributors");
+    m.def("top_var_contributors",
+          &analytics::VarContributionService::top_var_contributors,
+          py::arg("report"),
+          py::arg("aggregation_type") = "trade",
+          py::arg("limit") = 10,
+          "Return top absolute VaR contributors");
 }
 
 } // namespace qrp::bindings

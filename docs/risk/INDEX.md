@@ -70,12 +70,13 @@ Current risk implementation includes:
   revaluation, realized deposit maturity cash, and reconciliation;
 - HVaR and historical stress replay factor-bound scenarios over the current
   market state;
+- historical VaR and Expected Shortfall contributions by trade, book, strategy,
+  currency, asset class, and risk factor;
 - deterministic sensitivities for the supported product families.
 
 Known boundaries are:
 
-- VaR and Expected Shortfall contributions by trade, book, strategy, currency,
-  asset class, and risk factor;
+- Monte Carlo and parametric VaR contribution decomposition;
 - reusable LSMC integration where early exercise and physical flexibility affect
   risk;
 - broader realized cashflow/event sources for explain;

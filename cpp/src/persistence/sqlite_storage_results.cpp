@@ -306,6 +306,78 @@ void SQLiteStorageBackend::store_var_result(const std::string& run_id,
     stmt.step_done();
 }
 
+void SQLiteStorageBackend::store_var_scenario_pnl(const VarScenarioPnlRecord& record) {
+    const char* sql = R"(
+        INSERT OR REPLACE INTO var_scenario_pnls (
+            run_id,
+            scenario_name,
+            trade_id,
+            portfolio_pnl,
+            trade_pnl
+        )
+        VALUES (?, ?, ?, ?, ?);
+    )";
+    Statement stmt(db_, sql);
+    stmt.bind_text(1, record.run_id);
+    stmt.bind_text(2, record.scenario_name);
+    stmt.bind_text(3, record.trade_id);
+    stmt.bind_double(4, record.portfolio_pnl);
+    stmt.bind_double(5, record.trade_pnl);
+    stmt.step_done();
+}
+
+void SQLiteStorageBackend::store_var_contribution(const VarContributionRecord& record) {
+    const char* sql = R"(
+        INSERT OR REPLACE INTO var_contributions (
+            run_id,
+            method,
+            confidence_level,
+            aggregation_type,
+            aggregation_key,
+            var_contribution,
+            expected_shortfall_contribution,
+            portfolio_var_share,
+            portfolio_expected_shortfall_share,
+            standalone_var,
+            standalone_expected_shortfall,
+            incremental_var,
+            incremental_expected_shortfall,
+            marginal_var,
+            marginal_expected_shortfall,
+            scenario_count,
+            tail_scenario_count,
+            var_scenario_name,
+            sign_convention,
+            aggregation_rule,
+            calculation_method
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    )";
+    Statement stmt(db_, sql);
+    stmt.bind_text(1, record.run_id);
+    stmt.bind_text(2, record.method);
+    stmt.bind_double(3, record.confidence_level);
+    stmt.bind_text(4, record.aggregation_type);
+    stmt.bind_text(5, record.aggregation_key);
+    stmt.bind_double(6, record.var_contribution);
+    stmt.bind_double(7, record.expected_shortfall_contribution);
+    stmt.bind_double(8, record.portfolio_var_share);
+    stmt.bind_double(9, record.portfolio_expected_shortfall_share);
+    stmt.bind_double(10, record.standalone_var);
+    stmt.bind_double(11, record.standalone_expected_shortfall);
+    stmt.bind_double(12, record.incremental_var);
+    stmt.bind_double(13, record.incremental_expected_shortfall);
+    stmt.bind_double(14, record.marginal_var);
+    stmt.bind_double(15, record.marginal_expected_shortfall);
+    stmt.bind_int(16, record.scenario_count);
+    stmt.bind_int(17, record.tail_scenario_count);
+    stmt.bind_text(18, record.var_scenario_name);
+    stmt.bind_text(19, record.sign_convention);
+    stmt.bind_text(20, record.aggregation_rule);
+    stmt.bind_text(21, record.calculation_method);
+    stmt.step_done();
+}
+
 void SQLiteStorageBackend::store_risk_result(const std::string& run_id,
                                              const std::string& trade_id,
                                              const std::string& measure,

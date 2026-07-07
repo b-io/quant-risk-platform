@@ -237,6 +237,54 @@ public:
                                   int scenario_count) = 0;
 
     /**
+     * @brief Normalized scenario/trade PnL row used by VaR contribution analytics.
+     */
+    struct VarScenarioPnlRecord {
+        std::string run_id;         // Analysis run id.
+        std::string scenario_name;  // Scenario or path id.
+        std::string trade_id;       // Trade id.
+        double portfolio_pnl = 0.0; // Total portfolio PnL for the scenario.
+        double trade_pnl = 0.0;     // Trade-level PnL for the scenario.
+    };
+
+    /**
+     * @brief Normalized VaR/ES contribution row.
+     */
+    struct VarContributionRecord {
+        std::string run_id;                              // Analysis run id.
+        std::string method;                              // VaR methodology.
+        double confidence_level = 0.95;                  // VaR/ES confidence level.
+        std::string aggregation_type;                    // trade, book, strategy, currency, asset_class, risk_factor.
+        std::string aggregation_key;                     // Group key.
+        double var_contribution = 0.0;                   // Component VaR contribution.
+        double expected_shortfall_contribution = 0.0;    // Component ES contribution.
+        double portfolio_var_share = 0.0;                // Component VaR share of aggregate VaR.
+        double portfolio_expected_shortfall_share = 0.0; // Component ES share of aggregate ES.
+        double standalone_var = 0.0;                     // VaR of group PnL distribution.
+        double standalone_expected_shortfall = 0.0;      // ES of group PnL distribution.
+        double incremental_var = 0.0;                    // Portfolio VaR minus VaR without group.
+        double incremental_expected_shortfall = 0.0;     // Portfolio ES minus ES without group.
+        double marginal_var = 0.0;                       // Remove-group marginal VaR approximation.
+        double marginal_expected_shortfall = 0.0;        // Remove-group marginal ES approximation.
+        int scenario_count = 0;                          // Number of scenarios.
+        int tail_scenario_count = 0;                     // Number of ES tail scenarios.
+        std::string var_scenario_name;                   // Scenario selected by portfolio VaR.
+        std::string sign_convention;                     // Positive-loss convention label.
+        std::string aggregation_rule;                    // Grouping rule.
+        std::string calculation_method;                  // Calculation method.
+    };
+
+    /**
+     * @brief Stores one scenario/trade PnL row used by VaR contribution analytics.
+     */
+    virtual void store_var_scenario_pnl(const VarScenarioPnlRecord& record) = 0;
+
+    /**
+     * @brief Stores one VaR/ES contribution row.
+     */
+    virtual void store_var_contribution(const VarContributionRecord& record) = 0;
+
+    /**
      * @brief Stores one trade-level risk measure.
      */
     virtual void store_risk_result(const std::string& run_id,

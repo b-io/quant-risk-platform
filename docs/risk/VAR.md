@@ -42,7 +42,49 @@ $$
 
 Historical VaR is intuitive and scenario-based, but it depends on the lookback window and factor mapping.
 
-## 3. Parametric VaR
+## 3. Historical VaR contribution analytics
+
+The implementation stores historical scenario P&L at both portfolio and trade
+level, then calculates contribution rows under the positive-loss convention.
+If $s^\*$ is the scenario selected by portfolio historical VaR, component VaR
+for group $g$ is
+
+$$
+C_g^{VaR}=-P\&L_g(s^\*)
+$$
+
+If $T_\alpha$ is the portfolio tail set used for Expected Shortfall, component
+ES is
+
+$$
+C_g^{ES}=-\frac{1}{|T_\alpha|}\sum_{s\in T_\alpha}P\&L_g(s)
+$$
+
+Supported historical contribution aggregations are:
+
+- trade,
+- book,
+- strategy,
+- currency,
+- asset class,
+- risk factor.
+
+Trade-based aggregations sum trade scenario P&L into the requested group.
+Risk-factor aggregation allocates each scenario's portfolio P&L across shocked
+factors in proportion to absolute shock magnitude. That allocation is an
+approximation and should be reported with the residual by aggregation type.
+
+Each contribution row includes:
+
+- component VaR and component ES,
+- portfolio VaR and ES share,
+- standalone VaR and ES for the group path,
+- incremental VaR and ES from removing the group,
+- marginal VaR and ES using the same remove-group approximation,
+- confidence level, scenario count, tail count, VaR scenario, sign convention,
+  aggregation rule, and calculation method.
+
+## 4. Parametric VaR
 
 In a delta-normal approximation with factor-sensitivity vector $w$ and factor covariance matrix $\Sigma$, the portfolio standard deviation is
 
@@ -63,7 +105,7 @@ $$
 
 This method is fast and scalable, but it can understate non-linear or heavy-tailed risk.
 
-## 4. Monte Carlo VaR
+## 5. Monte Carlo VaR
 
 Monte Carlo VaR simulates future factor states and reprices the portfolio under each state. If the simulated losses are the sample $\{L_i\}_{i=1}^N$, then
 
@@ -73,7 +115,7 @@ $$
 
 The method is flexible and handles non-linearity well, but it is computationally heavier and inherits model risk from the simulation model.
 
-## 5. Output requirements
+## 6. Output requirements
 
 Every VaR or ES report should state at least:
 
@@ -83,4 +125,5 @@ Every VaR or ES report should state at least:
 - factor set,
 - valuation mode,
 - lookback window or number of paths,
+- contribution aggregation rule and residual when contributions are reported,
 - main assumptions.

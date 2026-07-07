@@ -34,7 +34,8 @@ Current limitations:
 - Monte Carlo is a one-step factor simulation rather than a general path framework,
 - HVaR is implemented as historical scenario replay, while parametric and Monte Carlo VaR are not dedicated service
   methods,
-- VaR and Expected Shortfall contribution analytics are not yet first-class service outputs,
+- historical VaR and Expected Shortfall contribution analytics are first-class service outputs, while Monte Carlo and
+  parametric contribution decomposition are not dedicated service outputs,
 - there is no built portfolio cache.
 
 ## 3. Target service split
@@ -101,7 +102,7 @@ This design choice is fundamental to the project.
 ## 5. Current service boundaries
 
 1. Built-instrument and built-portfolio caching are not shared service capabilities.
-2. VaR and Expected Shortfall contribution analytics are not yet first-class outputs.
+2. Monte Carlo and parametric VaR contribution decomposition are not yet first-class outputs.
 3. Monte Carlo one-step simulation and path simulation are not separated into production service APIs.
 4. LSMC is not yet exposed as a reusable exercise-policy engine.
 5. Product event-source integration for realized cashflow explain is limited.

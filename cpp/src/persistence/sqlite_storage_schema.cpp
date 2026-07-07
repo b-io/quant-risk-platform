@@ -293,6 +293,46 @@ void SQLiteStorageBackend::initialize_schema() {
             FOREIGN KEY(run_id) REFERENCES analysis_runs(run_id)
         );
     )");
+
+    execute_sql(R"(
+        CREATE TABLE IF NOT EXISTS var_scenario_pnls (
+            run_id TEXT,
+            scenario_name TEXT,
+            trade_id TEXT,
+            portfolio_pnl REAL,
+            trade_pnl REAL,
+            PRIMARY KEY(run_id, scenario_name, trade_id),
+            FOREIGN KEY(run_id) REFERENCES analysis_runs(run_id)
+        );
+    )");
+
+    execute_sql(R"(
+        CREATE TABLE IF NOT EXISTS var_contributions (
+            run_id TEXT,
+            method TEXT,
+            confidence_level REAL,
+            aggregation_type TEXT,
+            aggregation_key TEXT,
+            var_contribution REAL,
+            expected_shortfall_contribution REAL,
+            portfolio_var_share REAL,
+            portfolio_expected_shortfall_share REAL,
+            standalone_var REAL,
+            standalone_expected_shortfall REAL,
+            incremental_var REAL,
+            incremental_expected_shortfall REAL,
+            marginal_var REAL,
+            marginal_expected_shortfall REAL,
+            scenario_count INTEGER,
+            tail_scenario_count INTEGER,
+            var_scenario_name TEXT,
+            sign_convention TEXT,
+            aggregation_rule TEXT,
+            calculation_method TEXT,
+            PRIMARY KEY(run_id, method, confidence_level, aggregation_type, aggregation_key),
+            FOREIGN KEY(run_id) REFERENCES analysis_runs(run_id)
+        );
+    )");
 }
 
 } // namespace qrp::persistence

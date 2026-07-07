@@ -129,6 +129,7 @@ add_library(qrp_core ${_QRP_CORE_LIBRARY_TYPE}
     cpp/src/analytics/simulation_primitives.cpp
     cpp/src/analytics/stress_engine.cpp
     cpp/src/analytics/valuation_service.cpp
+    cpp/src/analytics/var_contribution_service.cpp
     cpp/src/app/quant_risk_platform.cpp
     cpp/src/conventions/market_convention_registry.cpp
     cpp/src/conventions/rates_market_conventions.cpp
