@@ -393,16 +393,23 @@ Current implementation checkpoint:
 - A generic LSMC module exists with `LsmcEngine`, `LsmcConfig`, `LsmcResult`,
   dynamic-programming decision-problem interfaces, stochastic-process
   primitives, and ordinary-least-squares regression support.
-- The LSMC result captures value, standard error, path values, VaR, and Expected
-  Shortfall, and unit coverage includes an American put exercise-policy example.
+- The LSMC result captures value, standard error, raw and sorted path values,
+  VaR, Expected Shortfall, basis-function names, serialized configuration tags,
+  and step-level regression diagnostics.
+- A reusable `ExercisePolicy` abstraction and `ExercisePolicyDecisionProblem`
+  adapter now map exercise policies into the generic dynamic-programming
+  contract.
+- Python bindings expose `LsmcConfig`, `LsmcResult`, regression diagnostics,
+  `PolynomialBasis`, and `price_american_option_lsmc(...)`; the platform demo
+  prints an American option LSMC run with basis and regression diagnostics.
 - Bermudan swaption pricing already uses the generic LSMC engine through a
   product-specific one-factor approximation.
 - American equity options and commodity swing/storage products still use
   product-specific approximations or partial support rather than the shared LSMC
   exercise-policy layer.
-- Phase 10 remains a model-integration milestone: expose LSMC through bindings,
-  serialize full diagnostics, and connect the reusable engine to all
-  early-exercise and physical-flexibility products.
+- The remaining model-integration work is connecting the reusable engine to all
+  early-exercise and physical-flexibility product paths, starting with American
+  equity options and commodity swing/storage contracts.
 
 ## Phase 11: Production Controls
 

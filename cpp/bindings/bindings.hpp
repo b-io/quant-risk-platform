@@ -22,6 +22,11 @@ void bind_domain(pybind11::module_& m);
 void bind_io(pybind11::module_& m);
 
 /**
+ * @brief Registers reusable LSMC exercise-policy helpers with the Python module.
+ */
+void bind_lsmc(pybind11::module_& m);
+
+/**
  * @brief Registers market builders, snapshots, and market-state helpers with the Python module.
  */
 void bind_market(pybind11::module_& m);

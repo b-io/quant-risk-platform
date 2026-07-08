@@ -66,6 +66,13 @@ public:
     virtual std::vector<double> regressionFeatures(const State& state, std::size_t timeIndex) const = 0;
 
     /**
+     * @brief Returns stable names for continuation-value regression features.
+     */
+    virtual std::vector<std::string> regressionFeatureNames(std::size_t) const {
+        return {};
+    }
+
+    /**
      * @brief Returns terminal payoff or penalty at maturity.
      */
     virtual double terminalValue(const State&) const {

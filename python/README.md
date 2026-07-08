@@ -5,8 +5,8 @@ This directory contains the Python-based API, examples, and notebooks for the Qu
 #### Directory Structure
 
 - `examples/`: Python scripts demonstrating and smoke-testing valuation, factor scenarios, `RevaluationSession`
-  quote/scenario revaluation, dependency-graph impact diagnostics, stress, risk, P&L explain, Monte Carlo, dashboard
-  export, and optional optimization-worker flows.
+  quote/scenario revaluation, dependency-graph impact diagnostics, stress, risk, P&L explain, LSMC exercise-policy
+  valuation, Monte Carlo, dashboard export, and optional optimization-worker flows.
 - `notebooks/`: Jupyter Notebooks providing interactive walkthroughs of the platform's features, including valuation, risk analysis, and VaR.
 
 #### Key Components

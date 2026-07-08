@@ -43,6 +43,8 @@ Current limitations:
   methods,
 - historical VaR and Expected Shortfall contribution analytics are first-class service outputs, while Monte Carlo and
   parametric contribution decomposition are not dedicated service outputs,
+- LSMC exposes a C++-managed American option exercise-policy helper to Python with basis, path, and regression
+  diagnostics,
 - there is no platform-wide built portfolio cache shared by all analytics.
 
 ## 3. Target service split
@@ -93,8 +95,9 @@ The engine supports:
 - **Aged horizon revaluation**: Age to a horizon date, compute frozen aging P&L, apply factor shocks, and report market
   and total P&L diagnostics.
 
-The reusable LSMC module handles exercise-policy examples and product-specific approximations separately. A general
-multi-step exposure cube and path-dependent pricing service remains an extension area.
+The reusable LSMC module handles exercise-policy examples, Python-facing American option valuation, and product-specific
+approximations separately. A general multi-step exposure cube and path-dependent pricing service remains an extension
+area.
 
 ## 4. Architectural choice: Handle-based vs. Brute-force
 
@@ -116,6 +119,7 @@ This design choice is fundamental to the project.
 1. Built-instrument and built-portfolio caching are not shared service capabilities.
 2. Monte Carlo and parametric VaR contribution decomposition are not yet first-class outputs.
 3. Monte Carlo has horizon-shock and aged-horizon modes, but not a general multi-step path/exposure service.
-4. LSMC is not yet exposed as a reusable exercise-policy engine.
+4. LSMC is exposed through a C++-managed helper, but the shared exercise-policy layer is not yet wired across every
+   early-exercise or physical-flexibility product.
 5. Product event-source integration for realized cashflow explain is limited.
 6. Production controls, manifests, lineage reports, and benchmark governance remain hardening areas.

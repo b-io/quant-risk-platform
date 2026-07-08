@@ -38,6 +38,8 @@ flowchart TD
     K --> L
     R --> L
     V --> L
+    E --> X[LSMC exercise helpers]
+    X --> L
 ```
 
 ### Layering Rationale
@@ -257,6 +259,8 @@ Current state:
   scenarios, pricing, reset, base/shocked/restored reporting, opt-in impact previews, and candidate-only diff reports,
 - Monte Carlo supports horizon-shock and aged-horizon factor revaluation modes rather than a general multi-step exotic
   path engine,
+- LSMC exposes C++-managed exercise-policy helpers to Python with path values, basis labels, run configuration, and
+  regression diagnostics,
 - historical VaR and Expected Shortfall contribution analytics report trade, book, strategy, currency, asset-class, and
   risk-factor contributions,
 - realized cash explain currently includes deposit maturities, while coupons, fixings, exercises, and settlement events
@@ -278,8 +282,8 @@ The main boundaries are:
 2. **Instrument construction still contains hardcoded schedule and day-count assumptions.**
 3. **The analytics services do not yet share a platform-wide built-position cache.**
 4. **PnL explain needs broader product event sources beyond deposit maturities.**
-5. **Monte Carlo contribution decomposition, reusable LSMC integration, and production controls are not yet first-class
-   across the platform.**
+5. **Monte Carlo contribution decomposition, product-wide LSMC integration, and production controls are not yet
+   first-class across the platform.**
 
 ## 9. Extension Areas
 
@@ -299,7 +303,7 @@ The main boundaries are:
 
 ### Exercise and simulation architecture
 
-- LSMC as a reusable exercise-policy engine,
+- LSMC exercise-policy helpers wired into product pricing paths,
 - Monte Carlo path engine separated from one-step factor simulation,
 - cached factor mappings and parallel scenario execution,
 - production controls for manifests, lineage, benchmark portfolios, and performance gates.

@@ -49,10 +49,9 @@ dependency-graph and impact-diff diagnostics for Python workflows. PnL explain
 is persisted with component reconciliation, sequential factor revaluation, and
 realized deposit maturity cash support.
 
-Known boundaries are reusable LSMC exercise-policy integration, broader
-realized-event sources, platform-wide built-portfolio caching beyond the
-revaluation-session API, Monte Carlo contribution decomposition, and
-production-control hardening.
+Known boundaries are full product-path LSMC migration, broader realized-event
+sources, platform-wide built-portfolio caching beyond the revaluation-session
+API, Monte Carlo contribution decomposition, and production-control hardening.
 
 ## Reading Paths
 

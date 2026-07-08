@@ -58,7 +58,8 @@ For detailed build variants, see [QUICKSTART.md](QUICKSTART.md).
 
 The demo loads the checked-in market, portfolio, factor, scenario, and regression files. It runs valuation, factor shock
 resolution, `RevaluationSession` observer-pattern revaluation, stress, historical VaR contributions, deterministic
-risk, P&L explain, Monte Carlo, golden checks, and an optional optimization worker check.
+risk, P&L explain, LSMC exercise-policy valuation, Monte Carlo, golden checks, and an optional optimization worker
+check.
 
 ```powershell
 uv sync --project python --extra dashboard --extra optimization
@@ -146,7 +147,33 @@ for result in valuation_results:
 ```
 
 Use `python/examples/demo_platform.py` as the reference for building factor definitions, factor bindings, scenarios,
-covariance matrices, P&L explain inputs, Monte Carlo configuration, and VaR contribution paths.
+covariance matrices, P&L explain inputs, LSMC exercise-policy requests, Monte Carlo configuration, and VaR contribution
+paths.
+
+### LSMC Exercise Policy
+
+The LSMC binding keeps path simulation, continuation regression, and exercise decisions in C++:
+
+```python
+request = qrp.AmericanOptionLsmcRequest()
+request.spot = 100.0
+request.strike = 100.0
+request.risk_free_rate = 0.05
+request.volatility = 0.20
+request.maturity = 1.0
+request.exercise_steps = 24
+request.config.num_paths = 4096
+request.config.seed = 42
+request.config.discount_rate = request.risk_free_rate
+
+result = qrp.price_american_option_lsmc(request)
+print(result.value, result.standard_error)
+print(result.basis_function_names)
+print(result.regression_diagnostics[0].r_squared)
+```
+
+Python receives compact run diagnostics and path values, while C++ owns the stochastic process, exercise policy, and
+regression loop. This keeps the hot path out of Python callbacks.
 
 ## Run The CLI
 
@@ -222,7 +249,7 @@ Common local outputs are:
 
 Supported product families include rates, FX, credit, equities, and commodities. Supported analytics include valuation,
 risk sensitivities, C++-owned revaluation sessions, historical stress, historical VaR/ES, VaR/ES contributions, P&L
-explain, Monte Carlo simulation, and persisted run reporting.
+explain, LSMC exercise-policy helpers, Monte Carlo simulation, and persisted run reporting.
 
 For detailed product coverage, see [docs/asset-classes/INDEX.md](docs/asset-classes/INDEX.md). For risk conventions,
 see [docs/risk/INDEX.md](docs/risk/INDEX.md).

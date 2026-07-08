@@ -36,7 +36,8 @@ Current platform coverage:
   dividend-yield, and borrow inputs.
 - European options use a Black-Scholes cost-of-carry formula. American options
   currently use a recombining binomial exercise tree; replacing that tree with
-  LSMC or finite differences remains a model upgrade rather than a DTO gap.
+  the shared LSMC exercise-policy helper or finite differences remains a model
+  upgrade rather than a DTO gap.
 - The portfolio-backed golden fixtures under `data/portfolios/` link equity
   forwards, futures, and European/American options to book-level structural
   coverage.

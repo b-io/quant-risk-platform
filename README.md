@@ -19,6 +19,8 @@ The C++ core owns the analytics. Python is the interface layer for demos, orches
   and risk factor.
 - Explain P&L with carry, market move, realized deposit maturity cash, residual reconciliation, and persisted
   components.
+- Run a C++-managed LSMC American option exercise-policy helper from Python with path, basis, and regression
+  diagnostics.
 - Reuse a C++-owned revaluation session from Python for fast quote updates, scenario revaluation, dependency-graph
   diagnostics, and restored market checks without exposing raw QuantLib handles.
 - Persist market data, portfolios, scenarios, valuation runs, risk runs, HVaR runs, and P&L explain runs in SQLite.
@@ -192,7 +194,8 @@ and demo dashboards.
 Known boundaries:
 
 - Monte Carlo and parametric VaR contribution decomposition are not yet first-class outputs.
-- LSMC is not yet exposed as a reusable exercise-policy engine for every early-exercise or physical-flexibility product.
+- LSMC is exposed through a C++-managed American option helper with diagnostics; wiring the shared exercise-policy layer
+  into every early-exercise and physical-flexibility product remains a hardening area.
 - Realized event-source integration does not yet cover every coupon, fixing, exercise, and settlement source.
 - A reusable revaluation-session cache exists for quote and scenario workflows; a shared built-position cache across all
   analytics services is still a hardening area.

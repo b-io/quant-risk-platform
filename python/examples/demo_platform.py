@@ -730,6 +730,38 @@ def run_pnl_explain(portfolio, market_path):
     return pnl_results
 
 
+def run_lsmc_exercise_policy_demo():
+    section("9. LSMC Exercise Policy")
+    request = qrp.AmericanOptionLsmcRequest()
+    request.spot = 100.0
+    request.strike = 100.0
+    request.risk_free_rate = 0.05
+    request.volatility = 0.20
+    request.maturity = 1.0
+    request.exercise_steps = 24
+    request.basis_degree = 2
+    request.config.num_paths = 4096
+    request.config.seed = 42
+    request.config.discount_rate = request.risk_free_rate
+
+    result = qrp.price_american_option_lsmc(request)
+    if not result.regression_diagnostics:
+        raise AssertionError("Expected LSMC regression diagnostics")
+
+    first_step = result.regression_diagnostics[0]
+    print(f"American put value: {result.value:,.4f} +/- {result.standard_error:,.4f}")
+    print(f"Tail diagnostics:   VaR95={result.var_95:,.4f} ES95={result.expected_shortfall_95:,.4f}")
+    print(f"Basis:              {', '.join(result.basis_function_names)}")
+    print(
+        "First regression:   "
+        f"t={first_step.time:>.4f} samples={first_step.sample_count} "
+        f"basis={first_step.basis_function_count} R2={first_step.r_squared:>.4f} "
+        f"exercise={first_step.exercise_count}"
+    )
+    print(f"Config tags:        seed={result.config_tags['seed']} paths={result.config_tags['num_paths']}")
+    return result
+
+
 def factor_variance(factor):
     if factor.factor_type in (qrp.FactorType.RateForward, qrp.FactorType.RateZero):
         return 1e-8
@@ -794,7 +826,7 @@ def print_traces(traces, mode):
 
 
 def run_monte_carlo(portfolio, market, factors, bindings):
-    section("9. Monte Carlo")
+    section("10. Monte Carlo")
     results = compute_monte_carlo(portfolio, market, factors, bindings, MONTE_CARLO_CASES)
     for (label, mode, horizon_days), (_, result, mean_pnl) in zip(MONTE_CARLO_CASES, results):
         print(
@@ -1102,7 +1134,7 @@ def validate_product_family_outputs(product_families, valuation_results, stress_
 
 
 def run_optional_cvxpy_worker_check():
-    section("10. Optional CVXPY Worker Check")
+    section("11. Optional CVXPY Worker Check")
     worker_path = project_root / "python" / "qrp" / "optimization" / "cvxpy_worker.py"
     spec = importlib.util.spec_from_file_location("qrp_cvxpy_worker", worker_path)
     if spec is None or spec.loader is None:
@@ -1187,6 +1219,7 @@ def run_demo(dashboard=False):
     run_var_contributions(portfolio, stress_results, scenarios)
     risk_results = run_risk(portfolio, market, factors, bindings)
     pnl_results = run_pnl_explain(portfolio, market_path)
+    run_lsmc_exercise_policy_demo()
     mc_results = run_monte_carlo(portfolio, market, factors, bindings)
     validate_golden_outputs(
         golden,
