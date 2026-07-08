@@ -35,9 +35,8 @@ Current platform coverage:
 - Equity forwards and futures use spot or listed futures quotes with discount,
   dividend-yield, and borrow inputs.
 - European options use a Black-Scholes cost-of-carry formula. American options
-  currently use a recombining binomial exercise tree; replacing that tree with
-  the shared LSMC exercise-policy helper or finite differences remains a model
-  upgrade rather than a DTO gap.
+  use the shared C++ LSMC exercise-policy helper with deterministic engine
+  settings for reproducible product-path valuation.
 - The portfolio-backed golden fixtures under `data/portfolios/` link equity
   forwards, futures, and European/American options to book-level structural
   coverage.

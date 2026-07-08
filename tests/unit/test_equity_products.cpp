@@ -211,6 +211,50 @@ TEST(EquityProductsTest, PricesEquityProducts) {
     EXPECT_GE(by_trade.at("equity_option_aapl_american_put").npv, by_trade.at("equity_option_aapl_euro_put").npv);
 }
 
+TEST(EquityProductsTest, AmericanOptionsUseReproducibleLsmcPath) {
+    qrp::market::MarketSnapshot market(make_equity_market());
+    qrp::analytics::PricingContext context(market.built_state());
+
+    auto american_put = make_equity_trade<qrp::domain::EquityOptionTrade>("equity_option_aapl_american_put", "long");
+    american_put->quantity = 100.0;
+    american_put->strike_price = 190.0;
+    american_put->expiry_date = "2026-09-24";
+    american_put->settlement_date = "2026-09-24";
+    american_put->option_type = "put";
+    american_put->exercise_style = "american";
+    american_put->underlier = "AAPL";
+    american_put->dividend_yield_quote_id = "AAPL_DIVYLD_1Y";
+    american_put->borrow_rate_quote_id = "AAPL_BORROW_1Y";
+    american_put->volatility_quote_id = "AAPL_VOL_6M_ATM";
+
+    auto first = qrp::instruments::EquityInstrumentFactory::create_equity_option(*american_put, context);
+    auto second = qrp::instruments::EquityInstrumentFactory::create_equity_option(*american_put, context);
+    ASSERT_TRUE(first);
+    ASSERT_TRUE(second);
+
+    const double first_npv = first->NPV();
+    const double first_error = first->errorEstimate();
+    EXPECT_DOUBLE_EQ(first_npv, second->NPV());
+    EXPECT_DOUBLE_EQ(first_error, second->errorEstimate());
+    EXPECT_GT(first_error, 0.0);
+
+    auto european_put = make_equity_trade<qrp::domain::EquityOptionTrade>("equity_option_aapl_euro_put", "long");
+    european_put->quantity = american_put->quantity;
+    european_put->strike_price = american_put->strike_price;
+    european_put->expiry_date = american_put->expiry_date;
+    european_put->settlement_date = american_put->settlement_date;
+    european_put->option_type = american_put->option_type;
+    european_put->exercise_style = "european";
+    european_put->underlier = american_put->underlier;
+    european_put->dividend_yield_quote_id = american_put->dividend_yield_quote_id;
+    european_put->borrow_rate_quote_id = american_put->borrow_rate_quote_id;
+    european_put->volatility_quote_id = american_put->volatility_quote_id;
+
+    auto european = qrp::instruments::EquityInstrumentFactory::create_equity_option(*european_put, context);
+    ASSERT_TRUE(european);
+    EXPECT_GE(first_npv, european->NPV());
+}
+
 TEST(EquityProductsTest, FactoriesReturnNullWhenEquityQuotesAreMissing) {
     qrp::domain::MarketSnapshot market_dto;
     market_dto.valuation_date = "2026-03-24";

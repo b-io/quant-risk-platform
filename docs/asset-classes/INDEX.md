@@ -75,8 +75,9 @@ Known boundaries are:
 
 - Monte Carlo and parametric VaR contribution decomposition are not yet
   first-class outputs;
-- LSMC exercise-policy helpers are exposed, but the shared layer is not yet
-  wired across all early-exercise and physical-flexibility products;
+- LSMC exercise-policy helpers are exposed and used by American equity options,
+  but the shared layer is not yet wired across all early-exercise and
+  physical-flexibility products;
 - shared built-position caching across every analytics service is not yet
   generalized beyond the revaluation-session API;
 - production controls and validation reports remain hardening areas.

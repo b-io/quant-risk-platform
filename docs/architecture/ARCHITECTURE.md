@@ -260,7 +260,7 @@ Current state:
 - Monte Carlo supports horizon-shock and aged-horizon factor revaluation modes rather than a general multi-step exotic
   path engine,
 - LSMC exposes C++-managed exercise-policy helpers to Python with path values, basis labels, run configuration, and
-  regression diagnostics,
+  regression diagnostics, and American equity options use the shared helper in the product path,
 - historical VaR and Expected Shortfall contribution analytics report trade, book, strategy, currency, asset-class, and
   risk-factor contributions,
 - realized cash explain currently includes deposit maturities, while coupons, fixings, exercises, and settlement events
@@ -303,7 +303,7 @@ The main boundaries are:
 
 ### Exercise and simulation architecture
 
-- LSMC exercise-policy helpers wired into product pricing paths,
+- LSMC exercise-policy helpers wired into remaining early-exercise and physical-flexibility product pricing paths,
 - Monte Carlo path engine separated from one-step factor simulation,
 - cached factor mappings and parallel scenario execution,
 - production controls for manifests, lineage, benchmark portfolios, and performance gates.

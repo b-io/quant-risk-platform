@@ -275,8 +275,8 @@ Current implementation checkpoint:
   priced from spot, discount, dividend-yield, borrow, futures, and volatility
   quotes where applicable.
 - European options use a Black-Scholes cost-of-carry formula. American options
-  use a recombining binomial exercise tree, which keeps early exercise explicit
-  while leaving LSMC or finite-difference replacement as a later model upgrade.
+  use the shared C++ LSMC exercise-policy helper with deterministic engine
+  settings for reproducible product-path valuation.
 - The portfolio-backed structural golden set includes equity coverage through
   the model ladder and thematic portfolios, notably Growth Global Macro and High
   Growth Equity Volatility.
@@ -402,14 +402,15 @@ Current implementation checkpoint:
 - Python bindings expose `LsmcConfig`, `LsmcResult`, regression diagnostics,
   `PolynomialBasis`, and `price_american_option_lsmc(...)`; the platform demo
   prints an American option LSMC run with basis and regression diagnostics.
+- American equity options route through the shared C++ LSMC exercise-policy
+  helper rather than a product-local exercise tree.
 - Bermudan swaption pricing already uses the generic LSMC engine through a
   product-specific one-factor approximation.
-- American equity options and commodity swing/storage products still use
-  product-specific approximations or partial support rather than the shared LSMC
-  exercise-policy layer.
+- Commodity swing/storage products still use product-specific approximations or
+  partial support rather than the shared LSMC exercise-policy layer.
 - The remaining model-integration work is connecting the reusable engine to all
-  early-exercise and physical-flexibility product paths, starting with American
-  equity options and commodity swing/storage contracts.
+  remaining early-exercise and physical-flexibility product paths, starting with
+  Bermudan swaptions, callable bonds, and commodity swing/storage contracts.
 
 ## Phase 11: Production Controls
 

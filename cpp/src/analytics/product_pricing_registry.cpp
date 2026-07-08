@@ -536,7 +536,7 @@ const std::map<domain::ProductType, ProductPricingDefinition>& definitions() {
         {domain::ProductType::EquityOption,
          ProductPricingDefinition{no_realized_cashflows,
                                   build_equity_option,
-                                  "QRP::EquityOptionInstrument/Black-Scholes plus binomial American exercise",
+                                  "QRP::EquityOptionInstrument/Black-Scholes plus LSMC American exercise",
                                   default_pricing_profile,
                                   domain::ProductType::EquityOption,
                                   "European and American equity/index options are supported with dividend, borrow, and "
