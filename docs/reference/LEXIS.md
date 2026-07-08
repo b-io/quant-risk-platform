@@ -86,6 +86,21 @@ under declared limitations.
 **Unsupported** means that the platform can identify the product but cannot
 complete the requested workflow. The failure reason should be explicit.
 
+**Revaluation session** is a reusable C++-owned pricing context for repeated
+quote updates, factor scenarios, and restored-market checks. It owns the market
+state, mutable quote handles, curves, pricing engines, and cached instruments so
+Python can request revaluation without rebuilding product objects or managing
+raw QuantLib lifetimes.
+
+**Impact preview** is an opt-in diagnostic report that maps changed quote or
+factor identifiers to structurally affected candidate trades before repricing.
+It is useful for audit, debugging, and efficient downstream reporting.
+
+**Candidate trade** is a trade selected by an impact preview because its direct
+market quote, curve inputs, market metadata, or factor binding may depend on the
+updated market input. A candidate may still produce zero or immaterial PnL after
+full revaluation.
+
 ## Risk Factors
 
 **Risk factor** is a named market quantity that can be shocked, simulated, or
