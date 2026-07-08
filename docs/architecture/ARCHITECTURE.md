@@ -29,11 +29,15 @@ flowchart TD
     F --> I[PnlExplainService]
     F --> J[StressEngine]
     F --> K[MonteCarloEngine]
+    F --> R[RevaluationSession]
+    J --> V[VarContributionService]
     G --> L[CLI and Python bindings]
     H --> L
     I --> L
     J --> L
     K --> L
+    R --> L
+    V --> L
 ```
 
 ### Layering Rationale
@@ -43,7 +47,10 @@ flowchart TD
 - **Market builders** convert raw quotes and conventions into QuantLib term structures.
 - **MarketState** owns reusable handles and curves.
 - **PricingContext**: Resolves which curves and conventions an instrument should use.
-- **BuiltPortfolio / BuiltTrade**: Cached representation of trades as QuantLib instruments, ready for pricing and risk.
+- **RevaluationSession**: C++-owned market state and instrument cache used for repeated quote updates and scenario
+  revaluation.
+- **BuiltPortfolio / BuiltTrade**: Target shared cache abstraction for all analytics; not yet generalized across the
+  platform.
 - **InstrumentFactory**: Translates trades into QuantLib instruments.
 - **Analytics services**: Operate on built market state and built instruments rather than re-parsing JSON.
 - **Local Database (SQLite)**: Stores portfolios, trades, market data, and historical results (valuations,
@@ -232,8 +239,10 @@ Files:
 - `valuation_service.cpp`
 - `risk_service.cpp`
 - `pnl_explain_service.cpp`
+- `revaluation_session.cpp`
 - `stress_engine.cpp`
 - `monte_carlo_engine.cpp`
+- `var_contribution_service.cpp`
 
 Current state:
 
@@ -244,7 +253,12 @@ Current state:
   model-change, and residual components,
 - market-move explain can run sequential full revaluation by factor and falls back to aggregate revaluation when factor
   bindings are absent,
-- Monte Carlo is currently a one-step Gaussian scenario engine rather than a true path engine,
+- `RevaluationSession` exposes a reusable C++-owned market/instrument cache to Python for quote updates, factor
+  scenarios, pricing, reset, base/shocked/restored reporting, opt-in impact previews, and candidate-only diff reports,
+- Monte Carlo supports horizon-shock and aged-horizon factor revaluation modes rather than a general multi-step exotic
+  path engine,
+- historical VaR and Expected Shortfall contribution analytics report trade, book, strategy, currency, asset-class, and
+  risk-factor contributions,
 - realized cash explain currently includes deposit maturities, while coupons, fixings, exercises, and settlement events
   need broader event-source integration.
 
@@ -262,7 +276,7 @@ The main boundaries are:
 
 1. **Not all market and product conventions are centralized yet.**
 2. **Instrument construction still contains hardcoded schedule and day-count assumptions.**
-3. **The analytics services do not yet share a built-position cache.**
+3. **The analytics services do not yet share a platform-wide built-position cache.**
 4. **PnL explain needs broader product event sources beyond deposit maturities.**
 5. **Monte Carlo contribution decomposition, reusable LSMC integration, and production controls are not yet first-class
    across the platform.**
@@ -298,6 +312,7 @@ The chosen direction remains a stable base because:
 - rate helpers are the right primitive for market-consistent curve construction,
 - layering is already service-oriented rather than notebook-oriented,
 - the result and persistence models now span valuation, risk, HVaR, and PnL explain,
+- historical VaR/ES contributions and Python revaluation sessions now share the same factor-bound market state design,
 - the current gaps are mainly hardening, caching, contribution analytics, and production controls rather than a
   fundamentally wrong architecture.
 

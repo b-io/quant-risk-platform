@@ -8,7 +8,7 @@ Most scripts are provided in both PowerShell (`.ps1`) and Bash (`.sh`) versions 
 | Script      | Purpose                                                           |
 |-------------|-------------------------------------------------------------------|
 | `build`     | Compiles the project using CMake presets.                         |
-| `compute`   | Orchestrates a full valuation, risk, and VaR computation flow.    |
+| `compute`   | Orchestrates valuation, deterministic risk, and historical VaR runs. |
 | `coverage/` | Contains language-specific coverage metric helpers.               |
 | `env`       | Imports the project-local `.env.cmd` or `.env.sh`.                |
 | `init`      | Initializes the SQLite database and loads sample data.            |
@@ -69,7 +69,7 @@ Set up the database and import sample market data, portfolios, and scenarios:
 
 ##### 3. Running a Full Analysis Flow
 
-Run valuation, sensitivities, and Value-at-Risk for the demo portfolio:
+Run valuation, sensitivities, and historical VaR for the demo portfolio:
 
 ```powershell
 # PowerShell (using default build directory)

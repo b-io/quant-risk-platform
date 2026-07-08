@@ -20,23 +20,29 @@ Implemented today:
 - `ValuationService`,
 - `RiskService`,
 - `PnlExplainService`,
+- `RevaluationSession`,
 - `StressEngine`,
 - `MonteCarloEngine`,
+- `VarContributionService`,
+- `CovarianceEstimator`,
 - `PricingContext`.
 
 Current limitations:
 
-- instruments are rebuilt inside multiple services,
+- instruments are still rebuilt inside multiple services, although
+  `RevaluationSession` now provides a reusable C++ cache for quote updates and
+  factor-scenario revaluation,
 - risk is still mostly bump-and-revalue,
 - explain is deterministic, componentized, persisted, and supports sequential factor revaluation,
 - realized cashflow extraction currently recognizes deposit maturities and still needs broader product event sources for
   coupons, fixings, exercises, and settlements,
-- Monte Carlo is a one-step factor simulation rather than a general path framework,
+- Monte Carlo supports horizon-shock and aged-horizon revaluation modes, but it is still factor-shock simulation rather
+  than a general multi-step exotic path framework,
 - HVaR is implemented as historical scenario replay, while parametric and Monte Carlo VaR are not dedicated service
   methods,
 - historical VaR and Expected Shortfall contribution analytics are first-class service outputs, while Monte Carlo and
   parametric contribution decomposition are not dedicated service outputs,
-- there is no built portfolio cache.
+- there is no platform-wide built portfolio cache shared by all analytics.
 
 ## 3. Target service split
 
@@ -73,16 +79,21 @@ broader coupon, fixing, exercise, and settlement event sources remain outside cu
 ### VaR and Stress
 
 - **Historical VaR**: Replaying historical factor returns over current positions.
-- **Monte Carlo VaR**: Full path-based simulation.
+- **Monte Carlo VaR**: Simulation-based loss distributions from factor shocks, with full path/exposure simulation as a
+  future extension.
 - **Historical Stress**: Replaying specific historical crisis periods.
 - **Hypothetical Stress**: Manual shift-based scenarios.
 
 ### Monte Carlo Engine
 
-The engine supports both:
+The engine supports:
 
-- **One-step factor simulation**: For Greeks and simple VaR.
-- **Full Path simulation**: For American options, path-dependent derivatives, and exposure extensions.
+- **Horizon shock-only simulation**: Apply one correlated factor shock and reprice at the base valuation date.
+- **Aged horizon revaluation**: Age to a horizon date, compute frozen aging P&L, apply factor shocks, and report market
+  and total P&L diagnostics.
+
+The reusable LSMC module handles exercise-policy examples and product-specific approximations separately. A general
+multi-step exposure cube and path-dependent pricing service remains an extension area.
 
 ## 4. Architectural choice: Handle-based vs. Brute-force
 
@@ -103,7 +114,7 @@ This design choice is fundamental to the project.
 
 1. Built-instrument and built-portfolio caching are not shared service capabilities.
 2. Monte Carlo and parametric VaR contribution decomposition are not yet first-class outputs.
-3. Monte Carlo one-step simulation and path simulation are not separated into production service APIs.
+3. Monte Carlo has horizon-shock and aged-horizon modes, but not a general multi-step path/exposure service.
 4. LSMC is not yet exposed as a reusable exercise-policy engine.
 5. Product event-source integration for realized cashflow explain is limited.
 6. Production controls, manifests, lineage reports, and benchmark governance remain hardening areas.

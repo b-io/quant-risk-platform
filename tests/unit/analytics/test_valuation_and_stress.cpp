@@ -3,18 +3,24 @@
 #include <qrp/analytics/pnl_explain_service.hpp>
 #include <qrp/analytics/pricing_context.hpp>
 #include <qrp/analytics/product_pricing_registry.hpp>
+#include <qrp/analytics/revaluation_session.hpp>
 #include <qrp/analytics/risk_service.hpp>
 #include <qrp/analytics/stress_engine.hpp>
 #include <qrp/analytics/valuation_service.hpp>
 #include <qrp/instruments/instrument_factory.hpp>
+#include <qrp/io/json_loader.hpp>
 #include <qrp/market/market_snapshot.hpp>
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <map>
 #include <memory>
+#include <set>
 #include <stdexcept>
 #include <string>
+#include <test_paths.hpp>
+#include <vector>
 
 namespace {
 
@@ -242,6 +248,289 @@ TEST(StressEngineTest, UsesAdjustedTradeNpvForEquitySpot) {
     ASSERT_EQ(results.size(), 1);
     EXPECT_NEAR(results[0].trade_pnls.at("equity_aapl"), 100.0, 1e-10);
     EXPECT_NEAR(results[0].total_pnl, 100.0, 1e-10);
+}
+
+TEST(RevaluationSessionTest, RepricesFromQuoteUpdatesAndResets) {
+    qrp::domain::Portfolio portfolio;
+    portfolio.portfolio_id = "P1";
+    portfolio.trades.push_back(make_equity_trade());
+
+    qrp::domain::MarketSnapshot market_dto;
+    market_dto.valuation_date = "2026-03-24";
+    market_dto.quotes.push_back(make_equity_quote(100.0));
+
+    qrp::analytics::RevaluationSession session(portfolio, market_dto);
+
+    EXPECT_NEAR(session.total_npv(), 0.0, 1e-10);
+
+    session.apply_quote_updates({{"AAPL", 110.0}});
+
+    const auto updated_values = session.trade_values();
+    ASSERT_TRUE(updated_values.contains("equity_aapl"));
+    EXPECT_NEAR(updated_values.at("equity_aapl"), 100.0, 1e-10);
+    EXPECT_NEAR(session.total_npv(), 100.0, 1e-10);
+
+    session.reset();
+
+    EXPECT_NEAR(session.total_npv(), 0.0, 1e-10);
+}
+
+TEST(RevaluationSessionTest, ReportsFailedCachedInstrumentConstruction) {
+    auto trade = std::make_shared<qrp::domain::Trade>();
+    trade->id = "unsupported_trade";
+    trade->asset_class = "unknown";
+    trade->type = "unsupported";
+    trade->currency = "USD";
+    trade->direction = "long";
+    trade->book = "BOOK";
+    trade->strategy = "TEST";
+
+    qrp::domain::Portfolio portfolio;
+    portfolio.portfolio_id = "P1";
+    portfolio.trades.push_back(trade);
+
+    qrp::domain::MarketSnapshot market_dto;
+    market_dto.valuation_date = "2026-03-24";
+
+    qrp::analytics::RevaluationSession session(portfolio, market_dto);
+
+    const auto results = session.price();
+
+    ASSERT_EQ(results.size(), 1U);
+    EXPECT_EQ(results[0].trade_id, "unsupported_trade");
+    EXPECT_EQ(results[0].npv, 0.0);
+    EXPECT_EQ(results[0].support_status, qrp::domain::SupportStatus::Unsupported);
+    EXPECT_EQ(results[0].tags.at("error"), "Instrument construction failed");
+    EXPECT_EQ(results[0].tags.at("status"), "unsupported");
+}
+
+TEST(RevaluationSessionTest, PreviewsQuoteUpdateImpactFromStructuralDependencies) {
+    qrp::domain::Portfolio portfolio;
+    portfolio.portfolio_id = "P1";
+    portfolio.trades.push_back(make_equity_trade());
+
+    qrp::domain::MarketSnapshot market_dto;
+    market_dto.valuation_date = "2026-03-24";
+    market_dto.quotes.push_back(make_equity_quote(100.0));
+
+    qrp::domain::FactorDefinition factor;
+    factor.factor_id = "RF:EQ:AAPL:SPOT";
+    factor.factor_type = qrp::domain::FactorType::EquitySpot;
+    factor.shock_measure = qrp::domain::ShockMeasure::Relative;
+    factor.currency = qrp::domain::Currency::USD;
+
+    qrp::domain::FactorBinding binding;
+    binding.factor_id = factor.factor_id;
+    binding.quote_id = "AAPL";
+    binding.shock_measure = qrp::domain::ShockMeasure::Relative;
+    binding.weight = 1.0;
+
+    qrp::analytics::RevaluationSession session(portfolio, market_dto, {factor}, {binding});
+
+    const auto preview = session.preview_quote_update_impact({{"AAPL", 110.0}});
+
+    ASSERT_EQ(preview.updated_quote_ids, std::vector<std::string>({"AAPL"}));
+    ASSERT_EQ(preview.potentially_affected_trade_count, 1U);
+    ASSERT_EQ(preview.potentially_affected_trade_ids, std::vector<std::string>({"equity_aapl"}));
+    ASSERT_EQ(preview.dependencies.size(), 1U);
+    EXPECT_EQ(preview.dependencies[0].dependency_type, "market_quote_match");
+    EXPECT_EQ(preview.dependencies[0].product_type, "equity_spot");
+    EXPECT_EQ(preview.dependencies[0].quote_id, "AAPL");
+    EXPECT_EQ(preview.dependencies[0].trade_id, "equity_aapl");
+    EXPECT_NE(std::find(preview.dependencies[0].factor_ids.begin(),
+                        preview.dependencies[0].factor_ids.end(),
+                        "RF:EQ:AAPL:SPOT"),
+              preview.dependencies[0].factor_ids.end());
+    EXPECT_NEAR(session.total_npv(), 0.0, 1e-10);
+}
+
+TEST(RevaluationSessionTest, RevaluesOnlyImpactedCandidatesAndRestoresState) {
+    qrp::domain::Portfolio portfolio;
+    portfolio.portfolio_id = "P1";
+    portfolio.trades.push_back(make_equity_trade());
+
+    qrp::domain::MarketSnapshot market_dto;
+    market_dto.valuation_date = "2026-03-24";
+    market_dto.quotes.push_back(make_equity_quote(100.0));
+
+    qrp::analytics::RevaluationSession session(portfolio, market_dto);
+
+    const auto report = session.revalue_quote_update_impact({{"AAPL", 110.0}}, 1e-10);
+
+    ASSERT_EQ(report.updated_quote_ids, std::vector<std::string>({"AAPL"}));
+    EXPECT_EQ(report.potentially_affected_trade_count, 1U);
+    ASSERT_EQ(report.quote_moves.size(), 1U);
+    EXPECT_EQ(report.quote_moves[0].quote_id, "AAPL");
+    EXPECT_NEAR(report.quote_moves[0].before, 100.0, 1e-10);
+    EXPECT_NEAR(report.quote_moves[0].after, 110.0, 1e-10);
+    EXPECT_NEAR(report.quote_moves[0].restored, 100.0, 1e-10);
+    EXPECT_NEAR(report.candidate_base_total_npv, 0.0, 1e-10);
+    EXPECT_NEAR(report.candidate_shocked_total_npv, 100.0, 1e-10);
+    EXPECT_NEAR(report.candidate_pnl, 100.0, 1e-10);
+    EXPECT_NEAR(report.candidate_restored_total_npv, 0.0, 1e-10);
+    ASSERT_EQ(report.trade_diffs.size(), 1U);
+    EXPECT_EQ(report.trade_diffs[0].dependency_quote_ids, std::vector<std::string>({"AAPL"}));
+    EXPECT_TRUE(report.trade_diffs[0].moved_above_tolerance);
+    EXPECT_NEAR(report.trade_diffs[0].base_npv, 0.0, 1e-10);
+    EXPECT_NEAR(report.trade_diffs[0].shocked_npv, 100.0, 1e-10);
+    EXPECT_NEAR(report.trade_diffs[0].pnl, 100.0, 1e-10);
+    EXPECT_NEAR(session.total_npv(), 0.0, 1e-10);
+}
+
+TEST(RevaluationSessionTest, DemoPortfolioImpactCoversMultiAssetDependencyTypes) {
+    const auto market_path = qrp::test::data_file({"market", "demo_market.json"});
+    const auto portfolio_path = qrp::test::data_file({"portfolios", "demo_portfolio.json"});
+    auto market_dto = qrp::io::load_market(market_path.string());
+    auto portfolio = qrp::io::load_portfolio(portfolio_path.string());
+
+    std::map<std::string, double> quote_updates;
+    for (const auto& quote : market_dto.quotes) {
+        quote_updates[quote.id] = quote.value + 1.0e-4;
+    }
+
+    qrp::analytics::RevaluationSession session(portfolio, market_dto);
+
+    const auto preview = session.preview_quote_update_impact(quote_updates);
+    const auto cached_preview = session.preview_quote_update_impact(quote_updates);
+
+    EXPECT_EQ(cached_preview.potentially_affected_trade_count, preview.potentially_affected_trade_count);
+    EXPECT_EQ(preview.updated_quote_ids.size(), quote_updates.size());
+    EXPECT_GT(preview.potentially_affected_trade_count, 25U);
+
+    std::set<std::string> asset_classes;
+    std::set<std::string> dependency_types;
+    for (const auto& dependency : preview.dependencies) {
+        asset_classes.insert(dependency.asset_class);
+        dependency_types.insert(dependency.dependency_type);
+    }
+
+    EXPECT_TRUE(asset_classes.contains("commodity"));
+    EXPECT_TRUE(asset_classes.contains("credit"));
+    EXPECT_TRUE(asset_classes.contains("equity"));
+    EXPECT_TRUE(asset_classes.contains("fx"));
+    EXPECT_TRUE(asset_classes.contains("rates"));
+    EXPECT_TRUE(dependency_types.contains("direct_quote"));
+    EXPECT_TRUE(dependency_types.contains("discount_curve"));
+    EXPECT_TRUE(dependency_types.contains("forecast_curve"));
+    EXPECT_TRUE(dependency_types.contains("market_quote_match"));
+
+    const auto report = session.revalue_quote_update_impact(quote_updates, 1.0e-10);
+
+    EXPECT_EQ(report.updated_quote_ids.size(), quote_updates.size());
+    EXPECT_EQ(report.potentially_affected_trade_count, preview.potentially_affected_trade_count);
+    EXPECT_EQ(report.trade_diffs.size(), preview.potentially_affected_trade_count);
+    EXPECT_NEAR(session.total_npv(), report.candidate_restored_total_npv, 1.0e-6);
+    EXPECT_EQ(report.quote_moves.size(), quote_updates.size());
+}
+
+TEST(RevaluationSessionTest, RevaluesScenarioAndRestoresBaseState) {
+    qrp::domain::Portfolio portfolio;
+    portfolio.portfolio_id = "P1";
+    portfolio.trades.push_back(make_equity_trade());
+
+    qrp::domain::MarketSnapshot market_dto;
+    market_dto.valuation_date = "2026-03-24";
+    market_dto.quotes.push_back(make_equity_quote(100.0));
+
+    qrp::domain::FactorDefinition factor;
+    factor.factor_id = "RF:EQ:AAPL:SPOT";
+    factor.factor_type = qrp::domain::FactorType::EquitySpot;
+    factor.shock_measure = qrp::domain::ShockMeasure::Relative;
+    factor.currency = qrp::domain::Currency::USD;
+
+    qrp::domain::FactorBinding binding;
+    binding.factor_id = factor.factor_id;
+    binding.quote_id = "AAPL";
+    binding.shock_measure = qrp::domain::ShockMeasure::Relative;
+    binding.weight = 1.0;
+
+    qrp::market::ScenarioDefinition scenario;
+    scenario.name = "AAPL_UP_10_PERCENT";
+    scenario.factor_shocks[factor.factor_id] = 0.10;
+
+    qrp::analytics::RevaluationSession session(portfolio, market_dto, {factor}, {binding});
+
+    const auto report = session.revalue_scenario(scenario);
+
+    EXPECT_EQ(report.scenario_name, "AAPL_UP_10_PERCENT");
+    EXPECT_NEAR(report.base_total_npv, 0.0, 1e-10);
+    EXPECT_NEAR(report.shocked_total_npv, 100.0, 1e-10);
+    EXPECT_NEAR(report.scenario_pnl, 100.0, 1e-10);
+    EXPECT_NEAR(report.restored_total_npv, 0.0, 1e-10);
+    ASSERT_EQ(report.quote_moves.size(), 1U);
+    EXPECT_EQ(report.quote_moves[0].quote_id, "AAPL");
+    EXPECT_NEAR(report.quote_moves[0].before, 100.0, 1e-10);
+    EXPECT_NEAR(report.quote_moves[0].after, 110.0, 1e-10);
+    EXPECT_NEAR(report.quote_moves[0].restored, 100.0, 1e-10);
+    EXPECT_NEAR(report.trade_pnls.at("equity_aapl"), 100.0, 1e-10);
+    EXPECT_NEAR(session.total_npv(), 0.0, 1e-10);
+}
+
+TEST(RevaluationSessionTest, ResolvesScenarioImpactToTouchedQuoteDiffs) {
+    qrp::domain::Portfolio portfolio;
+    portfolio.portfolio_id = "P1";
+    portfolio.trades.push_back(make_equity_trade());
+
+    qrp::domain::MarketSnapshot market_dto;
+    market_dto.valuation_date = "2026-03-24";
+    market_dto.quotes.push_back(make_equity_quote(100.0));
+
+    qrp::domain::FactorDefinition factor;
+    factor.factor_id = "RF:EQ:AAPL:SPOT";
+    factor.factor_type = qrp::domain::FactorType::EquitySpot;
+    factor.shock_measure = qrp::domain::ShockMeasure::Relative;
+    factor.currency = qrp::domain::Currency::USD;
+
+    qrp::domain::FactorBinding binding;
+    binding.factor_id = factor.factor_id;
+    binding.quote_id = "AAPL";
+    binding.shock_measure = qrp::domain::ShockMeasure::Relative;
+    binding.weight = 1.0;
+
+    qrp::market::ScenarioDefinition scenario;
+    scenario.name = "AAPL_UP_10_PERCENT";
+    scenario.factor_shocks[factor.factor_id] = 0.10;
+
+    qrp::analytics::RevaluationSession session(portfolio, market_dto, {factor}, {binding});
+
+    const auto preview = session.preview_scenario_impact(scenario);
+    ASSERT_EQ(preview.updated_quote_ids, std::vector<std::string>({"AAPL"}));
+    ASSERT_EQ(preview.potentially_affected_trade_ids, std::vector<std::string>({"equity_aapl"}));
+
+    const auto report = session.revalue_scenario_impact(scenario, 1e-10);
+
+    EXPECT_EQ(report.scenario_name, "AAPL_UP_10_PERCENT");
+    ASSERT_EQ(report.updated_quote_ids, std::vector<std::string>({"AAPL"}));
+    ASSERT_EQ(report.trade_diffs.size(), 1U);
+    EXPECT_EQ(report.trade_diffs[0].trade_id, "equity_aapl");
+    EXPECT_TRUE(report.trade_diffs[0].moved_above_tolerance);
+    EXPECT_NEAR(report.trade_diffs[0].pnl, 100.0, 1e-10);
+    EXPECT_NEAR(report.candidate_pnl, 100.0, 1e-10);
+    EXPECT_NEAR(session.total_npv(), 0.0, 1e-10);
+}
+
+TEST(RevaluationSessionTest, RejectsUnknownQuoteUpdatesAndMissingScenarioBindings) {
+    qrp::domain::Portfolio portfolio;
+    portfolio.portfolio_id = "P1";
+    portfolio.trades.push_back(make_equity_trade());
+
+    qrp::domain::MarketSnapshot market_dto;
+    market_dto.valuation_date = "2026-03-24";
+    market_dto.quotes.push_back(make_equity_quote(100.0));
+
+    qrp::analytics::RevaluationSession session(portfolio, market_dto);
+
+    EXPECT_THROW(session.apply_quote_updates({{"MISSING", 110.0}}), std::invalid_argument);
+
+    qrp::market::ScenarioDefinition scenario;
+    scenario.name = "NO_BINDINGS";
+    scenario.factor_shocks["RF:EQ:AAPL:SPOT"] = 0.10;
+
+    EXPECT_THROW(session.preview_quote_update_impact({{"MISSING", 110.0}}), std::invalid_argument);
+    EXPECT_THROW(session.apply_scenario(scenario), std::runtime_error);
+    EXPECT_THROW(session.revalue_scenario(scenario), std::runtime_error);
+    EXPECT_THROW(session.preview_scenario_impact(scenario), std::runtime_error);
+    EXPECT_THROW(session.revalue_scenario_impact(scenario), std::runtime_error);
 }
 
 TEST(PnlExplainServiceTest, PreservesValuationDiagnosticsAndComponentLines) {

@@ -107,7 +107,7 @@ uv run --project python python python\examples\demo_platform.py
 
 ```powershell
 # Adjust the path to your build directory if you use a preset other than dev.
-$cli = ".\build\dev\cpp\cli\qrp_cli.exe"
+$cli = ".\build\dev\qrp_cli.exe"
 
 & $cli init-db
 & $cli import-market data\market\demo_market.json
@@ -126,7 +126,7 @@ $cli = ".\build\dev\cpp\cli\qrp_cli.exe"
 - **Database**: Persistent data is stored in `var/quant_risk_platform.sqlite` by default.
 - **Logs**: Application logs are written to `var/logs/`.
 - **Binaries**: Built executables (`qrp_cli`, `unit_tests`, `integration_tests`) are located in the build directory
-  under `cpp/cli/` and `tests/`.
+  root or under `tests/`, depending on the target.
 
 ---
 

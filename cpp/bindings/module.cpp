@@ -14,4 +14,5 @@ PYBIND11_MODULE(quant_risk_platform, m) {
     qrp::bindings::bind_analytics(m);
     qrp::bindings::bind_io(m);
     qrp::bindings::bind_market(m);
+    qrp::bindings::bind_revaluation(m);
 }

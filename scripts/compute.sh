@@ -10,7 +10,7 @@ CONFIG="RelWithDebInfo"
 LOG_LEVEL="info"
 PORTFOLIO_ID="demo_portfolio"
 SCENARIO_SET_ID="demo_factor_scenarios"
-SNAPSHOT_ID="SNAP:2026-03-24"
+SNAPSHOT_ID="DEMO_MKT_2026_03_24"
 SKIP_ENV=0
 
 # Simple argument parsing

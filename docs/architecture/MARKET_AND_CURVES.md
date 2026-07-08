@@ -9,7 +9,7 @@ The market layer is responsible for converting raw external market inputs into r
 - yield and discount curves,
 - projection curves,
 - credit, FX, equity, commodity, and volatility market inputs,
-- factor bindings for scenario, risk, HVaR, and PnL explain workflows,
+- factor bindings for scenario, risk, HVaR, PnL explain, and revaluation-session workflows,
 - mutable quote handles for fast revaluation.
 
 The design goal is to separate:
@@ -29,7 +29,7 @@ Implemented today:
 - bootstrapped rates curves using QuantLib `RateHelper`s,
 - explicit curve purpose and quote/factor metadata in the market schema,
 - handle-based scenario application without rebuilding the whole portfolio,
-- factor-bound quote updates reused by risk, stress/HVaR, and PnL explain.
+- factor-bound quote updates reused by risk, stress/HVaR, PnL explain, and `RevaluationSession`.
 
 Still missing or thin:
 
@@ -117,3 +117,5 @@ The main QuantLib choices in the market layer are:
 2. Typed credit, volatility, commodity, and equity builders are not separated behind stable interfaces.
 3. `MarketSnapshot` calibration and validation diagnostics are intentionally lightweight.
 4. Relinkable-handle patterns are not yet generalized for larger simulation and scenario workflows.
+5. The reusable revaluation-session API caches instruments for quote/scenario workflows, but full built-portfolio
+   caching is not generalized across every analytics service.

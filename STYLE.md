@@ -215,7 +215,9 @@ and useful for release notes.
 
 ## Python Bindings
 
-- Keep binding files grouped by domain: domain, market, analytics, and IO.
+- Keep binding files grouped by public API family: domain, analytics, IO, market,
+  revaluation, or another named family when a new surface is large enough to
+  deserve its own binding file.
 - Bind enums and DTOs before services that consume them.
 - Sort binding declarations and bound member lists alphanumerically unless a
   pybind registration dependency, such as a base class before derived classes,

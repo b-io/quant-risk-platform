@@ -533,8 +533,61 @@ def run_factor_resolution_checks(market, factors, bindings, scenarios):
     print("Factor resolution checks passed.")
 
 
+def run_observer_pattern_demo(portfolio, market, factors, bindings, scenarios):
+    section("4. Observer Pattern Revaluation")
+    scenarios_by_name = {scenario.name: scenario for scenario in scenarios}
+    scenario = scenarios_by_name["GLOBAL_RISK_OFF"]
+    session = qrp.create_revaluation_session(portfolio, market, factors, bindings)
+    preview = session.preview_scenario_impact(scenario)
+    impact_report = session.revalue_scenario_impact(scenario, pnl_tolerance=1e-8)
+    report = session.revalue_scenario(scenario)
+
+    base_total = float(report.base_total_npv)
+    shocked_total = float(report.shocked_total_npv)
+    restored_total = float(report.restored_total_npv)
+    scenario_pnl = float(report.scenario_pnl)
+
+    assert_close("revaluation_session.restored_total", restored_total, base_total, 1e-6)
+    assert_close("revaluation_session.scenario_pnl", scenario_pnl, shocked_total - base_total, 1e-6)
+
+    print("One market state and one instrument cache are built once.")
+    print("The scenario updates mutable quote handles; observed curves and instruments reprice lazily.")
+    print("The impact report is opt-in and reprices only structurally affected candidate trades.")
+    print(f"Scenario:      {report.scenario_name}")
+    print(f"Base total:    {base_total:>15,.2f}")
+    print(f"Shocked total: {shocked_total:>15,.2f}")
+    print(f"Scenario P&L:  {scenario_pnl:>15,.2f}")
+    print(f"Restored:      {restored_total:>15,.2f}")
+    print(f"Candidates:    {preview.potentially_affected_trade_count:>15}")
+    print(f"Candidate P&L: {float(impact_report.candidate_pnl):>15,.2f}")
+
+    print("\nQuote handle moves")
+    moved_quotes = [row for row in report.quote_moves if abs(float(row.after) - float(row.before)) > 1e-12]
+    for row in sorted(moved_quotes, key=lambda item: sort_text(item.quote_id))[:8]:
+        print(
+            f"  {row.quote_id:<28} "
+            f"{float(row.before):>12.6f} -> {float(row.after):>12.6f} "
+            f"(restored {float(row.restored):>12.6f})"
+        )
+
+    metadata_by_trade = portfolio_trade_metadata_map(portfolio)
+    print("\nPotentially affected trades")
+    for trade_id in list(preview.potentially_affected_trade_ids)[:8]:
+        metadata = trade_metadata(metadata_by_trade, trade_id)
+        print(f"  {position_prefix(metadata)}")
+
+    print("\nTop candidate revaluations")
+    moved_diffs = [row for row in impact_report.trade_diffs if row.moved_above_tolerance]
+    for row in sorted(moved_diffs, key=lambda item: abs(float(item.pnl)), reverse=True)[:8]:
+        metadata = trade_metadata(metadata_by_trade, row.trade_id)
+        dependency_quotes = ", ".join(row.dependency_quote_ids)
+        print(f"  {position_prefix(metadata)} {float(row.pnl):>12,.2f} via {dependency_quotes}")
+
+    return report
+
+
 def run_stress(portfolio, market, factors, bindings, scenarios):
-    section("4. Historical Stress")
+    section("5. Historical Stress")
     metadata_by_trade = portfolio_trade_metadata_map(portfolio)
     sort_map = portfolio_trade_sort_map(portfolio)
     stress_results = qrp.run_historical_stress(portfolio, market, scenarios, factors, bindings)
@@ -557,7 +610,7 @@ def run_stress(portfolio, market, factors, bindings, scenarios):
 
 
 def run_risk(portfolio, market, factors, bindings):
-    section("6. Risk Sensitivities")
+    section("7. Risk Sensitivities")
     risk_results = qrp.compute_risk(portfolio, market, factors, bindings)
     if not risk_results:
         raise AssertionError("Expected risk results")
@@ -589,7 +642,7 @@ def calculate_var_contribution_report(portfolio, stress_results, scenarios):
 
 
 def run_var_contributions(portfolio, stress_results, scenarios):
-    section("5. Historical VaR Contributions")
+    section("6. Historical VaR Contributions")
     report = calculate_var_contribution_report(portfolio, stress_results, scenarios)
     if not report.contributions:
         raise AssertionError("Expected VaR contribution rows")
@@ -646,7 +699,7 @@ def compute_pnl_explain(portfolio, market_path):
 
 
 def run_pnl_explain(portfolio, market_path):
-    section("7. P&L Explain")
+    section("8. P&L Explain")
     pnl_results = compute_pnl_explain(portfolio, market_path)
     metadata_by_trade = portfolio_trade_metadata_map(portfolio)
     sort_map = portfolio_trade_sort_map(portfolio)
@@ -725,7 +778,7 @@ def print_traces(traces, mode):
 
 
 def run_monte_carlo(portfolio, market, factors, bindings):
-    section("8. Monte Carlo")
+    section("9. Monte Carlo")
     results = compute_monte_carlo(portfolio, market, factors, bindings, MONTE_CARLO_CASES)
     for (label, mode, horizon_days), (_, result, mean_pnl) in zip(MONTE_CARLO_CASES, results):
         print(
@@ -1033,7 +1086,7 @@ def validate_product_family_outputs(product_families, valuation_results, stress_
 
 
 def run_optional_cvxpy_worker_check():
-    section("9. Optional CVXPY Worker Check")
+    section("10. Optional CVXPY Worker Check")
     worker_path = project_root / "python" / "qrp" / "optimization" / "cvxpy_worker.py"
     spec = importlib.util.spec_from_file_location("qrp_cvxpy_worker", worker_path)
     if spec is None or spec.loader is None:
@@ -1113,6 +1166,7 @@ def run_demo(dashboard=False):
     print_market_data_coverage(market, factors, bindings)
     valuation_results, total_npv = print_portfolio_valuation(portfolio, market)
     run_factor_resolution_checks(market, factors, bindings, scenarios)
+    run_observer_pattern_demo(portfolio, market, factors, bindings, scenarios)
     stress_results = run_stress(portfolio, market, factors, bindings, scenarios)
     run_var_contributions(portfolio, stress_results, scenarios)
     risk_results = run_risk(portfolio, market, factors, bindings)

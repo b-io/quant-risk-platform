@@ -94,8 +94,9 @@ Current implementation checkpoint:
   curve purpose, and market metadata.
 - Rates curves are bootstrapped from QuantLib helpers, with a rates convention
   registry and reusable `SimpleQuote` handles held in `MarketState`.
-- Scenario, risk, stress/HVaR, and PnL explain workflows reuse the same
-  factor-bound quote handles and restore the base market state after shocks.
+- Scenario, risk, stress/HVaR, PnL explain, and `RevaluationSession`
+  workflows reuse the same factor-bound quote handles and restore the base
+  market state after shocks.
 - Market snapshots, scenario sets, factors, and factor bindings are persisted in
   SQLite. Typed credit, volatility, commodity, and equity market-object builders
   remain the main Phase 2 hardening gap.

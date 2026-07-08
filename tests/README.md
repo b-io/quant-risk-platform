@@ -24,8 +24,18 @@ Tests use the GoogleTest (gtest) framework. Individual tests or filters can be s
 
 #### Coverage
 
-Coverage is opt-in and intended for GCC/Clang toolchains, for example Linux, WSL, MinGW, or Clang-based CLion profiles.
-Install `gcovr`, configure with coverage enabled, then build the `coverage` target:
+Coverage is opt-in through the test scripts:
+
+```powershell
+.\scripts\test.ps1 -Coverage
+```
+
+```bash
+./scripts/test.sh -Coverage
+```
+
+On Windows, the PowerShell path uses the Visual Studio coverage collector when available. On GCC/Clang toolchains,
+including Linux, WSL, MinGW, and Clang-based profiles, coverage uses `gcovr` through the CMake coverage target:
 
 ```bash
 cmake --preset coverage

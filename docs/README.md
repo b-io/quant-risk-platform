@@ -8,6 +8,15 @@ risk analytics, controls, and implementation sequencing.
 Private preparation notes, company-specific research, local notes, and simplified
 scratch examples belong under the ignored `temp/docs/` workspace.
 
+Repository-level entry points are split by audience:
+
+- [README.md](../README.md) is the user-facing overview and first-use page.
+- [USAGE.md](../USAGE.md) covers installation, demos, Python usage, CLI usage,
+  data, and outputs.
+- [DEVELOPMENT.md](../DEVELOPMENT.md) covers development, tests, coverage,
+  style, documentation maintenance, and pull-request workflow.
+- [QUICKSTART.md](../QUICKSTART.md) is the compact command reference.
+
 ## Structure
 
 The top-level folders have distinct roles.
@@ -34,12 +43,15 @@ The repository currently covers rates, FX, credit, commodities, and equities in
 the canonical trade model and pricing registry. Valuation, deterministic risk,
 stress/HVaR, historical VaR/Expected Shortfall contribution analytics,
 persistence, CLI, Python entry points, and PnL explain are wired through the
-platform. PnL explain is persisted with component reconciliation, sequential
-factor revaluation, and realized deposit maturity cash support.
+platform. A reusable C++ `RevaluationSession` is exposed to Python for fast
+quote updates and scenario revaluation over cached instruments. PnL explain is
+persisted with component reconciliation, sequential factor revaluation, and
+realized deposit maturity cash support.
 
 Known boundaries are reusable LSMC exercise-policy integration, broader
-realized-event sources, built-portfolio caching, Monte Carlo contribution
-decomposition, and production-control hardening.
+realized-event sources, platform-wide built-portfolio caching beyond the
+revaluation-session API, Monte Carlo contribution decomposition, and
+production-control hardening.
 
 ## Reading Paths
 

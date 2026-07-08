@@ -55,12 +55,49 @@ When we update a `SimpleQuote` value:
 - **Minimal Rebuilds**: We avoid the overhead of reconstructing C++ objects. We only pay for the necessary mathematical
   recalculations.
 
+### Concrete Platform Example
+
+Consider a USD swap whose discount curve is built from `USD_OIS_1Y`, `USD_OIS_2Y`, `USD_OIS_5Y`, and `USD_OIS_10Y`.
+At runtime the dependency chain is:
+
+```text
+MarketState["USD_OIS_5Y"] SimpleQuote
+  -> OIS rate helper
+  -> bootstrapped USD OIS curve
+  -> swap pricing engine
+  -> swap instrument NPV
+```
+
+For a `GLOBAL_RISK_OFF` scenario, the scenario engine resolves the factor shock into concrete quote values and updates
+the existing quote handles:
+
+```cpp
+market::ScenarioEngine::apply_scenario_to_state(*state, base_market, scenario, factors, bindings);
+const double shocked_npv = ValuationService::price_instrument(trade, *cached_instrument);
+state->reset_to_snapshot(base_market);
+```
+
+The cached swap instrument is not rebuilt. Updating `USD_OIS_5Y` invalidates the observed curve and instrument. The next
+`NPV()` call forces QuantLib to refresh the required values, and resetting the state restores the base quote handles for
+the next scenario.
+
+The runnable Python demo exposes this sequence through `qrp.create_revaluation_session(...)` and
+`RevaluationSession.revalue_scenario(...)`. Run `python/examples/demo_platform.py` and look for the
+`Observer Pattern Revaluation` section to see base, shocked, and restored portfolio values, quote handles moved by the
+scenario, potentially affected trade ids, and candidate-only before/after diffs.
+
 ### Repository-Specific Implementation
 
 - **Quote Creation**: Quotes are created in `MarketSnapshot` and stored as `shared_ptr<SimpleQuote>` in `MarketState`.
 - **Handle Storage**: `MarketState` maintains a map of `quote_id` to `SimpleQuote` handles.
 - **Scenario Application**: `ScenarioEngine` (and `QuantRiskPlatform::run_historical_var`) applies shocks directly to
   these `SimpleQuote` objects via `setValue()`.
+- **Reusable Session API**: `RevaluationSession` owns a built `MarketState` and cached instruments in C++. Python gets
+  domain-level methods such as `apply_quote_updates`, `apply_scenario`, `price`, `reset`, and `revalue_scenario`
+  without direct access to raw QuantLib handles.
+- **Opt-In Impact Diagnostics**: `preview_*_impact(...)` lazily builds a quote-to-trade dependency index only when a
+  caller asks for it. `revalue_*_impact(...)` uses that index to price only structurally affected candidate trades and
+  returns compact diff rows to Python. The ordinary quote-update and pricing path does not build or traverse this index.
 - **Reactive Services**: `ValuationService` and `RiskService` rely on this behavior. When `RiskService` bumps a quote by
   1bp, it simply calls `setValue(val + 0.0001)`, then reads the instrument NPVs. The update propagates automatically.
 - **Explicit vs. Automatic**:

@@ -67,6 +67,9 @@ FX, credit, commodities, and equities. The canonical trade model, market-data
 foundation, pricing registry, valuation workflows, risk workflows, stress/HVaR,
 historical VaR/Expected Shortfall contribution analytics, and PnL explain all
 share the same multi-asset coverage.
+The Python bindings also expose `RevaluationSession`, which reuses one built
+market state and instrument cache for quote updates and factor-scenario
+revaluation across those same product families.
 
 Known boundaries are:
 
@@ -74,6 +77,8 @@ Known boundaries are:
   first-class outputs;
 - reusable LSMC exercise-policy integration is not yet wired across all
   early-exercise and physical-flexibility products;
+- shared built-position caching across every analytics service is not yet
+  generalized beyond the revaluation-session API;
 - production controls and validation reports remain hardening areas.
 
 ## Maintenance Rule

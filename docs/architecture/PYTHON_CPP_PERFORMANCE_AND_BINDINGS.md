@@ -125,6 +125,22 @@ Important design points for bindings include:
 - preserve deterministic error handling,
 - keep object lifetime semantics clear.
 
+### Current repository mapping
+
+The built Python extension is named `quant_risk_platform`. Binding groups are
+split by domain, analytics, I/O, market, and revaluation APIs:
+
+- domain and market DTOs are passed as typed objects loaded from JSON;
+- analytics bindings expose valuation, deterministic risk, stress, Monte Carlo,
+  PnL explain, historical VaR/ES contributions, and covariance helpers;
+- `create_revaluation_session(...)` returns a C++-owned `RevaluationSession`
+  that keeps mutable market state and cached instruments on the C++ side while
+  exposing Python methods for quote updates, scenario application, pricing,
+  reset, and base/shocked/restored reporting.
+
+This keeps Python ergonomic without exposing raw QuantLib handles or requiring
+Python callers to manage observer lifetimes.
+
 ## 9. Choosing the split in practice
 
 The best language split is driven by the workload, not by ideology. A sensible default is:

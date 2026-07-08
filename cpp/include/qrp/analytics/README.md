@@ -1,6 +1,23 @@
-# Analytics Framework - Generic LSMC Engine
+# Analytics Framework
 
-This module provides a generic framework for solving optimal decision problems under uncertainty using the Least Squares Monte Carlo (LSMC) method.
+This module contains the analytics services and reusable model components used by the C++ core and Python bindings.
+The current public services include valuation, deterministic risk, stress/HVaR, PnL explain, Monte Carlo simulation,
+historical VaR/ES contribution analytics, covariance estimation, and a stateful `RevaluationSession` for repeated quote
+updates and scenario revaluation over cached C++ instruments.
+
+The same directory also contains a generic framework for solving optimal decision problems under uncertainty using the
+Least Squares Monte Carlo (LSMC) method.
+
+## Service Components
+
+- `ValuationService`: Prices supported portfolio trades from a `PricingContext`.
+- `RiskService`: Computes deterministic bump-and-revalue risk from factor bindings.
+- `StressEngine`: Replays factor scenarios over the current market state.
+- `PnlExplainService`: Reconciles previous/current valuation changes into business components.
+- `MonteCarloEngine`: Runs factor-shock simulations in horizon-shock or aged-horizon modes.
+- `VarContributionService`: Calculates historical VaR/ES contributions by reporting group.
+- `RevaluationSession`: Owns one built market state and instrument cache for repeated quote/scenario revaluation.
+  It also exposes opt-in impact previews and candidate-only revaluation diffs for Python reporting workflows.
 
 ## Key Components
 

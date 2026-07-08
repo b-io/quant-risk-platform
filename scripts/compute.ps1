@@ -4,7 +4,7 @@ param (
     [string]$LogLevel = "info",
     [string]$PortfolioId = "demo_portfolio",
     [string]$ScenarioSetId = "demo_factor_scenarios",
-    [string]$SnapshotId = "SNAP:2026-03-24",
+    [string]$SnapshotId = "DEMO_MKT_2026_03_24",
     [switch]$SkipEnv
 )
 

@@ -2,246 +2,216 @@
 
 ![Coverage](coverage/coverage-badge.svg)
 
-Production-shaped C++ and Python platform for pricing, risk analytics, scenario analysis, and P&L across asset
-classes, with QuantLib at the core and Python used as an interface layer.
+Quant Risk Platform is a C++20 and Python analytics library for pricing, risk, stress testing, historical VaR,
+Expected Shortfall, VaR/ES contributions, P&L explain, and persisted run reporting across rates, FX, credit,
+commodities, and equities.
 
-> Current implementation covers rates, FX, credit, commodity, and equity products, with valuation, risk,
-> stress/HVaR, persistence, and PnL explain workflows wired through the C++ core, CLI, Python bindings, and SQLite
-> storage.
+The C++ core owns the analytics. Python is the interface layer for demos, orchestration, notebooks, and dashboards.
 
-## Quickstart
+## What You Can Do
 
-For build, test, and demo instructions, including Python binding workflows and smoke tests,
-see [QUICKSTART.md](QUICKSTART.md).
+- Load normalized market snapshots, portfolios, and scenario sets from JSON.
+- Build rates curves and reusable market state with QuantLib underneath.
+- Price multi-asset portfolios across supported rates, FX, credit, commodity, and equity products.
+- Compute deterministic sensitivities such as PV01, CS01, FX delta, FX vega, and option Greeks where supported.
+- Replay historical and hypothetical stress scenarios.
+- Run historical VaR and Expected Shortfall, including contributions by trade, book, strategy, currency, asset class,
+  and risk factor.
+- Explain P&L with carry, market move, realized deposit maturity cash, residual reconciliation, and persisted
+  components.
+- Reuse a C++-owned revaluation session from Python for fast quote updates, scenario revaluation, and restored market
+  checks without exposing raw QuantLib handles.
+- Persist market data, portfolios, scenarios, valuation runs, risk runs, HVaR runs, and P&L explain runs in SQLite.
+- Use the platform through Python bindings, a C++ CLI, or the provided scripts.
 
-## CI and Coverage
+## Documentation Split
 
-The GitHub Actions workflow in `.github/workflows/tests.yml` runs C++ tests, Python tests, C++ gcovr coverage, Python
-coverage, and uploads the generated reports as workflow artifacts. On pushes to `main` or `master`, it also refreshes
-the committed lightweight coverage badge and summary files under `coverage/`.
+This repository follows a common open-source documentation pattern: the root `README.md` is user-facing, while
+development and maintenance workflows live in a separate development document.
 
-For the auto-commit step, enable repository write tokens in GitHub:
+- [USAGE.md](USAGE.md): practical installation, demos, Python examples, CLI usage, data layout, and outputs.
+- [DEVELOPMENT.md](DEVELOPMENT.md): build presets, tests, coverage, style, docs, branching, and PR checklist.
+- [QUICKSTART.md](QUICKSTART.md): compact build and smoke-test reference.
+- [docs/](docs/README.md): detailed architecture, market-data, product, model, risk, and implementation handbook.
+- [scripts/README.md](scripts/README.md): script-by-script automation reference.
 
-- `Settings > Actions > General > Workflow permissions`
-- Select `Read and write permissions`
-- Keep pull-request workflows restricted unless you intentionally need write access from forks
+## Quick Install And Demo
 
-The local equivalent for the full coverage gate is:
+Clone the repository, then use the platform scripts. They configure CMake, use vcpkg for C++ dependencies, and build the
+Python extension when the selected preset enables it.
+
+### Windows PowerShell
 
 ```powershell
-.\scripts\test.ps1 -Coverage
+git clone https://github.com/b-io/quant-risk-platform.git
+cd quant-risk-platform
+
+# Optional but recommended for MSVC terminals.
+copy msvc.env.cmd.example .env.cmd
+# Edit .env.cmd if your dev tools live outside the default path.
+
+.\scripts\install.ps1
+.\scripts\build.ps1
+.\scripts\test.ps1
+
+uv sync --project python --extra dashboard --extra optimization
+uv run --project python python python\examples\demo_platform.py
 ```
 
-The script uses 95% minimum line coverage thresholds for C++ and Python by default. It prints C++ coverage at the end of
-the C++ section, Python coverage at the end of the Python section, and a final combined summary.
+### Linux Or macOS
 
-### Supported builds on Windows (summary)
+```bash
+git clone https://github.com/b-io/quant-risk-platform.git
+cd quant-risk-platform
 
-- Daily development: `dev` for C++ plus Python with a static `qrp_core`.
-- Shared-core validation: `dev-shared` for C++ plus Python with a shared `qrp_core`.
-- Production-style checks: `release` and `release-shared`.
-- Native C++ debugging: `debug` and `debug-shared`.
+cp gcc.env.sh.example .env.sh
+# Edit .env.sh if your dev tools live outside the default path.
 
-Suggested commands:
+./scripts/install.sh
+./scripts/build.sh
+./scripts/test.sh
 
-- Daily C++ plus Python:
-  `cmake --preset dev && cmake --build build/dev --target quant_risk_platform && ctest --test-dir build/dev -R python_import`
-- Production-style C++ plus Python:
-  `cmake --preset release && cmake --build build/release --target quant_risk_platform && ctest --test-dir build/release -R python_import`
+uv sync --project python --extra dashboard --extra optimization
+uv run --project python python python/examples/demo_platform.py
+```
 
-## Documentation
+## Python Example
 
-The canonical project documentation lives under [`docs/`](docs/README.md).
+After building the `quant_risk_platform` extension, use it directly from Python:
 
-Recommended starting points:
+```python
+from pathlib import Path
+import sys
 
-- [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- [`docs/architecture/MARKET_AND_CURVES.md`](docs/architecture/MARKET_AND_CURVES.md)
-- [`docs/architecture/ANALYTICS_SERVICES.md`](docs/architecture/ANALYTICS_SERVICES.md)
-- [`docs/market-data/INDEX.md`](docs/market-data/INDEX.md)
-- [`docs/asset-classes/INDEX.md`](docs/asset-classes/INDEX.md)
-- [`docs/models/INDEX.md`](docs/models/INDEX.md)
-- [`docs/asset-classes/commodities/INDEX.md`](docs/asset-classes/commodities/INDEX.md)
-- [`docs/risk/INDEX.md`](docs/risk/INDEX.md)
-- [`docs/foundations/INDEX.md`](docs/foundations/INDEX.md)
-- [`docs/reference/INDEX.md`](docs/reference/INDEX.md)
-- [`docs/implementation/PHASED_BUILD_PLAN.md`](docs/implementation/PHASED_BUILD_PLAN.md)
+project = Path.cwd()
+sys.path.insert(0, str(project / "build" / "dev" / "python" / "RelWithDebInfo"))
 
-## Overview
+import quant_risk_platform as qrp
 
-Quant Risk Platform is a compact but production-shaped analytics platform designed to demonstrate how pricing, risk,
-and P&L workflows can be implemented with reusable market state, reusable instruments, and clear service boundaries.
+market = qrp.load_market(str(project / "data" / "market" / "demo_market.json"))
+portfolio = qrp.load_portfolio(str(project / "data" / "portfolios" / "demo_portfolio.json"))
 
-The project combines a high-performance C++ core with thin Python-facing bindings, with a focus on:
+valuation_results = qrp.price_portfolio(portfolio, market)
+total_npv = sum(result.npv for result in valuation_results)
 
-- pricing and risk analytics for trading portfolios,
-- market data and curve construction,
-- scenario analysis and stress testing,
-- P&L explain and risk decomposition,
-- extensibility across asset classes,
-- clean engineering, testability, and operational robustness.
+print(f"Portfolio: {portfolio.portfolio_id}")
+print(f"Trades:    {len(portfolio.trades)}")
+print(f"Total NPV: {total_npv:,.2f}")
+```
 
-## Core principles
+For repeated shocks, use the C++-owned revaluation session. It builds the market state and instruments once, then lets
+Python update quotes and ask for new values:
 
-- **C++ owns analytics**: pricing, curve building, scenarios, risk, stress, P&L explain, and Monte Carlo belong in the
-  C++ core.
-- **Python is an interface layer**: bindings, demos, notebooks, and simple orchestration only.
-- **Separate market state from positions**: curves and quotes should be built once and reused across many trades.
-- **Build once, reuse many times**: the same built market objects and instruments should support valuation, risk,
-  stress, explain, and simulation.
-- **Wrap QuantLib behind platform abstractions**: use QuantLib as the implementation engine, but keep repository-level
-  interfaces stable and platform-shaped.
-- **Keep `docs/` canonical**: documentation should track the code and public design rationale as the project evolves.
+```python
+session = qrp.create_revaluation_session(portfolio, market)
 
-## Current repository status
+base_total = session.total_npv()
+quote_updates = {
+    "EURUSD": 1.057875,
+    "AAPL": 170.66,
+    "USD_OIS_5Y": 0.0512,
+}
 
-The repository is beyond scaffold stage and already contains:
+preview = session.preview_quote_update_impact(quote_updates)
+report = session.revalue_quote_update_impact(quote_updates, pnl_tolerance=1e-8)
 
-- a C++ core under `cpp/` for market construction, instruments, and analytics services,
-- pybind11 bindings under `cpp/bindings/`,
-- a CLI under `cpp/cli/`,
-- sample market and portfolio data under `data/`,
-- tests under `tests/`,
-- canonical documentation under `docs/`.
+top_moves = sorted(report.trade_diffs, key=lambda row: abs(row.pnl), reverse=True)[:5]
 
-Current implementation maturity is best described as a **multi-asset analytics platform**: rates, FX, credit,
-commodities, and equities are represented in the canonical trade model and pricing registry, scenario/risk workflows
-are persisted, and PnL explain plus historical VaR/Expected Shortfall contribution analytics are exposed through the
-service layer, CLI, Python bindings, and SQLite result tables.
+print(f"Base total:    {base_total:,.2f}")
+print(f"Candidates:    {preview.potentially_affected_trade_count}")
+print(f"Candidate P&L: {report.candidate_pnl:,.2f}")
+for row in top_moves:
+    marker = "*" if row.moved_above_tolerance else " "
+    print(f"{marker} {row.trade_id:<32} {row.pnl:>12,.2f} via {row.dependency_quote_ids}")
 
-Known boundaries are reusable LSMC exercise-policy integration, broader realized-event sources for explain,
-built-portfolio caching, Monte Carlo contribution decomposition, and production-control hardening.
+print(f"Restored:      {session.total_npv():,.2f}")
+```
 
-## Implemented today
+Under the hood, the session owns QuantLib `SimpleQuote` handles, curves, pricing engines, and instruments in C++.
+`apply_quote_updates(...)` mutates only the named quote handles. QuantLib's observer graph marks dependent curves and
+instruments dirty, then recalculates lazily on the next NPV request from the changed market node upward through the
+dependency chain. The portfolio is not reparsed, curves are not rebuilt from scratch, and Python never manages raw
+QuantLib object lifetimes. The impact APIs are opt-in: `preview_*_impact(...)` builds a lazy quote-to-trade dependency
+index only when requested, and `revalue_*_impact(...)` reprices only the structurally affected candidate trades before
+returning compact before/after diff rows to Python.
 
-The current codebase already includes:
+The full demo uses the same session API with factor bindings to apply the `GLOBAL_RISK_OFF` scenario, print quote-handle
+moves, preview potentially affected trades, show candidate-only before/after diffs, and verify the reset value within
+valuation tolerance.
 
-- market loading and JSON DTOs,
-- normalized market, portfolio, scenario, valuation, risk, VaR, and PnL explain result models,
-- convention-aware rates market construction and QuantLib helper-based curve bootstrapping,
-- quote/factor metadata for rates, FX, credit, commodity, equity, and volatility inputs,
-- pricing for supported rates, FX, credit, commodity, and equity products,
-- high-performance reactive risk using QuantLib handles and the Observer pattern,
-- historical stress and HVaR scenario workflows,
-- historical VaR and Expected Shortfall contribution analytics by trade, book, strategy, currency, asset class, and
-  risk factor,
-- SQLite-backed persistence for portfolios, market snapshots, scenarios, and analytics results,
-- end-to-end persisted valuation, risk, HVaR, and PnL explain workflows,
-- PnL explain with carry, realized cash, sequential factor market move, residual reconciliation, and persisted
-  components,
-- Python bindings and a C++ CLI.
+For scenario, risk, P&L explain, Monte Carlo, and VaR contribution examples, run:
 
-## Known boundaries
+```powershell
+uv run --project python python python\examples\demo_platform.py
+```
+
+Use `--dashboard` to generate an optional Plotly HTML dashboard:
+
+```powershell
+uv run --project python python python\examples\demo_platform.py --dashboard
+```
+
+## CLI Example
+
+The C++ CLI stores results in `var/quant_risk_platform.sqlite` by default.
+
+```powershell
+.\build\dev\qrp_cli.exe init-db
+.\build\dev\qrp_cli.exe import-market data\market\demo_market.json
+.\build\dev\qrp_cli.exe import-portfolio data\portfolios\demo_portfolio.json
+.\build\dev\qrp_cli.exe import-scenarios data\scenarios\demo_scenarios.json
+
+.\build\dev\qrp_cli.exe run-valuation --portfolio demo_portfolio --snapshot DEMO_MKT_2026_03_24
+.\build\dev\qrp_cli.exe run-risk --portfolio demo_portfolio --snapshot DEMO_MKT_2026_03_24
+.\build\dev\qrp_cli.exe run-hvar --portfolio demo_portfolio --snapshot DEMO_MKT_2026_03_24 --scenarios demo_factor_scenarios
+.\build\dev\qrp_cli.exe list
+```
+
+## Current Coverage
+
+Implemented product coverage includes:
+
+- rates: deposits, FRAs, interest-rate futures, vanilla swaps, OIS swaps, fixed-rate bonds, floating-rate notes,
+  cap/floors, European swaptions, and Bermudan swaptions;
+- FX: spot, forwards, swaps, NDFs, and options;
+- credit: bonds, CDS, CDS indices, CDS options, and credit index options;
+- equities: spot, forwards, futures, and options;
+- commodities: spot, forwards, futures, future strips, futures options, calendar spread options, and swing contracts.
+
+Implemented analytics include valuation, deterministic risk, reactive revaluation sessions, historical stress, HVaR,
+VaR/ES contribution analytics, Monte Carlo simulation, P&L explain, persistence, run reporting, and demo dashboards.
+
+Known boundaries:
 
 - Monte Carlo and parametric VaR contribution decomposition are not yet first-class outputs.
-- LSMC exists conceptually in the modeling docs, but is not yet exposed as a reusable exercise-policy engine for every
-  early-exercise or physical-flexibility product.
-- Realized cash/event-source integration currently covers deposit maturity support and does not yet cover every coupon,
-  fixing, exercise, and settlement event source.
-- Built-position and built-portfolio caching are not yet shared across repeated analytics.
-- Production controls, run manifests, benchmark governance, performance gates, and validation reports remain hardening
-  areas.
+- LSMC is not yet exposed as a reusable exercise-policy engine for every early-exercise or physical-flexibility product.
+- Realized event-source integration does not yet cover every coupon, fixing, exercise, and settlement source.
+- A reusable revaluation-session cache exists for quote and scenario workflows; a shared built-position cache across all
+  analytics services is still a hardening area.
+- Production controls, manifests, benchmark governance, and validation reports remain hardening areas.
 
-## Documentation layout
+## Repository Layout
 
 ```text
-docs/
-|-- architecture/    # platform layering, market objects, services, persistence, and bindings
-|-- market-data/     # normalized quotes, snapshots, curves, surfaces, provenance, and validation
-|-- asset-classes/   # rates, credit, FX, commodities, and equity
-|-- models/          # reusable model families such as volatility and exercise models
-|-- risk/            # risk factors, PnL explain, stress, VaR, ES, Monte Carlo, and attribution
-|-- foundations/     # probability, statistics, stochastic processes, and asset pricing
-|-- reference/       # shared lexis, formulas, and public sources
-`-- implementation/  # implementation notes, standards, and checkpoints
+cpp/        C++ core, CLI, benchmarks, and pybind11 bindings
+data/       demo market snapshots, portfolios, scenarios, and regression fixtures
+docs/       architecture, market data, risk, asset-class, model, and implementation docs
+python/     Python examples, dashboard, optimizer worker, and package metadata
+scripts/    build, install, test, compute, inspect, and environment helpers
+tests/      C++ unit/integration tests and Python worker tests
+var/        local SQLite database and logs generated by scripts and CLI
 ```
 
-## Repository structure
+## More Detail
 
-```text
-quant-risk-platform/
-|-- CMakeLists.txt
-|-- CMakePresets.json
-|-- QUICKSTART.md
-|-- README.md
-|-- LICENSE
-|-- vcpkg.json
-|-- cmake/
-|-- cpp/
-|   |-- include/qrp/
-|   |   |-- analytics/
-|   |   |-- conventions/
-|   |   |-- domain/
-|   |   |-- instruments/
-|   |   |-- io/
-|   |   |-- market/
-|   |   `-- util/
-|   |-- benchmarks/
-|   |-- bindings/
-|   |-- cli/
-|   `-- src/
-|-- data/
-|   |-- market/
-|   |-- portfolios/
-|   `-- scenarios/
-|-- docs/
-|   |-- architecture/
-|   |-- market-data/
-|   |-- asset-classes/
-|   |-- models/
-|   |-- risk/
-|   |-- foundations/
-|   |-- reference/
-|   `-- implementation/
-|-- python/
-|   |-- examples/
-|   |-- notebooks/
-|   |-- pyproject.toml
-|   |-- requirements.txt
-|   |-- uv.lock
-|   `-- qrp/
-|-- scripts/
-|   `-- coverage/
-|       |-- cpp/
-|       `-- python/
-`-- tests/
-    |-- integration/
-    |-- regression/
-    `-- unit/
-```
-
-## Example workflows
-
-- build rates curves from market quotes,
-- price portfolios spanning rates, FX, credit, commodities, and equities,
-- compute deterministic sensitivities such as PV01, FX delta, CS01, and option Greeks where supported,
-- apply market shocks, replay historical scenarios, and generate stressed P&L,
-- run persisted valuation, risk, HVaR, and PnL explain workflows,
-- compare stored runs and generate run reports,
-- drive the same workflows through the C++ CLI or Python bindings for demos and orchestration.
-
-## Technology stack
-
-- **C++20** for the core analytics engine,
-- **QuantLib** for curve and instrument building blocks,
-- **CMake** for reproducible builds,
-- **fmt** for formatting,
-- **nlohmann-json** for JSON parsing,
-- **pybind11** for Python bindings,
-- **GoogleTest** for tests,
-- **Python** for orchestration, demos, and notebooks.
-
-## Design priorities
-
-- **Production-shaped** rather than notebook-shaped,
-- **Extensible** across asset classes,
-- **Transparent** in valuation and risk decomposition,
-- **Testable** with deterministic samples and regression coverage,
-- **Scalable** toward larger portfolios, repeated scenarios, and parallel execution,
-- **Pragmatic** about valuation, risk, and reporting workflows.
+- Start with [USAGE.md](USAGE.md) when you want to run or use the library.
+- Use [DEVELOPMENT.md](DEVELOPMENT.md) when you want to change, test, or release the library.
+- Use [docs/architecture/ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md) for system design.
+- Use [docs/risk/VAR.md](docs/risk/VAR.md) for VaR and Expected Shortfall conventions.
+- Use [docs/asset-classes/INDEX.md](docs/asset-classes/INDEX.md) for product coverage by asset class.
 
 ## Disclaimer
 
-This repository is a technical demonstration project intended for educational and professional portfolio purposes. It is
-not investment advice and should not be used for production trading or risk management without additional validation,
-controls, governance, and operational hardening.
+This repository is a technical demonstration project intended for educational and professional portfolio purposes. It
+is not investment advice and should not be used for production trading or risk management without additional
+validation, controls, governance, and operational hardening.

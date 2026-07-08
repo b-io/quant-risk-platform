@@ -125,6 +125,7 @@ add_library(qrp_core ${_QRP_CORE_LIBRARY_TYPE}
     cpp/src/analytics/pnl_explain_service.cpp
     cpp/src/analytics/pricing_context.cpp
     cpp/src/analytics/product_pricing_registry.cpp
+    cpp/src/analytics/revaluation_session.cpp
     cpp/src/analytics/risk_service.cpp
     cpp/src/analytics/simulation_primitives.cpp
     cpp/src/analytics/stress_engine.cpp
@@ -294,6 +295,7 @@ if(QRP_BUILD_PYTHON)
     cpp/bindings/bind_domain.cpp
     cpp/bindings/bind_io.cpp
     cpp/bindings/bind_market.cpp
+    cpp/bindings/bind_revaluation.cpp
     cpp/bindings/module.cpp
   )
   qrp_apply_coverage(quant_risk_platform)

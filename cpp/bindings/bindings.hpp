@@ -26,4 +26,9 @@ void bind_io(pybind11::module_& m);
  */
 void bind_market(pybind11::module_& m);
 
+/**
+ * @brief Registers reusable revaluation-session APIs with the Python module.
+ */
+void bind_revaluation(pybind11::module_& m);
+
 } // namespace qrp::bindings

@@ -18,4 +18,4 @@ This directory contains the primary C++ source code and headers for the Quant Ri
 
 - **qrp_core**: The main library containing all risk and valuation logic.
 - **qrp_cli**: A standalone executable used for database management, data import, and running valuation/risk flows.
-- **qrp_python**: Python module built from the C++ core via pybind11.
+- **quant_risk_platform**: Python extension module built from the C++ core via pybind11.
