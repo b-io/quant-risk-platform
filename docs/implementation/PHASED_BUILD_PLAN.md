@@ -419,6 +419,10 @@ Current implementation checkpoint:
 - Gas storage pricing now uses the shared dynamic-programming state/action
   contract with inventory state, injection/withdrawal constraints, variable
   exercise costs, and terminal inventory penalties.
+- Python keeps `price_american_option_lsmc(...)` as the user-facing LSMC helper
+  while production product paths remain C++-owned portfolio valuations. The
+  platform demo shows helper diagnostics plus live Bermudan, swing, storage,
+  and callable-bond product paths.
 
 ## Phase 11: Production Controls
 

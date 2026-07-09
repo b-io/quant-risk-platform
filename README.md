@@ -19,8 +19,8 @@ The C++ core owns the analytics. Python is the interface layer for demos, orches
   and risk factor.
 - Explain P&L with carry, market move, realized deposit maturity cash, residual reconciliation, and persisted
   components.
-- Run C++-managed LSMC exercise-policy valuation for American options and product paths such as Bermudan swaptions and
-  callable bonds.
+- Run C++-managed LSMC and dynamic-programming exercise valuation for American options, Bermudan swaptions, callable
+  bonds, commodity swing contracts, and gas storage.
 - Reuse a C++-owned revaluation session from Python for fast quote updates, scenario revaluation, dependency-graph
   diagnostics, and restored market checks without exposing raw QuantLib handles.
 - Persist market data, portfolios, scenarios, valuation runs, risk runs, HVaR runs, and P&L explain runs in SQLite.

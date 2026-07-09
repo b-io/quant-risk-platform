@@ -745,7 +745,7 @@ def make_rates_bond_trade(trade):
     return trade
 
 
-def run_lsmc_exercise_policy_demo(market):
+def run_lsmc_exercise_policy_demo(market, valuation_results):
     section("9. LSMC Exercise Policy")
     request = qrp.AmericanOptionLsmcRequest()
     request.spot = 100.0
@@ -774,6 +774,20 @@ def run_lsmc_exercise_policy_demo(market):
         f"exercise={first_step.exercise_count}"
     )
     print(f"Config tags:        seed={result.config_tags['seed']} paths={result.config_tags['num_paths']}")
+
+    product_paths = {
+        item.tags.get("product_type"): item
+        for item in valuation_results
+        if item.tags.get("product_type") in {"bermudan_swaption", "commodity_swing", "gas_storage"}
+    }
+    required_paths = {"bermudan_swaption", "commodity_swing", "gas_storage"}
+    missing_paths = sorted(required_paths - product_paths.keys())
+    if missing_paths:
+        raise AssertionError(f"Missing production exercise-policy demo paths: {missing_paths}")
+    print("Production paths:   product-level early exercise/flexibility stays in C++ factories")
+    for product_type in sorted(product_paths):
+        item = product_paths[product_type]
+        print(f"  {product_type:<18} {item.trade_id:<34} {item.npv:>12,.2f} {item.currency}")
 
     straight_bond = make_rates_bond_trade(qrp.FixedRateBondTrade())
     straight_bond.id = "LSMC_STRAIGHT_BOND"
@@ -1258,7 +1272,7 @@ def run_demo(dashboard=False):
     run_var_contributions(portfolio, stress_results, scenarios)
     risk_results = run_risk(portfolio, market, factors, bindings)
     pnl_results = run_pnl_explain(portfolio, market_path)
-    run_lsmc_exercise_policy_demo(market)
+    run_lsmc_exercise_policy_demo(market, valuation_results)
     mc_results = run_monte_carlo(portfolio, market, factors, bindings)
     validate_golden_outputs(
         golden,

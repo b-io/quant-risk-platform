@@ -175,10 +175,11 @@ print(result.regression_diagnostics[0].r_squared)
 Python receives compact run diagnostics and path values, while C++ owns the stochastic process, exercise policy, and
 regression loop. This keeps the hot path out of Python callbacks.
 
-The same C++ exercise-policy layer is also used by production product paths. For example, a callable fixed-rate bond is
-entered as a normal portfolio trade; the rates factory projects deterministic bond cashflows, values the issuer call
-right with the one-factor LSMC rates driver, and reports the callable bond value through `price_portfolio(...)`.
-The platform demo builds a small straight-versus-callable bond comparison and prints the implied issuer-call value.
+Production product paths use normal trade DTOs and `price_portfolio(...)`; they do not expose arbitrary Python exercise
+callbacks. American equity options, Bermudan swaptions, callable fixed-rate bonds, commodity swing contracts, and gas
+storage contracts are routed through C++-owned exercise or dynamic-programming policies. The platform demo prints the
+American-option helper diagnostics, live production-path rows for Bermudan/swing/storage trades, and a small
+straight-versus-callable bond comparison with the implied issuer-call value.
 
 ## Run The CLI
 
