@@ -72,13 +72,13 @@ Current risk implementation includes:
   market state;
 - historical VaR and Expected Shortfall contributions by trade, book, strategy,
   currency, asset class, and risk factor;
-- deterministic sensitivities for the supported product families.
+- deterministic sensitivities for the supported product families;
+- C++-managed LSMC and dynamic-programming valuation paths for early-exercise
+  and physical-flexibility product coverage.
 
 Known boundaries are:
 
 - Monte Carlo and parametric VaR contribution decomposition;
-- reusable LSMC integration where early exercise and physical flexibility affect
-  risk;
 - broader realized cashflow/event sources for explain;
 - production controls for run manifests, lineage, benchmark portfolios,
   performance gates, coverage gates, and validation reports.

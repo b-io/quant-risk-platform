@@ -1,17 +1,13 @@
-"""Runs the end-to-end platform demo, golden checks, and optional dashboard export."""
+"""Runs the end-to-end platform demo and golden checks."""
 
-import argparse
 import importlib.machinery
 import importlib.util
 import json
 import math
 import os
 import sys
-import webbrowser
 from collections import defaultdict
 from pathlib import Path
-
-from demo_dashboard import create_plotly_dashboard
 
 script_path = Path(__file__).resolve()
 project_root = script_path.parents[2]
@@ -130,20 +126,10 @@ REQUIRED_STRESS_SCENARIOS = {
     "VOL_SPIKE",
 }
 
-DASHBOARD_PORTFOLIOS = [
-    "liquidity_reserve_model_portfolio.json",
-    "balanced_core_model_portfolio.json",
-    "growth_global_macro_portfolio.json",
-    "high_growth_equity_volatility_portfolio.json",
-    "adventurous_commodity_volatility_portfolio.json",
-]
-
 MONTE_CARLO_CASES = [
     ("HorizonShockOnly", qrp.MonteCarloMode.HorizonShockOnly, 1.0),
     ("AgedHorizonRevaluation", qrp.MonteCarloMode.AgedHorizonRevaluation, 10.0),
 ]
-
-DASHBOARD_PORTFOLIO_MONTE_CARLO_CASES = [MONTE_CARLO_CASES[0]]
 ASSET_COLUMN_WIDTH = 10
 PRODUCT_COLUMN_WIDTH = 34
 POSITION_COLUMN_WIDTH = 34
@@ -730,6 +716,98 @@ def run_pnl_explain(portfolio, market_path):
     return pnl_results
 
 
+def make_rates_bond_trade(trade):
+    trade.asset_class = "rates"
+    trade.asset_class_type = qrp.AssetClass.Rates
+    trade.currency = "USD"
+    trade.direction = "long"
+    trade.book = "BOOK:DEMO"
+    trade.strategy = "LSMC_DEMO"
+    trade.notional = 2_000_000.0
+    trade.start_date = "2026-03-26"
+    trade.maturity_date = "2031-03-26"
+    trade.coupon_rate = 0.0650
+    trade.frequency = "Annual"
+    return trade
+
+
+def run_lsmc_exercise_policy_demo(market, valuation_results):
+    section("9. LSMC Exercise Policy")
+    request = qrp.AmericanOptionLsmcRequest()
+    request.spot = 100.0
+    request.strike = 100.0
+    request.risk_free_rate = 0.05
+    request.volatility = 0.20
+    request.maturity = 1.0
+    request.exercise_steps = 24
+    request.basis_degree = 2
+    request.config.num_paths = 4096
+    request.config.seed = 42
+    request.config.discount_rate = request.risk_free_rate
+
+    result = qrp.price_american_option_lsmc(request)
+    if not result.regression_diagnostics:
+        raise AssertionError("Expected LSMC regression diagnostics")
+
+    first_step = result.regression_diagnostics[0]
+    if len(result.exercise_times) != request.exercise_steps + 1:
+        raise AssertionError("Expected LSMC exercise grid diagnostics")
+    print(f"American put value: {result.value:,.4f} +/- {result.standard_error:,.4f}")
+    print(f"Tail diagnostics:   VaR95={result.var_95:,.4f} ES95={result.expected_shortfall_95:,.4f}")
+    print(
+        "Exercise grid:      "
+        f"{len(result.exercise_times)} points from {result.exercise_times[0]:.4f} "
+        f"to {result.exercise_times[-1]:.4f} years"
+    )
+    print(f"Basis:              {', '.join(result.basis_function_names)}")
+    print(
+        "First regression:   "
+        f"t={first_step.time:>.4f} samples={first_step.sample_count} "
+        f"basis={first_step.basis_function_count} R2={first_step.r_squared:>.4f} "
+        f"exercise={first_step.exercise_count}"
+    )
+    print(f"Config tags:        seed={result.config_tags['seed']} paths={result.config_tags['num_paths']}")
+
+    product_paths = {
+        item.tags.get("product_type"): item
+        for item in valuation_results
+        if item.tags.get("product_type") in {"bermudan_swaption", "commodity_swing", "gas_storage"}
+    }
+    required_paths = {"bermudan_swaption", "commodity_swing", "gas_storage"}
+    missing_paths = sorted(required_paths - product_paths.keys())
+    if missing_paths:
+        raise AssertionError(f"Missing production exercise-policy demo paths: {missing_paths}")
+    print("Production paths:   product-level early exercise/flexibility stays in C++ factories")
+    for product_type in sorted(product_paths):
+        item = product_paths[product_type]
+        print(f"  {product_type:<18} {item.trade_id:<34} {item.npv:>12,.2f} {item.currency}")
+
+    straight_bond = make_rates_bond_trade(qrp.FixedRateBondTrade())
+    straight_bond.id = "LSMC_STRAIGHT_BOND"
+
+    callable_bond = make_rates_bond_trade(qrp.CallableBondTrade())
+    callable_bond.id = "LSMC_CALLABLE_BOND"
+    callable_bond.call_dates = ["2027-03-26", "2028-03-26", "2029-03-26", "2030-03-26"]
+    callable_bond.call_prices = [101.0, 100.75, 100.5, 100.0]
+    callable_bond.mean_reversion = 0.03
+    callable_bond.volatility = 0.012
+
+    bond_portfolio = qrp.Portfolio()
+    bond_portfolio.portfolio_id = "lsmc_callable_bond_demo"
+    bond_portfolio.trades = [straight_bond, callable_bond]
+    bond_results = {item.trade_id: item for item in qrp.price_portfolio(bond_portfolio, market)}
+    straight_value = bond_results["LSMC_STRAIGHT_BOND"].npv
+    callable_value = bond_results["LSMC_CALLABLE_BOND"].npv
+    if callable_value > straight_value + 1.0e-8:
+        raise AssertionError("Callable bond should not value above the matching straight bond")
+    print(
+        "Callable bond:      "
+        f"straight={straight_value:,.2f} callable={callable_value:,.2f} "
+        f"issuer_call={straight_value - callable_value:,.2f}"
+    )
+    return result
+
+
 def factor_variance(factor):
     if factor.factor_type in (qrp.FactorType.RateForward, qrp.FactorType.RateZero):
         return 1e-8
@@ -794,7 +872,7 @@ def print_traces(traces, mode):
 
 
 def run_monte_carlo(portfolio, market, factors, bindings):
-    section("9. Monte Carlo")
+    section("10. Monte Carlo")
     results = compute_monte_carlo(portfolio, market, factors, bindings, MONTE_CARLO_CASES)
     for (label, mode, horizon_days), (_, result, mean_pnl) in zip(MONTE_CARLO_CASES, results):
         print(
@@ -823,29 +901,6 @@ def compute_portfolio_analytics(portfolio, market, market_path, factors, binding
         "total_npv": total_npv,
         "valuation_results": valuation_results,
     }
-
-
-def build_dashboard_portfolio_views(primary_portfolio_id, market, market_path, factors, bindings, scenarios):
-    views = []
-    seen = {primary_portfolio_id}
-    portfolio_dir = project_root / "data" / "portfolios"
-    for portfolio_file in DASHBOARD_PORTFOLIOS:
-        portfolio = qrp.load_portfolio(str(portfolio_dir / portfolio_file))
-        if portfolio.portfolio_id in seen:
-            continue
-        views.append(
-            compute_portfolio_analytics(
-                portfolio,
-                market,
-                market_path,
-                factors,
-                bindings,
-                scenarios,
-                DASHBOARD_PORTFOLIO_MONTE_CARLO_CASES,
-            )
-        )
-        seen.add(portfolio.portfolio_id)
-    return views
 
 
 def validate_golden_outputs(
@@ -1102,7 +1157,7 @@ def validate_product_family_outputs(product_families, valuation_results, stress_
 
 
 def run_optional_cvxpy_worker_check():
-    section("10. Optional CVXPY Worker Check")
+    section("11. Optional CVXPY Worker Check")
     worker_path = project_root / "python" / "qrp" / "optimization" / "cvxpy_worker.py"
     spec = importlib.util.spec_from_file_location("qrp_cvxpy_worker", worker_path)
     if spec is None or spec.loader is None:
@@ -1150,17 +1205,7 @@ def run_optional_cvxpy_worker_check():
     return result
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(description="Run the Quant Risk Platform Python demo.")
-    parser.add_argument(
-        "--dashboard",
-        action="store_true",
-        help="Create reports/demo_risk_dashboard.html and open it in the default web browser.",
-    )
-    return parser.parse_args()
-
-
-def run_demo(dashboard=False):
+def run_demo():
     section("Quant Risk Platform Python Demo")
     market_path = project_root / "data" / "market" / "demo_market.json"
     portfolio_path = project_root / "data" / "portfolios" / "demo_portfolio.json"
@@ -1187,6 +1232,7 @@ def run_demo(dashboard=False):
     run_var_contributions(portfolio, stress_results, scenarios)
     risk_results = run_risk(portfolio, market, factors, bindings)
     pnl_results = run_pnl_explain(portfolio, market_path)
+    run_lsmc_exercise_policy_demo(market, valuation_results)
     mc_results = run_monte_carlo(portfolio, market, factors, bindings)
     validate_golden_outputs(
         golden,
@@ -1198,36 +1244,10 @@ def run_demo(dashboard=False):
         mc_results,
     )
     validate_product_family_outputs(product_families, valuation_results, stress_results, risk_results, pnl_results)
-    optimization_result = run_optional_cvxpy_worker_check()
-    if dashboard:
-        portfolio_views = build_dashboard_portfolio_views(
-            portfolio.portfolio_id, market, market_path, factors, bindings, scenarios
-        )
-        dashboard_path = create_plotly_dashboard(
-            portfolio=portfolio,
-            valuation_results=valuation_results,
-            total_npv=total_npv,
-            stress_results=stress_results,
-            risk_results=risk_results,
-            pnl_results=pnl_results,
-            mc_results=mc_results,
-            factors=factors,
-            market_valuation_date=market.valuation_date,
-            scenarios=scenarios,
-            output_path=project_root / "reports" / "demo_risk_dashboard.html",
-            optimization_result=optimization_result,
-            portfolio_views=portfolio_views,
-        )
-        if dashboard_path:
-            print(f"\nDashboard written to: {dashboard_path}")
-            webbrowser.open(dashboard_path.resolve().as_uri())
-            print("Dashboard opened in your default web browser.")
-        else:
-            print("Dashboard was not generated, so there is no webpage to open.")
+    run_optional_cvxpy_worker_check()
 
     section("Demo completed successfully")
 
 
 if __name__ == "__main__":
-    args = parse_args()
-    run_demo(dashboard=args.dashboard)
+    run_demo()

@@ -132,7 +132,8 @@ split by domain, analytics, I/O, market, and revaluation APIs:
 
 - domain and market DTOs are passed as typed objects loaded from JSON;
 - analytics bindings expose valuation, deterministic risk, stress, Monte Carlo,
-  PnL explain, historical VaR/ES contributions, and covariance helpers;
+  PnL explain, historical VaR/ES contributions, covariance helpers, and
+  C++-managed LSMC exercise-policy helpers;
 - `create_revaluation_session(...)` returns a C++-owned `RevaluationSession`
   that keeps mutable market state and cached instruments on the C++ side while
   exposing Python methods for quote updates, scenario application, pricing,
@@ -140,7 +141,12 @@ split by domain, analytics, I/O, market, and revaluation APIs:
   impact previews, and candidate-only impact revaluation.
 
 This keeps Python ergonomic without exposing raw QuantLib handles or requiring
-Python callers to manage observer lifetimes.
+Python callers to manage observer lifetimes. The LSMC binding follows the same
+principle: Python configures a typed request and receives compact diagnostics,
+while path simulation, basis evaluation, regression, and exercise decisions stay
+inside C++. Production early-exercise and flexibility products are still entered
+as normal trade DTOs and priced through `price_portfolio(...)`; Python does not
+provide arbitrary exercise callbacks on the hot path.
 
 ## 9. Choosing the split in practice
 

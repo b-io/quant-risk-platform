@@ -1,15 +1,27 @@
-"""Creates the Plotly HTML dashboard used by the demo platform workflow."""
+"""Creates the standalone Plotly HTML dashboard for the demo analytics workflow."""
 
+import argparse
 import html
 import json
 import math
+import webbrowser
 from collections import defaultdict
 from datetime import date, datetime, timedelta
+from pathlib import Path
 
 FINANCE_FONT = '"IBM Plex Sans", "Aptos", "Bahnschrift", sans-serif'
 MONO_FONT = '"IBM Plex Mono", "Cascadia Mono", "SFMono-Regular", monospace'
 CATEGORY_TICKANGLE = -35
 CATEGORY_TICKFONT = {"family": FINANCE_FONT, "size": 9}
+DASHBOARD_PORTFOLIOS = [
+    "liquidity_reserve_model_portfolio.json",
+    "balanced_core_model_portfolio.json",
+    "growth_global_macro_portfolio.json",
+    "high_growth_equity_volatility_portfolio.json",
+    "adventurous_commodity_volatility_portfolio.json",
+]
+
+DASHBOARD_ASSET_DIR = Path(__file__).with_name("dashboard")
 
 DASHBOARD_STYLE_PRESETS = {
     "institutional": {
@@ -163,16 +175,57 @@ def optional_plotly_modules():
         print(f"Skipped: Plotly dashboard dependencies are not available in this Python environment ({exc}).")
         print("Install the optional dashboard dependencies with:")
         print("  uv sync --project python --extra dashboard")
-        print("Then run the demo with the uv-managed interpreter:")
-        print("  uv run --project python python python/examples/demo_platform.py")
+        print("Then run the dashboard with the uv-managed interpreter:")
+        print("  uv run --project python --extra dashboard python python/examples/demo_dashboard.py")
         return None
     return go, make_subplots, pio
 
 
-def dashboard_style_options():
+def read_dashboard_asset(name):
+    return (DASHBOARD_ASSET_DIR / name).read_text(encoding="utf-8")
+
+
+def json_for_script(value):
+    return (
+        json.dumps(value, sort_keys=True)
+        .replace("&", "\\u0026")
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+        .replace("\u2028", "\\u2028")
+        .replace("\u2029", "\\u2029")
+    )
+
+
+def render_asset_template(template, replacements):
+    rendered = template
+    for token, value in replacements.items():
+        rendered = rendered.replace(token, value)
+    missing = sorted(token for token in replacements if token in rendered)
+    if missing:
+        raise ValueError(f"Dashboard template placeholders were not replaced: {missing}")
+    return rendered
+
+
+def render_select_option(template, value, label):
+    return render_asset_template(
+        template,
+        {
+            "__QRP_OPTION_LABEL__": html.escape(label),
+            "__QRP_OPTION_VALUE__": html.escape(value),
+        },
+    )
+
+
+def html_id(value):
+    text = str(value or "").strip().casefold()
+    cleaned = "".join(char if char.isalnum() else "-" for char in text)
+    collapsed = "-".join(part for part in cleaned.split("-") if part)
+    return collapsed or "item"
+
+
+def dashboard_style_options(option_template):
     return "\n".join(
-        f'<option value="{html.escape(key)}">{html.escape(preset["label"])}</option>'
-        for key, preset in DASHBOARD_STYLE_PRESETS.items()
+        render_select_option(option_template, key, preset["label"]) for key, preset in DASHBOARD_STYLE_PRESETS.items()
     )
 
 
@@ -1206,26 +1259,35 @@ def render_dashboard_html(title, views, output_path, pio, report_context=None):
     context = report_context or {}
     market_as_of = context.get("market_as_of", "n/a")
     generated_at = context.get("generated_at", "n/a")
-    style_options = dashboard_style_options()
-    style_presets_json = json.dumps(DASHBOARD_STYLE_PRESETS, sort_keys=True)
-    portfolio_options = "\n".join(
-        f'<option value="{html.escape(view["id"])}">{html.escape(view["label"])}</option>' for view in views
-    )
+    allocation_controls_template = read_dashboard_asset("allocation_controls.html")
+    card_template = read_dashboard_asset("card.html")
+    lazy_panel_body_template = read_dashboard_asset("lazy_panel_body.html")
+    option_template = read_dashboard_asset("select_option.html")
+    panel_note_template = read_dashboard_asset("panel_note.html")
+    panel_template = read_dashboard_asset("panel.html")
+    portfolio_view_template = read_dashboard_asset("portfolio_view.html")
+    tab_button_template = read_dashboard_asset("dashboard_tab_button.html")
+    tabs_template = read_dashboard_asset("dashboard_tabs.html")
+    style_options = dashboard_style_options(option_template)
+    portfolio_options = "\n".join(render_select_option(option_template, view["id"], view["label"]) for view in views)
     plotly_index = 0
     view_html = []
     for view_index, view in enumerate(views):
         card_html = "\n".join(
-            f"""
-            <section class="card is-loading">
-              <div class="card-label">{html.escape(card["label"])}</div>
-              <div class="card-value">{html.escape(card["value"])}</div>
-              <div class="card-note">{html.escape(card["note"])}</div>
-            </section>
-            """
+            render_asset_template(
+                card_template,
+                {
+                    "__QRP_CARD_LABEL__": html.escape(card["label"]),
+                    "__QRP_CARD_NOTE__": html.escape(card["note"]),
+                    "__QRP_CARD_VALUE__": html.escape(card["value"]),
+                },
+            )
             for card in view["cards"]
         )
         figure_html = []
-        for figure in view["figures"]:
+        tab_html = []
+        view_slug = html_id(view["id"])
+        for figure_index, figure in enumerate(view["figures"]):
             if len(figure) == 3:
                 name, fig, note = figure
             else:
@@ -1237,2205 +1299,78 @@ def render_dashboard_html(title, views, output_path, pio, report_context=None):
                 include_plotly = "cdn" if plotly_index == 0 else False
                 plotly_index += 1
                 panel_body = pio.to_html(fig, full_html=False, include_plotlyjs=include_plotly)
-            allocation_controls = ""
-            if name == "Portfolio Allocation":
-                allocation_controls = """
-                <div class="allocation-mode" data-allocation-mode aria-label="Allocation hierarchy">
-                  <button type="button" data-allocation-view="asset" aria-pressed="true">Asset</button>
-                  <button type="button" data-allocation-view="book" aria-pressed="false">Book</button>
-                  <button type="button" data-allocation-view="position" aria-pressed="false">Position</button>
-                </div>
-                """
-            figure_html.append(f"""
-            <section class="panel is-loading">
-              <div class="panel-heading">
-                <h2>{html.escape(name)}</h2>
-                <div class="panel-actions">
-                  {allocation_controls}
-                  <button class="panel-reset" type="button" data-panel-reset>Reset slice</button>
-                </div>
-              </div>
-              {f'<p class="panel-note">{html.escape(note)}</p>' if note else ""}
-              <div class="panel-filter" data-panel-filter hidden></div>
-              <div class="panel-body">
-                <div class="panel-loading" aria-hidden="true"><span></span></div>
-                {panel_body}
-              </div>
-            </section>
-            """)
+            panel_id = f"{view_slug}-panel-{figure_index + 1}"
+            tab_id = f"{view_slug}-tab-{figure_index + 1}"
+            is_active_panel = figure_index == 0
+            should_render_immediately = view_index == 0 and figure_index == 0
+            allocation_controls = allocation_controls_template if name == "Portfolio Allocation" else ""
+            panel_note_html = (
+                render_asset_template(panel_note_template, {"__QRP_PANEL_NOTE__": html.escape(note)}) if note else ""
+            )
+            rendered_panel_body = (
+                panel_body
+                if should_render_immediately
+                else render_asset_template(lazy_panel_body_template, {"__QRP_LAZY_PANEL_BODY__": panel_body})
+            )
+            tab_html.append(
+                render_asset_template(
+                    tab_button_template,
+                    {
+                        "__QRP_PANEL_ID__": html.escape(panel_id),
+                        "__QRP_TAB_ID__": html.escape(tab_id),
+                        "__QRP_TAB_LABEL__": html.escape(name),
+                        "__QRP_TAB_SELECTED__": "true" if is_active_panel else "false",
+                    },
+                )
+            )
+            figure_html.append(
+                render_asset_template(
+                    panel_template,
+                    {
+                        "__QRP_ALLOCATION_CONTROLS__": allocation_controls,
+                        "__QRP_PANEL_BODY__": rendered_panel_body,
+                        "__QRP_PANEL_HIDDEN__": "" if is_active_panel else " hidden",
+                        "__QRP_PANEL_ID__": html.escape(panel_id),
+                        "__QRP_PANEL_NOTE_HTML__": panel_note_html,
+                        "__QRP_PANEL_TAB_ID__": html.escape(tab_id),
+                        "__QRP_PANEL_TITLE__": html.escape(name),
+                    },
+                )
+            )
         hidden = "" if view_index == 0 else " hidden"
-        view_html.append(f"""
-        <section class="portfolio-view" data-portfolio-view="{html.escape(view["id"])}"{hidden}>
-          <div class="view-heading">
-            <div>
-              <h2>{html.escape(view["label"])}</h2>
-              <p>{html.escape(view["description"])}</p>
-            </div>
-            <span>{html.escape(view["summary"])}</span>
-          </div>
-          <div class="cards">{card_html}</div>
-          {"".join(figure_html)}
-        </section>
-        """)
+        tabs_html = render_asset_template(tabs_template, {"__QRP_TAB_BUTTONS__": "".join(tab_html)})
+        view_html.append(
+            render_asset_template(
+                portfolio_view_template,
+                {
+                    "__QRP_VIEW_CARDS__": card_html,
+                    "__QRP_VIEW_DESCRIPTION__": html.escape(view["description"]),
+                    "__QRP_VIEW_FIGURES__": "".join(figure_html),
+                    "__QRP_VIEW_HIDDEN__": hidden,
+                    "__QRP_VIEW_ID__": html.escape(view["id"]),
+                    "__QRP_VIEW_LABEL__": html.escape(view["label"]),
+                    "__QRP_VIEW_SUMMARY__": html.escape(view["summary"]),
+                    "__QRP_VIEW_TABS__": tabs_html,
+                },
+            )
+        )
     view_html = "\n".join(view_html)
-    initial_theme_script = """
-  <script>
-    (function () {
-      const savedTheme = localStorage.getItem("qrp-dashboard-theme");
-      const savedStyle = localStorage.getItem("qrp-dashboard-style");
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-      document.documentElement.dataset.theme = savedTheme || systemTheme;
-      document.documentElement.dataset.palette = savedStyle || "institutional";
-    }());
-  </script>
-"""
-    theme_script = """
-  <script>
-    (function () {
-      const stylePresets = __STYLE_PRESETS__;
-      window.qrpDashboardStylePresets = stylePresets;
-      const themeStorageKey = "qrp-dashboard-theme";
-      const styleStorageKey = "qrp-dashboard-style";
-      const button = document.querySelector("[data-theme-toggle]");
-      const label = document.querySelector("[data-theme-label]");
-      const portfolioSelect = document.querySelector("[data-portfolio-select]");
-      const styleSelect = document.querySelector("[data-style-select]");
-      const portfolioStorageKey = "qrp-dashboard-portfolio";
-      const contrastPalettes = {
-        light: {
-          font: "#16231d",
-          grid: "rgba(35, 55, 47, 0.13)",
-          heatNeutral: "#f5eddc",
-          line: "rgba(35, 55, 47, 0.25)",
-          paper: "rgba(0,0,0,0)",
-          plot: "rgba(0,0,0,0)",
-          tableCell: "#fff8eb",
-          tableCellFont: "#16231d",
-          tableHeader: "#102820",
-          tableHeaderFont: "#f4fff9",
-          tableMuted: "#647269"
+    template = read_dashboard_asset("dashboard_template.html")
+    document = render_asset_template(
+        template,
+        {
+            "__QRP_DASHBOARD_CSS__": read_dashboard_asset("dashboard.css"),
+            "__QRP_DASHBOARD_JS__": read_dashboard_asset("dashboard.js"),
+            "__QRP_GENERATED_AT__": html.escape(generated_at),
+            "__QRP_INITIAL_THEME_JS__": read_dashboard_asset("initial_theme.js"),
+            "__QRP_MARKET_AS_OF__": html.escape(market_as_of),
+            "__QRP_PORTFOLIO_OPTIONS__": portfolio_options,
+            "__QRP_STYLE_OPTIONS__": style_options,
+            "__QRP_STYLE_PRESETS_JSON__": json_for_script(DASHBOARD_STYLE_PRESETS),
+            "__QRP_TITLE__": html.escape(title),
+            "__QRP_VIEW_HTML__": view_html,
         },
-        dark: {
-          font: "#e7f4ef",
-          grid: "rgba(136, 164, 151, 0.18)",
-          heatNeutral: "#102730",
-          line: "rgba(136, 164, 151, 0.32)",
-          paper: "rgba(0,0,0,0)",
-          plot: "rgba(0,0,0,0)",
-          tableCell: "#0f1d26",
-          tableCellFont: "#e7f4ef",
-          tableHeader: "#64d6c2",
-          tableHeaderFont: "#061016",
-          tableMuted: "#91a69e"
-        }
-      };
-
-      function activeStyleKey() {
-        const key = document.documentElement.dataset.palette || "institutional";
-        return stylePresets[key] ? key : "institutional";
-      }
-
-      function styleTokens(key) {
-        return stylePresets[key] || stylePresets.institutional;
-      }
-
-      function plotNodes() {
-        return Array.from(document.querySelectorAll(".js-plotly-plot"));
-      }
-
-      function scaleForStyle(preset, tokens) {
-        const neutral = tokens.heatNeutral || "#f5eddc";
-        return [
-          [0, preset.danger],
-          [0.34, mixHex(preset.danger, neutral, 0.68)],
-          [0.5, neutral],
-          [0.66, mixHex(preset.accent, neutral, 0.68)],
-          [1, preset.accent]
-        ];
-      }
-
-      function withAlpha(hex, alpha) {
-        const clean = String(hex || "").replace("#", "");
-        if (clean.length !== 6) return hex;
-        const r = parseInt(clean.slice(0, 2), 16);
-        const g = parseInt(clean.slice(2, 4), 16);
-        const b = parseInt(clean.slice(4, 6), 16);
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-      }
-
-      function mixHex(baseColor, mixColor, weight) {
-        function toRgb(hex) {
-          const clean = String(hex || "").replace("#", "");
-          if (clean.length !== 6) return null;
-          return [
-            parseInt(clean.slice(0, 2), 16),
-            parseInt(clean.slice(2, 4), 16),
-            parseInt(clean.slice(4, 6), 16)
-          ];
-        }
-        const base = toRgb(baseColor);
-        const mix = toRgb(mixColor);
-        if (!base || !mix || base.some(Number.isNaN) || mix.some(Number.isNaN)) {
-          return baseColor;
-        }
-        const clamped = Math.max(0, Math.min(1, Number(weight || 0)));
-        const channel = (index) => Math.round(base[index] * (1 - clamped) + mix[index] * clamped);
-        return `#${[0, 1, 2].map((index) => channel(index).toString(16).padStart(2, "0")).join("")}`;
-      }
-
-      const productColorVariants = [
-        ["#000000", 0.10],
-        ["#ffffff", 0.12],
-        ["#000000", 0.22],
-        ["#ffffff", 0.28],
-        ["#000000", 0.32],
-        ["#ffffff", 0.38]
-      ];
-      const tradeColorVariants = [
-        ["#000000", 0.04],
-        ["#000000", 0.08],
-        ["#000000", 0.12],
-        ["#000000", 0.16]
-      ];
-
-      function stableColorIndex(value, modulo) {
-        if (!modulo) return 0;
-        return Array.from(String(value || "")).reduce((total, char, index) => {
-          return total + ((index + 1) * char.charCodeAt(0));
-        }, 0) % modulo;
-      }
-
-      function nodeAssetClass(nodeId) {
-        const id = String(nodeId || "");
-        if (id.startsWith("asset:")) {
-          return id.slice("asset:".length);
-        }
-        if (id.startsWith("product:")) {
-          const parts = id.split(":");
-          return parts.length > 1 ? parts[1] : "";
-        }
-        if (id.startsWith("bookAsset:")) {
-          const separator = id.lastIndexOf("|");
-          return separator >= 0 ? id.slice(separator + 1) : "";
-        }
-        if (id.startsWith("trade:")) {
-          const parts = id.split(":");
-          return parts.length > 3 ? parts[1] : "";
-        }
-        return "";
-      }
-
-      function productNodeIdFromTradeNode(nodeId) {
-        const parts = String(nodeId || "").split(":");
-        if (parts.length < 4 || parts[0] !== "trade") {
-          return "";
-        }
-        return `product:${parts[1]}:${parts[2]}`;
-      }
-
-      function tradeNodeIdFromRow(row) {
-        return `trade:${row.asset_class}:${row.product_type}:${row.trade_id}`;
-      }
-
-      function tradeAxisValues(rows) {
-        return [
-          rows.map((row) => row.asset_class || ""),
-          rows.map((row) => row.product_type || ""),
-          rows.map((row) => row.trade_id || "")
-        ];
-      }
-
-      function tradeCustomData(rows) {
-        return rows.map((row) => [
-          row.asset_class || "",
-          row.product_type || "",
-          row.trade_id || ""
-        ]);
-      }
-
-      function traceTradeIds(trace) {
-        const yValues = trace.y || [];
-        return Array.isArray(yValues[0]) ? (yValues[yValues.length - 1] || []) : yValues;
-      }
-
-      function tradeIdFromPoint(point) {
-        if (Array.isArray(point.customdata) && point.customdata.length >= 3) {
-          return point.customdata[2];
-        }
-        if (Array.isArray(point.y)) {
-          return point.y[point.y.length - 1];
-        }
-        return point.y;
-      }
-
-      function familyColor(baseColor, nodeId, variants) {
-        const [mixColor, weight] = variants[stableColorIndex(nodeId, variants.length)];
-        return mixHex(baseColor, mixColor, weight);
-      }
-
-      function nodeColor(nodeId, pointIndex, preset) {
-        const id = String(nodeId || "");
-        if (id === "portfolio") {
-          return preset.amber;
-        }
-        const colorway = preset.colorway || [];
-        const assetColors = preset.asset_colors || {};
-        const fallback = colorway[pointIndex % Math.max(colorway.length, 1)] || preset.accent;
-        const assetColor = assetColors[nodeAssetClass(id)] || fallback;
-        if (id.startsWith("product:")) {
-          return familyColor(assetColor, id, productColorVariants);
-        }
-        if (id.startsWith("trade:")) {
-          const productColor = familyColor(assetColor, productNodeIdFromTradeNode(id), productColorVariants);
-          return familyColor(productColor, id, tradeColorVariants);
-        }
-        return assetColor;
-      }
-
-      function portfolioBarColors(plot, trace, traceIndex, preset) {
-        const meta = plot.layout && plot.layout.meta;
-        if (!meta || meta.qrpPanel !== "portfolio_allocation") {
-          return null;
-        }
-        if (traceIndex === 2) {
-          const rows = meta.tradeRows || [];
-          const rowsById = new Map(rows.map((row) => [row.trade_id, row]));
-          return traceTradeIds(trace).map((tradeId, pointIndex) => {
-            const row = rowsById.get(tradeId);
-            if (!row) {
-              return preset.colorway[pointIndex % preset.colorway.length] || preset.accent;
-            }
-            return Number(row.display_npv ?? row.npv ?? 0) < 0
-              ? preset.danger
-              : nodeColor(tradeNodeIdFromRow(row), pointIndex, preset);
-          });
-        }
-        return null;
-      }
-
-      function barColorsForTrace(trace, preset) {
-        const name = String(trace.name || "");
-        const axisValues = trace.orientation === "h" ? (trace.x || []) : (trace.y || []);
-        const categoryValues = trace.orientation === "h" ? (trace.y || []) : (trace.x || []);
-        if (name === "Carry") return axisValues.map(() => preset.amber);
-        if (name === "Cash") return axisValues.map(() => preset.accent2);
-        if (name === "Market Move" || name === "PV01") return axisValues.map(() => preset.accent);
-        if (name === "Residual" || name === "CS01") return axisValues.map(() => preset.danger);
-        return axisValues.map((value, pointIndex) => {
-          const category = String(categoryValues[pointIndex] || "");
-          if (category.includes("partial")) return preset.amber;
-          return Number(value || 0) < 0 ? preset.danger : preset.accent;
-        });
-      }
-
-      function treemapColorsForTrace(trace, preset) {
-        return (trace.ids || []).map((id, pointIndex) => nodeColor(id, pointIndex, preset));
-      }
-
-      function plotTextColor(theme, tokens, preset) {
-        return theme === "dark" ? tokens.font : (preset.fill_text || tokens.font);
-      }
-
-      function scatterColorsForTrace(trace, preset, theme) {
-        const name = String(trace.name || "").toLowerCase();
-        const mutedAlpha = theme === "dark" ? 0.34 : 0.22;
-        if (name.includes("benchmark") && name.includes("drawdown")) {
-          return { line: withAlpha(preset.danger, theme === "dark" ? 0.78 : 0.66), marker: preset.danger };
-        }
-        if (name.includes("benchmark")) {
-          return { line: preset.accent2 || preset.accent, marker: preset.accent2 || preset.accent };
-        }
-        if (name.includes("drawdown")) {
-          return { line: preset.danger, marker: preset.danger };
-        }
-        if (name.includes("portfolio")) {
-          return { line: preset.accent, marker: preset.accent };
-        }
-        if (name.includes("mean")) {
-          return { line: preset.danger, marker: preset.danger };
-        }
-        return { line: withAlpha(preset.accent, mutedAlpha), marker: preset.accent };
-      }
-
-      function relayoutForTheme(plot, theme, styleKey) {
-        if (!window.Plotly || !plot.layout) {
-          return Promise.resolve();
-        }
-        const stateKey = `${theme}:${styleKey}`;
-        if (plot.dataset.qrpVisualState === stateKey) {
-          return Promise.resolve();
-        }
-        plot.dataset.qrpVisualState = stateKey;
-        const tokens = contrastPalettes[theme];
-        const preset = styleTokens(styleKey);
-        const updates = {
-          "colorway": preset.colorway,
-          "font.color": tokens.font,
-          "hoverlabel.bgcolor": theme === "dark" ? mixHex(tokens.tableCell, "#000000", 0.12) : tokens.tableCell,
-          "hoverlabel.bordercolor": theme === "dark" ? withAlpha(preset.accent, 0.42) : withAlpha("#102820", 0.18),
-          "hoverlabel.font.color": tokens.font,
-          "legend.bgcolor": "rgba(0,0,0,0)",
-          "legend.font.color": tokens.font,
-          "paper_bgcolor": tokens.paper,
-          "plot_bgcolor": tokens.plot
-        };
-
-        Object.keys(plot.layout)
-          .filter((key) => /^[xy]axis\\d*$/.test(key))
-          .forEach((axisName) => {
-            updates[`${axisName}.gridcolor`] = tokens.grid;
-            updates[`${axisName}.linecolor`] = tokens.line;
-            updates[`${axisName}.tickfont.color`] = tokens.font;
-            updates[`${axisName}.title.font.color`] = tokens.font;
-            updates[`${axisName}.zerolinecolor`] = tokens.line;
-            if (plot.layout[axisName] && plot.layout[axisName].rangeselector) {
-              updates[`${axisName}.rangeselector.activecolor`] = withAlpha(
-                preset.accent,
-                theme === "dark" ? 0.38 : 0.26
-              );
-              updates[`${axisName}.rangeselector.bgcolor`] = theme === "dark"
-                ? mixHex(tokens.tableCell, "#000000", 0.10)
-                : "rgba(255,255,255,0.72)";
-              updates[`${axisName}.rangeselector.bordercolor`] = withAlpha(
-                preset.accent,
-                theme === "dark" ? 0.44 : 0.24
-              );
-              updates[`${axisName}.rangeselector.font.color`] = tokens.font;
-            }
-          });
-
-        (plot.layout.annotations || []).forEach((_, index) => {
-          updates[`annotations[${index}].font.color`] = tokens.font;
-        });
-        (plot.layout.shapes || []).forEach((shape, index) => {
-          const dash = shape.line && shape.line.dash;
-          updates[`shapes[${index}].line.color`] = dash === "solid" ? preset.amber : preset.danger;
-        });
-
-        const operations = [Plotly.relayout(plot, updates)];
-
-        (plot.data || []).forEach((trace, index) => {
-          if (trace.type === "table") {
-            operations.push(Plotly.restyle(plot, {
-              "cells.fill.color": tokens.tableCell,
-              "cells.font.color": tokens.tableCellFont,
-              "header.fill.color": theme === "dark" ? preset.accent : tokens.tableHeader,
-              "header.font.color": tokens.tableHeaderFont
-            }, [index]));
-          } else if (trace.type === "pie") {
-            const ids = trace.ids || trace.customdata || [];
-            const colors = ids.length
-              ? ids.map((id, pointIndex) => nodeColor(id, pointIndex, preset))
-              : preset.colorway;
-            operations.push(Plotly.restyle(plot, {
-              "marker.colors": [colors],
-              "textfont.color": plotTextColor(theme, tokens, preset)
-            }, [index]));
-          } else if (trace.type === "treemap") {
-            operations.push(Plotly.restyle(plot, {
-              "marker.colors": [treemapColorsForTrace(trace, preset)],
-              "textfont.color": plotTextColor(theme, tokens, preset)
-            }, [index]));
-          } else if (trace.type === "heatmap") {
-            operations.push(Plotly.restyle(plot, {
-              "colorscale": [scaleForStyle(preset, tokens)]
-            }, [index]));
-          } else if (trace.type === "bar") {
-            const colors = portfolioBarColors(plot, trace, index, preset) || barColorsForTrace(trace, preset);
-            operations.push(Plotly.restyle(plot, {
-              "insidetextfont.color": preset.fill_text || "#102820",
-              "marker.color": [colors.length ? colors : preset.accent],
-              "outsidetextfont.color": tokens.font
-            }, [index]));
-          } else if (trace.type === "histogram") {
-            operations.push(Plotly.restyle(plot, {
-              "marker.color": preset.accent
-            }, [index]));
-          } else if (trace.type === "scatter") {
-            const traceColors = scatterColorsForTrace(trace, preset, theme);
-            operations.push(Plotly.restyle(plot, {
-              "line.color": traceColors.line,
-              "marker.color": traceColors.marker
-            }, [index]));
-          } else if (trace.type === "waterfall") {
-            operations.push(Plotly.restyle(plot, {
-              "decreasing.marker.color": preset.danger,
-              "increasing.marker.color": preset.accent,
-              "totals.marker.color": preset.amber
-            }, [index]));
-          }
-        });
-        return Promise.all(operations);
-      }
-
-      function applyTableTheme(theme, styleKey) {
-        const tokens = contrastPalettes[theme] || contrastPalettes.light;
-        const preset = styleTokens(styleKey);
-        const root = document.documentElement.style;
-        const header = theme === "dark"
-          ? mixHex(preset.accent, "#061016", 0.16)
-          : mixHex(preset.accent, "#102820", 0.68);
-        const headerFont = theme === "dark" ? "#061016" : tokens.tableHeaderFont;
-        const odd = theme === "dark"
-          ? mixHex(tokens.tableCell, preset.accent, 0.07)
-          : mixHex(tokens.tableCell, preset.accent, 0.05);
-        const even = theme === "dark"
-          ? mixHex(tokens.tableCell, preset.accent2 || preset.accent, 0.12)
-          : mixHex(tokens.tableCell, preset.accent2 || preset.accent, 0.09);
-        root.setProperty("--table-header", header);
-        root.setProperty("--table-header-font", headerFont);
-        root.setProperty("--table-cell", tokens.tableCell);
-        root.setProperty("--table-cell-font", tokens.tableCellFont);
-        root.setProperty("--table-row-odd", odd);
-        root.setProperty("--table-row-even", even);
-        root.setProperty(
-          "--table-border",
-          theme === "dark" ? withAlpha(preset.accent, 0.20) : withAlpha("#102820", 0.12)
-        );
-        root.setProperty("--table-muted", tokens.tableMuted || tokens.font);
-        root.setProperty("--status-supported-bg", withAlpha(preset.accent, theme === "dark" ? 0.18 : 0.14));
-        root.setProperty(
-          "--status-supported-fg",
-          theme === "dark" ? mixHex(preset.accent, "#ffffff", 0.18) : preset.accent
-        );
-        root.setProperty("--status-partial-bg", withAlpha(preset.amber, theme === "dark" ? 0.22 : 0.18));
-        root.setProperty("--status-partial-fg", theme === "dark" ? mixHex(preset.amber, "#ffffff", 0.18) : "#85622d");
-        root.setProperty("--status-unsupported-bg", withAlpha(preset.danger, theme === "dark" ? 0.20 : 0.16));
-        root.setProperty(
-          "--status-unsupported-fg",
-          theme === "dark" ? mixHex(preset.danger, "#ffffff", 0.20) : preset.danger
-        );
-      }
-
-      let visualRefreshFrame = 0;
-      function scheduleVisualRefresh() {
-        if (visualRefreshFrame) {
-          cancelAnimationFrame(visualRefreshFrame);
-        }
-        visualRefreshFrame = requestAnimationFrame(() => {
-          visualRefreshFrame = 0;
-          const theme = document.documentElement.dataset.theme || "light";
-          const styleKey = activeStyleKey();
-          plotNodes().forEach((plot) => relayoutForTheme(plot, theme, styleKey));
-        });
-      }
-
-      function applyStyle(styleKey) {
-        const key = stylePresets[styleKey] ? styleKey : "institutional";
-        const preset = styleTokens(key);
-        window.qrpDashboardActiveStyle = preset;
-        document.documentElement.dataset.palette = key;
-        document.documentElement.style.setProperty("--accent", preset.accent);
-        document.documentElement.style.setProperty("--accent-2", preset.accent2);
-        document.documentElement.style.setProperty("--amber", preset.amber);
-        document.documentElement.style.setProperty("--danger", preset.danger);
-        document.documentElement.style.setProperty("--card-glow", `${preset.accent}26`);
-        applyTableTheme(document.documentElement.dataset.theme || "light", key);
-        localStorage.setItem(styleStorageKey, key);
-        if (styleSelect) {
-          styleSelect.value = key;
-        }
-        scheduleVisualRefresh();
-      }
-
-      function applyTheme(theme) {
-        document.documentElement.dataset.theme = theme;
-        applyTableTheme(theme, activeStyleKey());
-        localStorage.setItem(themeStorageKey, theme);
-        if (label) {
-          label.textContent = theme === "dark" ? "Dark" : "Light";
-        }
-        if (button) {
-          button.setAttribute("aria-label", theme === "dark" ? "Switch to light mode" : "Switch to dark mode");
-          button.setAttribute("title", theme === "dark" ? "Switch to light mode" : "Switch to dark mode");
-        }
-        scheduleVisualRefresh();
-      }
-
-      const initialTheme = document.documentElement.dataset.theme || "light";
-      const initialStyle = activeStyleKey();
-      applyTheme(initialTheme);
-      applyStyle(initialStyle);
-      if (button) {
-        button.addEventListener("click", () => {
-          applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
-        });
-      }
-      if (styleSelect) {
-        styleSelect.addEventListener("change", () => {
-          applyStyle(styleSelect.value);
-        });
-      }
-      function activePortfolioView() {
-        return document.querySelector(".portfolio-view:not([hidden])");
-      }
-      function resizeActivePlots() {
-        const activeView = activePortfolioView();
-        if (!activeView || !window.Plotly) {
-          return;
-        }
-        activeView.querySelectorAll(".js-plotly-plot").forEach((plot) => {
-          plot.dataset.qrpVisualState = "";
-          Plotly.Plots.resize(plot);
-        });
-        scheduleVisualRefresh();
-      }
-      function applyPortfolioView(viewId) {
-        const views = Array.from(document.querySelectorAll("[data-portfolio-view]"));
-        const selected = views.find((view) => view.dataset.portfolioView === viewId) || views[0];
-        if (!selected) {
-          return;
-        }
-        views.forEach((view) => {
-          view.hidden = view !== selected;
-        });
-        if (portfolioSelect) {
-          portfolioSelect.value = selected.dataset.portfolioView;
-        }
-        localStorage.setItem(portfolioStorageKey, selected.dataset.portfolioView);
-        window.setTimeout(resizeActivePlots, 40);
-      }
-      if (portfolioSelect) {
-        portfolioSelect.addEventListener("change", () => {
-          applyPortfolioView(portfolioSelect.value);
-        });
-        applyPortfolioView(localStorage.getItem(portfolioStorageKey) || portfolioSelect.value);
-      }
-      window.addEventListener("load", () => {
-        applyTheme(document.documentElement.dataset.theme || "light");
-        applyStyle(activeStyleKey());
-        resizeActivePlots();
-      });
-    }());
-  </script>
-""".replace("__STYLE_PRESETS__", style_presets_json)
-    interaction_script = """
-  <script>
-    (function () {
-      function money(value) {
-        const numeric = Number(value || 0);
-        return `$${numeric.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-      }
-
-      function compareTableValues(left, right, kind) {
-        if (kind === "number") {
-          return Number(left || 0) - Number(right || 0);
-        }
-        return String(left || "").localeCompare(String(right || ""), undefined, {
-          numeric: true,
-          sensitivity: "base"
-        });
-      }
-
-      function sortTable(table, columnIndex, kind, direction) {
-        const tbody = table.querySelector("tbody");
-        if (!tbody) return;
-        const multiplier = direction === "descending" ? -1 : 1;
-        const rows = Array.from(tbody.querySelectorAll("tr"));
-        rows.sort((leftRow, rightRow) => {
-          const leftCell = leftRow.children[columnIndex];
-          const rightCell = rightRow.children[columnIndex];
-          const primary = compareTableValues(
-            leftCell && leftCell.dataset.sortValue,
-            rightCell && rightCell.dataset.sortValue,
-            kind
-          );
-          if (primary !== 0) return primary * multiplier;
-          return String(leftRow.dataset.defaultSort || "").localeCompare(
-            String(rightRow.dataset.defaultSort || ""),
-            undefined,
-            { numeric: true, sensitivity: "base" }
-          );
-        });
-        rows.forEach((row) => tbody.appendChild(row));
-      }
-
-      function initializeSortableTables() {
-        document.querySelectorAll("[data-sortable-table]").forEach((table) => {
-          if (table.dataset.sortReady === "true") return;
-          table.dataset.sortReady = "true";
-          table.querySelectorAll("thead button[data-sort-column]").forEach((button) => {
-            button.addEventListener("click", () => {
-              const current = button.getAttribute("aria-sort");
-              const direction = current === "ascending" ? "descending" : "ascending";
-              table.querySelectorAll("thead button[aria-sort]").forEach((header) => {
-                header.setAttribute("aria-sort", "none");
-              });
-              button.setAttribute("aria-sort", direction);
-              sortTable(
-                table,
-                Number(button.dataset.sortColumn || 0),
-                button.dataset.sortKind || "text",
-                direction
-              );
-            });
-          });
-        });
-      }
-
-      function compactLabel(label) {
-        const text = String(label || "All portfolio");
-        return text.length > 34 ? `${text.slice(0, 31)}...` : text;
-      }
-
-      function escapeHtmlText(value) {
-        return String(value || "")
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;");
-      }
-
-      function boldChartTitle(value) {
-        return `<b>${escapeHtmlText(value)}</b>`;
-      }
-
-      function activePreset() {
-        return window.qrpDashboardActiveStyle || {
-          accent: "#5faea4",
-          amber: "#d5ac63",
-          asset_colors: {
-            commodity: "#dfbf72",
-            credit: "#bba1d9",
-            crypto: "#9bc7d8",
-            equity: "#e49a9d",
-            fx: "#94b9e2",
-            inflation: "#e5b08b",
-            rates: "#7bc5ba",
-            volatility: "#9bcfaa"
-          },
-          colorway: ["#7bc5ba", "#94b9e2", "#dfbf72", "#e49a9d", "#bba1d9", "#9bcfaa", "#9bc7d8"],
-          danger: "#d3777c",
-          fill_text: "#14231e"
-        };
-      }
-
-      function plotLabelTextColor() {
-        return (document.documentElement.dataset.theme || "light") === "dark"
-          ? "#e7f4ef"
-          : (activePreset().fill_text || "#16231d");
-      }
-
-      function mixHex(baseColor, mixColor, weight) {
-        function toRgb(hex) {
-          const clean = String(hex || "").replace("#", "");
-          if (clean.length !== 6) return null;
-          return [
-            parseInt(clean.slice(0, 2), 16),
-            parseInt(clean.slice(2, 4), 16),
-            parseInt(clean.slice(4, 6), 16)
-          ];
-        }
-        const base = toRgb(baseColor);
-        const mix = toRgb(mixColor);
-        if (!base || !mix || base.some(Number.isNaN) || mix.some(Number.isNaN)) {
-          return baseColor;
-        }
-        const clamped = Math.max(0, Math.min(1, Number(weight || 0)));
-        const channel = (index) => Math.round(base[index] * (1 - clamped) + mix[index] * clamped);
-        return `#${[0, 1, 2].map((index) => channel(index).toString(16).padStart(2, "0")).join("")}`;
-      }
-
-      const productColorVariants = [
-        ["#000000", 0.10],
-        ["#ffffff", 0.12],
-        ["#000000", 0.22],
-        ["#ffffff", 0.28],
-        ["#000000", 0.32],
-        ["#ffffff", 0.38]
-      ];
-      const tradeColorVariants = [
-        ["#000000", 0.04],
-        ["#000000", 0.08],
-        ["#000000", 0.12],
-        ["#000000", 0.16]
-      ];
-
-      function stableColorIndex(value, modulo) {
-        if (!modulo) return 0;
-        return Array.from(String(value || "")).reduce((total, char, index) => {
-          return total + ((index + 1) * char.charCodeAt(0));
-        }, 0) % modulo;
-      }
-
-      function nodeAssetClass(nodeId) {
-        const id = String(nodeId || "");
-        if (id.startsWith("asset:")) {
-          return id.slice("asset:".length);
-        }
-        if (id.startsWith("product:")) {
-          const parts = id.split(":");
-          return parts.length > 1 ? parts[1] : "";
-        }
-        if (id.startsWith("bookAsset:")) {
-          const separator = id.lastIndexOf("|");
-          return separator >= 0 ? id.slice(separator + 1) : "";
-        }
-        if (id.startsWith("trade:")) {
-          const parts = id.split(":");
-          return parts.length > 3 ? parts[1] : "";
-        }
-        return "";
-      }
-
-      function productNodeIdFromTradeNode(nodeId) {
-        const parts = String(nodeId || "").split(":");
-        if (parts.length < 4 || parts[0] !== "trade") {
-          return "";
-        }
-        return `product:${parts[1]}:${parts[2]}`;
-      }
-
-      function familyColor(baseColor, nodeId, variants) {
-        const [mixColor, weight] = variants[stableColorIndex(nodeId, variants.length)];
-        return mixHex(baseColor, mixColor, weight);
-      }
-
-      function nodeColor(nodeId, pointIndex) {
-        const preset = activePreset();
-        const id = String(nodeId || "");
-        if (id === "portfolio") {
-          return preset.amber;
-        }
-        const colorway = preset.colorway || [];
-        const assetColors = preset.asset_colors || {};
-        const fallback = colorway[pointIndex % Math.max(colorway.length, 1)] || preset.accent;
-        const assetColor = assetColors[nodeAssetClass(id)] || fallback;
-        if (id.startsWith("product:")) {
-          return familyColor(assetColor, id, productColorVariants);
-        }
-        if (id.startsWith("trade:")) {
-          const productColor = familyColor(assetColor, productNodeIdFromTradeNode(id), productColorVariants);
-          return familyColor(productColor, id, tradeColorVariants);
-        }
-        return assetColor;
-      }
-
-      function tradeNodeId(row) {
-        return `trade:${row.asset_class}:${row.product_type}:${row.trade_id}`;
-      }
-
-      function bookNodeId(row) {
-        return `book:${row.book || "Unassigned"}`;
-      }
-
-      function bookAssetNodeId(row) {
-        return `bookAsset:${row.book || "Unassigned"}|${row.asset_class || ""}`;
-      }
-
-      function bookLabel(book) {
-        return String(book || "Unassigned").replace(/^BOOK:[^:]+:/, "");
-      }
-
-      function tradeMetricValue(row) {
-        return Number(row.display_npv ?? row.npv ?? 0);
-      }
-
-      function tradeMetricColor(row) {
-        return tradeMetricValue(row) < 0 ? activePreset().danger : nodeColor(tradeNodeId(row), 0);
-      }
-
-      function tradeAxisValues(rows, mode) {
-        if (mode === "book") {
-          return [
-            rows.map((row) => bookLabel(row.book)),
-            rows.map((row) => row.asset_class || ""),
-            rows.map((row) => row.trade_id || "")
-          ];
-        }
-        if (mode === "position") {
-          return rows.map((row) => row.trade_id || "");
-        }
-        return [
-          rows.map((row) => row.asset_class || ""),
-          rows.map((row) => row.product_type || ""),
-          rows.map((row) => row.trade_id || "")
-        ];
-      }
-
-      function tradeCustomData(rows) {
-        return rows.map((row) => [
-          row.asset_class || "",
-          row.product_type || "",
-          row.trade_id || "",
-          Number(row.npv || 0)
-        ]);
-      }
-
-      function rowExposure(row) {
-        return Number(row.exposure || 0);
-      }
-
-      function sumExposure(rows) {
-        return rows.reduce((total, row) => total + rowExposure(row), 0);
-      }
-
-      function paddedNumberRange(values, minimumSpan) {
-        const numericValues = values.map((value) => Number(value || 0));
-        let minValue = Math.min(0, ...numericValues);
-        let maxValue = Math.max(0, ...numericValues);
-        const span = Math.max(maxValue - minValue, minimumSpan || 1);
-        const leftPadding = span * 0.16;
-        const rightPadding = span * 0.16;
-        if (minValue < 0) {
-          minValue -= leftPadding;
-        } else {
-          minValue = 0;
-        }
-        if (maxValue > 0) {
-          maxValue += rightPadding;
-        } else {
-          maxValue = 0;
-        }
-        return [minValue, maxValue];
-      }
-
-      function sortRows(rows, mode) {
-        return rows.slice().sort((a, b) => {
-          const left = mode === "book"
-            ? `${bookLabel(a.book)}|${a.asset_class}|${a.product_type}|${a.trade_id}`
-            : `${a.asset_class}|${a.product_type}|${a.trade_id}`;
-          const right = mode === "book"
-            ? `${bookLabel(b.book)}|${b.asset_class}|${b.product_type}|${b.trade_id}`
-            : `${b.asset_class}|${b.product_type}|${b.trade_id}`;
-          return String(left).localeCompare(String(right), undefined, { numeric: true, sensitivity: "base" });
-        });
-      }
-
-      function buildTreemap(rows, mode, rootLabel) {
-        const ids = ["portfolio"];
-        const labels = [rootLabel || "All portfolio"];
-        const parents = [""];
-        const values = [sumExposure(rows)];
-        const seen = new Set(["portfolio"]);
-        const totals = new Map();
-
-        function addTotal(id, value) {
-          totals.set(id, (totals.get(id) || 0) + value);
-        }
-
-        rows.forEach((row) => {
-          const exposure = rowExposure(row);
-          if (mode === "book") {
-            addTotal(bookNodeId(row), exposure);
-            addTotal(bookAssetNodeId(row), exposure);
-          } else if (mode !== "position") {
-            addTotal(`asset:${row.asset_class}`, exposure);
-            addTotal(`product:${row.asset_class}:${row.product_type}`, exposure);
-          }
-          addTotal(tradeNodeId(row), exposure);
-        });
-
-        function addNode(id, label, parent) {
-          if (seen.has(id)) {
-            return;
-          }
-          seen.add(id);
-          ids.push(id);
-          labels.push(label);
-          parents.push(parent);
-          values.push(totals.get(id) || 0);
-        }
-
-        sortRows(rows, mode).forEach((row) => {
-          if (mode === "book") {
-            const bookId = bookNodeId(row);
-            const bookAssetId = bookAssetNodeId(row);
-            addNode(bookId, bookLabel(row.book), "portfolio");
-            addNode(bookAssetId, row.asset_class || "Other", bookId);
-            addNode(tradeNodeId(row), row.trade_id || "", bookAssetId);
-          } else if (mode === "position") {
-            addNode(tradeNodeId(row), row.trade_id || "", "portfolio");
-          } else {
-            const assetId = `asset:${row.asset_class}`;
-            const productId = `product:${row.asset_class}:${row.product_type}`;
-            addNode(assetId, row.asset_class || "Other", "portfolio");
-            addNode(productId, row.product_type || "Other", assetId);
-            addNode(tradeNodeId(row), row.trade_id || "", productId);
-          }
-        });
-
-        return {
-          colors: ids.map((id, index) => nodeColor(id, index)),
-          ids,
-          labels,
-          parents,
-          values
-        };
-      }
-
-      function buildDonut(rows, nodeId, mode) {
-        const totals = new Map();
-        const idsByLabel = new Map();
-
-        function add(label, id, exposure) {
-          totals.set(label, (totals.get(label) || 0) + exposure);
-          idsByLabel.set(label, id);
-        }
-
-        if (mode === "book" && nodeId && nodeId.startsWith("book:")) {
-          rows.forEach((row) => {
-            add(row.asset_class, bookAssetNodeId(row), rowExposure(row));
-          });
-        } else if (mode === "book" && nodeId && nodeId.startsWith("bookAsset:")) {
-          rows.forEach((row) => {
-            add(row.trade_id, tradeNodeId(row), rowExposure(row));
-          });
-        } else if (mode === "position") {
-          rows.forEach((row) => {
-            add(row.trade_id, tradeNodeId(row), rowExposure(row));
-          });
-        } else if (nodeId && nodeId.startsWith("asset:")) {
-          const assetClass = nodeId.slice("asset:".length);
-          rows.forEach((row) => {
-            add(row.product_type, `product:${assetClass}:${row.product_type}`, rowExposure(row));
-          });
-        } else if (nodeId && nodeId.startsWith("product:")) {
-          rows.forEach((row) => {
-            add(row.trade_id, tradeNodeId(row), rowExposure(row));
-          });
-        } else if (nodeId && nodeId.startsWith("trade:") && rows.length > 0) {
-          rows.forEach((row) => {
-            add(row.trade_id, tradeNodeId(row), rowExposure(row));
-          });
-        } else if (mode === "book") {
-          rows.forEach((row) => {
-            add(bookLabel(row.book), bookNodeId(row), rowExposure(row));
-          });
-        } else {
-          rows.forEach((row) => {
-            add(row.asset_class, `asset:${row.asset_class}`, rowExposure(row));
-          });
-        }
-
-        const labels = Array.from(totals.keys()).sort((a, b) => a.localeCompare(b));
-        const ids = labels.map((label) => idsByLabel.get(label));
-        return {
-          colors: ids.map((id, index) => nodeColor(id, index)),
-          ids,
-          labels,
-          values: labels.map((label) => totals.get(label))
-        };
-      }
-
-      function rowsForNode(rows, id) {
-        if (!id || id === "portfolio") {
-          return rows.slice();
-        }
-        if (id.startsWith("book:")) {
-          const book = id.slice("book:".length);
-          return rows.filter((row) => String(row.book || "Unassigned") === book);
-        }
-        if (id.startsWith("bookAsset:")) {
-          const payload = id.slice("bookAsset:".length);
-          const separator = payload.lastIndexOf("|");
-          const book = separator >= 0 ? payload.slice(0, separator) : payload;
-          const assetClass = separator >= 0 ? payload.slice(separator + 1) : "";
-          return rows.filter((row) => String(row.book || "Unassigned") === book && row.asset_class === assetClass);
-        }
-        if (id.startsWith("asset:")) {
-          const assetClass = id.slice("asset:".length);
-          return rows.filter((row) => row.asset_class === assetClass);
-        }
-        if (id.startsWith("product:")) {
-          const [, assetClass, ...productParts] = id.split(":");
-          const productType = productParts.join(":");
-          return rows.filter((row) => row.asset_class === assetClass && row.product_type === productType);
-        }
-        if (id.startsWith("trade:")) {
-          const parts = id.split(":");
-          const tradeId = parts.length > 3 ? parts.slice(3).join(":") : id.slice("trade:".length);
-          return rows.filter((row) => row.trade_id === tradeId);
-        }
-        return rows.slice();
-      }
-
-      function labelForNode(id, fallback) {
-        if (!id || id === "portfolio") {
-          return "All portfolio";
-        }
-        if (id.startsWith("book:")) {
-          return `Book: ${bookLabel(id.slice("book:".length))}`;
-        }
-        if (id.startsWith("bookAsset:")) {
-          const payload = id.slice("bookAsset:".length);
-          const separator = payload.lastIndexOf("|");
-          const book = separator >= 0 ? payload.slice(0, separator) : payload;
-          const assetClass = separator >= 0 ? payload.slice(separator + 1) : "";
-          return `${bookLabel(book)} / ${assetClass}`;
-        }
-        if (id.startsWith("asset:")) {
-          return `Asset class: ${id.slice("asset:".length)}`;
-        }
-        if (id.startsWith("product:")) {
-          const [, assetClass, ...productParts] = id.split(":");
-          return `${assetClass} / ${productParts.join(":")}`;
-        }
-        if (id.startsWith("trade:")) {
-          const parts = id.split(":");
-          const tradeId = parts.length > 3 ? parts.slice(3).join(":") : id.slice("trade:".length);
-          return `Position: ${tradeId}`;
-        }
-        return fallback || "Selected slice";
-      }
-
-      function pointNodeId(plot, point) {
-        const trace = plot.data && plot.data[point.curveNumber];
-        const candidates = [
-          point.id,
-          trace && trace.ids && trace.ids[point.pointNumber],
-          trace && trace.customdata && trace.customdata[point.pointNumber],
-          point.customdata,
-          point.label
-        ];
-        const value = candidates.find((candidate) => candidate !== undefined && candidate !== null && candidate !== "");
-        if (Array.isArray(value)) {
-          return value[0] || "portfolio";
-        }
-        return String(value || "portfolio");
-      }
-
-      function nodeIdForVisibleLabel(rows, label, mode) {
-        const normalized = String(label || "").trim();
-        if (!normalized || normalized === "All portfolio") {
-          return "portfolio";
-        }
-
-        const tradeMatches = rows.filter((row) => row.trade_id === normalized);
-        if (tradeMatches.length === 1) {
-          return tradeNodeId(tradeMatches[0]);
-        }
-
-        if (mode === "book") {
-          const bookMatches = Array.from(
-            new Set(rows.filter((row) => bookLabel(row.book) === normalized).map((row) => bookNodeId(row)))
-          );
-          if (bookMatches.length === 1) {
-            return bookMatches[0];
-          }
-          const bookAssetMatches = Array.from(
-            new Set(rows.filter((row) => row.asset_class === normalized).map((row) => bookAssetNodeId(row)))
-          );
-          if (bookAssetMatches.length === 1) {
-            return bookAssetMatches[0];
-          }
-        }
-
-        const assetMatches = Array.from(
-          new Set(rows.filter((row) => row.asset_class === normalized).map((row) => row.asset_class))
-        );
-        if (assetMatches.length === 1) {
-          return `asset:${assetMatches[0]}`;
-        }
-
-        const productMatches = Array.from(
-          new Set(
-            rows
-              .filter((row) => row.product_type === normalized)
-              .map((row) => `product:${row.asset_class}:${row.product_type}`)
-          )
-        );
-        return productMatches.length === 1 ? productMatches[0] : "";
-      }
-
-      function sliceLabel(slice) {
-        if (!slice) {
-          return "";
-        }
-        const textNode = slice.querySelector("text");
-        if (!textNode) {
-          return "";
-        }
-        const tspans = Array.from(textNode.querySelectorAll("tspan"))
-          .map((item) => item.textContent.trim())
-          .filter(Boolean);
-        if (tspans.length > 0) {
-          return tspans[0];
-        }
-        return textNode.textContent.trim().replace(/[\\s$,.%\\d-]+$/u, "").trim();
-      }
-
-      function closestSliceElement(target, boundary) {
-        let current = target;
-        while (current && current !== boundary) {
-          const className = String(current.getAttribute && current.getAttribute("class") || "");
-          if (current.tagName && current.tagName.toLowerCase() === "g" && className.includes("slice")) {
-            return current;
-          }
-          current = current.parentNode;
-        }
-        return null;
-      }
-
-      function currentTreeLevel(plot) {
-        const trace = plot.data && plot.data[0];
-        let level = trace && trace.level;
-        if (Array.isArray(level)) {
-          level = level[0];
-        }
-        return level ? String(level) : "portfolio";
-      }
-
-      function restyleTouchesLevel(eventData) {
-        const update = Array.isArray(eventData) ? eventData[0] : eventData;
-        return !!update && Object.prototype.hasOwnProperty.call(update, "level");
-      }
-
-      function setFilterLabel(plot, label, rows) {
-        const panel = plot.closest(".panel");
-        const filter = panel ? panel.querySelector("[data-panel-filter]") : null;
-        if (!filter) {
-          return;
-        }
-        filter.hidden = false;
-        const countLabel = `${rows.length} position${rows.length === 1 ? "" : "s"}`;
-        filter.textContent = `${label} - ${countLabel} - ${money(sumExposure(rows))} exposure`;
-      }
-
-      function updateLinkedCharts(plot, rows, label, nodeId, options) {
-        const settings = options || {};
-        const mode = settings.mode || "asset";
-        const sortedRows = sortRows(rows, mode);
-        const tradeAxis = tradeAxisValues(sortedRows, mode);
-        const tradeData = tradeCustomData(sortedRows);
-        const npvs = sortedRows.map(tradeMetricValue);
-        const donut = buildDonut(sortedRows, nodeId, mode);
-        const treemap = buildTreemap(sortedRows, mode, label);
-        const npvRange = paddedNumberRange(npvs, 1);
-
-        const updates = [
-          Plotly.restyle(plot, {
-            "ids": [treemap.ids],
-            "labels": [treemap.labels],
-            "marker.colors": [treemap.colors],
-            "parents": [treemap.parents],
-            "textfont.color": plotLabelTextColor(),
-            "values": [treemap.values]
-          }, [0]),
-          Plotly.restyle(plot, {
-            "customdata": [donut.ids],
-            "ids": [donut.ids],
-            "labels": [donut.labels],
-            "marker.colors": [donut.colors],
-            "textfont.color": plotLabelTextColor(),
-            "values": [donut.values]
-          }, [1]),
-          Plotly.restyle(plot, {
-            "customdata": [tradeData],
-            "marker.color": [sortedRows.map(tradeMetricColor)],
-            "text": [npvs.map(money)],
-            "x": [npvs],
-            "y": [tradeAxis]
-          }, [2])
-        ];
-
-        if (settings.updateTreeLevel === false) {
-          updates.shift();
-        }
-
-        updates.push(Plotly.relayout(plot, {
-          "annotations[1].text": boldChartTitle(`Allocation - ${compactLabel(label)}`),
-          "annotations[2].text": boldChartTitle(`NPV - ${compactLabel(label)}`),
-          "xaxis.range": npvRange,
-          "yaxis.autorange": "reversed",
-          "yaxis.type": Array.isArray(tradeAxis[0]) ? "multicategory" : "category"
-        }));
-
-        setFilterLabel(plot, label, rows);
-        return Promise.all(updates);
-      }
-
-      function initializePortfolioAllocation(plot) {
-        if (!plot || !plot.layout || !plot.layout.meta || plot.layout.meta.qrpPanel !== "portfolio_allocation") {
-          return;
-        }
-        if (plot.dataset.qrpLinked === "true") {
-          if (typeof plot.qrpAttachSliceFallbacks === "function") {
-            plot.qrpAttachSliceFallbacks();
-          }
-          return;
-        }
-        plot.dataset.qrpLinked = "true";
-
-        const rows = (plot.layout.meta.tradeRows || []).slice();
-        let activeRows = rows.slice();
-        let activeMode = "asset";
-        let syncingTreeLevel = false;
-        const panel = plot.closest(".panel");
-        const resetButton = panel ? panel.querySelector("[data-panel-reset]") : null;
-        const modeButtons = panel ? Array.from(panel.querySelectorAll("[data-allocation-view]")) : [];
-        if (panel) {
-          panel.classList.add("is-linked");
-        }
-
-        function setActiveMode(mode) {
-          activeMode = ["asset", "book", "position"].includes(mode) ? mode : "asset";
-          modeButtons.forEach((button) => {
-            button.setAttribute("aria-pressed", button.dataset.allocationView === activeMode ? "true" : "false");
-          });
-        }
-
-        function applySelection(selectedRows, label, nodeId, options) {
-          const settings = options || {};
-          settings.mode = settings.mode || activeMode;
-          const nextRows = selectedRows.length > 0 ? selectedRows.slice() : rows.slice();
-          const nextLabel = selectedRows.length > 0 ? label : "All portfolio";
-          const nextNodeId = selectedRows.length > 0 ? nodeId : "portfolio";
-          activeRows = nextRows;
-          if (settings.updateTreeLevel !== false) {
-            syncingTreeLevel = true;
-          }
-          const updatePromise = updateLinkedCharts(plot, nextRows, nextLabel, nextNodeId, settings);
-          Promise.resolve(updatePromise).finally(() => {
-            attachSliceFallbacks();
-            window.setTimeout(() => {
-              syncingTreeLevel = false;
-            }, 0);
-          });
-          return updatePromise;
-        }
-
-        function reset() {
-          return applySelection(rows, "All portfolio", "portfolio");
-        }
-
-        function attachSliceFallbacks() {
-          function bindSliceEvents(layer, handler) {
-            ["pointerup", "mouseup", "click"].forEach((eventName) => {
-              layer.addEventListener(eventName, handler, true);
-            });
-          }
-
-          const treemapLayer = plot.querySelector(".treemaplayer");
-          if (treemapLayer && treemapLayer.dataset.qrpClickFallback !== "true") {
-            treemapLayer.dataset.qrpClickFallback = "true";
-            bindSliceEvents(treemapLayer, (event) => {
-              const slice = closestSliceElement(event.target, treemapLayer);
-              const label = sliceLabel(slice);
-              const id = nodeIdForVisibleLabel(rows, label, activeMode);
-              if (!id) {
-                return;
-              }
-              event.preventDefault();
-              event.stopPropagation();
-              if (event.stopImmediatePropagation) {
-                event.stopImmediatePropagation();
-              }
-              const selectedRows = id === "portfolio" ? rows : rowsForNode(rows, id);
-              window.setTimeout(() => {
-                applySelection(selectedRows, labelForNode(id, label), id);
-              }, 0);
-            });
-          }
-
-          const pieLayer = plot.querySelector(".pielayer");
-          if (pieLayer && pieLayer.dataset.qrpClickFallback !== "true") {
-            pieLayer.dataset.qrpClickFallback = "true";
-            bindSliceEvents(pieLayer, (event) => {
-              const slice = closestSliceElement(event.target, pieLayer);
-              const label = sliceLabel(slice);
-              const id = nodeIdForVisibleLabel(activeRows, label, activeMode);
-              if (!id) {
-                return;
-              }
-              event.preventDefault();
-              event.stopPropagation();
-              if (event.stopImmediatePropagation) {
-                event.stopImmediatePropagation();
-              }
-              const selectedRows = id === "portfolio" ? rows : rowsForNode(rows, id);
-              window.setTimeout(() => {
-                applySelection(selectedRows, labelForNode(id, label), id);
-              }, 0);
-            });
-          }
-        }
-        plot.qrpAttachSliceFallbacks = attachSliceFallbacks;
-
-        plot.on("plotly_click", (eventData) => {
-          const point = eventData.points && eventData.points[0];
-          if (!point) {
-            return;
-          }
-
-          if (point.curveNumber === 0) {
-            const id = pointNodeId(plot, point);
-            const selectedRows = id === "portfolio" ? rows : rowsForNode(rows, id);
-            window.setTimeout(() => {
-              applySelection(selectedRows, labelForNode(id, point.label), id);
-            }, 0);
-            return;
-          }
-
-          if (point.curveNumber === 1) {
-            const id = pointNodeId(plot, point);
-            const selectedRows = id === "portfolio" ? rows : rowsForNode(rows, id);
-            window.setTimeout(() => {
-              applySelection(selectedRows, labelForNode(id, point.label), id);
-            }, 0);
-            return;
-          }
-
-          if (point.curveNumber === 2) {
-            const tradeId = tradeIdFromPoint(point);
-            const selectedRows = activeRows.filter((row) => row.trade_id === tradeId);
-            window.setTimeout(() => {
-              const selectedNodeId = selectedRows[0] ? tradeNodeId(selectedRows[0]) : `trade:${tradeId}`;
-              applySelection(selectedRows, `Position: ${tradeId}`, selectedNodeId);
-            }, 0);
-          }
-        });
-
-        plot.on("plotly_restyle", (eventData) => {
-          if (syncingTreeLevel) {
-            return;
-          }
-          if (!restyleTouchesLevel(eventData)) {
-            return;
-          }
-          const id = currentTreeLevel(plot);
-          const selectedRows = id === "portfolio" ? rows : rowsForNode(rows, id);
-          window.setTimeout(() => {
-            applySelection(selectedRows, labelForNode(id), id, { updateTreeLevel: false });
-          }, 0);
-        });
-
-        plot.on("plotly_doubleclick", () => {
-          reset();
-          return false;
-        });
-
-        if (resetButton) {
-          resetButton.addEventListener("click", reset);
-        }
-        modeButtons.forEach((button) => {
-          button.addEventListener("click", () => {
-            setActiveMode(button.dataset.allocationView);
-            reset();
-          });
-        });
-        setActiveMode("asset");
-        setFilterLabel(plot, "All portfolio", rows);
-        reset();
-        window.setTimeout(attachSliceFallbacks, 0);
-      }
-
-      function markLoaded(element) {
-        if (!element) {
-          return;
-        }
-        element.classList.remove("is-loading");
-        element.classList.add("is-loaded");
-      }
-
-      function initializeLoadingStates() {
-        document.querySelectorAll(".card.is-loading").forEach((card, index) => {
-          window.setTimeout(() => markLoaded(card), 120 + index * 45);
-        });
-        document.querySelectorAll(".panel.is-loading").forEach((panel) => {
-          const plot = panel.querySelector(".js-plotly-plot");
-          if (!plot) {
-            window.setTimeout(() => markLoaded(panel), 120);
-            return;
-          }
-          const complete = () => markLoaded(panel);
-          if (typeof plot.on === "function") {
-            plot.on("plotly_afterplot", complete);
-          }
-          if (plot.querySelector(".main-svg")) {
-            window.setTimeout(complete, 160);
-          }
-          window.setTimeout(complete, 2500);
-        });
-      }
-
-      function initializeLinkedPanels() {
-        Array.from(document.querySelectorAll(".js-plotly-plot")).forEach(initializePortfolioAllocation);
-      }
-
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", () => {
-          initializeLinkedPanels();
-          initializeLoadingStates();
-          initializeSortableTables();
-        });
-      } else {
-        initializeLinkedPanels();
-        initializeLoadingStates();
-        initializeSortableTables();
-      }
-      window.addEventListener("load", initializeLinkedPanels);
-      window.addEventListener("load", initializeLoadingStates);
-      window.addEventListener("load", initializeSortableTables);
-      [250, 1000, 2500].forEach((delay) => {
-        window.setTimeout(initializeLinkedPanels, delay);
-      });
-    }());
-  </script>
-"""
-    document = f"""<!doctype html>
-<html lang="en" data-theme="light">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{html.escape(title)}</title>
-{initial_theme_script}
-  <style>
-    @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&display=swap");
-    @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
-
-    :root {{
-      color-scheme: light;
-      --accent: #5faea4;
-      --accent-2: #7aa7d9;
-      --amber: #d5ac63;
-      --bg: #f6efe2;
-      --bg-grid: rgba(24, 45, 37, 0.055);
-      --card-glow: rgba(15, 118, 110, 0.12);
-      --danger: #d3777c;
-      --hero: #102820;
-      --ink: #16231d;
-      --line: rgba(31, 53, 45, 0.17);
-      --muted: #647269;
-      --panel: rgba(255, 250, 239, 0.84);
-      --panel-strong: rgba(255, 253, 248, 0.94);
-      --shadow: rgba(23, 31, 27, 0.13);
-      --status-partial-bg: rgba(213, 172, 99, 0.18);
-      --status-partial-fg: #85622d;
-      --status-supported-bg: rgba(95, 174, 164, 0.14);
-      --status-supported-fg: #5faea4;
-      --status-unsupported-bg: rgba(211, 119, 124, 0.16);
-      --status-unsupported-fg: #d3777c;
-      --table-border: rgba(16, 40, 32, 0.12);
-      --table-cell: #fff8eb;
-      --table-cell-font: #16231d;
-      --table-header: #102820;
-      --table-header-font: #f4fff9;
-      --table-muted: #647269;
-      --table-row-even: #f0ebdf;
-      --table-row-odd: #fff8eb;
-      --toggle-bg: rgba(255, 250, 239, 0.72);
-    }}
-    :root[data-theme="dark"] {{
-      color-scheme: dark;
-      --accent: #83d5cc;
-      --accent-2: #9dbfed;
-      --amber: #e2c174;
-      --bg: #061016;
-      --bg-grid: rgba(123, 169, 151, 0.07);
-      --card-glow: rgba(100, 214, 194, 0.16);
-      --danger: #e79296;
-      --hero: #e7f4ef;
-      --ink: #e7f4ef;
-      --line: rgba(136, 164, 151, 0.22);
-      --muted: #91a69e;
-      --panel: rgba(9, 22, 30, 0.82);
-      --panel-strong: rgba(12, 29, 39, 0.92);
-      --shadow: rgba(0, 0, 0, 0.42);
-      --status-partial-bg: rgba(226, 193, 116, 0.22);
-      --status-partial-fg: #f1d997;
-      --status-supported-bg: rgba(131, 213, 204, 0.18);
-      --status-supported-fg: #a8eee6;
-      --status-unsupported-bg: rgba(231, 146, 150, 0.20);
-      --status-unsupported-fg: #f2b4b8;
-      --table-border: rgba(136, 164, 151, 0.22);
-      --table-cell: #0f1d26;
-      --table-cell-font: #e7f4ef;
-      --table-header: #83d5cc;
-      --table-header-font: #061016;
-      --table-muted: #91a69e;
-      --table-row-even: #142832;
-      --table-row-odd: #0f1d26;
-      --toggle-bg: rgba(12, 29, 39, 0.74);
-    }}
-    * {{
-      box-sizing: border-box;
-    }}
-    body {{
-      background:
-        radial-gradient(circle at 12% 4%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 28rem),
-        radial-gradient(circle at 84% 12%, color-mix(in srgb, var(--accent-2) 18%, transparent), transparent 32rem),
-        linear-gradient(135deg, var(--bg) 0%, color-mix(in srgb, var(--bg) 88%, var(--accent) 12%) 100%);
-      color: var(--ink);
-      font-family: "IBM Plex Sans", "Aptos", "Bahnschrift", sans-serif;
-      margin: 0;
-      min-height: 100vh;
-      padding: 0;
-      transition: background 260ms ease, color 220ms ease;
-    }}
-    body::before {{
-      background:
-        linear-gradient(var(--bg-grid) 1px, transparent 1px),
-        linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
-      background-size: 42px 42px;
-      content: "";
-      inset: 0;
-      mask-image: linear-gradient(to bottom, black, transparent 76%);
-      pointer-events: none;
-      position: fixed;
-      z-index: -1;
-    }}
-    .dashboard-shell {{
-      margin: 0 auto;
-      max-width: 1480px;
-      padding: clamp(18px, 3vw, 36px);
-    }}
-    .hero {{
-      border-bottom: 1px solid var(--line);
-      margin-bottom: 24px;
-      padding: 10px 0 22px;
-      position: relative;
-    }}
-    .topbar {{
-      align-items: center;
-      display: flex;
-      gap: 16px;
-      justify-content: space-between;
-      margin-bottom: 34px;
-    }}
-    .brand {{
-      align-items: center;
-      display: flex;
-      gap: 12px;
-      min-width: 0;
-    }}
-    .brand-mark {{
-      align-items: center;
-      background:
-        linear-gradient(135deg, var(--hero), color-mix(in srgb, var(--accent) 62%, var(--hero) 38%));
-      border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent);
-      border-radius: 14px;
-      box-shadow: 0 14px 34px var(--card-glow);
-      color: var(--bg);
-      display: inline-flex;
-      font-family: "IBM Plex Mono", "Cascadia Mono", monospace;
-      font-size: 0.92rem;
-      font-weight: 700;
-      height: 42px;
-      justify-content: center;
-      letter-spacing: 0.08em;
-      width: 56px;
-    }}
-    :root[data-theme="dark"] .brand-mark {{
-      color: #061016;
-    }}
-    .brand-copy {{
-      min-width: 0;
-    }}
-    .eyebrow {{
-      color: var(--accent);
-      font-size: 0.78rem;
-      font-weight: 700;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-    }}
-    .desk-label {{
-      color: var(--muted);
-      font-size: 0.92rem;
-      margin-top: 2px;
-    }}
-    .theme-toggle {{
-      align-items: center;
-      backdrop-filter: blur(18px);
-      background: var(--toggle-bg);
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      box-shadow: 0 16px 36px var(--shadow);
-      color: var(--ink);
-      cursor: pointer;
-      display: inline-flex;
-      font: 700 0.88rem "IBM Plex Sans", "Aptos", sans-serif;
-      gap: 9px;
-      min-height: 42px;
-      padding: 9px 14px;
-      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
-      white-space: nowrap;
-    }}
-    .theme-toggle:hover {{
-      border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
-      transform: translateY(-1px);
-    }}
-    .dashboard-controls {{
-      align-items: center;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: flex-end;
-    }}
-    .style-picker {{
-      align-items: center;
-      backdrop-filter: blur(18px);
-      background: var(--toggle-bg);
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      box-shadow: 0 16px 36px var(--shadow);
-      color: var(--muted);
-      display: inline-flex;
-      font: 700 0.78rem "IBM Plex Sans", "Aptos", sans-serif;
-      gap: 8px;
-      letter-spacing: 0.08em;
-      min-height: 42px;
-      padding: 7px 8px 7px 13px;
-      text-transform: uppercase;
-    }}
-    .style-picker select {{
-      appearance: none;
-      background:
-        linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, transparent), transparent),
-        var(--panel);
-      border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--line));
-      border-radius: 999px;
-      color: var(--ink);
-      cursor: pointer;
-      font: 700 0.86rem "IBM Plex Sans", "Aptos", sans-serif;
-      min-width: 138px;
-      outline: none;
-      padding: 7px 30px 7px 12px;
-    }}
-    .portfolio-picker select {{
-      min-width: 240px;
-    }}
-    .style-picker::after {{
-      border-left: 4px solid transparent;
-      border-right: 4px solid transparent;
-      border-top: 5px solid var(--accent);
-      content: "";
-      height: 0;
-      margin-left: -32px;
-      pointer-events: none;
-      width: 0;
-    }}
-    .theme-icon {{
-      align-items: center;
-      background: color-mix(in srgb, var(--accent) 13%, transparent);
-      border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
-      border-radius: 999px;
-      color: var(--accent);
-      display: inline-flex;
-      font-size: 1rem;
-      height: 24px;
-      justify-content: center;
-      line-height: 1;
-      width: 24px;
-    }}
-    .theme-icon-moon {{
-      display: none;
-    }}
-    :root[data-theme="dark"] .theme-icon-sun {{
-      display: none;
-    }}
-    :root[data-theme="dark"] .theme-icon-moon {{
-      display: inline-flex;
-    }}
-    h1 {{
-      color: var(--hero);
-      font-size: clamp(2.25rem, 5.8vw, 6.2rem);
-      letter-spacing: -0.065em;
-      line-height: 0.88;
-      margin: 0;
-      max-width: 1020px;
-    }}
-    h2 {{
-      color: var(--accent);
-      font-size: 0.92rem;
-      font-weight: 800;
-      letter-spacing: 0.13em;
-      margin: 0 0 16px;
-      text-transform: uppercase;
-    }}
-    .subtitle {{
-      color: var(--muted);
-      font-size: clamp(1rem, 1.8vw, 1.22rem);
-      line-height: 1.6;
-      max-width: 980px;
-    }}
-    .market-ribbon {{
-      align-items: center;
-      color: var(--muted);
-      display: flex;
-      flex-wrap: wrap;
-      font-family: "IBM Plex Mono", "Cascadia Mono", monospace;
-      font-size: 0.78rem;
-      gap: 10px;
-      letter-spacing: 0.08em;
-      margin-top: 22px;
-      text-transform: uppercase;
-    }}
-    .market-ribbon span {{
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: var(--panel);
-      padding: 6px 10px;
-    }}
-    .cards {{
-      display: grid;
-      gap: 14px;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-      margin: 28px 0;
-    }}
-    .portfolio-view[hidden] {{
-      display: none;
-    }}
-    .view-heading {{
-      align-items: flex-end;
-      border-bottom: 1px solid var(--line);
-      display: flex;
-      gap: 18px;
-      justify-content: space-between;
-      margin: 28px 0 6px;
-      padding: 0 2px 16px;
-    }}
-    .view-heading h2 {{
-      margin-bottom: 8px;
-    }}
-    .view-heading p {{
-      color: var(--muted);
-      line-height: 1.55;
-      margin: 0;
-      max-width: 860px;
-    }}
-    .view-heading span {{
-      color: var(--accent);
-      font-family: "IBM Plex Mono", "Cascadia Mono", monospace;
-      font-size: 0.82rem;
-      font-weight: 700;
-      white-space: nowrap;
-    }}
-    .card, .panel {{
-      backdrop-filter: blur(18px);
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      box-shadow: 0 22px 64px var(--shadow);
-      position: relative;
-      transition: background 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
-    }}
-    .card::before, .panel::before {{
-      background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 26%, transparent), transparent 42%);
-      border-radius: inherit;
-      content: "";
-      inset: 0;
-      opacity: 0.32;
-      pointer-events: none;
-      position: absolute;
-    }}
-    .card {{
-      overflow: hidden;
-      min-width: 0;
-      padding: 18px 16px;
-    }}
-    .card-label {{
-      color: var(--muted);
-      font-size: 0.76rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }}
-    .card-value {{
-      color: var(--ink);
-      font-family: "IBM Plex Mono", "Cascadia Mono", monospace;
-      font-size: 1.55rem;
-      font-weight: 700;
-      margin-top: 8px;
-      overflow-wrap: anywhere;
-    }}
-    .card-note {{
-      color: var(--muted);
-      font-size: 0.84rem;
-      line-height: 1.35;
-      margin-top: 6px;
-    }}
-    .panel {{
-      background: var(--panel-strong);
-      margin: 24px 0;
-      overflow: hidden;
-      padding: clamp(16px, 2vw, 22px);
-    }}
-    .panel-heading {{
-      align-items: center;
-      display: flex;
-      gap: 14px;
-      justify-content: space-between;
-      position: relative;
-      z-index: 1;
-    }}
-    .panel-actions {{
-      align-items: center;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: flex-end;
-    }}
-    .allocation-mode {{
-      background: color-mix(in srgb, var(--accent) 9%, transparent);
-      border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--line));
-      border-radius: 999px;
-      display: none;
-      gap: 2px;
-      padding: 3px;
-    }}
-    .panel.is-linked .allocation-mode {{
-      display: inline-flex;
-    }}
-    .allocation-mode button {{
-      background: transparent;
-      border: 0;
-      border-radius: 999px;
-      color: var(--muted);
-      cursor: pointer;
-      font: 700 0.74rem "IBM Plex Sans", "Aptos", sans-serif;
-      letter-spacing: 0.06em;
-      padding: 6px 9px;
-      text-transform: uppercase;
-    }}
-    .allocation-mode button[aria-pressed="true"] {{
-      background: color-mix(in srgb, var(--accent) 23%, transparent);
-      color: var(--accent);
-    }}
-    .panel-reset {{
-      background: color-mix(in srgb, var(--accent) 12%, transparent);
-      border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--line));
-      border-radius: 999px;
-      color: var(--accent);
-      cursor: pointer;
-      display: none;
-      font: 700 0.78rem "IBM Plex Sans", "Aptos", sans-serif;
-      letter-spacing: 0.08em;
-      padding: 7px 11px;
-      text-transform: uppercase;
-    }}
-    .panel.is-linked .panel-reset {{
-      display: inline-flex;
-    }}
-    .panel-filter {{
-      background: color-mix(in srgb, var(--accent) 9%, transparent);
-      border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--line));
-      border-radius: 999px;
-      color: var(--muted);
-      display: inline-flex;
-      font-family: "IBM Plex Mono", "Cascadia Mono", monospace;
-      font-size: 0.78rem;
-      letter-spacing: 0.03em;
-      margin: -4px 0 10px;
-      padding: 7px 11px;
-      position: relative;
-      z-index: 1;
-    }}
-    .panel-filter[hidden] {{
-      display: none;
-    }}
-    .panel-note {{
-      color: var(--muted);
-      font-size: 0.9rem;
-      line-height: 1.45;
-      margin: -4px 0 14px;
-      max-width: 980px;
-      position: relative;
-      z-index: 1;
-    }}
-    .panel .js-plotly-plot {{
-      border-radius: 18px;
-    }}
-    .panel-body {{
-      min-height: 160px;
-      position: relative;
-      z-index: 1;
-    }}
-    .panel-loading {{
-      align-items: center;
-      background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 13%, transparent), transparent);
-      border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--line));
-      border-radius: 18px;
-      display: none;
-      inset: 8px;
-      justify-content: center;
-      pointer-events: none;
-      position: absolute;
-      z-index: 5;
-    }}
-    .panel.is-loading .panel-loading {{
-      display: flex;
-    }}
-    .panel-loading span {{
-      animation: qrpSpin 900ms linear infinite;
-      border: 3px solid color-mix(in srgb, var(--accent) 20%, transparent);
-      border-radius: 50%;
-      border-top-color: var(--accent);
-      height: 28px;
-      width: 28px;
-    }}
-    .card.is-loading::after {{
-      background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 18%, transparent), transparent);
-      content: "";
-      inset: 0;
-      opacity: 0.8;
-      pointer-events: none;
-      position: absolute;
-      transform: translateX(-100%);
-    }}
-    .card.is-loading::after {{
-      animation: qrpSweep 780ms ease-out forwards;
-    }}
-    @keyframes qrpSpin {{
-      to {{
-        transform: rotate(360deg);
-      }}
-    }}
-    @keyframes qrpSweep {{
-      to {{
-        transform: translateX(100%);
-      }}
-    }}
-    .data-table-wrap {{
-      max-height: var(--table-max-height, 620px);
-      overflow-x: hidden;
-      overflow-y: auto;
-      position: relative;
-      scrollbar-color: var(--table-muted) transparent;
-      z-index: 1;
-    }}
-    .data-table {{
-      border-collapse: collapse;
-      font-size: 0.86rem;
-      table-layout: fixed;
-      width: 100%;
-    }}
-    .data-table th {{
-      background: var(--table-header);
-      color: var(--table-header-font);
-      position: sticky;
-      top: 0;
-      z-index: 2;
-    }}
-    .data-table th button {{
-      align-items: center;
-      background: transparent;
-      border: 0;
-      color: inherit;
-      cursor: pointer;
-      display: inline-flex;
-      font: 700 0.82rem "IBM Plex Sans", "Aptos", sans-serif;
-      gap: 7px;
-      justify-content: space-between;
-      min-width: 0;
-      padding: 10px 9px;
-      text-align: left;
-      width: 100%;
-    }}
-    .data-table th button span:first-child {{
-      min-width: 0;
-      overflow-wrap: anywhere;
-    }}
-    .data-table td {{
-      border: 1px solid var(--table-border);
-      color: var(--table-cell-font);
-      overflow-wrap: anywhere;
-      padding: 9px;
-      white-space: normal;
-      word-break: normal;
-    }}
-    .data-table td[data-kind="number"] {{
-      white-space: nowrap;
-    }}
-    .data-table[data-table-id="support-diagnostics"] th:nth-child(1),
-    .data-table[data-table-id="support-diagnostics"] td:nth-child(1) {{
-      width: 14%;
-    }}
-    .data-table[data-table-id="support-diagnostics"] th:nth-child(2),
-    .data-table[data-table-id="support-diagnostics"] td:nth-child(2) {{
-      width: 8%;
-    }}
-    .data-table[data-table-id="support-diagnostics"] th:nth-child(3),
-    .data-table[data-table-id="support-diagnostics"] td:nth-child(3) {{
-      width: 13%;
-    }}
-    .data-table[data-table-id="support-diagnostics"] th:nth-child(4),
-    .data-table[data-table-id="support-diagnostics"] td:nth-child(4) {{
-      width: 24%;
-    }}
-    .data-table[data-table-id="support-diagnostics"] th:nth-child(5),
-    .data-table[data-table-id="support-diagnostics"] td:nth-child(5) {{
-      width: 13%;
-    }}
-    .data-table[data-table-id="support-diagnostics"] th:nth-child(6),
-    .data-table[data-table-id="support-diagnostics"] td:nth-child(6) {{
-      width: 28%;
-    }}
-    .data-table[data-table-id="trade-inventory"] th:nth-child(1),
-    .data-table[data-table-id="trade-inventory"] td:nth-child(1) {{
-      width: 17%;
-    }}
-    .data-table[data-table-id="trade-inventory"] th:nth-child(2),
-    .data-table[data-table-id="trade-inventory"] td:nth-child(2) {{
-      width: 8%;
-    }}
-    .data-table[data-table-id="trade-inventory"] th:nth-child(3),
-    .data-table[data-table-id="trade-inventory"] td:nth-child(3) {{
-      width: 16%;
-    }}
-    .data-table[data-table-id="trade-inventory"] th:nth-child(4),
-    .data-table[data-table-id="trade-inventory"] td:nth-child(4) {{
-      width: 18%;
-    }}
-    .data-table[data-table-id="trade-inventory"] th:nth-child(5),
-    .data-table[data-table-id="trade-inventory"] td:nth-child(5) {{
-      width: 13%;
-    }}
-    .data-table[data-table-id="trade-inventory"] th:nth-child(6),
-    .data-table[data-table-id="trade-inventory"] td:nth-child(6),
-    .data-table[data-table-id="trade-inventory"] th:nth-child(7),
-    .data-table[data-table-id="trade-inventory"] td:nth-child(7) {{
-      width: 8%;
-    }}
-    .data-table[data-table-id="trade-inventory"] th:nth-child(8),
-    .data-table[data-table-id="trade-inventory"] td:nth-child(8) {{
-      width: 12%;
-    }}
-    .data-table tbody tr:nth-child(odd) {{
-      background: var(--table-row-odd);
-    }}
-    .data-table tbody tr:nth-child(even) {{
-      background: var(--table-row-even);
-    }}
-    .sort-arrow::after {{
-      color: var(--accent);
-      content: "\\2195";
-      font-size: 0.78rem;
-    }}
-    .data-table th button[aria-sort="ascending"] .sort-arrow::after {{
-      content: "\\2191";
-    }}
-    .data-table th button[aria-sort="descending"] .sort-arrow::after {{
-      content: "\\2193";
-    }}
-    .status-pill {{
-      align-items: center;
-      border-radius: 999px;
-      display: inline-flex;
-      font-size: 0.78rem;
-      font-weight: 700;
-      justify-content: center;
-      line-height: 1.15;
-      padding: 3px 8px;
-      white-space: normal;
-    }}
-    .status-pill-supported {{
-      background: var(--status-supported-bg);
-      color: var(--status-supported-fg);
-    }}
-    .status-pill-partially-supported {{
-      background: var(--status-partial-bg);
-      color: var(--status-partial-fg);
-    }}
-    .status-pill-unsupported, .status-pill-failed {{
-      background: var(--status-unsupported-bg);
-      color: var(--status-unsupported-fg);
-    }}
-    .footnote {{
-      color: var(--muted);
-      font-size: 0.9rem;
-      line-height: 1.45;
-      margin-top: 28px;
-    }}
-    @media (max-width: 1320px) {{
-      .cards {{
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }}
-    }}
-    @media (max-width: 860px) {{
-      .cards {{
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }}
-    }}
-    @media (max-width: 720px) {{
-      .topbar {{
-        align-items: flex-start;
-        flex-direction: column;
-      }}
-      .theme-toggle {{
-        align-self: flex-end;
-      }}
-      .view-heading {{
-        align-items: flex-start;
-        flex-direction: column;
-      }}
-      .view-heading span {{
-        white-space: normal;
-      }}
-      .dashboard-shell {{
-        padding: 16px;
-      }}
-      .card-value {{
-        font-size: 1.42rem;
-      }}
-    }}
-    @media (max-width: 520px) {{
-      .cards {{
-        grid-template-columns: 1fr;
-      }}
-    }}
-  </style>
-</head>
-<body>
-  <div class="dashboard-shell">
-    <header class="hero">
-      <div class="topbar">
-        <div class="brand">
-          <span class="brand-mark">QRP</span>
-          <div class="brand-copy">
-            <div class="eyebrow">Risk cockpit</div>
-            <div class="desk-label">Portfolio manager and risk manager view</div>
-          </div>
-        </div>
-        <div class="dashboard-controls">
-          <label class="style-picker portfolio-picker">
-            <span>Portfolio</span>
-            <select data-portfolio-select aria-label="Dashboard portfolio">
-              {portfolio_options}
-            </select>
-          </label>
-          <label class="style-picker">
-            <span>Style</span>
-            <select data-style-select aria-label="Dashboard visual style">
-              {style_options}
-            </select>
-          </label>
-          <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch theme">
-            <span class="theme-icon theme-icon-sun" aria-hidden="true">&#9728;</span>
-            <span class="theme-icon theme-icon-moon" aria-hidden="true">&#9790;</span>
-            <span data-theme-label>Light</span>
-          </button>
-        </div>
-      </div>
-      <h1>{html.escape(title)}</h1>
-      <p class="subtitle">
-        Interactive portfolio performance and risk dashboard generated from model return history,
-        allocation, valuation, stress, factor exposure, P&amp;L explain, and Monte Carlo outputs.
-        Built as a modern cockpit for performance review, loss diagnostics, and risk investigations.
-      </p>
-      <div class="market-ribbon">
-        <span>Market as of {html.escape(market_as_of)}</span>
-        <span>Generated {html.escape(generated_at)}</span>
-        <span>Scenario revaluation</span>
-        <span>VaR / ES</span>
-        <span>Stress paths</span>
-        <span>P&amp;L explain</span>
-      </div>
-    </header>
-    <main>
-      {view_html}
-      <p class="footnote">
-        Performance history is a deterministic model series generated from asset-class return assumptions and policy
-        benchmark weights; the chart supports common lookback windows from 1Y through inception plus calendar-year
-        returns. Stress scenarios are one-step revaluations as of {html.escape(market_as_of)};
-        they are not chronological portfolio performance.
-      </p>
-    </main>
-  </div>
-{theme_script}
-{interaction_script}
-</body>
-</html>
-"""
+    )
     output_path.write_text(document, encoding="utf-8")
     return output_path
 
@@ -3644,55 +1579,74 @@ def sortable_value(value, kind):
     return sort_text(value)
 
 
-def cell_display(row, key, kind):
+def cell_display(row, key, kind, status_template):
     value = row.get(key, "")
     if key == "status":
-        return (
-            f'<span class="status-pill status-pill-{html.escape(str(value).replace("_", "-"))}">'
-            f"{html.escape(support_status_label(value))}</span>"
+        return render_asset_template(
+            status_template,
+            {
+                "__QRP_STATUS_CLASS__": html.escape(str(value).replace("_", "-")),
+                "__QRP_STATUS_LABEL__": html.escape(support_status_label(value)),
+            },
         )
     if kind == "number":
         return html.escape(money(float(value or 0.0)))
     return html.escape(str(value or ""))
 
 
-def row_cell_html(row, key, kind):
-    data_kind = html.escape(kind)
-    sort_value = html.escape(sortable_value(row.get(key), kind))
-    display = cell_display(row, key, kind)
-    return f'<td data-kind="{data_kind}" data-sort-value="{sort_value}">{display}</td>'
+def row_cell_html(row, key, kind, cell_template, status_template):
+    return render_asset_template(
+        cell_template,
+        {
+            "__QRP_CELL_DISPLAY__": cell_display(row, key, kind, status_template),
+            "__QRP_CELL_KIND__": html.escape(kind),
+            "__QRP_CELL_SORT_VALUE__": html.escape(sortable_value(row.get(key), kind)),
+        },
+    )
 
 
 def sortable_table_html(table_id, rows, columns, *, max_height):
+    cell_template = read_dashboard_asset("table_cell.html")
+    empty_row_template = read_dashboard_asset("table_empty_row.html")
+    header_cell_template = read_dashboard_asset("table_header_cell.html")
+    row_template = read_dashboard_asset("table_row.html")
+    status_template = read_dashboard_asset("status_pill.html")
+    table_template = read_dashboard_asset("data_table.html")
     header_html = "".join(
-        f"""
-        <th>
-          <button type="button" data-sort-column="{index}" data-sort-kind="{html.escape(kind)}" aria-sort="none">
-            <span>{html.escape(label)}</span><span class="sort-arrow" aria-hidden="true"></span>
-          </button>
-        </th>
-        """
+        render_asset_template(
+            header_cell_template,
+            {
+                "__QRP_COLUMN_INDEX__": str(index),
+                "__QRP_COLUMN_KIND__": html.escape(kind),
+                "__QRP_COLUMN_LABEL__": html.escape(label),
+            },
+        )
         for index, (_, label, kind) in enumerate(columns)
     )
     body_html = "\n".join(
-        f"""
-        <tr data-default-sort="{html.escape("|".join(str(value) for value in trade_sort_key(row)))}">
-          {"".join(row_cell_html(row, key, kind) for key, _, kind in columns)}
-        </tr>
-        """
+        render_asset_template(
+            row_template,
+            {
+                "__QRP_ROW_CELLS__": "".join(
+                    row_cell_html(row, key, kind, cell_template, status_template) for key, _, kind in columns
+                ),
+                "__QRP_ROW_DEFAULT_SORT__": html.escape("|".join(str(value) for value in trade_sort_key(row))),
+            },
+        )
         for row in rows
     )
     if not body_html:
-        body_html = f'<tr><td colspan="{len(columns)}">No rows</td></tr>'
+        body_html = render_asset_template(empty_row_template, {"__QRP_COLUMN_COUNT__": str(len(columns))})
 
-    return f"""
-    <div class="data-table-wrap" style="--table-max-height: {int(max_height)}px">
-      <table class="data-table" data-sortable-table data-table-id="{html.escape(table_id)}">
-        <thead><tr>{header_html}</tr></thead>
-        <tbody>{body_html}</tbody>
-      </table>
-    </div>
-    """
+    return render_asset_template(
+        table_template,
+        {
+            "__QRP_TABLE_BODY__": body_html,
+            "__QRP_TABLE_HEADER__": header_html,
+            "__QRP_TABLE_ID__": html.escape(table_id),
+            "__QRP_TABLE_MAX_HEIGHT__": str(int(max_height)),
+        },
+    )
 
 
 def make_support_diagnostics_panel(trade_rows):
@@ -4594,3 +2548,107 @@ def create_plotly_dashboard(
             "market_as_of": market_as_of_label,
         },
     )
+
+
+def build_demo_dashboard_portfolio_views(
+    demo_platform, primary_portfolio_id, market, market_path, factors, bindings, scenarios
+):
+    views = []
+    seen = {primary_portfolio_id}
+    portfolio_dir = demo_platform.project_root / "data" / "portfolios"
+    dashboard_monte_carlo_cases = [demo_platform.MONTE_CARLO_CASES[0]]
+    for portfolio_file in DASHBOARD_PORTFOLIOS:
+        portfolio = demo_platform.qrp.load_portfolio(str(portfolio_dir / portfolio_file))
+        if portfolio.portfolio_id in seen:
+            continue
+        views.append(
+            demo_platform.compute_portfolio_analytics(
+                portfolio,
+                market,
+                market_path,
+                factors,
+                bindings,
+                scenarios,
+                dashboard_monte_carlo_cases,
+            )
+        )
+        seen.add(portfolio.portfolio_id)
+    return views
+
+
+def generate_demo_dashboard(output_path=None, open_browser=True):
+    import demo_platform
+
+    project_root = demo_platform.project_root
+    market_path = project_root / "data" / "market" / "demo_market.json"
+    portfolio_path = project_root / "data" / "portfolios" / "demo_portfolio.json"
+    scenario_path = project_root / "data" / "scenarios" / "demo_scenarios.json"
+    output_path = Path(output_path) if output_path else project_root / "reports" / "demo_risk_dashboard.html"
+
+    market = demo_platform.qrp.load_market(str(market_path))
+    portfolio = demo_platform.qrp.load_portfolio(str(portfolio_path))
+    _, factors, bindings, scenarios = demo_platform.load_factor_scenario_set(scenario_path)
+    analytics = demo_platform.compute_portfolio_analytics(
+        portfolio,
+        market,
+        market_path,
+        factors,
+        bindings,
+        scenarios,
+    )
+    portfolio_views = build_demo_dashboard_portfolio_views(
+        demo_platform,
+        portfolio.portfolio_id,
+        market,
+        market_path,
+        factors,
+        bindings,
+        scenarios,
+    )
+    dashboard_path = create_plotly_dashboard(
+        portfolio=portfolio,
+        valuation_results=analytics["valuation_results"],
+        total_npv=analytics["total_npv"],
+        stress_results=analytics["stress_results"],
+        risk_results=analytics["risk_results"],
+        pnl_results=analytics["pnl_results"],
+        mc_results=analytics["mc_results"],
+        factors=factors,
+        market_valuation_date=market.valuation_date,
+        scenarios=scenarios,
+        output_path=output_path,
+        portfolio_views=portfolio_views,
+    )
+    if dashboard_path is None:
+        print("Dashboard was not generated, so there is no webpage to open.")
+        return None
+
+    print(f"Dashboard written to: {dashboard_path}")
+    if open_browser:
+        opened = webbrowser.open(dashboard_path.resolve().as_uri())
+        if opened:
+            print("Dashboard opened in your default web browser.")
+        else:
+            print("Dashboard written, but the browser did not confirm that it opened.")
+    return dashboard_path
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Generate the Quant Risk Platform Plotly demo dashboard.")
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=None,
+        help="Dashboard HTML output path. Defaults to reports/demo_risk_dashboard.html.",
+    )
+    parser.add_argument(
+        "--no-open",
+        action="store_true",
+        help="Write the dashboard without opening the default web browser.",
+    )
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    raise SystemExit(0 if generate_demo_dashboard(args.output, open_browser=not args.no_open) else 1)

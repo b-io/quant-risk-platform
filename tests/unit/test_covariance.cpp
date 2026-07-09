@@ -73,6 +73,12 @@ TEST(CovarianceTest, TestHorizonScaling) {
 }
 
 TEST(CovarianceTest, TestPSDRepair) {
+    double floor = 0.1;
+    QuantLib::Matrix empty(0, 0);
+    QuantLib::Matrix empty_repaired = CovarianceEstimator::repair_psd(empty, floor);
+    EXPECT_EQ(empty_repaired.rows(), 0U);
+    EXPECT_EQ(empty_repaired.columns(), 0U);
+
     // Create a non-PSD matrix
     // [ 1  2 ]
     // [ 2  1 ]
@@ -84,7 +90,6 @@ TEST(CovarianceTest, TestPSDRepair) {
     non_psd[1][0] = 2.0;
     non_psd[1][1] = 1.0;
 
-    double floor = 0.1;
     QuantLib::Matrix repaired = CovarianceEstimator::repair_psd(non_psd, floor);
 
     // Repaired eigenvalues should be 3 and 0.1
@@ -121,6 +126,8 @@ TEST(CovarianceTest, MissingSynchronizedObservationThrows) {
     f1.factor_id = "F1";
     FactorDefinition f2;
     f2.factor_id = "F2";
+    FactorDefinition f3;
+    f3.factor_id = "F3";
 
     std::vector<FactorObservation> history = {{"F1", "2024-01-01", 1.0, 0.01, "absolute"},
                                               {"F2", "2024-01-01", 1.0, 0.02, "absolute"},
@@ -129,14 +136,19 @@ TEST(CovarianceTest, MissingSynchronizedObservationThrows) {
     CovarianceEstimationConfig config;
 
     EXPECT_THROW(CovarianceEstimator::estimate_covariance({f1, f2}, history, config), std::runtime_error);
+    EXPECT_THROW(CovarianceEstimator::estimate_covariance({f1, f3}, history, config), std::runtime_error);
 }
 
 TEST(CovarianceTest, EwmaCovarianceUsesConfiguredLambda) {
     FactorDefinition factor;
     factor.factor_id = "F1";
+    FactorDefinition second_factor;
+    second_factor.factor_id = "F2";
 
     std::vector<FactorObservation> history = {{"F1", "2024-01-01", 1.0, 0.01, "absolute"},
-                                              {"F1", "2024-01-02", 1.0, 0.03, "absolute"}};
+                                              {"F2", "2024-01-01", 1.0, 0.02, "absolute"},
+                                              {"F1", "2024-01-02", 1.0, 0.03, "absolute"},
+                                              {"F2", "2024-01-02", 1.0, 0.04, "absolute"}};
 
     CovarianceEstimationConfig config;
     config.demean = false;
@@ -144,8 +156,10 @@ TEST(CovarianceTest, EwmaCovarianceUsesConfiguredLambda) {
     config.return_horizon_scaled_covariance = false;
     config.use_ewma = true;
 
-    auto cov = CovarianceEstimator::estimate_covariance({factor}, history, config);
+    auto cov = CovarianceEstimator::estimate_covariance({factor, second_factor}, history, config);
 
     // Recursive EWMA from zero: 0.5 * 0 + 0.5 * 0.01^2, then 0.5 * prev + 0.5 * 0.03^2.
     EXPECT_NEAR(cov[0][0], 0.000475, 1e-12);
+    EXPECT_NEAR(cov[0][1], 0.00065, 1e-12);
+    EXPECT_NEAR(cov[1][0], cov[0][1], 1e-12);
 }

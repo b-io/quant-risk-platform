@@ -46,8 +46,8 @@
       "trades": [
         "ggm_wti_forward_001",
         "ggm_wti_future_001",
-        "ggm_wti_strip_001",
-        "ggm_wti_spot_001"
+        "ggm_wti_spot_001",
+        "ggm_wti_strip_001"
       ]
     },
     {
@@ -69,8 +69,8 @@
       "book_id": "BOOK:GROWTH:GLOBAL_MACRO_RATES",
       "book_name": "Growth Global Macro Rates",
       "trades": [
-        "ggm_usd_swaption_001",
-        "ggm_usd_swap_001"
+        "ggm_usd_swap_001",
+        "ggm_usd_swaption_001"
       ]
     }
   ],

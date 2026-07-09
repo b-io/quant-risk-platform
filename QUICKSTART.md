@@ -76,6 +76,9 @@ CMake/gcovr coverage target for GCC/Clang builds. The repository coverage gate i
 Python. MSVC coverage runs the full unit test executable by default. To narrow the instrumented GoogleTest set while
 debugging coverage collector issues, set `QRP_MSVC_COVERAGE_GTEST_FILTER` explicitly.
 
+The test scripts set `QRP_PYTHON_PATH` to the selected build tree's compiled extension before Python checks, which helps
+avoid accidentally importing an older `quant_risk_platform` module from another build.
+
 The committed summary artifacts are refreshed under `coverage/`:
 
 - `coverage/coverage-badge.svg`

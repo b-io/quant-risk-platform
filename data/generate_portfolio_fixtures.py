@@ -29,7 +29,8 @@ STATUS_BY_TYPE = {
     "commodity_future_option": "supported",
     "commodity_future_strip": "supported",
     "commodity_spot": "supported",
-    "commodity_swing": "partially_supported",
+    "commodity_swing": "supported",
+    "gas_storage": "supported",
     "credit_bond": "supported",
     "credit_index_option": "supported",
     "deposit": "supported",
@@ -648,6 +649,32 @@ def swing(trade_id, book_id, strategy):
     return trade
 
 
+def storage(trade_id, book_id, strategy):
+    trade = base(trade_id, "commodity", "gas_storage", book_id, strategy, "long")
+    trade.update(
+        {
+            "start_date": "2026-04-01",
+            "maturity_date": "2026-12-24",
+            "details": {
+                "underlier": "TTF",
+                "min_inventory": 0,
+                "max_inventory": 200,
+                "initial_inventory": 50,
+                "terminal_inventory_target": 50,
+                "terminal_inventory_penalty": 100,
+                "max_injection_quantity": 100,
+                "max_withdrawal_quantity": 100,
+                "injection_cost": 0.20,
+                "withdrawal_cost": 0.20,
+                "forward_quote_ids": ["TTF_FWD_Q1", "TTF_FWD_Q2"],
+                "exercise_dates": ["2026-06-24", "2026-09-24"],
+                "unit": "MWh",
+            },
+        }
+    )
+    return trade
+
+
 def eqspot(trade_id, book_id, strategy, quantity=100, ref_price=180.0):
     trade = base(trade_id, "equity", "equity_spot", book_id, strategy, "long")
     trade.update(
@@ -935,6 +962,11 @@ def demo_product_gallery_portfolio():
                 "demo_ttf_swing_001",
                 demo_book("COMMODITY_FLEXIBILITY"),
                 "TTF_SWING_OPTIONALITY",
+            ),
+            storage(
+                "demo_ttf_storage_001",
+                demo_book("COMMODITY_FLEXIBILITY"),
+                "TTF_STORAGE_OPTIONALITY",
             ),
             eqspot(
                 "equity_spot_aapl_001",

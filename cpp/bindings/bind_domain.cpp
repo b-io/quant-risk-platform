@@ -147,6 +147,7 @@ void bind_domain(py::module_& m) {
         .value("CommodityFutureOption", domain::ProductType::CommodityFutureOption)
         .value("CommodityCalendarSpreadOption", domain::ProductType::CommodityCalendarSpreadOption)
         .value("CommoditySwing", domain::ProductType::CommoditySwing)
+        .value("GasStorage", domain::ProductType::GasStorage)
         .value("CreditBond", domain::ProductType::CreditBond)
         .value("Cds", domain::ProductType::Cds)
         .value("CdsIndex", domain::ProductType::CdsIndex)
@@ -252,6 +253,7 @@ void bind_domain(py::module_& m) {
         .value("CommodityFutureOption", domain::TradeType::CommodityFutureOption)
         .value("CommodityCalendarSpreadOption", domain::TradeType::CommodityCalendarSpreadOption)
         .value("CommoditySwing", domain::TradeType::CommoditySwing)
+        .value("GasStorage", domain::TradeType::GasStorage)
         .value("CreditBond", domain::TradeType::CreditBond)
         .value("Cds", domain::TradeType::Cds)
         .value("CdsIndex", domain::TradeType::CdsIndex)
@@ -272,6 +274,7 @@ void bind_domain(py::module_& m) {
         .value("VanillaSwap", domain::TradeType::VanillaSwap)
         .value("OisSwap", domain::TradeType::OisSwap)
         .value("FixedRateBond", domain::TradeType::FixedRateBond)
+        .value("CallableBond", domain::TradeType::CallableBond)
         .value("FloatingRateNote", domain::TradeType::FloatingRateNote)
         .value("CapFloor", domain::TradeType::CapFloor)
         .value("EuropeanSwaption", domain::TradeType::EuropeanSwaption)
@@ -563,13 +566,34 @@ void bind_domain(py::module_& m) {
         .def_readwrite("exercise_dates", &domain::CommoditySwingTrade::exercise_dates)
         .def_readwrite("forward_quote_ids", &domain::CommoditySwingTrade::forward_quote_ids)
         .def_readwrite("maturity_date", &domain::CommoditySwingTrade::maturity_date)
+        .def_readwrite("max_exercise_quantity", &domain::CommoditySwingTrade::max_exercise_quantity)
         .def_readwrite("max_quantity", &domain::CommoditySwingTrade::max_quantity)
+        .def_readwrite("min_exercise_quantity", &domain::CommoditySwingTrade::min_exercise_quantity)
         .def_readwrite("min_quantity", &domain::CommoditySwingTrade::min_quantity)
         .def_readwrite("start_date", &domain::CommoditySwingTrade::start_date)
         .def_readwrite("strike_price", &domain::CommoditySwingTrade::strike_price)
+        .def_readwrite("terminal_shortfall_penalty", &domain::CommoditySwingTrade::terminal_shortfall_penalty)
         .def_readwrite("underlier", &domain::CommoditySwingTrade::underlier)
         .def_readwrite("unit", &domain::CommoditySwingTrade::unit)
         .def_readwrite("volatility", &domain::CommoditySwingTrade::volatility);
+
+    py::class_<domain::GasStorageTrade, domain::Trade, std::shared_ptr<domain::GasStorageTrade>>(m, "GasStorageTrade")
+        .def(py::init<>())
+        .def_readwrite("exercise_dates", &domain::GasStorageTrade::exercise_dates)
+        .def_readwrite("forward_quote_ids", &domain::GasStorageTrade::forward_quote_ids)
+        .def_readwrite("initial_inventory", &domain::GasStorageTrade::initial_inventory)
+        .def_readwrite("injection_cost", &domain::GasStorageTrade::injection_cost)
+        .def_readwrite("maturity_date", &domain::GasStorageTrade::maturity_date)
+        .def_readwrite("max_injection_quantity", &domain::GasStorageTrade::max_injection_quantity)
+        .def_readwrite("max_inventory", &domain::GasStorageTrade::max_inventory)
+        .def_readwrite("max_withdrawal_quantity", &domain::GasStorageTrade::max_withdrawal_quantity)
+        .def_readwrite("min_inventory", &domain::GasStorageTrade::min_inventory)
+        .def_readwrite("start_date", &domain::GasStorageTrade::start_date)
+        .def_readwrite("terminal_inventory_penalty", &domain::GasStorageTrade::terminal_inventory_penalty)
+        .def_readwrite("terminal_inventory_target", &domain::GasStorageTrade::terminal_inventory_target)
+        .def_readwrite("underlier", &domain::GasStorageTrade::underlier)
+        .def_readwrite("unit", &domain::GasStorageTrade::unit)
+        .def_readwrite("withdrawal_cost", &domain::GasStorageTrade::withdrawal_cost);
 
     py::class_<domain::CreditBondTrade, domain::Trade, std::shared_ptr<domain::CreditBondTrade>>(m, "CreditBondTrade")
         .def(py::init<>())
@@ -684,6 +708,16 @@ void bind_domain(py::module_& m) {
         .def_readwrite("maturity_date", &domain::FixedRateBondTrade::maturity_date)
         .def_readwrite("notional", &domain::FixedRateBondTrade::notional)
         .def_readwrite("start_date", &domain::FixedRateBondTrade::start_date);
+
+    py::class_<domain::CallableBondTrade, domain::FixedRateBondTrade, std::shared_ptr<domain::CallableBondTrade>>(
+        m,
+        "CallableBondTrade")
+        .def(py::init<>())
+        .def_readwrite("call_dates", &domain::CallableBondTrade::call_dates)
+        .def_readwrite("call_prices", &domain::CallableBondTrade::call_prices)
+        .def_readwrite("mean_reversion", &domain::CallableBondTrade::mean_reversion)
+        .def_readwrite("volatility", &domain::CallableBondTrade::volatility)
+        .def_readwrite("volatility_quote_id", &domain::CallableBondTrade::volatility_quote_id);
 
     py::class_<domain::FloatingRateNoteTrade, domain::Trade, std::shared_ptr<domain::FloatingRateNoteTrade>>(
         m,

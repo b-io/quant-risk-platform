@@ -67,6 +67,7 @@ TEST(TradeModelTest, ParsesKnownTradeTypes) {
     EXPECT_EQ(qrp::domain::parse_trade_type("commodity_calendar_spread_option"),
               qrp::domain::TradeType::CommodityCalendarSpreadOption);
     EXPECT_EQ(qrp::domain::parse_trade_type("commodity_swing"), qrp::domain::TradeType::CommoditySwing);
+    EXPECT_EQ(qrp::domain::parse_trade_type("gas_storage"), qrp::domain::TradeType::GasStorage);
     EXPECT_EQ(qrp::domain::parse_trade_type("credit_bond"), qrp::domain::TradeType::CreditBond);
     EXPECT_EQ(qrp::domain::parse_trade_type("cds"), qrp::domain::TradeType::Cds);
     EXPECT_EQ(qrp::domain::parse_trade_type("cds_index"), qrp::domain::TradeType::CdsIndex);
@@ -87,6 +88,7 @@ TEST(TradeModelTest, ParsesKnownTradeTypes) {
     EXPECT_EQ(qrp::domain::parse_trade_type("vanilla_swap"), qrp::domain::TradeType::VanillaSwap);
     EXPECT_EQ(qrp::domain::parse_trade_type("ois_swap"), qrp::domain::TradeType::OisSwap);
     EXPECT_EQ(qrp::domain::parse_trade_type("fixed_rate_bond"), qrp::domain::TradeType::FixedRateBond);
+    EXPECT_EQ(qrp::domain::parse_trade_type("callable_bond"), qrp::domain::TradeType::CallableBond);
     EXPECT_EQ(qrp::domain::parse_trade_type("floating_rate_note"), qrp::domain::TradeType::FloatingRateNote);
     EXPECT_EQ(qrp::domain::parse_trade_type("cap_floor"), qrp::domain::TradeType::CapFloor);
     EXPECT_EQ(qrp::domain::parse_trade_type("european_swaption"), qrp::domain::TradeType::EuropeanSwaption);
@@ -106,6 +108,7 @@ TEST(TradeModelTest, SerializesAllTradeTypesAndBuildsConcreteTradeDtos) {
          "commodity_calendar_spread_option",
          domain::ProductType::CommodityCalendarSpreadOption},
         {domain::TradeType::CommoditySwing, "commodity_swing", domain::ProductType::CommoditySwing},
+        {domain::TradeType::GasStorage, "gas_storage", domain::ProductType::GasStorage},
         {domain::TradeType::CreditBond, "credit_bond", domain::ProductType::CreditBond},
         {domain::TradeType::Cds, "cds", domain::ProductType::Cds},
         {domain::TradeType::CdsIndex, "cds_index", domain::ProductType::CdsIndex},
@@ -126,6 +129,7 @@ TEST(TradeModelTest, SerializesAllTradeTypesAndBuildsConcreteTradeDtos) {
         {domain::TradeType::VanillaSwap, "vanilla_swap", domain::ProductType::VanillaSwap},
         {domain::TradeType::OisSwap, "ois_swap", domain::ProductType::OisSwap},
         {domain::TradeType::FixedRateBond, "fixed_rate_bond", domain::ProductType::FixedRateBond},
+        {domain::TradeType::CallableBond, "callable_bond", domain::ProductType::CallableBond},
         {domain::TradeType::FloatingRateNote, "floating_rate_note", domain::ProductType::FloatingRateNote},
         {domain::TradeType::CapFloor, "cap_floor", domain::ProductType::CapFloor},
         {domain::TradeType::EuropeanSwaption, "european_swaption", domain::ProductType::EuropeanSwaption},
@@ -144,6 +148,37 @@ TEST(TradeModelTest, SerializesAllTradeTypesAndBuildsConcreteTradeDtos) {
     EXPECT_EQ(domain::to_string(domain::TradeType::Unknown), "unknown");
     EXPECT_EQ(domain::product_type_from_trade_type(domain::TradeType::Unknown), domain::ProductType::Unknown);
     EXPECT_THROW(domain::make_trade(domain::TradeType::Unknown), std::runtime_error);
+}
+
+TEST(TradeModelTest, PortfolioJsonParsesCallableBondTradeEconomics) {
+    const auto payload = trade_payload("CB01",
+                                       "rates",
+                                       "callable_bond",
+                                       "USD",
+                                       {{"coupon_rate", 0.0625},
+                                        {"frequency", "Annual"},
+                                        {"call_dates", std::vector<std::string>{"2027-03-24", "2028-03-24"}},
+                                        {"call_prices", std::vector<double>{101.0, 100.5}},
+                                        {"mean_reversion", 0.025},
+                                        {"volatility", 0.011},
+                                        {"volatility_quote_id", "USD_CALLABLE_BOND_VOL"}});
+
+    auto trade = domain::make_trade("callable_bond");
+    trade->from_json(payload);
+
+    const auto& callable_bond = dynamic_cast<const domain::CallableBondTrade&>(*trade);
+    EXPECT_EQ(callable_bond.trade_type, domain::TradeType::CallableBond);
+    EXPECT_EQ(callable_bond.product_type, domain::ProductType::CallableBond);
+    EXPECT_EQ(callable_bond.type, "callable_bond");
+    EXPECT_DOUBLE_EQ(callable_bond.coupon_rate, 0.0625);
+    EXPECT_EQ(callable_bond.frequency, "Annual");
+    ASSERT_EQ(callable_bond.call_dates.size(), 2U);
+    EXPECT_EQ(callable_bond.call_dates[0], "2027-03-24");
+    ASSERT_EQ(callable_bond.call_prices.size(), 2U);
+    EXPECT_DOUBLE_EQ(callable_bond.call_prices[1], 100.5);
+    EXPECT_DOUBLE_EQ(callable_bond.mean_reversion, 0.025);
+    EXPECT_DOUBLE_EQ(callable_bond.volatility, 0.011);
+    EXPECT_EQ(callable_bond.volatility_quote_id, "USD_CALLABLE_BOND_VOL");
 }
 
 TEST(TradeModelTest, SerializesMarketQuoteTaxonomy) {
@@ -228,6 +263,7 @@ TEST(TradeModelTest, ParsesCanonicalAssetClassesAndProductTypes) {
               qrp::domain::ProductType::CommodityCalendarSpreadOption);
     EXPECT_EQ(qrp::domain::parse_product_type("commodity_future_option"),
               qrp::domain::ProductType::CommodityFutureOption);
+    EXPECT_EQ(qrp::domain::parse_product_type("gas_storage"), qrp::domain::ProductType::GasStorage);
     EXPECT_EQ(qrp::domain::parse_product_type("credit_bond"), qrp::domain::ProductType::CreditBond);
     EXPECT_EQ(qrp::domain::parse_product_type("cds"), qrp::domain::ProductType::Cds);
     EXPECT_EQ(qrp::domain::parse_product_type("cds_index"), qrp::domain::ProductType::CdsIndex);
@@ -258,6 +294,7 @@ TEST(TradeModelTest, ParsesEveryDeclaredProductTypeAndAssetMapping) {
          domain::ProductType::CommodityCalendarSpreadOption,
          domain::AssetClass::Commodity},
         {"commodity_swing", domain::ProductType::CommoditySwing, domain::AssetClass::Commodity},
+        {"gas_storage", domain::ProductType::GasStorage, domain::AssetClass::Commodity},
         {"credit_bond", domain::ProductType::CreditBond, domain::AssetClass::Credit},
         {"cds", domain::ProductType::Cds, domain::AssetClass::Credit},
         {"cds_index", domain::ProductType::CdsIndex, domain::AssetClass::Credit},
@@ -744,10 +781,29 @@ TEST(TradeModelTest, PortfolioJsonParsesCommodityAndEquityTradeEconomics) {
                             {{"underlier", "TTF"},
                              {"min_quantity", 500.0},
                              {"max_quantity", 1000.0},
+                             {"min_exercise_quantity", 100.0},
+                             {"max_exercise_quantity", 600.0},
                              {"strike", 31.0},
+                             {"terminal_shortfall_penalty", 250.0},
                              {"quote_ids", std::vector<std::string>{"TTF_FWD_Q1", "TTF_FWD_Q2"}},
                              {"exercise_dates", std::vector<std::string>{"2026-06-24", "2026-09-24"}},
                              {"volatility", 0.40}}),
+              trade_payload("C08",
+                            "commodity",
+                            "gas_storage",
+                            "USD",
+                            {{"underlier", "TTF"},
+                             {"min_inventory", 0.0},
+                             {"max_inventory", 200.0},
+                             {"initial_inventory", 50.0},
+                             {"terminal_inventory_target", 50.0},
+                             {"terminal_inventory_penalty", 100.0},
+                             {"max_injection_rate", 100.0},
+                             {"max_withdrawal_rate", 100.0},
+                             {"injection_cost", 0.20},
+                             {"withdrawal_cost", 0.20},
+                             {"quote_ids", std::vector<std::string>{"TTF_FWD_Q1", "TTF_FWD_Q2"}},
+                             {"decision_dates", std::vector<std::string>{"2026-06-24", "2026-09-24"}}}),
               trade_payload("E01",
                             "equity",
                             "equity_forward",
@@ -774,7 +830,7 @@ TEST(TradeModelTest, PortfolioJsonParsesCommodityAndEquityTradeEconomics) {
                              {"vol_quote_id", "AAPL_VOL_6M_ATM"}})})}};
 
     auto portfolio = payload.get<domain::Portfolio>();
-    ASSERT_EQ(portfolio.trades.size(), 10U);
+    ASSERT_EQ(portfolio.trades.size(), 11U);
 
     std::map<std::string, std::shared_ptr<domain::Trade>> trades_by_id;
     for (const auto& trade : portfolio.trades) {
@@ -790,6 +846,13 @@ TEST(TradeModelTest, PortfolioJsonParsesCommodityAndEquityTradeEconomics) {
     EXPECT_EQ(require_trade<domain::CommodityCalendarSpreadOptionTrade>(trades_by_id, "C06").far_future_quote_id,
               "WTI_FUT_9M");
     EXPECT_EQ(require_trade<domain::CommoditySwingTrade>(trades_by_id, "C07").exercise_dates.size(), 2U);
+    EXPECT_DOUBLE_EQ(require_trade<domain::CommoditySwingTrade>(trades_by_id, "C07").min_exercise_quantity, 100.0);
+    EXPECT_DOUBLE_EQ(require_trade<domain::CommoditySwingTrade>(trades_by_id, "C07").max_exercise_quantity, 600.0);
+    EXPECT_DOUBLE_EQ(require_trade<domain::CommoditySwingTrade>(trades_by_id, "C07").terminal_shortfall_penalty, 250.0);
+    EXPECT_EQ(require_trade<domain::GasStorageTrade>(trades_by_id, "C08").exercise_dates.size(), 2U);
+    EXPECT_DOUBLE_EQ(require_trade<domain::GasStorageTrade>(trades_by_id, "C08").initial_inventory, 50.0);
+    EXPECT_DOUBLE_EQ(require_trade<domain::GasStorageTrade>(trades_by_id, "C08").max_injection_quantity, 100.0);
+    EXPECT_DOUBLE_EQ(require_trade<domain::GasStorageTrade>(trades_by_id, "C08").terminal_inventory_penalty, 100.0);
     EXPECT_EQ(require_trade<domain::EquityForwardTrade>(trades_by_id, "E01").dividend_yield_quote_id, "AAPL_DIVYLD_1Y");
     EXPECT_DOUBLE_EQ(require_trade<domain::EquityFutureTrade>(trades_by_id, "E02").contract_size, 50.0);
     EXPECT_EQ(require_trade<domain::EquityOptionTrade>(trades_by_id, "E03").exercise_style, "american");
@@ -797,6 +860,7 @@ TEST(TradeModelTest, PortfolioJsonParsesCommodityAndEquityTradeEconomics) {
 
 TEST(TradeModelTest, CoversPortfolioDetailHelpersAndTaxonomyFallbacks) {
     const nlohmann::json details = {{"exercise_dates", std::vector<std::string>{"2027-03-24", "2028-03-24"}},
+                                    {"call_prices", std::vector<double>{101.0, 100.5}},
                                     {"index_family", "IBOR_6M"},
                                     {"rate", 0.0525}};
 
@@ -806,6 +870,8 @@ TEST(TradeModelTest, CoversPortfolioDetailHelpersAndTaxonomyFallbacks) {
     EXPECT_EQ(domain::portfolio_detail::optional_string(details, {"missing"}, "OIS"), "OIS");
     EXPECT_EQ(domain::portfolio_detail::optional_string_vector(details, {"exercise_dates"}).size(), 2U);
     EXPECT_TRUE(domain::portfolio_detail::optional_string_vector(details, {"missing"}).empty());
+    EXPECT_EQ(domain::portfolio_detail::optional_double_vector(details, {"call_prices"}).size(), 2U);
+    EXPECT_TRUE(domain::portfolio_detail::optional_double_vector(details, {"missing"}).empty());
 
     EXPECT_EQ(domain::to_string(domain::Currency::CHF), "CHF");
     EXPECT_EQ(domain::to_string(domain::Currency::EUR), "EUR");

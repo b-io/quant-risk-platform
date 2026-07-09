@@ -263,6 +263,12 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> build_commodity_swing(const doma
     return typed ? instruments::CommodityInstrumentFactory::create_commodity_swing(*typed, context) : nullptr;
 }
 
+QuantLib::ext::shared_ptr<QuantLib::Instrument> build_gas_storage(const domain::Trade& trade,
+                                                                  const PricingContext& context) {
+    const auto* typed = dynamic_cast<const domain::GasStorageTrade*>(&trade);
+    return typed ? instruments::CommodityInstrumentFactory::create_gas_storage(*typed, context) : nullptr;
+}
+
 QuantLib::ext::shared_ptr<QuantLib::Instrument> build_deposit(const domain::Trade& trade,
                                                               const PricingContext& context) {
     const auto* typed = dynamic_cast<const domain::DepositTrade*>(&trade);
@@ -303,6 +309,12 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> build_fixed_rate_bond(const doma
                                                                       const PricingContext& context) {
     const auto* typed = dynamic_cast<const domain::FixedRateBondTrade*>(&trade);
     return typed ? instruments::RatesInstrumentFactory::create_bond(*typed, context) : nullptr;
+}
+
+QuantLib::ext::shared_ptr<QuantLib::Instrument> build_callable_bond(const domain::Trade& trade,
+                                                                    const PricingContext& context) {
+    const auto* typed = dynamic_cast<const domain::CallableBondTrade*>(&trade);
+    return typed ? instruments::RatesInstrumentFactory::create_callable_bond(*typed, context) : nullptr;
 }
 
 QuantLib::ext::shared_ptr<QuantLib::Instrument> build_floating_rate_note(const domain::Trade& trade,
@@ -391,8 +403,14 @@ const std::map<domain::ProductType, ProductPricingDefinition>& definitions() {
                                   "one-factor LSMC approximation",
                                   domain::SupportStatus::Supported}},
         {domain::ProductType::CallableBond,
-         unsupported_definition(domain::ProductType::CallableBond,
-                                "Product is declared in the taxonomy but no pricing model is registered yet")},
+         ProductPricingDefinition{no_realized_cashflows,
+                                  build_callable_bond,
+                                  "QRP::CallableBondLsmcInstrument/one-factor LSMC",
+                                  default_pricing_profile,
+                                  domain::ProductType::CallableBond,
+                                  "Callable fixed-rate bond pricing is supported with deterministic cashflows and "
+                                  "a one-factor LSMC issuer-call policy",
+                                  domain::SupportStatus::Supported}},
         {domain::ProductType::CapFloor,
          ProductPricingDefinition{no_realized_cashflows,
                                   build_cap_floor,
@@ -480,12 +498,21 @@ const std::map<domain::ProductType, ProductPricingDefinition>& definitions() {
         {domain::ProductType::CommoditySwing,
          ProductPricingDefinition{no_realized_cashflows,
                                   build_commodity_swing,
-                                  "QRP::CommoditySwingInstrument/exercise-envelope approximation",
+                                  "QRP::CommoditySwingStatefulDpInstrument/stateful exercise DP",
                                   default_pricing_profile,
                                   domain::ProductType::CommoditySwing,
-                                  "Commodity swing contracts are supported with an intrinsic "
-                                  "exercise-envelope approximation over configured exercise dates",
-                                  domain::SupportStatus::PartiallySupported}},
+                                  "Commodity swing contracts are supported with a stateful dynamic-programming "
+                                  "exercise policy over configured exercise dates and forward quotes",
+                                  domain::SupportStatus::Supported}},
+        {domain::ProductType::GasStorage,
+         ProductPricingDefinition{no_realized_cashflows,
+                                  build_gas_storage,
+                                  "QRP::GasStorageStatefulDpInstrument/inventory DP",
+                                  default_pricing_profile,
+                                  domain::ProductType::GasStorage,
+                                  "Gas storage contracts are supported with a stateful inventory dynamic-programming "
+                                  "policy over configured decision dates and forward quotes",
+                                  domain::SupportStatus::Supported}},
         {domain::ProductType::CreditBond,
          ProductPricingDefinition{no_realized_cashflows,
                                   build_credit_bond,
@@ -536,7 +563,7 @@ const std::map<domain::ProductType, ProductPricingDefinition>& definitions() {
         {domain::ProductType::EquityOption,
          ProductPricingDefinition{no_realized_cashflows,
                                   build_equity_option,
-                                  "QRP::EquityOptionInstrument/Black-Scholes plus binomial American exercise",
+                                  "QRP::EquityOptionInstrument/Black-Scholes plus LSMC American exercise",
                                   default_pricing_profile,
                                   domain::ProductType::EquityOption,
                                   "European and American equity/index options are supported with dividend, borrow, and "

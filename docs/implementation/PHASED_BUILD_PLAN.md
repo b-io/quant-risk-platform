@@ -128,8 +128,9 @@ Validation standard:
 Current implementation checkpoint:
 
 - Deposits, FRAs, interest-rate futures, vanilla swaps, OIS swaps, fixed-rate
-  bonds, floating-rate notes, caps/floors, European swaptions, and Bermudan
-  swaptions are represented in the canonical portfolio DTO.
+  bonds, callable fixed-rate bonds, floating-rate notes, caps/floors, European
+  swaptions, and Bermudan swaptions are represented in the canonical portfolio
+  DTO.
 - These products are wired into the product-pricing registry and covered by the
   multi-asset demo portfolio and portfolio-backed golden fixtures.
 - Rates valuation uses bootstrapped discount/projection curves, quote handles,
@@ -221,7 +222,7 @@ Deliverables:
 - Futures strips.
 - Options on futures.
 - Calendar spread options.
-- Swing and storage contracts using LSMC.
+- Swing and storage contracts using shared dynamic-programming policies.
 - Later multi-commodity spread options.
 
 Validation standard:
@@ -234,14 +235,18 @@ Current implementation checkpoint:
 
 - `CommoditySpotTrade`, `CommodityForwardTrade`, `CommodityFutureTrade`,
   `CommodityFutureStripTrade`, `CommodityFutureOptionTrade`,
-  `CommodityCalendarSpreadOptionTrade`, and `CommoditySwingTrade` are part of
-  the canonical portfolio DTO and product-pricing registry.
+  `CommodityCalendarSpreadOptionTrade`, `CommoditySwingTrade`, and
+  `GasStorageTrade` are part of the canonical portfolio DTO and
+  product-pricing registry.
 - Spot, forwards, futures, strips, options on futures, and calendar spread
   options have deterministic pricing support from quote handles and configured
   discount curves.
-- Swing contracts are available through an intrinsic exercise-envelope
-  approximation and are reported as partially supported until the full storage
-  and LSMC exercise engine is promoted into the product path.
+- Swing contracts are valued through a stateful dynamic-programming exercise
+  path with remaining-volume state, min/max exercise quantities, and terminal
+  shortfall penalties.
+- Gas storage contracts are valued through a stateful inventory
+  dynamic-programming path with min/max inventory, injection and withdrawal
+  limits, variable exercise costs, and terminal inventory penalties.
 - The portfolio-backed structural golden set includes commodity coverage through
   the model ladder and thematic portfolios, notably Growth Global Macro and
   Adventurous Commodity Volatility, with current regression coverage maintained
@@ -275,8 +280,8 @@ Current implementation checkpoint:
   priced from spot, discount, dividend-yield, borrow, futures, and volatility
   quotes where applicable.
 - European options use a Black-Scholes cost-of-carry formula. American options
-  use a recombining binomial exercise tree, which keeps early exercise explicit
-  while leaving LSMC or finite-difference replacement as a later model upgrade.
+  use the shared C++ LSMC exercise-policy helper with deterministic engine
+  settings for reproducible product-path valuation.
 - The portfolio-backed structural golden set includes equity coverage through
   the model ladder and thematic portfolios, notably Growth Global Macro and High
   Growth Equity Volatility.
@@ -378,7 +383,7 @@ Deliverables:
 - Integrate LSMC into American equity options.
 - Integrate LSMC into Bermudan swaptions.
 - Integrate LSMC into callable bonds.
-- Integrate LSMC into commodity swing and gas storage products.
+- Integrate shared dynamic-programming policy paths into commodity swing and gas storage products.
 - Add convergence tests, basis-function tests, seed reproducibility tests, and
   regression benchmarks.
 
@@ -393,16 +398,31 @@ Current implementation checkpoint:
 - A generic LSMC module exists with `LsmcEngine`, `LsmcConfig`, `LsmcResult`,
   dynamic-programming decision-problem interfaces, stochastic-process
   primitives, and ordinary-least-squares regression support.
-- The LSMC result captures value, standard error, path values, VaR, and Expected
-  Shortfall, and unit coverage includes an American put exercise-policy example.
-- Bermudan swaption pricing already uses the generic LSMC engine through a
-  product-specific one-factor approximation.
-- American equity options and commodity swing/storage products still use
-  product-specific approximations or partial support rather than the shared LSMC
-  exercise-policy layer.
-- Phase 10 remains a model-integration milestone: expose LSMC through bindings,
-  serialize full diagnostics, and connect the reusable engine to all
-  early-exercise and physical-flexibility products.
+- The LSMC result captures value, standard error, raw and sorted path values,
+  VaR, Expected Shortfall, exercise-grid times, basis-function names,
+  serialized configuration tags, and step-level regression diagnostics.
+- A reusable `ExercisePolicy` abstraction and `ExercisePolicyDecisionProblem`
+  adapter now map exercise policies into the generic dynamic-programming
+  contract.
+- Python bindings expose `LsmcConfig`, `LsmcResult`, regression diagnostics,
+  `PolynomialBasis`, and `price_american_option_lsmc(...)`; the platform demo
+  prints an American option LSMC run with basis and regression diagnostics.
+- American equity options route through the shared C++ LSMC exercise-policy
+  helper rather than a product-local exercise tree.
+- Bermudan swaption pricing uses the shared exercise-policy adapter with a
+  compact one-factor swap-rate approximation.
+- Callable fixed-rate bond pricing uses deterministic projected bond cashflows
+  plus the shared exercise-policy adapter for the issuer call right under a
+  compact one-factor rates driver.
+- Commodity swing pricing now uses the shared dynamic-programming state/action
+  contract with remaining-volume state and terminal shortfall penalties.
+- Gas storage pricing now uses the shared dynamic-programming state/action
+  contract with inventory state, injection/withdrawal constraints, variable
+  exercise costs, and terminal inventory penalties.
+- Python keeps `price_american_option_lsmc(...)` as the user-facing LSMC helper
+  while production product paths remain C++-owned portfolio valuations. The
+  platform demo shows helper diagnostics plus live Bermudan, swing, storage,
+  and callable-bond product paths.
 
 ## Phase 11: Production Controls
 

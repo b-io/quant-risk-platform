@@ -177,6 +177,17 @@ qrp::domain::Portfolio make_rates_portfolio() {
     fixed_bond->frequency = "Annual";
     portfolio.trades.push_back(fixed_bond);
 
+    auto callable_bond = make_rates_trade<qrp::domain::CallableBondTrade>("callable_bond_usd", "long");
+    callable_bond->notional = 2'000'000.0;
+    callable_bond->start_date = "2026-03-26";
+    callable_bond->maturity_date = "2031-03-26";
+    callable_bond->coupon_rate = 0.0625;
+    callable_bond->frequency = "Annual";
+    callable_bond->call_dates = {"2027-03-26", "2028-03-26", "2029-03-26"};
+    callable_bond->call_prices = {101.0, 100.5, 100.0};
+    callable_bond->volatility = 0.0110;
+    portfolio.trades.push_back(callable_bond);
+
     auto floater = make_rates_trade<qrp::domain::FloatingRateNoteTrade>("frn_usd", "long");
     floater->notional = 2'000'000.0;
     floater->start_date = "2026-03-26";
@@ -228,7 +239,7 @@ TEST(RatesProductsTest, PricesRatesProducts) {
 
     const auto results = qrp::analytics::ValuationService::price_portfolio(portfolio, context);
 
-    ASSERT_EQ(results.size(), 10);
+    ASSERT_EQ(results.size(), 11);
 
     std::map<std::string, qrp::analytics::ValuationResult> by_trade;
     for (const auto& result : results) {
@@ -244,6 +255,7 @@ TEST(RatesProductsTest, PricesRatesProducts) {
     EXPECT_EQ(by_trade.at("swap_usd").product_type, qrp::domain::ProductType::VanillaSwap);
     EXPECT_EQ(by_trade.at("ois_usd").product_type, qrp::domain::ProductType::OisSwap);
     EXPECT_EQ(by_trade.at("fixed_bond_usd").product_type, qrp::domain::ProductType::FixedRateBond);
+    EXPECT_EQ(by_trade.at("callable_bond_usd").product_type, qrp::domain::ProductType::CallableBond);
     EXPECT_EQ(by_trade.at("frn_usd").product_type, qrp::domain::ProductType::FloatingRateNote);
     EXPECT_EQ(by_trade.at("cap_usd").product_type, qrp::domain::ProductType::CapFloor);
     EXPECT_EQ(by_trade.at("european_swaption_usd").product_type, qrp::domain::ProductType::EuropeanSwaption);
@@ -253,6 +265,74 @@ TEST(RatesProductsTest, PricesRatesProducts) {
     EXPECT_GE(by_trade.at("cap_usd").npv, 0.0);
     EXPECT_GE(by_trade.at("european_swaption_usd").npv, 0.0);
     EXPECT_GE(by_trade.at("bermudan_swaption_usd").npv, 0.0);
+    EXPECT_LE(by_trade.at("callable_bond_usd").npv, by_trade.at("fixed_bond_usd").npv * 1.1);
+}
+
+TEST(RatesProductsTest, BermudanSwaptionsUseReproducibleExercisePolicyLsmcPath) {
+    qrp::market::MarketSnapshot market(make_rates_market());
+    qrp::analytics::PricingContext context(market.built_state());
+
+    auto bermudan_swaption = make_rates_trade<qrp::domain::BermudanSwaptionTrade>("bermudan_swaption_usd", "payer");
+    bermudan_swaption->notional = 4'000'000.0;
+    bermudan_swaption->start_date = "2026-06-24";
+    bermudan_swaption->maturity_date = "2031-06-24";
+    bermudan_swaption->fixed_rate = 0.0520;
+    bermudan_swaption->floating_index = "USD_LIBOR_3M";
+    bermudan_swaption->volatility = 0.0120;
+    bermudan_swaption->exercise_dates = {"2026-06-24", "2027-06-24", "2028-06-24", "2029-06-24"};
+
+    const auto first = qrp::instruments::RatesInstrumentFactory::create_bermudan_swaption(*bermudan_swaption, context);
+    const auto second = qrp::instruments::RatesInstrumentFactory::create_bermudan_swaption(*bermudan_swaption, context);
+    ASSERT_TRUE(first);
+    ASSERT_TRUE(second);
+
+    const double first_npv = first->NPV();
+    const double first_error = first->errorEstimate();
+
+    EXPECT_DOUBLE_EQ(first_npv, second->NPV());
+    EXPECT_DOUBLE_EQ(first_error, second->errorEstimate());
+    EXPECT_GT(first_npv, 0.0);
+    EXPECT_GT(first_error, 0.0);
+}
+
+TEST(RatesProductsTest, CallableBondsSubtractIssuerCallValueFromStraightBond) {
+    qrp::market::MarketSnapshot market(make_rates_market());
+    qrp::analytics::PricingContext context(market.built_state());
+
+    auto straight_bond = make_rates_trade<qrp::domain::FixedRateBondTrade>("straight_bond_usd", "long");
+    straight_bond->notional = 2'000'000.0;
+    straight_bond->start_date = "2026-03-26";
+    straight_bond->maturity_date = "2031-03-26";
+    straight_bond->coupon_rate = 0.0650;
+    straight_bond->frequency = "Annual";
+
+    auto callable_bond = make_rates_trade<qrp::domain::CallableBondTrade>("callable_bond_usd", "long");
+    callable_bond->notional = straight_bond->notional;
+    callable_bond->start_date = straight_bond->start_date;
+    callable_bond->maturity_date = straight_bond->maturity_date;
+    callable_bond->coupon_rate = straight_bond->coupon_rate;
+    callable_bond->frequency = straight_bond->frequency;
+    callable_bond->call_dates = {"2027-03-26", "2028-03-26", "2029-03-26", "2030-03-26"};
+    callable_bond->call_prices = {101.0, 100.75, 100.5, 100.0};
+    callable_bond->volatility = 0.0120;
+
+    const auto straight = qrp::instruments::RatesInstrumentFactory::create_bond(*straight_bond, context);
+    const auto first_callable = qrp::instruments::RatesInstrumentFactory::create_callable_bond(*callable_bond, context);
+    const auto second_callable =
+        qrp::instruments::RatesInstrumentFactory::create_callable_bond(*callable_bond, context);
+    ASSERT_TRUE(straight);
+    ASSERT_TRUE(first_callable);
+    ASSERT_TRUE(second_callable);
+
+    const double straight_npv = straight->NPV();
+    const double callable_npv = first_callable->NPV();
+
+    EXPECT_GT(straight_npv, 0.0);
+    EXPECT_GT(callable_npv, 0.0);
+    EXPECT_LE(callable_npv, straight_npv);
+    EXPECT_DOUBLE_EQ(callable_npv, second_callable->NPV());
+    EXPECT_DOUBLE_EQ(first_callable->errorEstimate(), second_callable->errorEstimate());
+    EXPECT_GT(first_callable->errorEstimate(), 0.0);
 }
 
 TEST(RatesProductsTest, PricesAlternativeDirectionsAndFallbackInputs) {
@@ -402,4 +482,11 @@ TEST(RatesProductsTest, FactoriesReturnNullWhenRatesCurvesAreMissing) {
     bermudan_swaption.maturity_date = "2031-06-24";
     bermudan_swaption.floating_index = "USD_LIBOR_3M";
     EXPECT_FALSE(qrp::instruments::RatesInstrumentFactory::create_bermudan_swaption(bermudan_swaption, context));
+
+    qrp::domain::CallableBondTrade callable_bond;
+    callable_bond.currency = "USD";
+    callable_bond.start_date = "2026-03-26";
+    callable_bond.maturity_date = "2031-03-26";
+    callable_bond.frequency = "Annual";
+    EXPECT_FALSE(qrp::instruments::RatesInstrumentFactory::create_callable_bond(callable_bond, context));
 }

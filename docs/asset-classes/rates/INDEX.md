@@ -48,23 +48,27 @@ Rates product coverage is organized around these product families:
 4. vanilla fixed-float swaps;
 5. OIS swaps;
 6. fixed-rate bonds;
-7. floating-rate notes;
-8. caps and floors;
-9. European swaptions;
-10. Bermudan swaptions, with reusable LSMC identified as the broader exercise-engine integration.
+7. callable fixed-rate bonds, using deterministic cashflow projection plus a compact one-factor LSMC issuer-call policy;
+8. floating-rate notes;
+9. caps and floors;
+10. European swaptions;
+11. Bermudan swaptions, using the reusable LSMC exercise-policy layer with a compact one-factor approximation.
 
 Current platform coverage:
 
 - The canonical portfolio DTO supports deposits, FRAs, interest-rate futures,
-  fixed-float swaps, OIS swaps, fixed-rate bonds, floating-rate notes, caps and
-  floors, European swaptions, and Bermudan swaptions.
+  fixed-float swaps, OIS swaps, fixed-rate bonds, callable fixed-rate bonds,
+  floating-rate notes, caps and floors, European swaptions, and Bermudan
+  swaptions.
 - The pricing registry wires these products to deterministic valuation engines
   using bootstrapped rates curves, quote handles, and volatility inputs where
   applicable.
 - Caps/floors and European swaptions use Black-style volatility inputs.
-- Bermudan swaptions are represented and priced with the current early-exercise
-  approximation. Broader reusable LSMC integration remains a model-integration
-  boundary rather than a trade-model gap.
+- Bermudan swaptions and callable fixed-rate bonds are represented and priced
+  through the reusable LSMC exercise-policy layer. The current callable-bond
+  model uses deterministic projected bond cashflows and a compact one-factor
+  rates driver for issuer exercise; richer calibrated rates models remain a
+  model-integration boundary rather than a trade-model gap.
 
 ## Shared References
 

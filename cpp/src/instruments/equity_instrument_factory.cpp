@@ -1,10 +1,19 @@
 // Implements equity instrument construction.
 
+#include <qrp/analytics/lsmc/lsmc_engine.hpp>
 #include <qrp/instruments/instrument_factory.hpp>
 #include <qrp/instruments/instrument_factory_common.hpp>
 
+#include <cstddef>
+#include <cstdint>
+
 namespace qrp::instruments {
 namespace {
+
+constexpr std::size_t kAmericanEquityLsmcExerciseSteps = 50U;
+constexpr std::size_t kAmericanEquityLsmcPaths = 4096U;
+constexpr int kAmericanEquityLsmcBasisDegree = 2;
+constexpr std::uint32_t kAmericanEquityLsmcSeed = 42U;
 
 class EquityForwardInstrument final : public QuantLib::Instrument {
 public:
@@ -168,13 +177,16 @@ protected:
 
         double unit_value = 0.0;
         if (american_) {
-            unit_value = binomial_value(spot, rate, dividend_yield - borrow_rate, volatility, time_to_expiry);
+            const auto result =
+                american_lsmc_value(spot, rate, dividend_yield, borrow_rate, volatility, time_to_expiry);
+            unit_value = result.value;
+            errorEstimate_ = std::abs(direction_sign_ * quantity_) * result.standard_error;
         } else {
             unit_value = european_value(spot, rate, dividend_yield - borrow_rate, volatility, time_to_expiry);
+            errorEstimate_ = 0.0;
         }
 
         NPV_ = direction_sign_ * quantity_ * unit_value;
-        errorEstimate_ = 0.0;
         valuationDate_ = valuation_date;
     }
 
@@ -200,35 +212,27 @@ private:
                        : spot * yield_df * normal_cdf(d1) - strike_price_ * df * normal_cdf(d2);
     }
 
-    double
-    binomial_value(double spot, double rate, double effective_yield, double volatility, double time_to_expiry) const {
-        if (time_to_expiry <= 0.0 || strike_price_ <= 0.0 || spot <= 0.0 || volatility <= 0.0) {
-            return intrinsic(spot);
-        }
-
-        constexpr int steps = 200;
-        const double dt = time_to_expiry / static_cast<double>(steps);
-        const double up = std::exp(std::max(volatility, 1.0e-8) * std::sqrt(dt));
-        const double down = 1.0 / up;
-        const double growth = std::exp((rate - effective_yield) * dt);
-        const double probability = std::min(std::max((growth - down) / (up - down), 0.0), 1.0);
-        const double step_discount = std::exp(-rate * dt);
-
-        std::vector<double> values(static_cast<std::size_t>(steps) + 1U);
-        for (int i = 0; i <= steps; ++i) {
-            const double node_spot = spot * std::pow(up, i) * std::pow(down, steps - i);
-            values[static_cast<std::size_t>(i)] = intrinsic(node_spot);
-        }
-
-        for (int step = steps - 1; step >= 0; --step) {
-            for (int i = 0; i <= step; ++i) {
-                const double continuation = step_discount * (probability * values[static_cast<std::size_t>(i + 1)] +
-                                                             (1.0 - probability) * values[static_cast<std::size_t>(i)]);
-                const double node_spot = spot * std::pow(up, i) * std::pow(down, step - i);
-                values[static_cast<std::size_t>(i)] = std::max(continuation, intrinsic(node_spot));
-            }
-        }
-        return values.front();
+    analytics::lsmc::LsmcResult american_lsmc_value(double spot,
+                                                    double rate,
+                                                    double dividend_yield,
+                                                    double borrow_rate,
+                                                    double volatility,
+                                                    double time_to_expiry) const {
+        analytics::lsmc::AmericanOptionLsmcRequest request;
+        request.spot = spot;
+        request.strike = strike_price_;
+        request.risk_free_rate = rate;
+        request.dividend_yield = dividend_yield;
+        request.borrow_rate = borrow_rate;
+        request.volatility = volatility;
+        request.maturity = time_to_expiry;
+        request.exercise_steps = kAmericanEquityLsmcExerciseSteps;
+        request.is_put = is_put_;
+        request.basis_degree = kAmericanEquityLsmcBasisDegree;
+        request.config.discount_rate = rate;
+        request.config.num_paths = kAmericanEquityLsmcPaths;
+        request.config.seed = kAmericanEquityLsmcSeed;
+        return analytics::lsmc::price_american_option(request);
     }
 
     double quantity_;

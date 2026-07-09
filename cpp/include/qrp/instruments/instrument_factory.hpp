@@ -56,10 +56,16 @@ public:
                                             const analytics::PricingContext& context);
 
     /**
-     * @brief Creates a commodity swing contract using an exercise-envelope approximation.
+     * @brief Creates a commodity swing contract using stateful exercise dynamic programming.
      */
     static QuantLib::ext::shared_ptr<QuantLib::Instrument>
     create_commodity_swing(const domain::CommoditySwingTrade& trade, const analytics::PricingContext& context);
+
+    /**
+     * @brief Creates a gas storage contract using inventory dynamic programming.
+     */
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_gas_storage(const domain::GasStorageTrade& trade,
+                                                                              const analytics::PricingContext& context);
 };
 
 /**
@@ -204,6 +210,12 @@ public:
      */
     static QuantLib::ext::shared_ptr<QuantLib::Instrument> create_bond(const domain::FixedRateBondTrade& trade,
                                                                        const analytics::PricingContext& context);
+
+    /**
+     * @brief Creates an LSMC-priced callable fixed-rate bond instrument.
+     */
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument>
+    create_callable_bond(const domain::CallableBondTrade& trade, const analytics::PricingContext& context);
 
     /**
      * @brief Creates a QuantLib floating-rate note instrument.

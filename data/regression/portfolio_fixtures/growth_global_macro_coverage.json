@@ -27,8 +27,8 @@
     "BOOK:GROWTH:GLOBAL_MACRO_COMMODITY": [
       "ggm_wti_forward_001",
       "ggm_wti_future_001",
-      "ggm_wti_strip_001",
-      "ggm_wti_spot_001"
+      "ggm_wti_spot_001",
+      "ggm_wti_strip_001"
     ],
     "BOOK:GROWTH:GLOBAL_MACRO_CREDIT": [
       "ggm_cdx_index_001"
@@ -38,8 +38,8 @@
       "ggm_eurusd_option_001"
     ],
     "BOOK:GROWTH:GLOBAL_MACRO_RATES": [
-      "ggm_usd_swaption_001",
-      "ggm_usd_swap_001"
+      "ggm_usd_swap_001",
+      "ggm_usd_swaption_001"
     ]
   },
   "trades": {
@@ -83,7 +83,7 @@
       "asset_class": "commodity",
       "book": "BOOK:GROWTH:COMMODITY_FLEXIBILITY",
       "product_type": "commodity_swing",
-      "support_status": "partially_supported"
+      "support_status": "supported"
     },
     "ggm_cdx_index_001": {
       "asset_class": "credit",

@@ -56,6 +56,18 @@ inline std::vector<std::string> optional_string_vector(const nlohmann::json& j,
     return {};
 }
 
+/**
+ * @brief Reads an optional numeric-vector detail, returning an empty vector when absent.
+ */
+inline std::vector<double> optional_double_vector(const nlohmann::json& j, std::initializer_list<std::string> fields) {
+    for (const auto& field : fields) {
+        if (j.contains(field)) {
+            return j.at(field).get<std::vector<double>>();
+        }
+    }
+    return {};
+}
+
 } // namespace portfolio_detail
 
 /**
@@ -70,6 +82,7 @@ enum class TradeType {
     CommodityFutureOption,
     CommodityCalendarSpreadOption,
     CommoditySwing,
+    GasStorage,
 
     // Credit products use the credit business order.
     CreditBond,
@@ -98,6 +111,7 @@ enum class TradeType {
     VanillaSwap,
     OisSwap,
     FixedRateBond,
+    CallableBond,
     FloatingRateNote,
     CapFloor,
     EuropeanSwaption,
@@ -124,6 +138,8 @@ inline TradeType parse_trade_type(const std::string& value) {
         return TradeType::CommodityCalendarSpreadOption;
     if (value == "commodity_swing")
         return TradeType::CommoditySwing;
+    if (value == "gas_storage")
+        return TradeType::GasStorage;
     if (value == "credit_bond")
         return TradeType::CreditBond;
     if (value == "cds")
@@ -164,6 +180,8 @@ inline TradeType parse_trade_type(const std::string& value) {
         return TradeType::OisSwap;
     if (value == "fixed_rate_bond")
         return TradeType::FixedRateBond;
+    if (value == "callable_bond")
+        return TradeType::CallableBond;
     if (value == "floating_rate_note")
         return TradeType::FloatingRateNote;
     if (value == "cap_floor")
@@ -194,6 +212,8 @@ inline std::string to_string(TradeType type) {
             return "commodity_calendar_spread_option";
         case TradeType::CommoditySwing:
             return "commodity_swing";
+        case TradeType::GasStorage:
+            return "gas_storage";
         case TradeType::CreditBond:
             return "credit_bond";
         case TradeType::Cds:
@@ -234,6 +254,8 @@ inline std::string to_string(TradeType type) {
             return "ois_swap";
         case TradeType::FixedRateBond:
             return "fixed_rate_bond";
+        case TradeType::CallableBond:
+            return "callable_bond";
         case TradeType::FloatingRateNote:
             return "floating_rate_note";
         case TradeType::CapFloor:
@@ -267,6 +289,8 @@ inline ProductType product_type_from_trade_type(TradeType type) {
             return ProductType::CommodityCalendarSpreadOption;
         case TradeType::CommoditySwing:
             return ProductType::CommoditySwing;
+        case TradeType::GasStorage:
+            return ProductType::GasStorage;
         case TradeType::CreditBond:
             return ProductType::CreditBond;
         case TradeType::Cds:
@@ -307,6 +331,8 @@ inline ProductType product_type_from_trade_type(TradeType type) {
             return ProductType::OisSwap;
         case TradeType::FixedRateBond:
             return ProductType::FixedRateBond;
+        case TradeType::CallableBond:
+            return ProductType::CallableBond;
         case TradeType::FloatingRateNote:
             return ProductType::FloatingRateNote;
         case TradeType::CapFloor:
@@ -569,6 +595,49 @@ struct FixedRateBondTrade : public Trade {
         const auto& details = j.at("details");
         details.at("coupon_rate").get_to(coupon_rate);
         details.at("frequency").get_to(frequency);
+    }
+};
+
+/**
+ * @brief Fixed-rate bond with issuer call rights.
+ */
+struct CallableBondTrade : public FixedRateBondTrade {
+    /**
+     * @brief Initializes taxonomy fields for callable bonds.
+     */
+    CallableBondTrade() {
+        trade_type = TradeType::CallableBond;
+        product_type = product_type_from_trade_type(trade_type);
+        type = to_string(trade_type);
+    }
+
+    std::vector<std::string> call_dates; // Dates on which the issuer may call the bond.
+    std::vector<double> call_prices;     // Call prices as percentages of par, aligned with call_dates.
+    double mean_reversion = 0.03;        // One-factor rates-driver mean-reversion parameter.
+    double volatility = 0.01;            // Fallback short-rate volatility.
+    std::string volatility_quote_id;     // Optional rates-volatility quote id.
+
+    /**
+     * @brief Reads callable-bond economics and shared trade fields from JSON.
+     */
+    void from_json(const nlohmann::json& j) override {
+        FixedRateBondTrade::from_json(j);
+        trade_type = TradeType::CallableBond;
+        product_type = product_type_from_trade_type(trade_type);
+        type = to_string(trade_type);
+
+        const auto& details = j.at("details");
+        call_dates = portfolio_detail::optional_string_vector(details, {"call_dates", "exercise_dates"});
+        call_prices = portfolio_detail::optional_double_vector(details, {"call_prices", "exercise_prices"});
+        if (call_prices.empty() && details.contains("call_price")) {
+            call_prices.assign(call_dates.size(), details.at("call_price").get<double>());
+        }
+        if (call_prices.empty() && !call_dates.empty()) {
+            call_prices.assign(call_dates.size(), 100.0);
+        }
+        mean_reversion = portfolio_detail::optional_double(details, {"mean_reversion"}, mean_reversion);
+        volatility = portfolio_detail::optional_double(details, {"volatility"}, volatility);
+        volatility_quote_id = portfolio_detail::optional_string(details, {"volatility_quote_id", "vol_quote_id"});
     }
 };
 
@@ -1460,10 +1529,13 @@ struct CommoditySwingTrade : public Trade {
         type = to_string(trade_type);
     }
 
+    double max_exercise_quantity = 0.0;         // Maximum quantity that can be exercised on one date.
     double max_quantity = 0.0;                  // Maximum exercisable quantity over the delivery window.
+    double min_exercise_quantity = 0.0;         // Minimum non-zero quantity that can be exercised on one date.
     double min_quantity = 0.0;                  // Minimum committed quantity over the delivery window.
     double strike_price = 0.0;                  // Fixed exercise price.
-    double volatility = 0.0;                    // Fallback volatility used for optionality uplift.
+    double terminal_shortfall_penalty = 1000.0; // Per-unit penalty for unmet minimum volume.
+    double volatility = 0.0;                    // Fallback volatility used for expected exercise value.
     std::string maturity_date;                  // Delivery window end date.
     std::string start_date;                     // Delivery window start date.
     std::string underlier;                      // Commodity name, hub, grade, or benchmark.
@@ -1485,14 +1557,83 @@ struct CommoditySwingTrade : public Trade {
         const auto& details = j.at("details");
         exercise_dates = portfolio_detail::optional_string_vector(details, {"exercise_dates"});
         forward_quote_ids = portfolio_detail::optional_string_vector(details, {"forward_quote_ids", "quote_ids"});
+        max_exercise_quantity =
+            portfolio_detail::optional_double(details, {"max_exercise_quantity", "max_daily_quantity"});
         max_quantity = portfolio_detail::optional_double(details, {"max_quantity", "quantity", "notional"});
+        min_exercise_quantity =
+            portfolio_detail::optional_double(details, {"min_exercise_quantity", "min_daily_quantity"});
         min_quantity = portfolio_detail::optional_double(details, {"min_quantity"});
         maturity_date = portfolio_detail::optional_string(details, {"maturity_date", "delivery_end"}, maturity_date);
         start_date = portfolio_detail::optional_string(details, {"start_date", "delivery_start"}, start_date);
         strike_price = portfolio_detail::optional_double(details, {"strike_price", "strike"});
+        terminal_shortfall_penalty =
+            portfolio_detail::optional_double(details, {"terminal_shortfall_penalty"}, terminal_shortfall_penalty);
         underlier = portfolio_detail::optional_string(details, {"underlier", "commodity", "benchmark"});
         unit = portfolio_detail::optional_string(details, {"unit"});
         volatility = portfolio_detail::optional_double(details, {"volatility"});
+    }
+};
+
+/**
+ * @brief Gas storage contract with inventory and injection/withdrawal constraints.
+ */
+struct GasStorageTrade : public Trade {
+    /**
+     * @brief Initializes taxonomy fields for gas storage contracts.
+     */
+    GasStorageTrade() {
+        trade_type = TradeType::GasStorage;
+        product_type = product_type_from_trade_type(trade_type);
+        type = to_string(trade_type);
+    }
+
+    double initial_inventory = 0.0;             // Inventory at valuation start.
+    double injection_cost = 0.0;                // Variable cost per injected unit.
+    double max_injection_quantity = 0.0;        // Maximum injection volume per exercise date.
+    double max_inventory = 0.0;                 // Storage capacity.
+    double max_withdrawal_quantity = 0.0;       // Maximum withdrawal volume per exercise date.
+    double min_inventory = 0.0;                 // Minimum operating inventory.
+    double terminal_inventory_penalty = 0.0;    // Per-unit penalty for terminal inventory deviation.
+    double terminal_inventory_target = 0.0;     // Target inventory at the end of the storage horizon.
+    double withdrawal_cost = 0.0;               // Variable cost per withdrawn unit.
+    std::string maturity_date;                  // Storage horizon end date.
+    std::string start_date;                     // Storage horizon start date.
+    std::string underlier;                      // Gas hub or benchmark.
+    std::string unit;                           // Unit label such as MWh or MMBtu.
+    std::vector<std::string> exercise_dates;    // Optional decision dates inside the horizon.
+    std::vector<std::string> forward_quote_ids; // Forward quotes used to value decision dates.
+
+    /**
+     * @brief Reads gas storage economics and shared trade fields from JSON.
+     */
+    void from_json(const nlohmann::json& j) override {
+        Trade::from_json(j);
+        if (j.contains("start_date")) {
+            j.at("start_date").get_to(start_date);
+        }
+        if (j.contains("maturity_date")) {
+            j.at("maturity_date").get_to(maturity_date);
+        }
+        const auto& details = j.at("details");
+        exercise_dates = portfolio_detail::optional_string_vector(details, {"exercise_dates", "decision_dates"});
+        forward_quote_ids = portfolio_detail::optional_string_vector(details, {"forward_quote_ids", "quote_ids"});
+        initial_inventory = portfolio_detail::optional_double(details, {"initial_inventory"});
+        injection_cost = portfolio_detail::optional_double(details, {"injection_cost"});
+        max_injection_quantity =
+            portfolio_detail::optional_double(details, {"max_injection_quantity", "max_injection_rate"});
+        max_inventory = portfolio_detail::optional_double(details, {"max_inventory", "capacity"});
+        max_withdrawal_quantity =
+            portfolio_detail::optional_double(details, {"max_withdrawal_quantity", "max_withdrawal_rate"});
+        min_inventory = portfolio_detail::optional_double(details, {"min_inventory"});
+        maturity_date = portfolio_detail::optional_string(details, {"maturity_date", "storage_end"}, maturity_date);
+        start_date = portfolio_detail::optional_string(details, {"start_date", "storage_start"}, start_date);
+        terminal_inventory_penalty =
+            portfolio_detail::optional_double(details, {"terminal_inventory_penalty"}, terminal_inventory_penalty);
+        terminal_inventory_target =
+            portfolio_detail::optional_double(details, {"terminal_inventory_target"}, initial_inventory);
+        underlier = portfolio_detail::optional_string(details, {"underlier", "commodity", "hub", "benchmark"});
+        unit = portfolio_detail::optional_string(details, {"unit"});
+        withdrawal_cost = portfolio_detail::optional_double(details, {"withdrawal_cost"});
     }
 };
 
@@ -1714,6 +1855,8 @@ inline std::shared_ptr<Trade> make_trade(TradeType type) {
             return std::make_shared<CommodityCalendarSpreadOptionTrade>();
         case TradeType::CommoditySwing:
             return std::make_shared<CommoditySwingTrade>();
+        case TradeType::GasStorage:
+            return std::make_shared<GasStorageTrade>();
         case TradeType::CreditBond:
             return std::make_shared<CreditBondTrade>();
         case TradeType::Cds:
@@ -1754,6 +1897,8 @@ inline std::shared_ptr<Trade> make_trade(TradeType type) {
             return std::make_shared<OisSwapTrade>();
         case TradeType::FixedRateBond:
             return std::make_shared<FixedRateBondTrade>();
+        case TradeType::CallableBond:
+            return std::make_shared<CallableBondTrade>();
         case TradeType::FloatingRateNote:
             return std::make_shared<FloatingRateNoteTrade>();
         case TradeType::CapFloor:

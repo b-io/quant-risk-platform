@@ -1,5 +1,6 @@
 // Verifies commodity product valuation coverage.
 
+#include <qrp/analytics/dynamic_programming/gas_storage_policy.hpp>
 #include <qrp/analytics/pricing_context.hpp>
 #include <qrp/analytics/valuation_service.hpp>
 #include <qrp/domain/portfolio.hpp>
@@ -8,6 +9,7 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cmath>
 #include <map>
 #include <memory>
@@ -175,12 +177,30 @@ qrp::domain::Portfolio make_commodity_portfolio() {
     auto swing = make_commodity_trade<qrp::domain::CommoditySwingTrade>("commodity_swing_ttf", "long");
     swing->min_quantity = 100.0;
     swing->max_quantity = 200.0;
+    swing->max_exercise_quantity = 125.0;
     swing->strike_price = 31.00;
     swing->maturity_date = "2026-12-24";
     swing->forward_quote_ids = {"TTF_FWD_Q1", "TTF_FWD_Q2"};
+    swing->exercise_dates = {"2026-06-24", "2026-09-24"};
     swing->volatility = 0.40;
     swing->underlier = "TTF";
     portfolio.trades.push_back(swing);
+
+    auto storage = make_commodity_trade<qrp::domain::GasStorageTrade>("gas_storage_ttf", "long");
+    storage->min_inventory = 0.0;
+    storage->max_inventory = 200.0;
+    storage->initial_inventory = 50.0;
+    storage->terminal_inventory_target = 50.0;
+    storage->terminal_inventory_penalty = 100.0;
+    storage->max_injection_quantity = 100.0;
+    storage->max_withdrawal_quantity = 100.0;
+    storage->injection_cost = 0.20;
+    storage->withdrawal_cost = 0.20;
+    storage->maturity_date = "2026-12-24";
+    storage->forward_quote_ids = {"TTF_FWD_Q1", "TTF_FWD_Q2"};
+    storage->exercise_dates = {"2026-06-24", "2026-09-24"};
+    storage->underlier = "TTF";
+    portfolio.trades.push_back(storage);
 
     return portfolio;
 }
@@ -194,7 +214,7 @@ TEST(CommodityProductsTest, PricesCommodityProducts) {
 
     const auto results = qrp::analytics::ValuationService::price_portfolio(portfolio, context);
 
-    ASSERT_EQ(results.size(), 7U);
+    ASSERT_EQ(results.size(), 8U);
 
     std::map<std::string, qrp::analytics::ValuationResult> by_trade;
     for (const auto& result : results) {
@@ -211,14 +231,67 @@ TEST(CommodityProductsTest, PricesCommodityProducts) {
     EXPECT_EQ(by_trade.at("commodity_calendar_spread_wti").product_type,
               qrp::domain::ProductType::CommodityCalendarSpreadOption);
     EXPECT_EQ(by_trade.at("commodity_swing_ttf").product_type, qrp::domain::ProductType::CommoditySwing);
+    EXPECT_EQ(by_trade.at("gas_storage_ttf").product_type, qrp::domain::ProductType::GasStorage);
 
-    EXPECT_EQ(by_trade.at("commodity_swing_ttf").support_status, qrp::domain::SupportStatus::PartiallySupported);
+    EXPECT_EQ(by_trade.at("commodity_swing_ttf").support_status, qrp::domain::SupportStatus::Supported);
+    EXPECT_EQ(by_trade.at("gas_storage_ttf").support_status, qrp::domain::SupportStatus::Supported);
     EXPECT_NEAR(by_trade.at("commodity_spot_wti").npv, 500.0, 1.0e-10);
     EXPECT_NEAR(by_trade.at("commodity_future_wti").npv, 750.0, 1.0e-10);
     EXPECT_GT(by_trade.at("commodity_forward_wti").npv, 0.0);
     EXPECT_GT(by_trade.at("commodity_future_option_wti").npv, 0.0);
     EXPECT_GT(by_trade.at("commodity_calendar_spread_wti").npv, 0.0);
     EXPECT_GT(by_trade.at("commodity_swing_ttf").npv, 0.0);
+    EXPECT_GT(by_trade.at("gas_storage_ttf").npv, 0.0);
+}
+
+TEST(CommodityProductsTest, GasStoragePolicyAppliesInventoryActionsAndTerminalPenalty) {
+    qrp::analytics::dynamic_programming::GasStoragePolicyParams params;
+    params.min_inventory = 0.0;
+    params.max_inventory = 100.0;
+    params.max_injection_quantity = 40.0;
+    params.max_withdrawal_quantity = 30.0;
+    params.injection_cost = 0.25;
+    params.withdrawal_cost = 0.10;
+    params.terminal_inventory_target = 50.0;
+    params.terminal_inventory_penalty = 2.0;
+    params.discount_factors = {0.99, 0.98};
+
+    qrp::analytics::dynamic_programming::GasStorageDecisionProblem problem(params);
+    const qrp::analytics::dynamic_programming::State state{{32.0}, {40.0}};
+    const auto actions = problem.feasibleActions(state, 0U);
+    ASSERT_GE(actions.size(), 3U);
+
+    const auto inject =
+        std::find_if(actions.begin(), actions.end(), [](const auto& action) { return action.name == "Inject"; });
+    const auto withdraw =
+        std::find_if(actions.begin(), actions.end(), [](const auto& action) { return action.name == "Withdraw"; });
+    ASSERT_NE(inject, actions.end());
+    ASSERT_NE(withdraw, actions.end());
+    EXPECT_LT(problem.immediateCashflow(state, *inject, 0U), 0.0);
+    EXPECT_GT(problem.immediateCashflow(state, *withdraw, 0U), 0.0);
+
+    const auto next_state = problem.nextState(state, *inject, {34.0}, 0U);
+    ASSERT_EQ(next_state.operational_variables.size(), 1U);
+    EXPECT_GT(next_state.operational_variables.front(), state.operational_variables.front());
+    EXPECT_LT(problem.terminalValue({{}, {30.0}}), problem.terminalValue({{}, {50.0}}));
+    EXPECT_EQ(problem.regressionFeatureNames(0U).size(), problem.regressionFeatures(state, 0U).size());
+
+    qrp::analytics::dynamic_programming::GasStoragePolicyParams normalized_params;
+    normalized_params.min_inventory = -10.0;
+    normalized_params.max_inventory = -5.0;
+    normalized_params.max_injection_quantity = -1.0;
+    normalized_params.max_withdrawal_quantity = -1.0;
+    normalized_params.terminal_inventory_target = 25.0;
+    normalized_params.terminal_inventory_penalty = -2.0;
+    qrp::analytics::dynamic_programming::GasStorageDecisionProblem normalized_problem(normalized_params);
+    const qrp::analytics::dynamic_programming::Action empty_action{0, "Idle", {}};
+    EXPECT_DOUBLE_EQ(normalized_problem.immediateCashflow({{}, {}}, empty_action, 5U), 0.0);
+    EXPECT_DOUBLE_EQ(normalized_problem.terminalValue({{}, {10.0}}), 0.0);
+
+    const qrp::analytics::dynamic_programming::Action oversize_inject{1, "Inject", {{"inventory_delta", 100.0}}};
+    const auto clamped_state = normalized_problem.nextState({{}, {}}, oversize_inject, {25.0}, 0U);
+    ASSERT_EQ(clamped_state.operational_variables.size(), 1U);
+    EXPECT_DOUBLE_EQ(clamped_state.operational_variables.front(), 0.0);
 }
 
 TEST(CommodityProductsTest, FactoriesReturnNullWhenCommodityQuotesAreMissing) {
@@ -289,6 +362,17 @@ TEST(CommodityProductsTest, FactoriesReturnNullWhenCommodityQuotesAreMissing) {
     swing_without_quotes.underlier = "TTF";
     swing_without_quotes.maturity_date = "2026-12-24";
     EXPECT_FALSE(qrp::instruments::CommodityInstrumentFactory::create_commodity_swing(swing_without_quotes, context));
+
+    qrp::domain::GasStorageTrade storage_without_maturity;
+    storage_without_maturity.underlier = "TTF";
+    storage_without_maturity.max_inventory = 100.0;
+    EXPECT_FALSE(qrp::instruments::CommodityInstrumentFactory::create_gas_storage(storage_without_maturity, context));
+
+    qrp::domain::GasStorageTrade storage_without_quotes;
+    storage_without_quotes.underlier = "TTF";
+    storage_without_quotes.maturity_date = "2026-12-24";
+    storage_without_quotes.max_inventory = 100.0;
+    EXPECT_FALSE(qrp::instruments::CommodityInstrumentFactory::create_gas_storage(storage_without_quotes, context));
 }
 
 TEST(CommodityProductsTest, SwingFactoryFallsBackToUnderlierForwardQuote) {
@@ -309,4 +393,148 @@ TEST(CommodityProductsTest, SwingFactoryFallsBackToUnderlierForwardQuote) {
 
     ASSERT_TRUE(instrument);
     EXPECT_GT(instrument->NPV(), 0.0);
+}
+
+TEST(CommodityProductsTest, CommodityOptionsUseIntrinsicFallbackWhenVolatilityIsZero) {
+    auto market_dto = make_commodity_market();
+    for (auto& quote : market_dto.quotes) {
+        if (quote.id == "WTI_VOL_6M_ATM") {
+            quote.value = 0.0;
+        }
+    }
+    qrp::market::MarketSnapshot market(market_dto);
+    qrp::analytics::PricingContext context(market.built_state());
+
+    auto future_option =
+        make_commodity_trade<qrp::domain::CommodityFutureOptionTrade>("commodity_future_option_intrinsic", "long");
+    future_option->quantity = 1.0;
+    future_option->contract_size = 1000.0;
+    future_option->strike_price = 78.00;
+    future_option->expiry_date = "2026-09-24";
+    future_option->maturity_date = "2026-09-24";
+    future_option->future_quote_id = "WTI_FUT_6M";
+    future_option->volatility_quote_id = "WTI_VOL_6M_ATM";
+
+    auto spread_option =
+        make_commodity_trade<qrp::domain::CommodityCalendarSpreadOptionTrade>("commodity_calendar_spread_intrinsic",
+                                                                              "long");
+    spread_option->quantity = 1.0;
+    spread_option->contract_size = 1000.0;
+    spread_option->strike_spread = 0.50;
+    spread_option->expiry_date = "2026-09-24";
+    spread_option->near_future_quote_id = "WTI_FUT_6M";
+    spread_option->far_future_quote_id = "WTI_FUT_9M";
+    spread_option->volatility_quote_id = "WTI_VOL_6M_ATM";
+
+    const auto future_option_instrument =
+        qrp::instruments::CommodityInstrumentFactory::create_commodity_future_option(*future_option, context);
+    const auto spread_option_instrument =
+        qrp::instruments::CommodityInstrumentFactory::create_commodity_calendar_spread_option(*spread_option, context);
+    ASSERT_TRUE(future_option_instrument);
+    ASSERT_TRUE(spread_option_instrument);
+
+    EXPECT_GT(future_option_instrument->NPV(), 0.0);
+    EXPECT_GT(spread_option_instrument->NPV(), future_option_instrument->NPV());
+}
+
+TEST(CommodityProductsTest, SwingStatefulDpValuesAdditionalExerciseRights) {
+    qrp::market::MarketSnapshot market(make_commodity_market());
+    qrp::analytics::PricingContext context(market.built_state());
+
+    qrp::domain::CommoditySwingTrade limited;
+    limited.currency = "USD";
+    limited.direction = "long";
+    limited.underlier = "TTF";
+    limited.maturity_date = "2026-12-24";
+    limited.min_quantity = 100.0;
+    limited.max_quantity = 150.0;
+    limited.max_exercise_quantity = 100.0;
+    limited.strike_price = 31.0;
+    limited.forward_quote_ids = {"TTF_FWD_Q1", "TTF_FWD_Q2"};
+    limited.exercise_dates = {"2026-06-24", "2026-09-24"};
+    limited.volatility = 0.40;
+
+    qrp::domain::CommoditySwingTrade flexible = limited;
+    flexible.max_quantity = 250.0;
+    flexible.max_exercise_quantity = 125.0;
+
+    const auto limited_instrument =
+        qrp::instruments::CommodityInstrumentFactory::create_commodity_swing(limited, context);
+    const auto flexible_instrument =
+        qrp::instruments::CommodityInstrumentFactory::create_commodity_swing(flexible, context);
+    ASSERT_TRUE(limited_instrument);
+    ASSERT_TRUE(flexible_instrument);
+
+    EXPECT_GT(limited_instrument->NPV(), 0.0);
+    EXPECT_GT(flexible_instrument->NPV(), limited_instrument->NPV());
+}
+
+TEST(CommodityProductsTest, GasStorageStatefulDpValuesAdditionalCapacity) {
+    qrp::market::MarketSnapshot market(make_commodity_market());
+    qrp::analytics::PricingContext context(market.built_state());
+
+    qrp::domain::GasStorageTrade limited;
+    limited.currency = "USD";
+    limited.direction = "long";
+    limited.underlier = "TTF";
+    limited.maturity_date = "2026-12-24";
+    limited.min_inventory = 0.0;
+    limited.max_inventory = 100.0;
+    limited.initial_inventory = 50.0;
+    limited.terminal_inventory_target = 50.0;
+    limited.terminal_inventory_penalty = 100.0;
+    limited.max_injection_quantity = 50.0;
+    limited.max_withdrawal_quantity = 50.0;
+    limited.injection_cost = 0.20;
+    limited.withdrawal_cost = 0.20;
+    limited.forward_quote_ids = {"TTF_FWD_Q1", "TTF_FWD_Q2"};
+    limited.exercise_dates = {"2026-06-24", "2026-09-24"};
+
+    qrp::domain::GasStorageTrade flexible = limited;
+    flexible.max_inventory = 200.0;
+    flexible.max_injection_quantity = 100.0;
+    flexible.max_withdrawal_quantity = 100.0;
+
+    const auto limited_instrument = qrp::instruments::CommodityInstrumentFactory::create_gas_storage(limited, context);
+    const auto flexible_instrument =
+        qrp::instruments::CommodityInstrumentFactory::create_gas_storage(flexible, context);
+    ASSERT_TRUE(limited_instrument);
+    ASSERT_TRUE(flexible_instrument);
+
+    EXPECT_GT(limited_instrument->NPV(), 0.0);
+    EXPECT_GT(flexible_instrument->NPV(), limited_instrument->NPV());
+}
+
+TEST(CommodityProductsTest, GasStorageFactoryHandlesQuoteFallbackAndExerciseDateDefaults) {
+    qrp::market::MarketSnapshot market(make_commodity_market());
+    qrp::analytics::PricingContext context(market.built_state());
+
+    qrp::domain::GasStorageTrade fallback;
+    fallback.currency = "USD";
+    fallback.direction = "long";
+    fallback.underlier = "TTF";
+    fallback.maturity_date = "2026-12-24";
+    fallback.min_inventory = 0.0;
+    fallback.max_inventory = 120.0;
+    fallback.initial_inventory = 50.0;
+    fallback.terminal_inventory_target = 50.0;
+    fallback.terminal_inventory_penalty = 100.0;
+    fallback.max_injection_quantity = 70.0;
+    fallback.max_withdrawal_quantity = 70.0;
+    fallback.injection_cost = 0.20;
+    fallback.withdrawal_cost = 0.20;
+
+    const auto fallback_instrument =
+        qrp::instruments::CommodityInstrumentFactory::create_gas_storage(fallback, context);
+    ASSERT_TRUE(fallback_instrument);
+    EXPECT_TRUE(std::isfinite(fallback_instrument->NPV()));
+
+    qrp::domain::GasStorageTrade sparse_dates = fallback;
+    sparse_dates.forward_quote_ids = {"TTF_FWD_Q1", "TTF_FWD_Q2"};
+    sparse_dates.exercise_dates = {"2026-06-24"};
+
+    const auto sparse_dates_instrument =
+        qrp::instruments::CommodityInstrumentFactory::create_gas_storage(sparse_dates, context);
+    ASSERT_TRUE(sparse_dates_instrument);
+    EXPECT_TRUE(std::isfinite(sparse_dates_instrument->NPV()));
 }

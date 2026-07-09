@@ -1,18 +1,18 @@
 {
   "monte_carlo": {
     "AgedHorizonRevaluation": {
-      "base_portfolio_value": 5156639.09,
-      "expected_shortfall_95": 248517.91,
-      "mean_pnl": 17544.4,
+      "base_portfolio_value": 5156305.88,
+      "expected_shortfall_95": 248525.43,
+      "mean_pnl": 17537.01,
       "tolerance": 50.0,
-      "var_95": 210817.22
+      "var_95": 210824.33
     },
     "HorizonShockOnly": {
-      "base_portfolio_value": 5156639.09,
-      "expected_shortfall_95": 76197.21,
+      "base_portfolio_value": 5156305.88,
+      "expected_shortfall_95": 76197.29,
       "mean_pnl": 9360.91,
       "tolerance": 50.0,
-      "var_95": 63193.1
+      "var_95": 63193.42
     }
   },
   "pnl_explain": {
@@ -59,11 +59,18 @@
       "total_pnl": 0.0
     },
     "demo_ttf_swing_001": {
-      "carry_pnl": 0.19,
+      "carry_pnl": 0.16,
       "cash_pnl": 0.0,
-      "market_move_pnl": -0.47,
+      "market_move_pnl": -0.21,
       "residual_pnl": 0.0,
-      "total_pnl": -0.28
+      "total_pnl": -0.06
+    },
+    "demo_ttf_storage_001": {
+      "carry_pnl": 0.02,
+      "cash_pnl": 0.0,
+      "market_move_pnl": -0.42,
+      "residual_pnl": 0.0,
+      "total_pnl": -0.4
     },
     "demo_acme_cds_001": {
       "carry_pnl": 6.0,
@@ -164,11 +171,11 @@
       "total_pnl": 15841.7
     },
     "demo_usd_bermudan_swaption_001": {
-      "carry_pnl": 0.0,
+      "carry_pnl": 0.04,
       "cash_pnl": 0.0,
-      "market_move_pnl": 1534.0,
+      "market_move_pnl": 1533.67,
       "residual_pnl": 0.0,
-      "total_pnl": 1534.0
+      "total_pnl": 1533.71
     },
     "demo_usd_cap_001": {
       "carry_pnl": 0.81,
@@ -283,7 +290,14 @@
       "cs01": 0.0,
       "fx_delta": 0.0,
       "fx_vega": 0.0,
-      "pv01": -0.1
+      "pv01": -0.04
+    },
+    "demo_ttf_storage_001": {
+      "bucketed_risk": {},
+      "cs01": -0.0,
+      "fx_delta": -0.0,
+      "fx_vega": -0.0,
+      "pv01": -0.08
     },
     "demo_acme_cds_001": {
       "bucketed_risk": {
@@ -518,7 +532,7 @@
   },
   "stress": {
     "COMMODITY_ENERGY_SUPPLY_SHOCK": {
-      "total_pnl": 34107.31,
+      "total_pnl": 33769.61,
       "trade_pnls": {
         "demo_wti_calendar_option_001": 1446.61,
         "demo_wti_forward_001": 5331.44,
@@ -526,7 +540,8 @@
         "demo_wti_future_option_001": 4113.48,
         "demo_wti_strip_001": 5100.8,
         "demo_wti_spot_001": 6200.0,
-        "demo_ttf_swing_001": 959.99
+        "demo_ttf_swing_001": 670.17,
+        "demo_ttf_storage_001": -47.89
       }
     },
     "CREDIT_RECESSION": {
@@ -540,9 +555,8 @@
       }
     },
     "CROSS_ASSET_REPRICING": {
-      "total_pnl": -158158.99,
+      "total_pnl": -158155.38,
       "trade_pnls": {
-        "demo_ttf_swing_001": -3.61,
         "demo_acme_cds_001": -543.14,
         "demo_cdx_index_001": -201.42,
         "demo_acme_cds_option_001": -129.82,
@@ -608,9 +622,8 @@
       }
     },
     "GLOBAL_RISK_OFF": {
-      "total_pnl": -47692.1,
+      "total_pnl": -47694.22,
       "trade_pnls": {
-        "demo_ttf_swing_001": 2.12,
         "demo_acme_cds_001": 322.6,
         "demo_cdx_index_001": 119.62,
         "demo_acme_cds_option_001": 77.12,
@@ -633,9 +646,8 @@
       }
     },
     "GLOBAL_RISK_ON": {
-      "total_pnl": -13047.54,
+      "total_pnl": -13045.13,
       "trade_pnls": {
-        "demo_ttf_swing_001": -2.41,
         "demo_acme_cds_001": -363.46,
         "demo_cdx_index_001": -134.78,
         "demo_acme_cds_option_001": -86.88,
@@ -658,11 +670,12 @@
       }
     },
     "USD_CURVE_BEAR_FLATTENER": {
-      "total_pnl": -64071.74,
+      "total_pnl": -64074.01,
       "trade_pnls": {
         "demo_wti_calendar_option_001": -25.47,
         "demo_wti_future_option_001": -21.9,
-        "demo_ttf_swing_001": -6.17,
+        "demo_ttf_swing_001": -3.33,
+        "demo_ttf_storage_001": -5.1,
         "demo_acme_cds_001": -299.84,
         "demo_cdx_index_001": -117.15,
         "demo_acme_cds_option_001": -68.24,
@@ -700,11 +713,12 @@
       }
     },
     "USD_CURVE_BULL_STEEPENER": {
-      "total_pnl": 65181.67,
+      "total_pnl": 65183.96,
       "trade_pnls": {
         "demo_wti_calendar_option_001": 25.66,
         "demo_wti_future_option_001": 22.07,
-        "demo_ttf_swing_001": 6.23,
+        "demo_ttf_swing_001": 3.36,
+        "demo_ttf_storage_001": 5.16,
         "demo_acme_cds_001": 304.03,
         "demo_cdx_index_001": 118.75,
         "demo_acme_cds_option_001": 69.22,
@@ -726,11 +740,12 @@
       }
     },
     "USD_FUNDING_STRESS": {
-      "total_pnl": 49614.31,
+      "total_pnl": 49612.72,
       "trade_pnls": {
         "demo_wti_calendar_option_001": -17.0,
         "demo_wti_future_option_001": -14.62,
-        "demo_ttf_swing_001": -5.04,
+        "demo_ttf_swing_001": -2.09,
+        "demo_ttf_storage_001": -4.54,
         "demo_acme_cds_001": -462.71,
         "demo_cdx_index_001": -174.21,
         "demo_acme_cds_option_001": -108.77,
@@ -768,9 +783,8 @@
       }
     },
     "USD_RATES_PARALLEL_DOWN_100BP": {
-      "total_pnl": 266980.29,
+      "total_pnl": 266974.19,
       "trade_pnls": {
-        "demo_ttf_swing_001": 6.09,
         "demo_acme_cds_001": 933.3,
         "demo_cdx_index_001": 346.02,
         "demo_acme_cds_option_001": 223.15,
@@ -785,9 +799,8 @@
       }
     },
     "USD_RATES_PARALLEL_UP_100BP": {
-      "total_pnl": -254922.31,
+      "total_pnl": -254916.31,
       "trade_pnls": {
-        "demo_ttf_swing_001": -6.01,
         "demo_acme_cds_001": -898.44,
         "demo_cdx_index_001": -333.2,
         "demo_acme_cds_option_001": -214.72,
@@ -837,7 +850,7 @@
   },
   "valuation": {
     "tolerance": 1.0,
-    "total_npv": 5156639.09,
+    "total_npv": 5156305.88,
     "trades": {
       "demo_wti_calendar_option_001": {
         "asset_class": "commodity",
@@ -877,9 +890,15 @@
       },
       "demo_ttf_swing_001": {
         "asset_class": "commodity",
-        "npv": 1305.89,
+        "npv": 1055.24,
         "product_type": "commodity_swing",
-        "support_status": "partially_supported"
+        "support_status": "supported"
+      },
+      "demo_ttf_storage_001": {
+        "asset_class": "commodity",
+        "npv": 113.3,
+        "product_type": "gas_storage",
+        "support_status": "supported"
       },
       "demo_acme_cds_001": {
         "asset_class": "credit",
@@ -967,7 +986,7 @@
       },
       "demo_usd_bermudan_swaption_001": {
         "asset_class": "rates",
-        "npv": 46606.0,
+        "npv": 46410.13,
         "product_type": "bermudan_swaption",
         "support_status": "supported"
       },

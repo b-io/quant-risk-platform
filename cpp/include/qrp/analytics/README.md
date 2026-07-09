@@ -34,6 +34,8 @@ Least Squares Monte Carlo (LSMC) method.
   - `nextState`: Defines how the state evolves based on an action and market movement.
   - `isTerminalAction`: Marks actions that stop continuation value, such as option exercise.
   - `regressionFeatures`: Basis functions for continuation value estimation.
+- `ExercisePolicy`: Product-level exercise contract for immediate exercise value and continuation features.
+- `ExercisePolicyDecisionProblem`: Adapter that maps an exercise policy into the generic decision-problem interface.
 
 ### 3. Regression (`qrp::analytics::regression`)
 - `RegressionModel`: Interface for fitting and prediction (default: `OrdinaryLeastSquares`).
@@ -41,7 +43,9 @@ Least Squares Monte Carlo (LSMC) method.
 
 ### 4. LSMC Engine (`qrp::analytics::lsmc`)
 - `LsmcEngine`: The core backward induction algorithm.
-- `LsmcResult`: Contains value, standard error, and risk metrics (VaR, ES).
+- `LsmcResult`: Contains value, standard error, exercise-grid times, path values, risk metrics (VaR, ES), basis labels,
+  configuration tags, and regression diagnostics.
+- `price_american_option`: C++-managed American option helper exposed to Python as `price_american_option_lsmc(...)`.
 
 ## Example Usage: American Put Option
 

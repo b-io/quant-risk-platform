@@ -47,7 +47,7 @@
       "asset_class": "commodity",
       "book": "BOOK:ADVENTUROUS:COMMODITY_FLEXIBILITY",
       "product_type": "commodity_swing",
-      "support_status": "partially_supported"
+      "support_status": "supported"
     },
     "ad_acme_cds_option_001": {
       "asset_class": "credit",

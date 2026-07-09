@@ -33,6 +33,7 @@ enum class ProductType {
     CommodityFutureOption,
     CommodityCalendarSpreadOption,
     CommoditySwing,
+    GasStorage,
 
     // Credit
     CreditBond,
@@ -142,6 +143,8 @@ inline ProductType parse_product_type(const std::string& value) {
         return ProductType::CommodityCalendarSpreadOption;
     if (value == "commodity_swing")
         return ProductType::CommoditySwing;
+    if (value == "gas_storage")
+        return ProductType::GasStorage;
 
     // Credit
     if (value == "credit_bond")
@@ -216,6 +219,7 @@ inline std::vector<ProductType> all_product_types() {
             ProductType::CommodityFutureOption,
             ProductType::CommodityCalendarSpreadOption,
             ProductType::CommoditySwing,
+            ProductType::GasStorage,
             ProductType::CreditBond,
             ProductType::Cds,
             ProductType::CdsIndex,
@@ -264,6 +268,8 @@ inline AssetClass asset_class_from_product_type(ProductType product_type) {
         case ProductType::CommodityCalendarSpreadOption:
             return AssetClass::Commodity;
         case ProductType::CommoditySwing:
+            return AssetClass::Commodity;
+        case ProductType::GasStorage:
             return AssetClass::Commodity;
 
         // Credit
@@ -351,6 +357,8 @@ inline std::string to_string(ProductType product_type) {
             return "commodity_calendar_spread_option";
         case ProductType::CommoditySwing:
             return "commodity_swing";
+        case ProductType::GasStorage:
+            return "gas_storage";
 
         // Credit
         case ProductType::CreditBond:

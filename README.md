@@ -19,6 +19,8 @@ The C++ core owns the analytics. Python is the interface layer for demos, orches
   and risk factor.
 - Explain P&L with carry, market move, realized deposit maturity cash, residual reconciliation, and persisted
   components.
+- Run C++-managed LSMC and dynamic-programming exercise valuation for American options, Bermudan swaptions, callable
+  bonds, commodity swing contracts, and gas storage.
 - Reuse a C++-owned revaluation session from Python for fast quote updates, scenario revaluation, dependency-graph
   diagnostics, and restored market checks without exposing raw QuantLib handles.
 - Persist market data, portfolios, scenarios, valuation runs, risk runs, HVaR runs, and P&L explain runs in SQLite.
@@ -142,6 +144,14 @@ The diagnostic APIs are opt-in. `dependency_graph()` returns a read-only quote-t
 and `revalue_*_impact(...)` reprices only the structurally affected candidate trades before returning compact
 before/after diff rows to Python.
 
+Persistence is explicit. The `dependency_graph(...)`, `dependencies_for_*`, and `preview_*_impact(...)` APIs are
+read-only diagnostics. The `revalue_*_impact(...)` and `revalue_scenario(...)` APIs compute in the current C++ session,
+restore the base market state before returning, and do not write to SQLite. `apply_quote_updates(...)` and
+`apply_scenario(...)` mutate only the current in-memory `RevaluationSession`; call `reset()` or create a new session to
+return to the base state. Durable writes happen through the CLI/application persistence workflows: `import-market`,
+`import-portfolio`, and `import-scenarios` store inputs, while `run-valuation`, `run-risk`, `run-pnl-explain`, and
+`run-hvar` store analysis runs and results in `var/quant_risk_platform.sqlite`.
+
 The full demo uses the same session API with factor bindings to apply the `GLOBAL_RISK_OFF` scenario, print quote-handle
 moves, print a dependency-graph sample, preview potentially affected trades, show candidate-only before/after diffs, and
 verify the reset value within valuation tolerance.
@@ -152,10 +162,10 @@ For scenario, risk, P&L explain, Monte Carlo, and VaR contribution examples, run
 uv run --project python python python\examples\demo_platform.py
 ```
 
-Use `--dashboard` to generate an optional Plotly HTML dashboard:
+Generate the optional Plotly HTML dashboard with the dedicated dashboard script:
 
 ```powershell
-uv run --project python python python\examples\demo_platform.py --dashboard
+uv run --project python --extra dashboard python python\examples\demo_dashboard.py
 ```
 
 ## CLI Example
@@ -170,6 +180,7 @@ The C++ CLI stores results in `var/quant_risk_platform.sqlite` by default.
 
 .\build\dev\qrp_cli.exe run-valuation --portfolio demo_portfolio --snapshot DEMO_MKT_2026_03_24
 .\build\dev\qrp_cli.exe run-risk --portfolio demo_portfolio --snapshot DEMO_MKT_2026_03_24
+.\build\dev\qrp_cli.exe run-pnl-explain --portfolio demo_portfolio --previous-snapshot DEMO_MKT_2026_03_24 --snapshot DEMO_MKT_2026_03_24
 .\build\dev\qrp_cli.exe run-hvar --portfolio demo_portfolio --snapshot DEMO_MKT_2026_03_24 --scenarios demo_factor_scenarios
 .\build\dev\qrp_cli.exe list
 ```
@@ -178,21 +189,21 @@ The C++ CLI stores results in `var/quant_risk_platform.sqlite` by default.
 
 Implemented product coverage includes:
 
-- rates: deposits, FRAs, interest-rate futures, vanilla swaps, OIS swaps, fixed-rate bonds, floating-rate notes,
-  cap/floors, European swaptions, and Bermudan swaptions;
+- rates: deposits, FRAs, interest-rate futures, vanilla swaps, OIS swaps, fixed-rate bonds, callable fixed-rate bonds,
+  floating-rate notes, cap/floors, European swaptions, and Bermudan swaptions;
 - FX: spot, forwards, swaps, NDFs, and options;
 - credit: bonds, CDS, CDS indices, CDS options, and credit index options;
 - equities: spot, forwards, futures, and options;
-- commodities: spot, forwards, futures, future strips, futures options, calendar spread options, and swing contracts.
+- commodities: spot, forwards, futures, future strips, futures options, calendar spread options, swing contracts, and gas
+  storage contracts.
 
 Implemented analytics include valuation, deterministic risk, reactive revaluation sessions with impact diagnostics,
-historical stress, HVaR, VaR/ES contribution analytics, Monte Carlo simulation, P&L explain, persistence, run reporting,
-and demo dashboards.
+historical stress, HVaR, VaR/ES contribution analytics, Monte Carlo simulation, C++-managed exercise and
+dynamic-programming valuation paths, P&L explain, persistence, run reporting, and demo dashboards.
 
 Known boundaries:
 
 - Monte Carlo and parametric VaR contribution decomposition are not yet first-class outputs.
-- LSMC is not yet exposed as a reusable exercise-policy engine for every early-exercise or physical-flexibility product.
 - Realized event-source integration does not yet cover every coupon, fixing, exercise, and settlement source.
 - A reusable revaluation-session cache exists for quote and scenario workflows; a shared built-position cache across all
   analytics services is still a hardening area.

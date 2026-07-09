@@ -632,6 +632,9 @@ void RevaluationSession::build_dependency_index() const {
             add_forecast_curve(*swap, trade_currency, swap->floating_index);
         } else if (const auto* ois = dynamic_cast<const domain::OisSwapTrade*>(&trade)) {
             add_discount_curve(*ois, trade_currency);
+        } else if (const auto* callable_bond = dynamic_cast<const domain::CallableBondTrade*>(&trade)) {
+            add_discount_curve(*callable_bond, trade_currency);
+            add_direct_quote(*callable_bond, callable_bond->volatility_quote_id);
         } else if (const auto* bond = dynamic_cast<const domain::FixedRateBondTrade*>(&trade)) {
             add_discount_curve(*bond, trade_currency);
         } else if (const auto* frn = dynamic_cast<const domain::FloatingRateNoteTrade*>(&trade)) {
@@ -806,6 +809,23 @@ void RevaluationSession::build_dependency_index() const {
                     "market_quote_match");
             }
             add_discount_curve(*swing, trade_currency);
+        } else if (const auto* storage = dynamic_cast<const domain::GasStorageTrade*>(&trade)) {
+            std::size_t direct_count = 0;
+            for (const auto& quote_id : storage->forward_quote_ids) {
+                if (known_quote_ids.contains(quote_id)) {
+                    add_direct_quote(*storage, quote_id);
+                    ++direct_count;
+                }
+            }
+            if (direct_count == 0) {
+                add_matching_quotes(
+                    *storage,
+                    storage->underlier,
+                    {},
+                    {domain::QuoteInstrumentType::CommodityForward, domain::QuoteInstrumentType::CommodityFuture},
+                    "market_quote_match");
+            }
+            add_discount_curve(*storage, trade_currency);
         } else if (const auto* equity_spot = dynamic_cast<const domain::EquitySpotTrade*>(&trade)) {
             add_matching_quotes(*equity_spot,
                                 equity_spot->underlier,
