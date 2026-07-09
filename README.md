@@ -144,6 +144,14 @@ The diagnostic APIs are opt-in. `dependency_graph()` returns a read-only quote-t
 and `revalue_*_impact(...)` reprices only the structurally affected candidate trades before returning compact
 before/after diff rows to Python.
 
+Persistence is explicit. The `dependency_graph(...)`, `dependencies_for_*`, and `preview_*_impact(...)` APIs are
+read-only diagnostics. The `revalue_*_impact(...)` and `revalue_scenario(...)` APIs compute in the current C++ session,
+restore the base market state before returning, and do not write to SQLite. `apply_quote_updates(...)` and
+`apply_scenario(...)` mutate only the current in-memory `RevaluationSession`; call `reset()` or create a new session to
+return to the base state. Durable writes happen through the CLI/application persistence workflows: `import-market`,
+`import-portfolio`, and `import-scenarios` store inputs, while `run-valuation`, `run-risk`, `run-pnl-explain`, and
+`run-hvar` store analysis runs and results in `var/quant_risk_platform.sqlite`.
+
 The full demo uses the same session API with factor bindings to apply the `GLOBAL_RISK_OFF` scenario, print quote-handle
 moves, print a dependency-graph sample, preview potentially affected trades, show candidate-only before/after diffs, and
 verify the reset value within valuation tolerance.
@@ -172,6 +180,7 @@ The C++ CLI stores results in `var/quant_risk_platform.sqlite` by default.
 
 .\build\dev\qrp_cli.exe run-valuation --portfolio demo_portfolio --snapshot DEMO_MKT_2026_03_24
 .\build\dev\qrp_cli.exe run-risk --portfolio demo_portfolio --snapshot DEMO_MKT_2026_03_24
+.\build\dev\qrp_cli.exe run-pnl-explain --portfolio demo_portfolio --previous-snapshot DEMO_MKT_2026_03_24 --snapshot DEMO_MKT_2026_03_24
 .\build\dev\qrp_cli.exe run-hvar --portfolio demo_portfolio --snapshot DEMO_MKT_2026_03_24 --scenarios demo_factor_scenarios
 .\build\dev\qrp_cli.exe list
 ```
