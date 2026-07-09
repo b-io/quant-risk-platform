@@ -233,6 +233,64 @@ TEST(LsmcTest, ExercisePolicyAdapterPricesAmericanPut) {
               result.regression_diagnostics.front().sample_count);
 }
 
+TEST(LsmcTest, ExercisePolicyAdapterExposesDecisionProblemContract) {
+    class EmptyRegressionPolicy final : public exercise::ExercisePolicy {
+    public:
+        bool canExercise(const dynamic_programming::State&, std::size_t) const override {
+            return true;
+        }
+
+        double exerciseValue(const dynamic_programming::State&, std::size_t) const override {
+            return 3.0;
+        }
+
+        std::vector<double> regressionFeatures(const dynamic_programming::State&, std::size_t) const override {
+            return {};
+        }
+
+        std::vector<std::string> regressionFeatureNames(std::size_t) const override {
+            return {};
+        }
+    };
+
+    EXPECT_THROW(exercise::ExercisePolicyDecisionProblem(nullptr, 0), std::invalid_argument);
+
+    auto put_policy = std::make_shared<exercise::VanillaOptionExercisePolicy>(100.0, true, 0);
+    exercise::ExercisePolicyDecisionProblem problem(put_policy, 2U);
+
+    const dynamic_programming::State no_market{{}, {42.0}};
+    EXPECT_FALSE(put_policy->canExercise(no_market, 0));
+    EXPECT_DOUBLE_EQ(put_policy->exerciseValue(no_market, 0), 0.0);
+
+    const auto continuation_only = problem.feasibleActions(no_market, 0);
+    ASSERT_EQ(continuation_only.size(), 1U);
+    EXPECT_EQ(continuation_only.front().id, exercise::kContinueActionId);
+    EXPECT_DOUBLE_EQ(problem.immediateCashflow(no_market, continuation_only.front(), 0), 0.0);
+
+    const dynamic_programming::State in_the_money{{90.0}, {7.0}};
+    const auto actions = problem.feasibleActions(in_the_money, 1);
+    ASSERT_EQ(actions.size(), 2U);
+    EXPECT_EQ(actions.back().id, exercise::kExerciseActionId);
+    EXPECT_DOUBLE_EQ(problem.immediateCashflow(in_the_money, actions.back(), 1), 10.0);
+    EXPECT_FALSE(problem.isTerminalAction(in_the_money, actions.front(), 1));
+    EXPECT_TRUE(problem.isTerminalAction(in_the_money, actions.back(), 1));
+    EXPECT_DOUBLE_EQ(problem.terminalValue(in_the_money), 10.0);
+
+    const auto next_state = problem.nextState(in_the_money, actions.front(), {95.0, 96.0}, 1);
+    EXPECT_EQ(next_state.market_variables, std::vector<double>({95.0, 96.0}));
+    EXPECT_EQ(next_state.operational_variables, in_the_money.operational_variables);
+
+    auto call_policy = std::make_shared<exercise::VanillaOptionExercisePolicy>(100.0, false, 2);
+    EXPECT_DOUBLE_EQ(call_policy->exerciseValue({{110.0}, {}}, 0), 10.0);
+    EXPECT_EQ(call_policy->regressionFeatures({{2.0}, {}}, 0), std::vector<double>({1.0, 2.0, 4.0}));
+    EXPECT_EQ(call_policy->regressionFeatureNames(0), std::vector<std::string>({"1", "spot", "spot^2"}));
+
+    auto empty_policy = std::make_shared<EmptyRegressionPolicy>();
+    exercise::ExercisePolicyDecisionProblem empty_problem(empty_policy, 0U);
+    EXPECT_EQ(empty_problem.regressionFeatures(in_the_money, 0), std::vector<double>({1.0}));
+    EXPECT_DOUBLE_EQ(empty_problem.terminalValue(in_the_money), 3.0);
+}
+
 TEST(LsmcTest, AmericanOptionHelperIsSeedReproducibleAndSerializesDiagnostics) {
     lsmc::AmericanOptionLsmcRequest request;
     request.spot = 100.0;

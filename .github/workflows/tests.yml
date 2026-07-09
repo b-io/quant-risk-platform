@@ -439,6 +439,20 @@ jobs:
             git push origin HEAD:${GITHUB_REF_NAME}
           fi
 
+  linux-pipeline-gate:
+    name: Linux Pipeline Gate
+    needs: linux-coverage
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require Linux pipeline success
+        run: |
+          if [ "${{ needs.linux-coverage.result }}" != "success" ]; then
+            echo "Linux pipeline finished with result: ${{ needs.linux-coverage.result }}"
+            exit 1
+          fi
+          echo "Linux pipeline passed."
+
   windows-dev-build:
     name: Windows Dev Build
     needs: quality
@@ -555,3 +569,17 @@ jobs:
       - name: Run dev tests (C++ + Python)
         shell: pwsh
         run: .\scripts\test.ps1 -BuildDir build\dev -Config RelWithDebInfo -SkipBuild -SkipCppCoverage -SkipPythonCoverage
+
+  windows-pipeline-gate:
+    name: Windows Pipeline Gate
+    needs: windows-dev-test
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require Windows pipeline success
+        run: |
+          if [ "${{ needs.windows-dev-test.result }}" != "success" ]; then
+            echo "Windows pipeline finished with result: ${{ needs.windows-dev-test.result }}"
+            exit 1
+          fi
+          echo "Windows pipeline passed."
