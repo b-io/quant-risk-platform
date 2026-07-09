@@ -200,6 +200,34 @@ TEST(ValuationServiceTest, RegistryFallbacksUseTradeAndProductTaxonomy) {
     EXPECT_DOUBLE_EQ(pricing_profile.multiplier, -1.0);
 }
 
+TEST(ValuationServiceTest, RegistryDescribesSharedExercisePolicyProducts) {
+    struct ExpectedSupport {
+        qrp::domain::ProductType product_type;
+        std::string model_fragment;
+        std::string reason_fragment;
+    };
+
+    const std::vector<ExpectedSupport> expected_products = {
+        {qrp::domain::ProductType::BermudanSwaption, "LsmcInstrument", "LSMC"},
+        {qrp::domain::ProductType::CallableBond, "CallableBondLsmcInstrument", "issuer-call"},
+        {qrp::domain::ProductType::CommoditySwing, "StatefulDpInstrument", "dynamic-programming"},
+        {qrp::domain::ProductType::GasStorage, "StatefulDpInstrument", "inventory"},
+    };
+
+    for (const auto& expected : expected_products) {
+        qrp::domain::Trade trade;
+        trade.id = qrp::domain::to_string(expected.product_type);
+        trade.product_type = expected.product_type;
+
+        const auto support = qrp::analytics::ProductPricingRegistry::support_profile(trade);
+
+        EXPECT_EQ(support.status, qrp::domain::SupportStatus::Supported) << trade.id;
+        EXPECT_EQ(support.product_type, expected.product_type) << trade.id;
+        EXPECT_NE(support.model_name.find(expected.model_fragment), std::string::npos) << trade.id;
+        EXPECT_NE(support.reason.find(expected.reason_fragment), std::string::npos) << trade.id;
+    }
+}
+
 TEST(ValuationServiceTest, RegistryInstrumentBuildersRejectMismatchedConcreteTradeTypes) {
     qrp::domain::MarketSnapshot market_dto;
     market_dto.valuation_date = "2026-03-24";
