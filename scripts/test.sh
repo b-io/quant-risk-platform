@@ -273,6 +273,34 @@ find_benchmark_exe() {
     return 1
 }
 
+find_python_extension_dir() {
+    local python_dir="$RESOLVED_BUILD_DIR/python"
+    local candidate_dirs=("$python_dir/$CONFIG" "$python_dir")
+    local dir
+    for dir in "${candidate_dirs[@]}"; do
+        if [ ! -d "$dir" ]; then
+            continue
+        fi
+        if find "$dir" -maxdepth 1 -type f \( -name 'quant_risk_platform*.so' -o -name 'quant_risk_platform*.pyd' \) |
+            head -n 1 |
+            grep -q .; then
+            printf '%s\n' "$dir"
+            return 0
+        fi
+    done
+
+    if [ -d "$python_dir" ]; then
+        local extension
+        extension="$(find "$python_dir" -type f \( -name 'quant_risk_platform*.so' -o -name 'quant_risk_platform*.pyd' \) |
+            head -n 1)"
+        if [ -n "$extension" ]; then
+            dirname "$extension"
+            return 0
+        fi
+    fi
+    return 1
+}
+
 run_performance_benchmark() {
     if [ "$RUN_PERFORMANCE" != "1" ]; then
         return 0
@@ -322,6 +350,13 @@ show_cpp_coverage_score
 PYTHON_COVERAGE_EXIT_CODE=0
 section "Python Tests"
 if [ -n "$RESOLVED_PYTHON" ]; then
+    if python_extension_dir="$(find_python_extension_dir)"; then
+        export QRP_PYTHON_PATH="$python_extension_dir"
+        echo "Python extension path: $QRP_PYTHON_PATH"
+    elif [ -n "${QRP_PYTHON_PATH:-}" ]; then
+        echo "Warning: no quant_risk_platform extension was found under $RESOLVED_BUILD_DIR; keeping existing QRP_PYTHON_PATH=$QRP_PYTHON_PATH" >&2
+    fi
+
     echo "Running Python binding smoke tests with $RESOLVED_PYTHON..."
     ctest --test-dir "$RESOLVED_BUILD_DIR" -C "$CONFIG" -R "python_import" --output-on-failure
 

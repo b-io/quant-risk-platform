@@ -48,6 +48,13 @@ class LsmcBindingsTest(unittest.TestCase):
             cls.qrp = importlib.import_module("quant_risk_platform")
         except ModuleNotFoundError as exc:
             raise unittest.SkipTest("quant_risk_platform extension is not built") from exc
+        if not hasattr(cls.qrp.LsmcResult(), "exercise_times"):
+            module_path = getattr(cls.qrp, "__file__", "<unknown>")
+            raise AssertionError(
+                "quant_risk_platform extension is stale or was loaded from the wrong build output; "
+                f"missing LsmcResult.exercise_times in {module_path}. "
+                "Re-run the test script without -SkipBuild, or clear QRP_PYTHON_PATH."
+            )
 
     def test_american_option_helper_returns_diagnostics(self) -> None:
         request = self.qrp.AmericanOptionLsmcRequest()

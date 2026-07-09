@@ -346,6 +346,38 @@ function Find-BenchmarkExe($ExeName) {
     return $null
 }
 
+function Find-PythonExtensionDir {
+    $pythonDir = Join-Path $ResolvedBuildDir "python"
+    $candidateDirs = @(
+        (Join-Path $pythonDir $Config),
+        $pythonDir
+    )
+
+    foreach ($dir in $candidateDirs) {
+        if (-not (Test-Path -LiteralPath $dir)) {
+            continue
+        }
+        $extension = Get-ChildItem -LiteralPath $dir -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -like "quant_risk_platform*.pyd" -or $_.Name -like "quant_risk_platform*.so" } |
+            Select-Object -First 1
+        if ($extension) {
+            return $dir
+        }
+    }
+
+    if (Test-Path -LiteralPath $pythonDir) {
+        $extension = Get-ChildItem -LiteralPath $pythonDir -Recurse -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -like "quant_risk_platform*.pyd" -or $_.Name -like "quant_risk_platform*.so" } |
+            Sort-Object LastWriteTimeUtc -Descending |
+            Select-Object -First 1
+        if ($extension) {
+            return $extension.DirectoryName
+        }
+    }
+
+    return $null
+}
+
 function Invoke-PerformanceBenchmark {
     if (-not $Performance) {
         return
@@ -415,6 +447,14 @@ $PythonCoverageExitCode = 0
 if ($null -eq $ResolvedPython) {
     Write-Warning "Python executable was not found; Python tests and coverage were not generated."
 } else {
+    $PythonExtensionDir = Find-PythonExtensionDir
+    if ($PythonExtensionDir) {
+        $env:QRP_PYTHON_PATH = $PythonExtensionDir
+        Write-Host "Python extension path: $env:QRP_PYTHON_PATH" -ForegroundColor Green
+    } elseif ($env:QRP_PYTHON_PATH) {
+        Write-Warning "No quant_risk_platform extension was found under $ResolvedBuildDir; keeping existing QRP_PYTHON_PATH=$env:QRP_PYTHON_PATH"
+    }
+
     Write-Host "Running Python binding smoke tests with $ResolvedPython..." -ForegroundColor Green
     ctest --test-dir $ResolvedBuildDir -C $Config -R "python_import" --output-on-failure
     if ($LASTEXITCODE -ne 0) {
