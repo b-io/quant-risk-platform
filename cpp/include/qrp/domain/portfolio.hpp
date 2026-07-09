@@ -1522,10 +1522,13 @@ struct CommoditySwingTrade : public Trade {
         type = to_string(trade_type);
     }
 
+    double max_exercise_quantity = 0.0;         // Maximum quantity that can be exercised on one date.
     double max_quantity = 0.0;                  // Maximum exercisable quantity over the delivery window.
+    double min_exercise_quantity = 0.0;         // Minimum non-zero quantity that can be exercised on one date.
     double min_quantity = 0.0;                  // Minimum committed quantity over the delivery window.
     double strike_price = 0.0;                  // Fixed exercise price.
-    double volatility = 0.0;                    // Fallback volatility used for optionality uplift.
+    double terminal_shortfall_penalty = 1000.0; // Per-unit penalty for unmet minimum volume.
+    double volatility = 0.0;                    // Fallback volatility used for expected exercise value.
     std::string maturity_date;                  // Delivery window end date.
     std::string start_date;                     // Delivery window start date.
     std::string underlier;                      // Commodity name, hub, grade, or benchmark.
@@ -1547,11 +1550,17 @@ struct CommoditySwingTrade : public Trade {
         const auto& details = j.at("details");
         exercise_dates = portfolio_detail::optional_string_vector(details, {"exercise_dates"});
         forward_quote_ids = portfolio_detail::optional_string_vector(details, {"forward_quote_ids", "quote_ids"});
+        max_exercise_quantity =
+            portfolio_detail::optional_double(details, {"max_exercise_quantity", "max_daily_quantity"});
         max_quantity = portfolio_detail::optional_double(details, {"max_quantity", "quantity", "notional"});
+        min_exercise_quantity =
+            portfolio_detail::optional_double(details, {"min_exercise_quantity", "min_daily_quantity"});
         min_quantity = portfolio_detail::optional_double(details, {"min_quantity"});
         maturity_date = portfolio_detail::optional_string(details, {"maturity_date", "delivery_end"}, maturity_date);
         start_date = portfolio_detail::optional_string(details, {"start_date", "delivery_start"}, start_date);
         strike_price = portfolio_detail::optional_double(details, {"strike_price", "strike"});
+        terminal_shortfall_penalty =
+            portfolio_detail::optional_double(details, {"terminal_shortfall_penalty"}, terminal_shortfall_penalty);
         underlier = portfolio_detail::optional_string(details, {"underlier", "commodity", "benchmark"});
         unit = portfolio_detail::optional_string(details, {"unit"});
         volatility = portfolio_detail::optional_double(details, {"volatility"});

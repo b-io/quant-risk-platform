@@ -175,9 +175,11 @@ qrp::domain::Portfolio make_commodity_portfolio() {
     auto swing = make_commodity_trade<qrp::domain::CommoditySwingTrade>("commodity_swing_ttf", "long");
     swing->min_quantity = 100.0;
     swing->max_quantity = 200.0;
+    swing->max_exercise_quantity = 125.0;
     swing->strike_price = 31.00;
     swing->maturity_date = "2026-12-24";
     swing->forward_quote_ids = {"TTF_FWD_Q1", "TTF_FWD_Q2"};
+    swing->exercise_dates = {"2026-06-24", "2026-09-24"};
     swing->volatility = 0.40;
     swing->underlier = "TTF";
     portfolio.trades.push_back(swing);
@@ -212,7 +214,7 @@ TEST(CommodityProductsTest, PricesCommodityProducts) {
               qrp::domain::ProductType::CommodityCalendarSpreadOption);
     EXPECT_EQ(by_trade.at("commodity_swing_ttf").product_type, qrp::domain::ProductType::CommoditySwing);
 
-    EXPECT_EQ(by_trade.at("commodity_swing_ttf").support_status, qrp::domain::SupportStatus::PartiallySupported);
+    EXPECT_EQ(by_trade.at("commodity_swing_ttf").support_status, qrp::domain::SupportStatus::Supported);
     EXPECT_NEAR(by_trade.at("commodity_spot_wti").npv, 500.0, 1.0e-10);
     EXPECT_NEAR(by_trade.at("commodity_future_wti").npv, 750.0, 1.0e-10);
     EXPECT_GT(by_trade.at("commodity_forward_wti").npv, 0.0);
@@ -309,4 +311,78 @@ TEST(CommodityProductsTest, SwingFactoryFallsBackToUnderlierForwardQuote) {
 
     ASSERT_TRUE(instrument);
     EXPECT_GT(instrument->NPV(), 0.0);
+}
+
+TEST(CommodityProductsTest, CommodityOptionsUseIntrinsicFallbackWhenVolatilityIsZero) {
+    auto market_dto = make_commodity_market();
+    for (auto& quote : market_dto.quotes) {
+        if (quote.id == "WTI_VOL_6M_ATM") {
+            quote.value = 0.0;
+        }
+    }
+    qrp::market::MarketSnapshot market(market_dto);
+    qrp::analytics::PricingContext context(market.built_state());
+
+    auto future_option =
+        make_commodity_trade<qrp::domain::CommodityFutureOptionTrade>("commodity_future_option_intrinsic", "long");
+    future_option->quantity = 1.0;
+    future_option->contract_size = 1000.0;
+    future_option->strike_price = 78.00;
+    future_option->expiry_date = "2026-09-24";
+    future_option->maturity_date = "2026-09-24";
+    future_option->future_quote_id = "WTI_FUT_6M";
+    future_option->volatility_quote_id = "WTI_VOL_6M_ATM";
+
+    auto spread_option =
+        make_commodity_trade<qrp::domain::CommodityCalendarSpreadOptionTrade>("commodity_calendar_spread_intrinsic",
+                                                                              "long");
+    spread_option->quantity = 1.0;
+    spread_option->contract_size = 1000.0;
+    spread_option->strike_spread = 0.50;
+    spread_option->expiry_date = "2026-09-24";
+    spread_option->near_future_quote_id = "WTI_FUT_6M";
+    spread_option->far_future_quote_id = "WTI_FUT_9M";
+    spread_option->volatility_quote_id = "WTI_VOL_6M_ATM";
+
+    const auto future_option_instrument =
+        qrp::instruments::CommodityInstrumentFactory::create_commodity_future_option(*future_option, context);
+    const auto spread_option_instrument =
+        qrp::instruments::CommodityInstrumentFactory::create_commodity_calendar_spread_option(*spread_option, context);
+    ASSERT_TRUE(future_option_instrument);
+    ASSERT_TRUE(spread_option_instrument);
+
+    EXPECT_GT(future_option_instrument->NPV(), 0.0);
+    EXPECT_GT(spread_option_instrument->NPV(), future_option_instrument->NPV());
+}
+
+TEST(CommodityProductsTest, SwingStatefulDpValuesAdditionalExerciseRights) {
+    qrp::market::MarketSnapshot market(make_commodity_market());
+    qrp::analytics::PricingContext context(market.built_state());
+
+    qrp::domain::CommoditySwingTrade limited;
+    limited.currency = "USD";
+    limited.direction = "long";
+    limited.underlier = "TTF";
+    limited.maturity_date = "2026-12-24";
+    limited.min_quantity = 100.0;
+    limited.max_quantity = 150.0;
+    limited.max_exercise_quantity = 100.0;
+    limited.strike_price = 31.0;
+    limited.forward_quote_ids = {"TTF_FWD_Q1", "TTF_FWD_Q2"};
+    limited.exercise_dates = {"2026-06-24", "2026-09-24"};
+    limited.volatility = 0.40;
+
+    qrp::domain::CommoditySwingTrade flexible = limited;
+    flexible.max_quantity = 250.0;
+    flexible.max_exercise_quantity = 125.0;
+
+    const auto limited_instrument =
+        qrp::instruments::CommodityInstrumentFactory::create_commodity_swing(limited, context);
+    const auto flexible_instrument =
+        qrp::instruments::CommodityInstrumentFactory::create_commodity_swing(flexible, context);
+    ASSERT_TRUE(limited_instrument);
+    ASSERT_TRUE(flexible_instrument);
+
+    EXPECT_GT(limited_instrument->NPV(), 0.0);
+    EXPECT_GT(flexible_instrument->NPV(), limited_instrument->NPV());
 }

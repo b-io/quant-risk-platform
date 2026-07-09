@@ -304,7 +304,7 @@ The main boundaries are:
 
 ### Exercise and simulation architecture
 
-- LSMC exercise-policy helpers wired into remaining physical-flexibility product pricing paths,
+- shared inventory-policy pricing wired into gas storage,
 - Monte Carlo path engine separated from one-step factor simulation,
 - cached factor mappings and parallel scenario execution,
 - production controls for manifests, lineage, benchmark portfolios, and performance gates.

@@ -777,7 +777,10 @@ TEST(TradeModelTest, PortfolioJsonParsesCommodityAndEquityTradeEconomics) {
                             {{"underlier", "TTF"},
                              {"min_quantity", 500.0},
                              {"max_quantity", 1000.0},
+                             {"min_exercise_quantity", 100.0},
+                             {"max_exercise_quantity", 600.0},
                              {"strike", 31.0},
+                             {"terminal_shortfall_penalty", 250.0},
                              {"quote_ids", std::vector<std::string>{"TTF_FWD_Q1", "TTF_FWD_Q2"}},
                              {"exercise_dates", std::vector<std::string>{"2026-06-24", "2026-09-24"}},
                              {"volatility", 0.40}}),
@@ -823,6 +826,9 @@ TEST(TradeModelTest, PortfolioJsonParsesCommodityAndEquityTradeEconomics) {
     EXPECT_EQ(require_trade<domain::CommodityCalendarSpreadOptionTrade>(trades_by_id, "C06").far_future_quote_id,
               "WTI_FUT_9M");
     EXPECT_EQ(require_trade<domain::CommoditySwingTrade>(trades_by_id, "C07").exercise_dates.size(), 2U);
+    EXPECT_DOUBLE_EQ(require_trade<domain::CommoditySwingTrade>(trades_by_id, "C07").min_exercise_quantity, 100.0);
+    EXPECT_DOUBLE_EQ(require_trade<domain::CommoditySwingTrade>(trades_by_id, "C07").max_exercise_quantity, 600.0);
+    EXPECT_DOUBLE_EQ(require_trade<domain::CommoditySwingTrade>(trades_by_id, "C07").terminal_shortfall_penalty, 250.0);
     EXPECT_EQ(require_trade<domain::EquityForwardTrade>(trades_by_id, "E01").dividend_yield_quote_id, "AAPL_DIVYLD_1Y");
     EXPECT_DOUBLE_EQ(require_trade<domain::EquityFutureTrade>(trades_by_id, "E02").contract_size, 50.0);
     EXPECT_EQ(require_trade<domain::EquityOptionTrade>(trades_by_id, "E03").exercise_style, "american");

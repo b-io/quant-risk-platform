@@ -159,11 +159,11 @@
     },
     "demo_ttf_swing_001": {
       "pnl_explain": {
-        "carry_pnl": 0.19,
+        "carry_pnl": 0.16,
         "cash_pnl": 0.0,
-        "market_move_pnl": -0.47,
+        "market_move_pnl": -0.21,
         "residual_pnl": 0.0,
-        "total_pnl": -0.28
+        "total_pnl": -0.06
       },
       "product_type": "commodity_swing",
       "risk": {
@@ -171,22 +171,17 @@
         "cs01": 0.0,
         "fx_delta": 0.0,
         "fx_vega": 0.0,
-        "pv01": -0.1
+        "pv01": -0.04
       },
       "stress": {
-        "COMMODITY_ENERGY_SUPPLY_SHOCK": 959.99,
-        "CROSS_ASSET_REPRICING": -3.61,
-        "GLOBAL_RISK_OFF": 2.12,
-        "GLOBAL_RISK_ON": -2.41,
-        "USD_CURVE_BEAR_FLATTENER": -6.17,
-        "USD_CURVE_BULL_STEEPENER": 6.23,
-        "USD_FUNDING_STRESS": -5.04,
-        "USD_RATES_PARALLEL_DOWN_100BP": 6.09,
-        "USD_RATES_PARALLEL_UP_100BP": -6.01
+        "COMMODITY_ENERGY_SUPPLY_SHOCK": 670.17,
+        "USD_CURVE_BEAR_FLATTENER": -3.33,
+        "USD_CURVE_BULL_STEEPENER": 3.36,
+        "USD_FUNDING_STRESS": -2.09
       },
-      "support_status": "partially_supported",
+      "support_status": "supported",
       "valuation": {
-        "npv": 1305.89
+        "npv": 1055.24
       }
     }
   }

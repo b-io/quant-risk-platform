@@ -83,9 +83,10 @@ Current platform coverage:
   contracts.
 - Spot, forward, future, strip, future-option, and calendar-spread-option
   valuation is wired into the pricing registry.
-- Swing valuation is available as an intrinsic exercise-envelope approximation
-  and remains marked partially supported until the full storage/LSMC engine is
-  promoted into product pricing.
+- Swing valuation is wired into a stateful dynamic-programming path with
+  remaining-volume state, min/max exercise quantities, and terminal shortfall
+  penalties. Gas storage remains the main physical-flexibility product path
+  still awaiting the shared storage/LSMC implementation.
 - Multi-commodity spread options are outside current product coverage.
 - The portfolio-backed golden fixtures under `data/portfolios/` link
   commodity products to book-level structural coverage.

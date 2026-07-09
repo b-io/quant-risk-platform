@@ -97,9 +97,10 @@ The engine supports:
   and total P&L diagnostics.
 
 The reusable LSMC module handles exercise-policy examples, Python-facing American option valuation, American equity
-option product valuation, Bermudan swaption product valuation, and callable fixed-rate bond issuer exercise through the
-shared exercise-policy adapter. Commodity physical-flexibility products still use product-specific approximations. A
-general multi-step exposure cube and path-dependent pricing service remains an extension area.
+option product valuation, Bermudan swaption product valuation, callable fixed-rate bond issuer exercise, and commodity
+swing remaining-volume decisions through shared exercise/state/action adapters. Gas storage still needs the shared
+inventory-policy implementation. A general multi-step exposure cube and path-dependent pricing service remains an
+extension area.
 
 ## 4. Architectural choice: Handle-based vs. Brute-force
 
@@ -121,7 +122,7 @@ This design choice is fundamental to the project.
 1. Built-instrument and built-portfolio caching are not shared service capabilities.
 2. Monte Carlo and parametric VaR contribution decomposition are not yet first-class outputs.
 3. Monte Carlo has horizon-shock and aged-horizon modes, but not a general multi-step path/exposure service.
-4. LSMC is exposed through a C++-managed helper and shared American equity, Bermudan swaption, and callable bond product
-   paths, but the shared exercise-policy layer is not yet wired across every physical-flexibility product.
+4. LSMC is exposed through a C++-managed helper and shared American equity, Bermudan swaption, callable bond, and swing
+   product paths, but the shared inventory-policy layer is not yet wired into gas storage.
 5. Product event-source integration for realized cashflow explain is limited.
 6. Production controls, manifests, lineage reports, and benchmark governance remain hardening areas.

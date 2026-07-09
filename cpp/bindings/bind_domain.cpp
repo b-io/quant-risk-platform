@@ -564,10 +564,13 @@ void bind_domain(py::module_& m) {
         .def_readwrite("exercise_dates", &domain::CommoditySwingTrade::exercise_dates)
         .def_readwrite("forward_quote_ids", &domain::CommoditySwingTrade::forward_quote_ids)
         .def_readwrite("maturity_date", &domain::CommoditySwingTrade::maturity_date)
+        .def_readwrite("max_exercise_quantity", &domain::CommoditySwingTrade::max_exercise_quantity)
         .def_readwrite("max_quantity", &domain::CommoditySwingTrade::max_quantity)
+        .def_readwrite("min_exercise_quantity", &domain::CommoditySwingTrade::min_exercise_quantity)
         .def_readwrite("min_quantity", &domain::CommoditySwingTrade::min_quantity)
         .def_readwrite("start_date", &domain::CommoditySwingTrade::start_date)
         .def_readwrite("strike_price", &domain::CommoditySwingTrade::strike_price)
+        .def_readwrite("terminal_shortfall_penalty", &domain::CommoditySwingTrade::terminal_shortfall_penalty)
         .def_readwrite("underlier", &domain::CommoditySwingTrade::underlier)
         .def_readwrite("unit", &domain::CommoditySwingTrade::unit)
         .def_readwrite("volatility", &domain::CommoditySwingTrade::volatility);

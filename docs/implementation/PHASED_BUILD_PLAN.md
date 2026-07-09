@@ -240,9 +240,10 @@ Current implementation checkpoint:
 - Spot, forwards, futures, strips, options on futures, and calendar spread
   options have deterministic pricing support from quote handles and configured
   discount curves.
-- Swing contracts are available through an intrinsic exercise-envelope
-  approximation and are reported as partially supported until the full storage
-  and LSMC exercise engine is promoted into the product path.
+- Swing contracts are valued through a stateful dynamic-programming exercise
+  path with remaining-volume state, min/max exercise quantities, and terminal
+  shortfall penalties. Gas storage remains the physical-flexibility product
+  still awaiting the shared storage/LSMC implementation.
 - The portfolio-backed structural golden set includes commodity coverage through
   the model ladder and thematic portfolios, notably Growth Global Macro and
   Adventurous Commodity Volatility, with current regression coverage maintained
@@ -410,11 +411,11 @@ Current implementation checkpoint:
 - Callable fixed-rate bond pricing uses deterministic projected bond cashflows
   plus the shared exercise-policy adapter for the issuer call right under a
   compact one-factor rates driver.
-- Commodity swing/storage products still use product-specific approximations or
-  partial support rather than the shared LSMC exercise-policy layer.
-- The remaining model-integration work is connecting the reusable engine to the
-  physical-flexibility product paths, starting with commodity swing and then gas
-  storage contracts.
+- Commodity swing pricing now uses the shared dynamic-programming state/action
+  contract with remaining-volume state and terminal shortfall penalties.
+- The remaining model-integration work is connecting the reusable engine to gas
+  storage contracts with inventory, injection/withdrawal constraints, and
+  terminal inventory penalties.
 
 ## Phase 11: Production Controls
 

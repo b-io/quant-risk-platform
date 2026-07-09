@@ -29,7 +29,7 @@ STATUS_BY_TYPE = {
     "commodity_future_option": "supported",
     "commodity_future_strip": "supported",
     "commodity_spot": "supported",
-    "commodity_swing": "partially_supported",
+    "commodity_swing": "supported",
     "credit_bond": "supported",
     "credit_index_option": "supported",
     "deposit": "supported",

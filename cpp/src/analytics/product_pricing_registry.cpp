@@ -492,12 +492,12 @@ const std::map<domain::ProductType, ProductPricingDefinition>& definitions() {
         {domain::ProductType::CommoditySwing,
          ProductPricingDefinition{no_realized_cashflows,
                                   build_commodity_swing,
-                                  "QRP::CommoditySwingInstrument/exercise-envelope approximation",
+                                  "QRP::CommoditySwingStatefulDpInstrument/stateful exercise DP",
                                   default_pricing_profile,
                                   domain::ProductType::CommoditySwing,
-                                  "Commodity swing contracts are supported with an intrinsic "
-                                  "exercise-envelope approximation over configured exercise dates",
-                                  domain::SupportStatus::PartiallySupported}},
+                                  "Commodity swing contracts are supported with a stateful dynamic-programming "
+                                  "exercise policy over configured exercise dates and forward quotes",
+                                  domain::SupportStatus::Supported}},
         {domain::ProductType::CreditBond,
          ProductPricingDefinition{no_realized_cashflows,
                                   build_credit_bond,

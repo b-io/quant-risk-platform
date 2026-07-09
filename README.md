@@ -203,9 +203,9 @@ and demo dashboards.
 Known boundaries:
 
 - Monte Carlo and parametric VaR contribution decomposition are not yet first-class outputs.
-- LSMC is exposed through C++-managed exercise-policy helpers with diagnostics and is used by American equity options,
-  Bermudan swaptions, and callable fixed-rate bonds; wiring the shared layer into physical-flexibility product paths
-  remains a hardening area.
+- LSMC and dynamic-programming helpers are exposed through C++-managed APIs with diagnostics and are used by American
+  equity options, Bermudan swaptions, callable fixed-rate bonds, and commodity swing contracts; gas storage remains a
+  physical-flexibility hardening area.
 - Realized event-source integration does not yet cover every coupon, fixing, exercise, and settlement source.
 - A reusable revaluation-session cache exists for quote and scenario workflows; a shared built-position cache across all
   analytics services is still a hardening area.
