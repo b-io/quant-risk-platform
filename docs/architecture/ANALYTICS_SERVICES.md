@@ -43,7 +43,7 @@ Current limitations:
   methods,
 - historical VaR and Expected Shortfall contribution analytics are first-class service outputs, while Monte Carlo and
   parametric contribution decomposition are not dedicated service outputs,
-- LSMC and dynamic-programming helpers expose C++-managed exercise diagnostics to Python with path, basis,
+- LSMC and dynamic-programming helpers expose C++-managed exercise diagnostics to Python with exercise-grid, path, basis,
   configuration, and regression outputs where applicable. American equity options, Bermudan swaptions, callable
   fixed-rate bonds, commodity swing contracts, and gas storage contracts use C++-owned product paths,
 - there is no platform-wide built portfolio cache shared by all analytics.

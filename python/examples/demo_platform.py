@@ -764,8 +764,15 @@ def run_lsmc_exercise_policy_demo(market, valuation_results):
         raise AssertionError("Expected LSMC regression diagnostics")
 
     first_step = result.regression_diagnostics[0]
+    if len(result.exercise_times) != request.exercise_steps + 1:
+        raise AssertionError("Expected LSMC exercise grid diagnostics")
     print(f"American put value: {result.value:,.4f} +/- {result.standard_error:,.4f}")
     print(f"Tail diagnostics:   VaR95={result.var_95:,.4f} ES95={result.expected_shortfall_95:,.4f}")
+    print(
+        "Exercise grid:      "
+        f"{len(result.exercise_times)} points from {result.exercise_times[0]:.4f} "
+        f"to {result.exercise_times[-1]:.4f} years"
+    )
     print(f"Basis:              {', '.join(result.basis_function_names)}")
     print(
         "First regression:   "

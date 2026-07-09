@@ -168,12 +168,13 @@ request.config.discount_rate = request.risk_free_rate
 
 result = qrp.price_american_option_lsmc(request)
 print(result.value, result.standard_error)
+print(result.exercise_times[:3], result.exercise_times[-1])
 print(result.basis_function_names)
 print(result.regression_diagnostics[0].r_squared)
 ```
 
-Python receives compact run diagnostics and path values, while C++ owns the stochastic process, exercise policy, and
-regression loop. This keeps the hot path out of Python callbacks.
+Python receives compact run diagnostics, exercise-grid times, and path values, while C++ owns the stochastic process,
+exercise policy, and regression loop. This keeps the hot path out of Python callbacks.
 
 Production product paths use normal trade DTOs and `price_portfolio(...)`; they do not expose arbitrary Python exercise
 callbacks. American equity options, Bermudan swaptions, callable fixed-rate bonds, commodity swing contracts, and gas

@@ -399,8 +399,8 @@ Current implementation checkpoint:
   dynamic-programming decision-problem interfaces, stochastic-process
   primitives, and ordinary-least-squares regression support.
 - The LSMC result captures value, standard error, raw and sorted path values,
-  VaR, Expected Shortfall, basis-function names, serialized configuration tags,
-  and step-level regression diagnostics.
+  VaR, Expected Shortfall, exercise-grid times, basis-function names,
+  serialized configuration tags, and step-level regression diagnostics.
 - A reusable `ExercisePolicy` abstraction and `ExercisePolicyDecisionProblem`
   adapter now map exercise policies into the generic dynamic-programming
   contract.

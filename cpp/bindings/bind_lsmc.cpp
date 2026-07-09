@@ -36,6 +36,7 @@ void bind_lsmc(py::module_& m) {
         .def_readwrite("basis_function_names", &analytics::lsmc::LsmcResult::basis_function_names)
         .def_readwrite("config_tags", &analytics::lsmc::LsmcResult::config_tags)
         .def_readwrite("expected_shortfall_95", &analytics::lsmc::LsmcResult::expected_shortfall_95)
+        .def_readwrite("exercise_times", &analytics::lsmc::LsmcResult::exercise_times)
         .def_readwrite("path_values", &analytics::lsmc::LsmcResult::path_values)
         .def_readwrite("regression_diagnostics", &analytics::lsmc::LsmcResult::regression_diagnostics)
         .def_readwrite("sorted_path_values", &analytics::lsmc::LsmcResult::sorted_path_values)

@@ -1,10 +1,10 @@
 # Coverage Summary
 
 - Status: `pass`
-- Combined line coverage: `95.33%` (6591/6914)
-- Generated UTC: `2026-07-09T17:43:26+00:00`
+- Combined line coverage: `95.31%` (6561/6884)
+- Generated UTC: `2026-07-09T18:12:52+00:00`
 
 | Language | Line coverage | Covered / Valid | Status |
 | --- | ---: | ---: | --- |
-| C++ | 95.17% | 6362/6685 | `pass` |
+| C++ | 95.15% | 6332/6655 | `pass` |
 | Python | 100.00% | 229/229 | `pass` |

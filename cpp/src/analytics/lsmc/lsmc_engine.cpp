@@ -45,6 +45,16 @@ std::vector<double> make_uniform_time_grid(double maturity, std::size_t exercise
     return times;
 }
 
+std::vector<double> make_request_exercise_times(double maturity, std::size_t exercise_steps) {
+    if (exercise_steps == 0U) {
+        return {0.0};
+    }
+    if (maturity <= 0.0) {
+        return {0.0};
+    }
+    return make_uniform_time_grid(maturity, exercise_steps);
+}
+
 std::vector<std::string> resolve_basis_names(const dynamic_programming::DecisionProblem& problem,
                                              const dynamic_programming::State& state,
                                              std::size_t time_index) {
@@ -73,6 +83,7 @@ LsmcResult deterministic_result(const AmericanOptionLsmcRequest& request, const 
     result.sorted_path_values = {value};
     result.var_95 = value;
     result.expected_shortfall_95 = value;
+    result.exercise_times = make_request_exercise_times(request.maturity, request.exercise_steps);
     result.basis_function_names =
         exercise::VanillaOptionExercisePolicy(request.strike, request.is_put, request.basis_degree)
             .regressionFeatureNames(0);
@@ -299,6 +310,7 @@ LsmcResult LsmcEngine::run(const simulation::TimeGrid& time_grid,
     result.sorted_path_values = std::move(sorted_path_values);
     result.var_95 = var_95;
     result.expected_shortfall_95 = es_95;
+    result.exercise_times = time_grid.times();
     result.basis_function_names = std::move(basis_function_names);
     result.regression_diagnostics = std::move(regression_diagnostics);
     result.config_tags = {{"discount_rate", std::to_string(config_.discount_rate)},
@@ -319,7 +331,7 @@ LsmcResult price_american_option(const AmericanOptionLsmcRequest& request) {
         return deterministic_result(request, "deterministic_intrinsic_fallback");
     }
 
-    const auto times = make_uniform_time_grid(request.maturity, request.exercise_steps);
+    const auto times = make_request_exercise_times(request.maturity, request.exercise_steps);
     const double drift = request.risk_free_rate - request.dividend_yield + request.borrow_rate;
     simulation::TimeGrid time_grid(times);
     simulation::GeometricBrownianMotion process(request.spot, drift, request.volatility);

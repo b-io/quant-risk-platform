@@ -43,8 +43,8 @@ Least Squares Monte Carlo (LSMC) method.
 
 ### 4. LSMC Engine (`qrp::analytics::lsmc`)
 - `LsmcEngine`: The core backward induction algorithm.
-- `LsmcResult`: Contains value, standard error, path values, risk metrics (VaR, ES), basis labels, configuration tags,
-  and regression diagnostics.
+- `LsmcResult`: Contains value, standard error, exercise-grid times, path values, risk metrics (VaR, ES), basis labels,
+  configuration tags, and regression diagnostics.
 - `price_american_option`: C++-managed American option helper exposed to Python as `price_american_option_lsmc(...)`.
 
 ## Example Usage: American Put Option

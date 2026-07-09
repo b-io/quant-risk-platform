@@ -259,9 +259,9 @@ Current state:
   scenarios, pricing, reset, base/shocked/restored reporting, opt-in impact previews, and candidate-only diff reports,
 - Monte Carlo supports horizon-shock and aged-horizon factor revaluation modes rather than a general multi-step exotic
   path engine,
-- LSMC and dynamic-programming helpers expose C++-managed exercise-policy diagnostics to Python with path values, basis
-  labels, run configuration, and regression diagnostics, while American equity options, Bermudan swaptions, callable
-  fixed-rate bonds, commodity swing contracts, and gas storage contracts use C++-owned product paths,
+- LSMC and dynamic-programming helpers expose C++-managed exercise-policy diagnostics to Python with exercise grids,
+  path values, basis labels, run configuration, and regression diagnostics, while American equity options, Bermudan
+  swaptions, callable fixed-rate bonds, commodity swing contracts, and gas storage contracts use C++-owned product paths,
 - historical VaR and Expected Shortfall contribution analytics report trade, book, strategy, currency, asset-class, and
   risk-factor contributions,
 - realized cash explain currently includes deposit maturities, while coupons, fixings, exercises, and settlement events

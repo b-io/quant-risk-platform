@@ -88,6 +88,7 @@ TEST(LsmcTest, AmericanPutValuation) {
     EXPECT_LT(result.value, 8.0);
     EXPECT_EQ(result.path_values.size(), config.num_paths);
     EXPECT_EQ(result.sorted_path_values.size(), config.num_paths);
+    EXPECT_EQ(result.exercise_times, times);
     EXPECT_FALSE(result.regression_diagnostics.empty());
     EXPECT_EQ(result.basis_function_names, std::vector<std::string>({"basis_0", "basis_1", "basis_2"}));
     EXPECT_EQ(result.config_tags.at("seed"), "42");
@@ -252,6 +253,9 @@ TEST(LsmcTest, AmericanOptionHelperIsSeedReproducibleAndSerializesDiagnostics) {
     EXPECT_EQ(first.path_values, second.path_values);
     EXPECT_EQ(first.path_values.size(), request.config.num_paths);
     EXPECT_EQ(first.sorted_path_values.size(), request.config.num_paths);
+    ASSERT_EQ(first.exercise_times.size(), request.exercise_steps + 1U);
+    EXPECT_DOUBLE_EQ(first.exercise_times.front(), 0.0);
+    EXPECT_DOUBLE_EQ(first.exercise_times.back(), request.maturity);
     EXPECT_EQ(first.basis_function_names, std::vector<std::string>({"1", "spot", "spot^2"}));
     EXPECT_EQ(first.config_tags.at("seed"), "99");
     EXPECT_EQ(first.config_tags.at("num_paths"), "1024");
@@ -274,6 +278,7 @@ TEST(LsmcTest, AmericanOptionHelperReturnsIntrinsicFallbackForDegenerateInput) {
     EXPECT_DOUBLE_EQ(result.value, 20.0);
     EXPECT_DOUBLE_EQ(result.standard_error, 0.0);
     EXPECT_EQ(result.path_values, std::vector<double>({20.0}));
+    EXPECT_EQ(result.exercise_times, std::vector<double>({0.0}));
     EXPECT_EQ(result.config_tags.at("status"), "expired_or_zero_maturity");
 }
 

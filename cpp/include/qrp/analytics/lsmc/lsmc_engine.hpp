@@ -50,6 +50,7 @@ struct LsmcResult {
     std::vector<double> sorted_path_values;                       // Path values sorted ascending for tail diagnostics.
     double var_95 = 0.0;                                          // 95% value-at-risk of path values.
     double expected_shortfall_95 = 0.0;                           // 95% expected shortfall of path values.
+    std::vector<double> exercise_times;                           // Exercise grid times serialized as year fractions.
     std::vector<std::string> basis_function_names;                // Serialized basis-function labels.
     std::vector<LsmcRegressionDiagnostic> regression_diagnostics; // Step-level regression diagnostics.
     std::map<std::string, std::string> config_tags;               // Serialized run configuration for audit/reporting.
