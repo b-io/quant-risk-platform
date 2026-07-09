@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <set>
 #include <stdexcept>
 #include <tuple>
 #include <unordered_map>
@@ -159,6 +160,25 @@ std::vector<std::string> unique_trade_ids(const std::vector<RevaluationDependenc
         trade_ids.insert(dependency.trade_id);
     }
     return std::vector<std::string>(trade_ids.begin(), trade_ids.end());
+}
+
+std::vector<std::string> unique_quote_ids(const std::vector<RevaluationDependency>& dependencies) {
+    std::set<std::string> quote_ids;
+    for (const auto& dependency : dependencies) {
+        quote_ids.insert(dependency.quote_id);
+    }
+    return std::vector<std::string>(quote_ids.begin(), quote_ids.end());
+}
+
+std::vector<RevaluationDependency>
+flatten_dependencies(const std::map<std::string, std::vector<RevaluationDependency>>& dependencies_by_quote) {
+    std::vector<RevaluationDependency> dependencies;
+    for (const auto& [quote_id, quote_dependencies] : dependencies_by_quote) {
+        (void)quote_id;
+        dependencies.insert(dependencies.end(), quote_dependencies.begin(), quote_dependencies.end());
+    }
+    sort_dependencies(dependencies);
+    return dependencies;
 }
 
 std::set<std::string> trade_id_set(const std::vector<std::string>& trade_ids) {
@@ -359,6 +379,60 @@ RevaluationImpactReport RevaluationSession::revalue_scenario_impact(const market
         revalue_quote_update_impact(scenario_quote_updates(scenario, factors_, bindings_, base_market_), pnl_tolerance);
     report.scenario_name = scenario.name;
     return report;
+}
+
+RevaluationDependencyGraph RevaluationSession::dependency_graph() const {
+    build_dependency_index();
+
+    RevaluationDependencyGraph graph;
+    graph.dependencies = flatten_dependencies(dependency_index_by_quote_);
+    graph.dependency_count = graph.dependencies.size();
+    graph.quote_ids = unique_quote_ids(graph.dependencies);
+    graph.quote_count = graph.quote_ids.size();
+    graph.trade_ids = unique_trade_ids(graph.dependencies);
+    graph.trade_count = graph.trade_ids.size();
+    return graph;
+}
+
+std::vector<RevaluationDependency> RevaluationSession::dependencies_for_quote(const std::string& quote_id) const {
+    ensure_quote_exists(quote_id);
+    build_dependency_index();
+
+    const auto it = dependency_index_by_quote_.find(quote_id);
+    if (it == dependency_index_by_quote_.end()) {
+        return {};
+    }
+
+    auto dependencies = it->second;
+    sort_dependencies(dependencies);
+    return dependencies;
+}
+
+std::vector<RevaluationDependency> RevaluationSession::dependencies_for_trade(const std::string& trade_id) const {
+    bool trade_found = false;
+    for (const auto& item : instruments_) {
+        if (item.trade != nullptr && item.trade->id == trade_id) {
+            trade_found = true;
+            break;
+        }
+    }
+    if (!trade_found) {
+        throw std::invalid_argument("RevaluationSession: dependency query references unknown trade id: " + trade_id);
+    }
+
+    build_dependency_index();
+
+    std::vector<RevaluationDependency> dependencies;
+    for (const auto& [quote_id, quote_dependencies] : dependency_index_by_quote_) {
+        (void)quote_id;
+        for (const auto& dependency : quote_dependencies) {
+            if (dependency.trade_id == trade_id) {
+                dependencies.push_back(dependency);
+            }
+        }
+    }
+    sort_dependencies(dependencies);
+    return dependencies;
 }
 
 std::map<std::string, double> RevaluationSession::trade_values() const {

@@ -31,7 +31,8 @@ Current limitations:
 
 - instruments are still rebuilt inside multiple services, although
   `RevaluationSession` now provides a reusable C++ cache for quote updates and
-  factor-scenario revaluation,
+  factor-scenario revaluation with opt-in dependency-graph and impact-diff
+  diagnostics,
 - risk is still mostly bump-and-revalue,
 - explain is deterministic, componentized, persisted, and supports sequential factor revaluation,
 - realized cashflow extraction currently recognizes deposit maturities and still needs broader product event sources for

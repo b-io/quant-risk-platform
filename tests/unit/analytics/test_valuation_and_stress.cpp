@@ -344,6 +344,42 @@ TEST(RevaluationSessionTest, PreviewsQuoteUpdateImpactFromStructuralDependencies
     EXPECT_NEAR(session.total_npv(), 0.0, 1e-10);
 }
 
+TEST(RevaluationSessionTest, ExposesReadOnlyDependencyGraph) {
+    qrp::domain::Portfolio portfolio;
+    portfolio.portfolio_id = "P1";
+    portfolio.trades.push_back(make_equity_trade());
+
+    qrp::domain::MarketSnapshot market_dto;
+    market_dto.valuation_date = "2026-03-24";
+    market_dto.quotes.push_back(make_equity_quote(100.0));
+
+    qrp::analytics::RevaluationSession session(portfolio, market_dto);
+
+    const auto graph = session.dependency_graph();
+
+    ASSERT_EQ(graph.dependency_count, 1U);
+    EXPECT_EQ(graph.quote_count, 1U);
+    EXPECT_EQ(graph.quote_ids, std::vector<std::string>({"AAPL"}));
+    EXPECT_EQ(graph.trade_count, 1U);
+    EXPECT_EQ(graph.trade_ids, std::vector<std::string>({"equity_aapl"}));
+    ASSERT_EQ(graph.dependencies.size(), 1U);
+    EXPECT_EQ(graph.dependencies[0].dependency_type, "market_quote_match");
+    EXPECT_EQ(graph.dependencies[0].quote_id, "AAPL");
+    EXPECT_EQ(graph.dependencies[0].trade_id, "equity_aapl");
+
+    const auto quote_edges = session.dependencies_for_quote("AAPL");
+    ASSERT_EQ(quote_edges.size(), 1U);
+    EXPECT_EQ(quote_edges[0].trade_id, "equity_aapl");
+
+    const auto trade_edges = session.dependencies_for_trade("equity_aapl");
+    ASSERT_EQ(trade_edges.size(), 1U);
+    EXPECT_EQ(trade_edges[0].quote_id, "AAPL");
+
+    EXPECT_THROW(session.dependencies_for_quote("MISSING"), std::invalid_argument);
+    EXPECT_THROW(session.dependencies_for_trade("missing_trade"), std::invalid_argument);
+    EXPECT_NEAR(session.total_npv(), 0.0, 1e-10);
+}
+
 TEST(RevaluationSessionTest, RevaluesOnlyImpactedCandidatesAndRestoresState) {
     qrp::domain::Portfolio portfolio;
     portfolio.portfolio_id = "P1";

@@ -19,8 +19,8 @@ The C++ core owns the analytics. Python is the interface layer for demos, orches
   and risk factor.
 - Explain P&L with carry, market move, realized deposit maturity cash, residual reconciliation, and persisted
   components.
-- Reuse a C++-owned revaluation session from Python for fast quote updates, scenario revaluation, and restored market
-  checks without exposing raw QuantLib handles.
+- Reuse a C++-owned revaluation session from Python for fast quote updates, scenario revaluation, dependency-graph
+  diagnostics, and restored market checks without exposing raw QuantLib handles.
 - Persist market data, portfolios, scenarios, valuation runs, risk runs, HVaR runs, and P&L explain runs in SQLite.
 - Use the platform through Python bindings, a C++ CLI, or the provided scripts.
 
@@ -112,12 +112,16 @@ quote_updates = {
     "USD_OIS_5Y": 0.0512,
 }
 
+graph = session.dependency_graph()
+aapl_dependencies = session.dependencies_for_quote("AAPL")
 preview = session.preview_quote_update_impact(quote_updates)
 report = session.revalue_quote_update_impact(quote_updates, pnl_tolerance=1e-8)
 
 top_moves = sorted(report.trade_diffs, key=lambda row: abs(row.pnl), reverse=True)[:5]
 
 print(f"Base total:    {base_total:,.2f}")
+print(f"Graph:         {graph.trade_count} trades, {graph.quote_count} quotes, {graph.dependency_count} links")
+print("AAPL touches:  " + ", ".join(edge.trade_id for edge in aapl_dependencies[:5]))
 print(f"Candidates:    {preview.potentially_affected_trade_count}")
 print(f"Candidate P&L: {report.candidate_pnl:,.2f}")
 for row in top_moves:
@@ -131,13 +135,16 @@ Under the hood, the session owns QuantLib `SimpleQuote` handles, curves, pricing
 `apply_quote_updates(...)` mutates only the named quote handles. QuantLib's observer graph marks dependent curves and
 instruments dirty, then recalculates lazily on the next NPV request from the changed market node upward through the
 dependency chain. The portfolio is not reparsed, curves are not rebuilt from scratch, and Python never manages raw
-QuantLib object lifetimes. The impact APIs are opt-in: `preview_*_impact(...)` builds a lazy quote-to-trade dependency
-index only when requested, and `revalue_*_impact(...)` reprices only the structurally affected candidate trades before
-returning compact before/after diff rows to Python.
+QuantLib object lifetimes.
+
+The diagnostic APIs are opt-in. `dependency_graph()` returns a read-only quote-to-trade snapshot for inspection,
+`preview_*_impact(...)` uses the same lazy dependency index to answer which trades should be affected without repricing,
+and `revalue_*_impact(...)` reprices only the structurally affected candidate trades before returning compact
+before/after diff rows to Python.
 
 The full demo uses the same session API with factor bindings to apply the `GLOBAL_RISK_OFF` scenario, print quote-handle
-moves, preview potentially affected trades, show candidate-only before/after diffs, and verify the reset value within
-valuation tolerance.
+moves, print a dependency-graph sample, preview potentially affected trades, show candidate-only before/after diffs, and
+verify the reset value within valuation tolerance.
 
 For scenario, risk, P&L explain, Monte Carlo, and VaR contribution examples, run:
 
@@ -178,8 +185,9 @@ Implemented product coverage includes:
 - equities: spot, forwards, futures, and options;
 - commodities: spot, forwards, futures, future strips, futures options, calendar spread options, and swing contracts.
 
-Implemented analytics include valuation, deterministic risk, reactive revaluation sessions, historical stress, HVaR,
-VaR/ES contribution analytics, Monte Carlo simulation, P&L explain, persistence, run reporting, and demo dashboards.
+Implemented analytics include valuation, deterministic risk, reactive revaluation sessions with impact diagnostics,
+historical stress, HVaR, VaR/ES contribution analytics, Monte Carlo simulation, P&L explain, persistence, run reporting,
+and demo dashboards.
 
 Known boundaries:
 

@@ -538,6 +538,7 @@ def run_observer_pattern_demo(portfolio, market, factors, bindings, scenarios):
     scenarios_by_name = {scenario.name: scenario for scenario in scenarios}
     scenario = scenarios_by_name["GLOBAL_RISK_OFF"]
     session = qrp.create_revaluation_session(portfolio, market, factors, bindings)
+    dependency_graph = session.dependency_graph()
     preview = session.preview_scenario_impact(scenario)
     impact_report = session.revalue_scenario_impact(scenario, pnl_tolerance=1e-8)
     report = session.revalue_scenario(scenario)
@@ -552,14 +553,30 @@ def run_observer_pattern_demo(portfolio, market, factors, bindings, scenarios):
 
     print("One market state and one instrument cache are built once.")
     print("The scenario updates mutable quote handles; observed curves and instruments reprice lazily.")
+    print("The dependency graph is a read-only diagnostic snapshot; it does not reprice or update state.")
     print("The impact report is opt-in and reprices only structurally affected candidate trades.")
     print(f"Scenario:      {report.scenario_name}")
     print(f"Base total:    {base_total:>15,.2f}")
     print(f"Shocked total: {shocked_total:>15,.2f}")
     print(f"Scenario P&L:  {scenario_pnl:>15,.2f}")
     print(f"Restored:      {restored_total:>15,.2f}")
+    print(
+        f"Graph links:   {dependency_graph.dependency_count:>15} "
+        f"({dependency_graph.trade_count} trades, {dependency_graph.quote_count} quotes)"
+    )
     print(f"Candidates:    {preview.potentially_affected_trade_count:>15}")
     print(f"Candidate P&L: {float(impact_report.candidate_pnl):>15,.2f}")
+
+    metadata_by_trade = portfolio_trade_metadata_map(portfolio)
+    graph_quote_ids = list(dependency_graph.quote_ids)
+    if graph_quote_ids:
+        watched_quote = "AAPL" if "AAPL" in graph_quote_ids else graph_quote_ids[0]
+        quote_dependencies = session.dependencies_for_quote(watched_quote)
+        print(f"\nDependency graph sample for {watched_quote}")
+        for edge in quote_dependencies[:5]:
+            metadata = trade_metadata(metadata_by_trade, edge.trade_id)
+            factor_ids = ", ".join(edge.factor_ids) if edge.factor_ids else "-"
+            print(f"  {position_prefix(metadata)} via {edge.dependency_type} [{factor_ids}]")
 
     print("\nQuote handle moves")
     moved_quotes = [row for row in report.quote_moves if abs(float(row.after) - float(row.before)) > 1e-12]
@@ -570,7 +587,6 @@ def run_observer_pattern_demo(portfolio, market, factors, bindings, scenarios):
             f"(restored {float(row.restored):>12.6f})"
         )
 
-    metadata_by_trade = portfolio_trade_metadata_map(portfolio)
     print("\nPotentially affected trades")
     for trade_id in list(preview.potentially_affected_trade_ids)[:8]:
         metadata = trade_metadata(metadata_by_trade, trade_id)

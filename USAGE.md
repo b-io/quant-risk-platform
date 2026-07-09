@@ -95,10 +95,13 @@ session = qrp.create_revaluation_session(portfolio, market, factors, bindings)
 base_total = session.total_npv()
 quote_updates = {"EURUSD": 1.09, "USD_OIS_5Y": 0.052}
 
+graph = session.dependency_graph()
+eurusd_edges = session.dependencies_for_quote("EURUSD")
 preview = session.preview_quote_update_impact(quote_updates)
 report = session.revalue_quote_update_impact(quote_updates, pnl_tolerance=1e-8)
 
-print(base_total, preview.potentially_affected_trade_ids, report.candidate_pnl)
+print(base_total, graph.dependency_count, preview.potentially_affected_trade_ids, report.candidate_pnl)
+print([edge.trade_id for edge in eurusd_edges[:5]])
 for row in report.trade_diffs:
     if row.moved_above_tolerance:
         print(row.trade_id, row.pnl, row.dependency_quote_ids)
@@ -107,11 +110,12 @@ scenario_report = session.revalue_scenario_impact(global_risk_off_scenario)
 print(scenario_report.scenario_name, scenario_report.candidate_pnl)
 ```
 
-The `preview_*_impact(...)` calls are the lightweight a priori layer: they map touched quote ids to trades through
-explicit quote ids, market-quote metadata matches, and curve quote membership. They do not reprice. The
-`revalue_*_impact(...)` calls use that candidate set, price only those cached instruments, and return the before/after
-diffs that Python needs. When these APIs are not called, the normal session path does not build or traverse the
-dependency index.
+The graph and impact APIs are the lightweight a priori layer: `dependency_graph()` and
+`dependencies_for_quote(...)` expose a read-only diagnostic snapshot, while `preview_*_impact(...)` maps touched quote
+ids to trades through explicit quote ids, market-quote metadata matches, and curve quote membership. They do not reprice.
+The `revalue_*_impact(...)` calls use that candidate set, price only those cached instruments, and return the
+before/after diffs that Python needs. When these APIs are not called, the normal session path does not build or traverse
+the dependency index.
 
 ## Use The Python Bindings
 

@@ -17,7 +17,8 @@ Least Squares Monte Carlo (LSMC) method.
 - `MonteCarloEngine`: Runs factor-shock simulations in horizon-shock or aged-horizon modes.
 - `VarContributionService`: Calculates historical VaR/ES contributions by reporting group.
 - `RevaluationSession`: Owns one built market state and instrument cache for repeated quote/scenario revaluation.
-  It also exposes opt-in impact previews and candidate-only revaluation diffs for Python reporting workflows.
+  It also exposes opt-in dependency-graph snapshots, impact previews, and candidate-only revaluation diffs for Python
+  reporting workflows.
 
 ## Key Components
 

@@ -44,8 +44,9 @@ the canonical trade model and pricing registry. Valuation, deterministic risk,
 stress/HVaR, historical VaR/Expected Shortfall contribution analytics,
 persistence, CLI, Python entry points, and PnL explain are wired through the
 platform. A reusable C++ `RevaluationSession` is exposed to Python for fast
-quote updates and scenario revaluation over cached instruments. PnL explain is
-persisted with component reconciliation, sequential factor revaluation, and
+quote updates and scenario revaluation over cached instruments, with opt-in
+dependency-graph and impact-diff diagnostics for Python workflows. PnL explain
+is persisted with component reconciliation, sequential factor revaluation, and
 realized deposit maturity cash support.
 
 Known boundaries are reusable LSMC exercise-policy integration, broader

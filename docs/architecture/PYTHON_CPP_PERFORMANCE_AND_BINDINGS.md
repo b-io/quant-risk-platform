@@ -136,7 +136,8 @@ split by domain, analytics, I/O, market, and revaluation APIs:
 - `create_revaluation_session(...)` returns a C++-owned `RevaluationSession`
   that keeps mutable market state and cached instruments on the C++ side while
   exposing Python methods for quote updates, scenario application, pricing,
-  reset, and base/shocked/restored reporting.
+  reset, base/shocked/restored reporting, read-only dependency-graph snapshots,
+  impact previews, and candidate-only impact revaluation.
 
 This keeps Python ergonomic without exposing raw QuantLib handles or requiring
 Python callers to manage observer lifetimes.

@@ -8,6 +8,7 @@
 #include <qrp/domain/portfolio.hpp>
 #include <qrp/market/scenario_engine.hpp>
 
+#include <cstddef>
 #include <map>
 #include <memory>
 #include <ql/instrument.hpp>
@@ -51,6 +52,18 @@ struct RevaluationDependency {
     std::string product_type;            // Trade product type label.
     std::string quote_id;                // Market quote identifier.
     std::string trade_id;                // Trade identifier.
+};
+
+/**
+ * @brief Read-only structural quote-to-trade dependency graph for a revaluation session.
+ */
+struct RevaluationDependencyGraph {
+    std::vector<RevaluationDependency> dependencies; // All structural quote-to-trade links.
+    std::size_t dependency_count = 0;                // Number of dependency edges.
+    std::size_t quote_count = 0;                     // Number of quote ids with at least one dependency.
+    std::vector<std::string> quote_ids;              // Quote ids with at least one dependency.
+    std::size_t trade_count = 0;                     // Number of trade ids with at least one dependency.
+    std::vector<std::string> trade_ids;              // Trade ids with at least one dependency.
 };
 
 /**
@@ -162,6 +175,21 @@ public:
      */
     RevaluationImpactReport revalue_scenario_impact(const market::ScenarioDefinition& scenario,
                                                     double pnl_tolerance = 1.0e-8);
+
+    /**
+     * @brief Returns the full read-only quote-to-trade dependency graph.
+     */
+    RevaluationDependencyGraph dependency_graph() const;
+
+    /**
+     * @brief Returns read-only dependency edges for one quote id.
+     */
+    std::vector<RevaluationDependency> dependencies_for_quote(const std::string& quote_id) const;
+
+    /**
+     * @brief Returns read-only dependency edges for one trade id.
+     */
+    std::vector<RevaluationDependency> dependencies_for_trade(const std::string& trade_id) const;
 
     /**
      * @brief Returns current trade NPVs keyed by trade id.

@@ -48,6 +48,21 @@ void bind_revaluation(py::module_& m) {
         .def_readwrite("quote_id", &analytics::RevaluationDependency::quote_id)
         .def_readwrite("trade_id", &analytics::RevaluationDependency::trade_id);
 
+    py::class_<analytics::RevaluationDependencyGraph>(m, "RevaluationDependencyGraph")
+        .def_property_readonly("dependencies",
+                               [](const analytics::RevaluationDependencyGraph& graph) { return graph.dependencies; })
+        .def_property_readonly(
+            "dependency_count",
+            [](const analytics::RevaluationDependencyGraph& graph) { return graph.dependency_count; })
+        .def_property_readonly("quote_count",
+                               [](const analytics::RevaluationDependencyGraph& graph) { return graph.quote_count; })
+        .def_property_readonly("quote_ids",
+                               [](const analytics::RevaluationDependencyGraph& graph) { return graph.quote_ids; })
+        .def_property_readonly("trade_count",
+                               [](const analytics::RevaluationDependencyGraph& graph) { return graph.trade_count; })
+        .def_property_readonly("trade_ids",
+                               [](const analytics::RevaluationDependencyGraph& graph) { return graph.trade_ids; });
+
     py::class_<analytics::RevaluationImpactPreview>(m, "RevaluationImpactPreview")
         .def(py::init<>())
         .def_readwrite("dependencies", &analytics::RevaluationImpactPreview::dependencies)
@@ -127,6 +142,17 @@ void bind_revaluation(py::module_& m) {
              py::arg("scenario"),
              py::arg("pnl_tolerance") = 1.0e-8,
              "Resolve a scenario and reprice only structurally affected candidate trades")
+        .def("dependency_graph",
+             &analytics::RevaluationSession::dependency_graph,
+             "Return a read-only quote-to-trade dependency graph snapshot")
+        .def("dependencies_for_quote",
+             &analytics::RevaluationSession::dependencies_for_quote,
+             py::arg("quote_id"),
+             "Return read-only dependency edges for one quote id")
+        .def("dependencies_for_trade",
+             &analytics::RevaluationSession::dependencies_for_trade,
+             py::arg("trade_id"),
+             "Return read-only dependency edges for one trade id")
         .def("total_npv", &analytics::RevaluationSession::total_npv, "Return the current total portfolio NPV")
         .def("trade_values",
              &analytics::RevaluationSession::trade_values,
