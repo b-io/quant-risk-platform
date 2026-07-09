@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>__QRP_TITLE__</title>
+  <script>
+__QRP_INITIAL_THEME_JS__
+  </script>
+  <script id="qrp-style-presets" type="application/json">__QRP_STYLE_PRESETS_JSON__</script>
+  <style>
+__QRP_DASHBOARD_CSS__
+  </style>
+</head>
+<body>
+  <div class="dashboard-shell">
+    <header class="hero">
+      <div class="topbar">
+        <div class="brand">
+          <span class="brand-mark">QRP</span>
+          <div class="brand-copy">
+            <div class="eyebrow">Risk cockpit</div>
+            <div class="desk-label">Portfolio manager and risk manager view</div>
+          </div>
+        </div>
+        <div class="dashboard-controls">
+          <label class="style-picker portfolio-picker">
+            <span>Portfolio</span>
+            <select data-portfolio-select aria-label="Dashboard portfolio">
+              __QRP_PORTFOLIO_OPTIONS__
+            </select>
+          </label>
+          <label class="style-picker">
+            <span>Style</span>
+            <select data-style-select aria-label="Dashboard visual style">
+              __QRP_STYLE_OPTIONS__
+            </select>
+          </label>
+          <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch theme">
+            <span class="theme-icon theme-icon-sun" aria-hidden="true">&#9728;</span>
+            <span class="theme-icon theme-icon-moon" aria-hidden="true">&#9790;</span>
+            <span data-theme-label>Light</span>
+          </button>
+        </div>
+      </div>
+      <h1>__QRP_TITLE__</h1>
+      <p class="subtitle">
+        Interactive portfolio performance and risk dashboard generated from model return history,
+        allocation, valuation, stress, factor exposure, P&amp;L explain, and Monte Carlo outputs.
+        Built as a modern cockpit for performance review, loss diagnostics, and risk investigations.
+      </p>
+      <div class="market-ribbon">
+        <span>Market as of __QRP_MARKET_AS_OF__</span>
+        <span>Generated __QRP_GENERATED_AT__</span>
+        <span>Scenario revaluation</span>
+        <span>VaR / ES</span>
+        <span>Stress paths</span>
+        <span>P&amp;L explain</span>
+      </div>
+    </header>
+    <main>
+      __QRP_VIEW_HTML__
+      <p class="footnote">
+        Performance history is a deterministic model series generated from asset-class return assumptions and policy
+        benchmark weights; the chart supports common lookback windows from 1Y through inception plus calendar-year
+        returns. Stress scenarios are one-step revaluations as of __QRP_MARKET_AS_OF__;
+        they are not chronological portfolio performance.
+      </p>
+    </main>
+  </div>
+  <script>
+__QRP_DASHBOARD_JS__
+  </script>
+</body>
+</html>

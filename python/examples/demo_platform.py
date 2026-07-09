@@ -1,17 +1,13 @@
-"""Runs the end-to-end platform demo, golden checks, and optional dashboard export."""
+"""Runs the end-to-end platform demo and golden checks."""
 
-import argparse
 import importlib.machinery
 import importlib.util
 import json
 import math
 import os
 import sys
-import webbrowser
 from collections import defaultdict
 from pathlib import Path
-
-from demo_dashboard import create_plotly_dashboard
 
 script_path = Path(__file__).resolve()
 project_root = script_path.parents[2]
@@ -130,20 +126,10 @@ REQUIRED_STRESS_SCENARIOS = {
     "VOL_SPIKE",
 }
 
-DASHBOARD_PORTFOLIOS = [
-    "liquidity_reserve_model_portfolio.json",
-    "balanced_core_model_portfolio.json",
-    "growth_global_macro_portfolio.json",
-    "high_growth_equity_volatility_portfolio.json",
-    "adventurous_commodity_volatility_portfolio.json",
-]
-
 MONTE_CARLO_CASES = [
     ("HorizonShockOnly", qrp.MonteCarloMode.HorizonShockOnly, 1.0),
     ("AgedHorizonRevaluation", qrp.MonteCarloMode.AgedHorizonRevaluation, 10.0),
 ]
-
-DASHBOARD_PORTFOLIO_MONTE_CARLO_CASES = [MONTE_CARLO_CASES[0]]
 ASSET_COLUMN_WIDTH = 10
 PRODUCT_COLUMN_WIDTH = 34
 POSITION_COLUMN_WIDTH = 34
@@ -917,29 +903,6 @@ def compute_portfolio_analytics(portfolio, market, market_path, factors, binding
     }
 
 
-def build_dashboard_portfolio_views(primary_portfolio_id, market, market_path, factors, bindings, scenarios):
-    views = []
-    seen = {primary_portfolio_id}
-    portfolio_dir = project_root / "data" / "portfolios"
-    for portfolio_file in DASHBOARD_PORTFOLIOS:
-        portfolio = qrp.load_portfolio(str(portfolio_dir / portfolio_file))
-        if portfolio.portfolio_id in seen:
-            continue
-        views.append(
-            compute_portfolio_analytics(
-                portfolio,
-                market,
-                market_path,
-                factors,
-                bindings,
-                scenarios,
-                DASHBOARD_PORTFOLIO_MONTE_CARLO_CASES,
-            )
-        )
-        seen.add(portfolio.portfolio_id)
-    return views
-
-
 def validate_golden_outputs(
     golden,
     valuation_results,
@@ -1242,17 +1205,7 @@ def run_optional_cvxpy_worker_check():
     return result
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(description="Run the Quant Risk Platform Python demo.")
-    parser.add_argument(
-        "--dashboard",
-        action="store_true",
-        help="Create reports/demo_risk_dashboard.html and open it in the default web browser.",
-    )
-    return parser.parse_args()
-
-
-def run_demo(dashboard=False):
+def run_demo():
     section("Quant Risk Platform Python Demo")
     market_path = project_root / "data" / "market" / "demo_market.json"
     portfolio_path = project_root / "data" / "portfolios" / "demo_portfolio.json"
@@ -1291,36 +1244,10 @@ def run_demo(dashboard=False):
         mc_results,
     )
     validate_product_family_outputs(product_families, valuation_results, stress_results, risk_results, pnl_results)
-    optimization_result = run_optional_cvxpy_worker_check()
-    if dashboard:
-        portfolio_views = build_dashboard_portfolio_views(
-            portfolio.portfolio_id, market, market_path, factors, bindings, scenarios
-        )
-        dashboard_path = create_plotly_dashboard(
-            portfolio=portfolio,
-            valuation_results=valuation_results,
-            total_npv=total_npv,
-            stress_results=stress_results,
-            risk_results=risk_results,
-            pnl_results=pnl_results,
-            mc_results=mc_results,
-            factors=factors,
-            market_valuation_date=market.valuation_date,
-            scenarios=scenarios,
-            output_path=project_root / "reports" / "demo_risk_dashboard.html",
-            optimization_result=optimization_result,
-            portfolio_views=portfolio_views,
-        )
-        if dashboard_path:
-            print(f"\nDashboard written to: {dashboard_path}")
-            webbrowser.open(dashboard_path.resolve().as_uri())
-            print("Dashboard opened in your default web browser.")
-        else:
-            print("Dashboard was not generated, so there is no webpage to open.")
+    run_optional_cvxpy_worker_check()
 
     section("Demo completed successfully")
 
 
 if __name__ == "__main__":
-    args = parse_args()
-    run_demo(dashboard=args.dashboard)
+    run_demo()

@@ -162,10 +162,10 @@ For scenario, risk, P&L explain, Monte Carlo, and VaR contribution examples, run
 uv run --project python python python\examples\demo_platform.py
 ```
 
-Use `--dashboard` to generate an optional Plotly HTML dashboard:
+Generate the optional Plotly HTML dashboard with the dedicated dashboard script:
 
 ```powershell
-uv run --project python python python\examples\demo_platform.py --dashboard
+uv run --project python --extra dashboard python python\examples\demo_dashboard.py
 ```
 
 ## CLI Example

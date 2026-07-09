@@ -34,7 +34,7 @@ The platform's core logic is implemented in C++ and exposed to Python using Pybi
    To generate and open the interactive Plotly risk dashboard, including finance themes, light/dark mode, support
    coverage, selectable demo portfolios, stress/risk/Monte Carlo panels, and market-as-of/generated timestamps:
    ```powershell
-   uv run --project python python python\examples\demo_platform.py --dashboard
+   uv run --project python --extra dashboard python python\examples\demo_dashboard.py
    ```
    To run the standalone multi-asset optimizer demo through the optional CVXPY worker:
    ```powershell

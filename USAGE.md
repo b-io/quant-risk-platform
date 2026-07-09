@@ -66,10 +66,10 @@ uv sync --project python --extra dashboard --extra optimization
 uv run --project python python python\examples\demo_platform.py
 ```
 
-Generate the optional HTML dashboard:
+Generate the optional HTML dashboard with the dedicated dashboard script:
 
 ```powershell
-uv run --project python python python\examples\demo_platform.py --dashboard
+uv run --project python --extra dashboard python python\examples\demo_dashboard.py
 ```
 
 The dashboard is written under `reports/`.
