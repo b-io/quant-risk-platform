@@ -15,11 +15,15 @@ The platform's core logic is implemented in C++ and exposed to Python using Pybi
 
 #### Getting Started
 
-1. Install the Python dependencies and the `qrp` module:
+1. Install the Python dependencies and editable `qrp` helper package:
    ```powershell
    .\scripts\install.ps1 -Preset dev
    ```
-2. Run the end-to-end demo/smoke test with the pinned Python 3.12 environment:
+2. Build the compiled `quant_risk_platform` extension:
+   ```powershell
+   .\scripts\build.ps1
+   ```
+3. Run the end-to-end demo/smoke test with the pinned Python 3.12 environment:
    ```powershell
    powershell -ExecutionPolicy ByPass -c {$env:UV_INSTALL_DIR = "<path-to-your-local-tools>"; irm https://astral.sh/uv/install.ps1 | iex}
    uv sync --project python --extra dashboard --extra optimization
@@ -36,4 +40,4 @@ The platform's core logic is implemented in C++ and exposed to Python using Pybi
    ```powershell
    uv run --project python python python\examples\demo_optimizer.py
    ```
-3. Or launch a notebook to explore the API interactively.
+4. Or launch a notebook to explore the API interactively.

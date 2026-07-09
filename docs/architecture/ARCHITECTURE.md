@@ -38,7 +38,7 @@ flowchart TD
     K --> L
     R --> L
     V --> L
-    E --> X[LSMC exercise helpers]
+    E --> X[Exercise and dynamic-programming helpers]
     X --> L
 ```
 

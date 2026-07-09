@@ -90,8 +90,9 @@ python scripts/format.py --check
 
 The test scripts expose matching public options where applicable, including `-BuildDir`, `-Config`, `-Coverage`,
 `-Performance`, `-PerformanceIterations`, `-CppCoverageMinLine`, `-PythonCoverageMinLine`, `-SkipCppCoverage`,
-`-SkipPythonCoverage`, and `-SkipEnv`. See [scripts/README.md](scripts/README.md) before adding or changing script
-parameters.
+`-SkipPythonCoverage`, `-SkipBuild`, and `-SkipEnv`. They pin `QRP_PYTHON_PATH` to the selected build output before
+running Python binding tests, so stale shell-level extension paths do not mask the active build. See
+[scripts/README.md](scripts/README.md) before adding or changing script parameters.
 
 ## Coverage
 

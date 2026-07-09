@@ -14,7 +14,7 @@ Most scripts are provided in both PowerShell (`.ps1`) and Bash (`.sh`) versions 
 | `init`      | Initializes the SQLite database and loads sample data.            |
 | `inspect`   | Provides a quick way to inspect persisted database tables and run outputs. |
 | `install`   | Installs Python and C++ dependencies (via vcpkg).                 |
-| `test`      | Builds and runs unit and integration tests.                       |
+| `test`      | Builds and runs C++ tests, Python binding smoke tests, optional coverage, and optional benchmarks. |
 
 #### Usage Examples
 
@@ -106,14 +106,20 @@ List all portfolios or view results of a specific run:
 ```powershell
 # PowerShell
 .\scripts\test.ps1
+.\scripts\test.ps1 -Coverage
 .\scripts\test.ps1 -Performance
 ```
 
 ```bash
 # Bash
 ./scripts/test.sh
+./scripts/test.sh -Coverage
 ./scripts/test.sh -Performance
 ```
+
+The test scripts set `QRP_PYTHON_PATH` to the compiled extension directory under the selected build tree before running
+Python tests. This keeps Python binding checks tied to the active `-BuildDir`/`-Config` output instead of any stale
+extension path left in the shell environment.
 
 #### Note on Parameters
 
@@ -144,6 +150,7 @@ The public option names are intentionally shared across PowerShell and Bash wher
 - `-SkipEnv`: skip automatic project environment loading.
 - `-SkipCppCoverage`: skip C++ coverage generation in test scripts.
 - `-SkipPythonCoverage`: skip Python coverage generation in test scripts.
+- `-SkipBuild`: run tests against existing artifacts in the selected build directory.
 - `-SnapshotId`: select the compute-flow market snapshot.
 - `-Table`: select the database table or result category for inspection.
 
