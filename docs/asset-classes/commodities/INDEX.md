@@ -73,20 +73,22 @@ Commodity product coverage is organized around these product families:
 3. futures strips;
 4. options on futures;
 5. calendar spread options;
-6. swing and storage contracts using LSMC;
+6. swing and storage contracts using dynamic programming;
 7. multi-commodity spread options.
 
 Current platform coverage:
 
 - The canonical portfolio DTO supports commodity spot, forwards, futures,
-  futures strips, options on futures, calendar spread options, and swing
-  contracts.
+  futures strips, options on futures, calendar spread options, swing contracts,
+  and gas storage contracts.
 - Spot, forward, future, strip, future-option, and calendar-spread-option
   valuation is wired into the pricing registry.
 - Swing valuation is wired into a stateful dynamic-programming path with
   remaining-volume state, min/max exercise quantities, and terminal shortfall
-  penalties. Gas storage remains the main physical-flexibility product path
-  still awaiting the shared storage/LSMC implementation.
+  penalties.
+- Gas storage valuation is wired into an inventory dynamic-programming path with
+  min/max inventory, injection and withdrawal limits, variable exercise costs,
+  and terminal inventory penalties.
 - Multi-commodity spread options are outside current product coverage.
 - The portfolio-backed golden fixtures under `data/portfolios/` link
   commodity products to book-level structural coverage.

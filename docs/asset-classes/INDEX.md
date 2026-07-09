@@ -76,8 +76,8 @@ Known boundaries are:
 - Monte Carlo and parametric VaR contribution decomposition are not yet
   first-class outputs;
 - LSMC and dynamic-programming helpers are exposed and used by American equity
-  options, Bermudan swaptions, callable fixed-rate bonds, and commodity swing
-  contracts, but gas storage still needs the shared inventory-policy path;
+  options, Bermudan swaptions, callable fixed-rate bonds, commodity swing
+  contracts, and gas storage inventory optionality;
 - shared built-position caching across every analytics service is not yet
   generalized beyond the revaluation-session API;
 - production controls and validation reports remain hardening areas.

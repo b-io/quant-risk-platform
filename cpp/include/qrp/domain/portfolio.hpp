@@ -82,6 +82,7 @@ enum class TradeType {
     CommodityFutureOption,
     CommodityCalendarSpreadOption,
     CommoditySwing,
+    GasStorage,
 
     // Credit products use the credit business order.
     CreditBond,
@@ -137,6 +138,8 @@ inline TradeType parse_trade_type(const std::string& value) {
         return TradeType::CommodityCalendarSpreadOption;
     if (value == "commodity_swing")
         return TradeType::CommoditySwing;
+    if (value == "gas_storage")
+        return TradeType::GasStorage;
     if (value == "credit_bond")
         return TradeType::CreditBond;
     if (value == "cds")
@@ -209,6 +212,8 @@ inline std::string to_string(TradeType type) {
             return "commodity_calendar_spread_option";
         case TradeType::CommoditySwing:
             return "commodity_swing";
+        case TradeType::GasStorage:
+            return "gas_storage";
         case TradeType::CreditBond:
             return "credit_bond";
         case TradeType::Cds:
@@ -284,6 +289,8 @@ inline ProductType product_type_from_trade_type(TradeType type) {
             return ProductType::CommodityCalendarSpreadOption;
         case TradeType::CommoditySwing:
             return ProductType::CommoditySwing;
+        case TradeType::GasStorage:
+            return ProductType::GasStorage;
         case TradeType::CreditBond:
             return ProductType::CreditBond;
         case TradeType::Cds:
@@ -1568,6 +1575,69 @@ struct CommoditySwingTrade : public Trade {
 };
 
 /**
+ * @brief Gas storage contract with inventory and injection/withdrawal constraints.
+ */
+struct GasStorageTrade : public Trade {
+    /**
+     * @brief Initializes taxonomy fields for gas storage contracts.
+     */
+    GasStorageTrade() {
+        trade_type = TradeType::GasStorage;
+        product_type = product_type_from_trade_type(trade_type);
+        type = to_string(trade_type);
+    }
+
+    double initial_inventory = 0.0;             // Inventory at valuation start.
+    double injection_cost = 0.0;                // Variable cost per injected unit.
+    double max_injection_quantity = 0.0;        // Maximum injection volume per exercise date.
+    double max_inventory = 0.0;                 // Storage capacity.
+    double max_withdrawal_quantity = 0.0;       // Maximum withdrawal volume per exercise date.
+    double min_inventory = 0.0;                 // Minimum operating inventory.
+    double terminal_inventory_penalty = 0.0;    // Per-unit penalty for terminal inventory deviation.
+    double terminal_inventory_target = 0.0;     // Target inventory at the end of the storage horizon.
+    double withdrawal_cost = 0.0;               // Variable cost per withdrawn unit.
+    std::string maturity_date;                  // Storage horizon end date.
+    std::string start_date;                     // Storage horizon start date.
+    std::string underlier;                      // Gas hub or benchmark.
+    std::string unit;                           // Unit label such as MWh or MMBtu.
+    std::vector<std::string> exercise_dates;    // Optional decision dates inside the horizon.
+    std::vector<std::string> forward_quote_ids; // Forward quotes used to value decision dates.
+
+    /**
+     * @brief Reads gas storage economics and shared trade fields from JSON.
+     */
+    void from_json(const nlohmann::json& j) override {
+        Trade::from_json(j);
+        if (j.contains("start_date")) {
+            j.at("start_date").get_to(start_date);
+        }
+        if (j.contains("maturity_date")) {
+            j.at("maturity_date").get_to(maturity_date);
+        }
+        const auto& details = j.at("details");
+        exercise_dates = portfolio_detail::optional_string_vector(details, {"exercise_dates", "decision_dates"});
+        forward_quote_ids = portfolio_detail::optional_string_vector(details, {"forward_quote_ids", "quote_ids"});
+        initial_inventory = portfolio_detail::optional_double(details, {"initial_inventory"});
+        injection_cost = portfolio_detail::optional_double(details, {"injection_cost"});
+        max_injection_quantity =
+            portfolio_detail::optional_double(details, {"max_injection_quantity", "max_injection_rate"});
+        max_inventory = portfolio_detail::optional_double(details, {"max_inventory", "capacity"});
+        max_withdrawal_quantity =
+            portfolio_detail::optional_double(details, {"max_withdrawal_quantity", "max_withdrawal_rate"});
+        min_inventory = portfolio_detail::optional_double(details, {"min_inventory"});
+        maturity_date = portfolio_detail::optional_string(details, {"maturity_date", "storage_end"}, maturity_date);
+        start_date = portfolio_detail::optional_string(details, {"start_date", "storage_start"}, start_date);
+        terminal_inventory_penalty =
+            portfolio_detail::optional_double(details, {"terminal_inventory_penalty"}, terminal_inventory_penalty);
+        terminal_inventory_target =
+            portfolio_detail::optional_double(details, {"terminal_inventory_target"}, initial_inventory);
+        underlier = portfolio_detail::optional_string(details, {"underlier", "commodity", "hub", "benchmark"});
+        unit = portfolio_detail::optional_string(details, {"unit"});
+        withdrawal_cost = portfolio_detail::optional_double(details, {"withdrawal_cost"});
+    }
+};
+
+/**
  * @brief Equity spot exposure trade DTO.
  */
 struct EquitySpotTrade : public Trade {
@@ -1785,6 +1855,8 @@ inline std::shared_ptr<Trade> make_trade(TradeType type) {
             return std::make_shared<CommodityCalendarSpreadOptionTrade>();
         case TradeType::CommoditySwing:
             return std::make_shared<CommoditySwingTrade>();
+        case TradeType::GasStorage:
+            return std::make_shared<GasStorageTrade>();
         case TradeType::CreditBond:
             return std::make_shared<CreditBondTrade>();
         case TradeType::Cds:

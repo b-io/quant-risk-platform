@@ -263,6 +263,12 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> build_commodity_swing(const doma
     return typed ? instruments::CommodityInstrumentFactory::create_commodity_swing(*typed, context) : nullptr;
 }
 
+QuantLib::ext::shared_ptr<QuantLib::Instrument> build_gas_storage(const domain::Trade& trade,
+                                                                  const PricingContext& context) {
+    const auto* typed = dynamic_cast<const domain::GasStorageTrade*>(&trade);
+    return typed ? instruments::CommodityInstrumentFactory::create_gas_storage(*typed, context) : nullptr;
+}
+
 QuantLib::ext::shared_ptr<QuantLib::Instrument> build_deposit(const domain::Trade& trade,
                                                               const PricingContext& context) {
     const auto* typed = dynamic_cast<const domain::DepositTrade*>(&trade);
@@ -497,6 +503,15 @@ const std::map<domain::ProductType, ProductPricingDefinition>& definitions() {
                                   domain::ProductType::CommoditySwing,
                                   "Commodity swing contracts are supported with a stateful dynamic-programming "
                                   "exercise policy over configured exercise dates and forward quotes",
+                                  domain::SupportStatus::Supported}},
+        {domain::ProductType::GasStorage,
+         ProductPricingDefinition{no_realized_cashflows,
+                                  build_gas_storage,
+                                  "QRP::GasStorageStatefulDpInstrument/inventory DP",
+                                  default_pricing_profile,
+                                  domain::ProductType::GasStorage,
+                                  "Gas storage contracts are supported with a stateful inventory dynamic-programming "
+                                  "policy over configured decision dates and forward quotes",
                                   domain::SupportStatus::Supported}},
         {domain::ProductType::CreditBond,
          ProductPricingDefinition{no_realized_cashflows,

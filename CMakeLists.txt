@@ -121,6 +121,7 @@ add_library(qrp_core ${_QRP_CORE_LIBRARY_TYPE}
     cpp/src/analytics/cashflow_extractor.cpp
     cpp/src/analytics/covariance_estimator.cpp
     cpp/src/analytics/exercise_policy.cpp
+    cpp/src/analytics/gas_storage_policy.cpp
     cpp/src/analytics/lsmc/lsmc_engine.cpp
     cpp/src/analytics/monte_carlo_engine.cpp
     cpp/src/analytics/pnl_explain_service.cpp

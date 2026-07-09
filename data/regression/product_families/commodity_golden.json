@@ -183,6 +183,33 @@
       "valuation": {
         "npv": 1055.24
       }
+    },
+    "demo_ttf_storage_001": {
+      "pnl_explain": {
+        "carry_pnl": 0.02,
+        "cash_pnl": 0.0,
+        "market_move_pnl": -0.42,
+        "residual_pnl": 0.0,
+        "total_pnl": -0.4
+      },
+      "product_type": "gas_storage",
+      "risk": {
+        "bucketed_risk": {},
+        "cs01": -0.0,
+        "fx_delta": -0.0,
+        "fx_vega": -0.0,
+        "pv01": -0.08
+      },
+      "stress": {
+        "COMMODITY_ENERGY_SUPPLY_SHOCK": -47.89,
+        "USD_CURVE_BEAR_FLATTENER": -5.1,
+        "USD_CURVE_BULL_STEEPENER": 5.16,
+        "USD_FUNDING_STRESS": -4.54
+      },
+      "support_status": "supported",
+      "valuation": {
+        "npv": 113.3
+      }
     }
   }
 }

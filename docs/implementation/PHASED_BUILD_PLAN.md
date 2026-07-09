@@ -235,15 +235,18 @@ Current implementation checkpoint:
 
 - `CommoditySpotTrade`, `CommodityForwardTrade`, `CommodityFutureTrade`,
   `CommodityFutureStripTrade`, `CommodityFutureOptionTrade`,
-  `CommodityCalendarSpreadOptionTrade`, and `CommoditySwingTrade` are part of
-  the canonical portfolio DTO and product-pricing registry.
+  `CommodityCalendarSpreadOptionTrade`, `CommoditySwingTrade`, and
+  `GasStorageTrade` are part of the canonical portfolio DTO and
+  product-pricing registry.
 - Spot, forwards, futures, strips, options on futures, and calendar spread
   options have deterministic pricing support from quote handles and configured
   discount curves.
 - Swing contracts are valued through a stateful dynamic-programming exercise
   path with remaining-volume state, min/max exercise quantities, and terminal
-  shortfall penalties. Gas storage remains the physical-flexibility product
-  still awaiting the shared storage/LSMC implementation.
+  shortfall penalties.
+- Gas storage contracts are valued through a stateful inventory
+  dynamic-programming path with min/max inventory, injection and withdrawal
+  limits, variable exercise costs, and terminal inventory penalties.
 - The portfolio-backed structural golden set includes commodity coverage through
   the model ladder and thematic portfolios, notably Growth Global Macro and
   Adventurous Commodity Volatility, with current regression coverage maintained
@@ -413,9 +416,9 @@ Current implementation checkpoint:
   compact one-factor rates driver.
 - Commodity swing pricing now uses the shared dynamic-programming state/action
   contract with remaining-volume state and terminal shortfall penalties.
-- The remaining model-integration work is connecting the reusable engine to gas
-  storage contracts with inventory, injection/withdrawal constraints, and
-  terminal inventory penalties.
+- Gas storage pricing now uses the shared dynamic-programming state/action
+  contract with inventory state, injection/withdrawal constraints, variable
+  exercise costs, and terminal inventory penalties.
 
 ## Phase 11: Production Controls
 

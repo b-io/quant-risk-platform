@@ -1,6 +1,7 @@
 // Implements commodity instrument construction.
 
 #include <qrp/analytics/dynamic_programming/decision_problem.hpp>
+#include <qrp/analytics/dynamic_programming/gas_storage_policy.hpp>
 #include <qrp/instruments/instrument_factory.hpp>
 #include <qrp/instruments/instrument_factory_common.hpp>
 
@@ -503,6 +504,105 @@ private:
     QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> discount_curve_;
 };
 
+class GasStorageStatefulDpInstrument final : public QuantLib::Instrument {
+public:
+    GasStorageStatefulDpInstrument(analytics::dynamic_programming::GasStoragePolicyParams params,
+                                   double initial_inventory,
+                                   double direction_sign,
+                                   QuantLib::Date maturity_date,
+                                   std::vector<QuantLib::Date> exercise_dates,
+                                   std::vector<QuantLib::ext::shared_ptr<QuantLib::SimpleQuote>> forward_quotes,
+                                   QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> discount_curve)
+        : params_(std::move(params)), initial_inventory_(initial_inventory), direction_sign_(direction_sign),
+          maturity_date_(std::move(maturity_date)), exercise_dates_(std::move(exercise_dates)),
+          forward_quotes_(std::move(forward_quotes)), discount_curve_(std::move(discount_curve)) {
+        for (const auto& quote : forward_quotes_) {
+            registerWith(quote);
+        }
+        if (discount_curve_)
+            registerWith(discount_curve_);
+    }
+
+    bool isExpired() const override {
+        return maturity_date_ <= QuantLib::Settings::instance().evaluationDate();
+    }
+
+protected:
+    void performCalculations() const override {
+        const auto valuation_date = QuantLib::Settings::instance().evaluationDate();
+        const auto exercise_dates = normalized_exercise_dates();
+        analytics::dynamic_programming::GasStoragePolicyParams params = params_;
+        params.discount_factors.clear();
+        params.discount_factors.reserve(exercise_dates.size());
+        for (const auto& exercise_date : exercise_dates) {
+            params.discount_factors.push_back(discount_factor_or_one(discount_curve_, exercise_date));
+        }
+
+        analytics::dynamic_programming::GasStorageDecisionProblem problem(std::move(params));
+        std::map<std::pair<std::size_t, long long>, double> memo;
+        const double value = value_at(0U, initial_inventory_, exercise_dates, problem, memo);
+
+        NPV_ = direction_sign_ * value;
+        errorEstimate_ = 0.0;
+        valuationDate_ = valuation_date;
+    }
+
+private:
+    std::vector<QuantLib::Date> normalized_exercise_dates() const {
+        std::vector<QuantLib::Date> dates = exercise_dates_;
+        if (dates.empty()) {
+            dates.assign(forward_quotes_.size(), maturity_date_);
+        }
+        if (dates.size() < forward_quotes_.size()) {
+            dates.resize(forward_quotes_.size(), maturity_date_);
+        }
+        return dates;
+    }
+
+    double value_at(std::size_t time_index,
+                    double inventory,
+                    const std::vector<QuantLib::Date>& exercise_dates,
+                    const analytics::dynamic_programming::GasStorageDecisionProblem& problem,
+                    std::map<std::pair<std::size_t, long long>, double>& memo) const {
+        const auto key = std::make_pair(time_index, static_cast<long long>(std::llround(inventory * 1.0e8)));
+        if (auto it = memo.find(key); it != memo.end()) {
+            return it->second;
+        }
+
+        if (time_index >= exercise_dates.size()) {
+            const analytics::dynamic_programming::State terminal_state{{}, {inventory}};
+            const double terminal = problem.terminalValue(terminal_state);
+            memo.emplace(key, terminal);
+            return terminal;
+        }
+
+        const double forward = forward_quotes_[std::min(time_index, forward_quotes_.size() - 1U)]->value();
+        const double next_forward = forward_quotes_[std::min(time_index + 1U, forward_quotes_.size() - 1U)]->value();
+        const analytics::dynamic_programming::State state{{forward}, {inventory}};
+
+        double best_value = -std::numeric_limits<double>::infinity();
+        for (const auto& action : problem.feasibleActions(state, time_index)) {
+            const auto next_state = problem.nextState(state, action, {next_forward}, time_index);
+            const double next_inventory =
+                next_state.operational_variables.empty() ? inventory : next_state.operational_variables[0];
+            const double candidate = problem.immediateCashflow(state, action, time_index) +
+                                     value_at(time_index + 1U, next_inventory, exercise_dates, problem, memo);
+            best_value = std::max(best_value, candidate);
+        }
+
+        memo.emplace(key, best_value);
+        return best_value;
+    }
+
+    analytics::dynamic_programming::GasStoragePolicyParams params_;
+    double initial_inventory_;
+    double direction_sign_;
+    QuantLib::Date maturity_date_;
+    std::vector<QuantLib::Date> exercise_dates_;
+    std::vector<QuantLib::ext::shared_ptr<QuantLib::SimpleQuote>> forward_quotes_;
+    QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> discount_curve_;
+};
+
 } // namespace
 
 QuantLib::ext::shared_ptr<QuantLib::Instrument>
@@ -732,6 +832,61 @@ CommodityInstrumentFactory::create_commodity_swing(const domain::CommoditySwingT
         trade.strike_price,
         trade.volatility,
         trade.terminal_shortfall_penalty,
+        long_short_direction_sign(trade.direction),
+        market::CurveBuilder::parse_date(trade.maturity_date),
+        std::move(exercise_dates),
+        std::move(quotes),
+        discount_curve(context, currency_code));
+}
+
+QuantLib::ext::shared_ptr<QuantLib::Instrument>
+CommodityInstrumentFactory::create_gas_storage(const domain::GasStorageTrade& trade,
+                                               const analytics::PricingContext& context) {
+    if (trade.maturity_date.empty() || trade.max_inventory <= 0.0) {
+        return nullptr;
+    }
+
+    std::vector<QuantLib::ext::shared_ptr<QuantLib::SimpleQuote>> quotes;
+    quotes.reserve(trade.forward_quote_ids.size());
+    for (const auto& quote_id : trade.forward_quote_ids) {
+        if (auto quote = context.market_state().get_quote_handle(quote_id)) {
+            quotes.push_back(quote);
+        }
+    }
+    if (quotes.empty()) {
+        if (auto quote = find_quote_handle(
+                context,
+                {},
+                trade.underlier,
+                {},
+                {domain::QuoteInstrumentType::CommodityForward, domain::QuoteInstrumentType::CommodityFuture})) {
+            quotes.push_back(quote);
+        }
+    }
+    if (quotes.empty()) {
+        return nullptr;
+    }
+
+    std::vector<QuantLib::Date> exercise_dates;
+    exercise_dates.reserve(trade.exercise_dates.size());
+    for (const auto& exercise_date : trade.exercise_dates) {
+        exercise_dates.push_back(market::CurveBuilder::parse_date(exercise_date));
+    }
+
+    analytics::dynamic_programming::GasStoragePolicyParams params;
+    params.min_inventory = trade.min_inventory;
+    params.max_inventory = trade.max_inventory;
+    params.max_injection_quantity = trade.max_injection_quantity;
+    params.max_withdrawal_quantity = trade.max_withdrawal_quantity;
+    params.injection_cost = trade.injection_cost;
+    params.withdrawal_cost = trade.withdrawal_cost;
+    params.terminal_inventory_target = trade.terminal_inventory_target;
+    params.terminal_inventory_penalty = trade.terminal_inventory_penalty;
+
+    const auto currency_code = domain::from_string(trade.currency);
+    return QuantLib::ext::make_shared<GasStorageStatefulDpInstrument>(
+        params,
+        trade.initial_inventory,
         long_short_direction_sign(trade.direction),
         market::CurveBuilder::parse_date(trade.maturity_date),
         std::move(exercise_dates),

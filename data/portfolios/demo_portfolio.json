@@ -29,6 +29,7 @@
       "book_id": "BOOK:DEMO:COMMODITY_FLEXIBILITY",
       "book_name": "Demo Commodity Flexibility",
       "trades": [
+        "demo_ttf_storage_001",
         "demo_ttf_swing_001"
       ]
     },
@@ -313,6 +314,38 @@
           "2026-09-24"
         ],
         "volatility": 0.4,
+        "unit": "MWh"
+      }
+    },
+    {
+      "id": "demo_ttf_storage_001",
+      "asset_class": "commodity",
+      "type": "gas_storage",
+      "currency": "USD",
+      "direction": "long",
+      "book": "BOOK:DEMO:COMMODITY_FLEXIBILITY",
+      "strategy": "TTF_STORAGE_OPTIONALITY",
+      "start_date": "2026-04-01",
+      "maturity_date": "2026-12-24",
+      "details": {
+        "underlier": "TTF",
+        "min_inventory": 0,
+        "max_inventory": 200,
+        "initial_inventory": 50,
+        "terminal_inventory_target": 50,
+        "terminal_inventory_penalty": 100,
+        "max_injection_quantity": 100,
+        "max_withdrawal_quantity": 100,
+        "injection_cost": 0.2,
+        "withdrawal_cost": 0.2,
+        "forward_quote_ids": [
+          "TTF_FWD_Q1",
+          "TTF_FWD_Q2"
+        ],
+        "exercise_dates": [
+          "2026-06-24",
+          "2026-09-24"
+        ],
         "unit": "MWh"
       }
     },

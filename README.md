@@ -194,7 +194,8 @@ Implemented product coverage includes:
 - FX: spot, forwards, swaps, NDFs, and options;
 - credit: bonds, CDS, CDS indices, CDS options, and credit index options;
 - equities: spot, forwards, futures, and options;
-- commodities: spot, forwards, futures, future strips, futures options, calendar spread options, and swing contracts.
+- commodities: spot, forwards, futures, future strips, futures options, calendar spread options, swing contracts, and gas
+  storage contracts.
 
 Implemented analytics include valuation, deterministic risk, reactive revaluation sessions with impact diagnostics,
 historical stress, HVaR, VaR/ES contribution analytics, Monte Carlo simulation, P&L explain, persistence, run reporting,
@@ -204,8 +205,8 @@ Known boundaries:
 
 - Monte Carlo and parametric VaR contribution decomposition are not yet first-class outputs.
 - LSMC and dynamic-programming helpers are exposed through C++-managed APIs with diagnostics and are used by American
-  equity options, Bermudan swaptions, callable fixed-rate bonds, and commodity swing contracts; gas storage remains a
-  physical-flexibility hardening area.
+  equity options, Bermudan swaptions, callable fixed-rate bonds, commodity swing contracts, and gas storage inventory
+  optionality.
 - Realized event-source integration does not yet cover every coupon, fixing, exercise, and settlement source.
 - A reusable revaluation-session cache exists for quote and scenario workflows; a shared built-position cache across all
   analytics services is still a hardening area.

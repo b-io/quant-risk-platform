@@ -809,6 +809,23 @@ void RevaluationSession::build_dependency_index() const {
                     "market_quote_match");
             }
             add_discount_curve(*swing, trade_currency);
+        } else if (const auto* storage = dynamic_cast<const domain::GasStorageTrade*>(&trade)) {
+            std::size_t direct_count = 0;
+            for (const auto& quote_id : storage->forward_quote_ids) {
+                if (known_quote_ids.contains(quote_id)) {
+                    add_direct_quote(*storage, quote_id);
+                    ++direct_count;
+                }
+            }
+            if (direct_count == 0) {
+                add_matching_quotes(
+                    *storage,
+                    storage->underlier,
+                    {},
+                    {domain::QuoteInstrumentType::CommodityForward, domain::QuoteInstrumentType::CommodityFuture},
+                    "market_quote_match");
+            }
+            add_discount_curve(*storage, trade_currency);
         } else if (const auto* equity_spot = dynamic_cast<const domain::EquitySpotTrade*>(&trade)) {
             add_matching_quotes(*equity_spot,
                                 equity_spot->underlier,
