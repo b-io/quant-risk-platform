@@ -216,6 +216,13 @@ def render_select_option(template, value, label):
     )
 
 
+def html_id(value):
+    text = str(value or "").strip().casefold()
+    cleaned = "".join(char if char.isalnum() else "-" for char in text)
+    collapsed = "-".join(part for part in cleaned.split("-") if part)
+    return collapsed or "item"
+
+
 def dashboard_style_options(option_template):
     return "\n".join(
         render_select_option(option_template, key, preset["label"]) for key, preset in DASHBOARD_STYLE_PRESETS.items()
@@ -1254,10 +1261,13 @@ def render_dashboard_html(title, views, output_path, pio, report_context=None):
     generated_at = context.get("generated_at", "n/a")
     allocation_controls_template = read_dashboard_asset("allocation_controls.html")
     card_template = read_dashboard_asset("card.html")
+    lazy_panel_body_template = read_dashboard_asset("lazy_panel_body.html")
     option_template = read_dashboard_asset("select_option.html")
     panel_note_template = read_dashboard_asset("panel_note.html")
     panel_template = read_dashboard_asset("panel.html")
     portfolio_view_template = read_dashboard_asset("portfolio_view.html")
+    tab_button_template = read_dashboard_asset("dashboard_tab_button.html")
+    tabs_template = read_dashboard_asset("dashboard_tabs.html")
     style_options = dashboard_style_options(option_template)
     portfolio_options = "\n".join(render_select_option(option_template, view["id"], view["label"]) for view in views)
     plotly_index = 0
@@ -1275,7 +1285,9 @@ def render_dashboard_html(title, views, output_path, pio, report_context=None):
             for card in view["cards"]
         )
         figure_html = []
-        for figure in view["figures"]:
+        tab_html = []
+        view_slug = html_id(view["id"])
+        for figure_index, figure in enumerate(view["figures"]):
             if len(figure) == 3:
                 name, fig, note = figure
             else:
@@ -1287,22 +1299,46 @@ def render_dashboard_html(title, views, output_path, pio, report_context=None):
                 include_plotly = "cdn" if plotly_index == 0 else False
                 plotly_index += 1
                 panel_body = pio.to_html(fig, full_html=False, include_plotlyjs=include_plotly)
+            panel_id = f"{view_slug}-panel-{figure_index + 1}"
+            tab_id = f"{view_slug}-tab-{figure_index + 1}"
+            is_active_panel = figure_index == 0
+            should_render_immediately = view_index == 0 and figure_index == 0
             allocation_controls = allocation_controls_template if name == "Portfolio Allocation" else ""
             panel_note_html = (
                 render_asset_template(panel_note_template, {"__QRP_PANEL_NOTE__": html.escape(note)}) if note else ""
+            )
+            rendered_panel_body = (
+                panel_body
+                if should_render_immediately
+                else render_asset_template(lazy_panel_body_template, {"__QRP_LAZY_PANEL_BODY__": panel_body})
+            )
+            tab_html.append(
+                render_asset_template(
+                    tab_button_template,
+                    {
+                        "__QRP_PANEL_ID__": html.escape(panel_id),
+                        "__QRP_TAB_ID__": html.escape(tab_id),
+                        "__QRP_TAB_LABEL__": html.escape(name),
+                        "__QRP_TAB_SELECTED__": "true" if is_active_panel else "false",
+                    },
+                )
             )
             figure_html.append(
                 render_asset_template(
                     panel_template,
                     {
                         "__QRP_ALLOCATION_CONTROLS__": allocation_controls,
-                        "__QRP_PANEL_BODY__": panel_body,
+                        "__QRP_PANEL_BODY__": rendered_panel_body,
+                        "__QRP_PANEL_HIDDEN__": "" if is_active_panel else " hidden",
+                        "__QRP_PANEL_ID__": html.escape(panel_id),
                         "__QRP_PANEL_NOTE_HTML__": panel_note_html,
+                        "__QRP_PANEL_TAB_ID__": html.escape(tab_id),
                         "__QRP_PANEL_TITLE__": html.escape(name),
                     },
                 )
             )
         hidden = "" if view_index == 0 else " hidden"
+        tabs_html = render_asset_template(tabs_template, {"__QRP_TAB_BUTTONS__": "".join(tab_html)})
         view_html.append(
             render_asset_template(
                 portfolio_view_template,
@@ -1314,6 +1350,7 @@ def render_dashboard_html(title, views, output_path, pio, report_context=None):
                     "__QRP_VIEW_ID__": html.escape(view["id"]),
                     "__QRP_VIEW_LABEL__": html.escape(view["label"]),
                     "__QRP_VIEW_SUMMARY__": html.escape(view["summary"]),
+                    "__QRP_VIEW_TABS__": tabs_html,
                 },
             )
         )

@@ -488,6 +488,12 @@
         });
         scheduleVisualRefresh();
       }
+      function refreshDashboardVisuals() {
+        applyTableTheme(document.documentElement.dataset.theme || "light", activeStyleKey());
+        resizeActivePlots();
+        scheduleVisualRefresh();
+      }
+      window.qrpDashboardRefreshVisuals = refreshDashboardVisuals;
       function applyPortfolioView(viewId) {
         const views = Array.from(document.querySelectorAll("[data-portfolio-view]"));
         const selected = views.find((view) => view.dataset.portfolioView === viewId) || views[0];
@@ -501,6 +507,9 @@
           portfolioSelect.value = selected.dataset.portfolioView;
         }
         localStorage.setItem(portfolioStorageKey, selected.dataset.portfolioView);
+        document.dispatchEvent(new CustomEvent("qrp:portfolio-view-changed", {
+          detail: { viewId: selected.dataset.portfolioView }
+        }));
         window.setTimeout(resizeActivePlots, 40);
       }
       if (portfolioSelect) {
@@ -555,8 +564,50 @@
         rows.forEach((row) => tbody.appendChild(row));
       }
 
-      function initializeSortableTables() {
-        document.querySelectorAll("[data-sortable-table]").forEach((table) => {
+      function findAll(root, selector) {
+        const scope = root || document;
+        const matches = Array.from(scope.querySelectorAll(selector));
+        if (scope.matches && scope.matches(selector)) {
+          matches.unshift(scope);
+        }
+        return matches;
+      }
+
+      function hydratePanel(panel) {
+        const lazy = panel && panel.querySelector("[data-lazy-panel]");
+        if (!lazy || lazy.dataset.hydrated === "true") {
+          return;
+        }
+        const template = lazy.querySelector("template[data-lazy-template]");
+        if (!template) {
+          lazy.dataset.hydrated = "true";
+          return;
+        }
+        const fragment = template.content.cloneNode(true);
+        const deferredScripts = [];
+        fragment.querySelectorAll("script").forEach((script, index) => {
+          const marker = document.createComment(`qrp-lazy-script-${index}`);
+          deferredScripts.push({
+            attributes: Array.from(script.attributes),
+            marker,
+            text: script.textContent
+          });
+          script.replaceWith(marker);
+        });
+        lazy.replaceChildren(fragment);
+        deferredScripts.forEach(({ attributes, marker, text }) => {
+          const executable = document.createElement("script");
+          attributes.forEach((attribute) => {
+            executable.setAttribute(attribute.name, attribute.value);
+          });
+          executable.textContent = text;
+          marker.replaceWith(executable);
+        });
+        lazy.dataset.hydrated = "true";
+      }
+
+      function initializeSortableTables(root = document) {
+        findAll(root, "[data-sortable-table]").forEach((table) => {
           if (table.dataset.sortReady === "true") return;
           table.dataset.sortReady = "true";
           table.querySelectorAll("thead button[data-sort-column]").forEach((button) => {
@@ -576,6 +627,93 @@
             });
           });
         });
+      }
+
+      function initializePanelContents(panel) {
+        if (!panel) {
+          return;
+        }
+        hydratePanel(panel);
+        initializeLinkedPanels(panel);
+        initializeLoadingStates(panel);
+        initializeSortableTables(panel);
+        if (typeof window.qrpDashboardRefreshVisuals === "function") {
+          window.setTimeout(window.qrpDashboardRefreshVisuals, 80);
+        }
+        window.setTimeout(() => {
+          initializeLinkedPanels(panel);
+          initializeLoadingStates(panel);
+        }, 240);
+      }
+
+      function activateTab(button, options = {}) {
+        if (!button) {
+          return;
+        }
+        const view = button.closest(".portfolio-view");
+        if (!view) {
+          return;
+        }
+        const panelId = button.dataset.dashboardTab;
+        const panel = panelId ? document.getElementById(panelId) : null;
+        if (!panel || panel.closest(".portfolio-view") !== view) {
+          return;
+        }
+        view.querySelectorAll("[data-dashboard-tab]").forEach((tab) => {
+          tab.setAttribute("aria-selected", tab === button ? "true" : "false");
+        });
+        view.querySelectorAll("[data-dashboard-panel]").forEach((candidate) => {
+          candidate.hidden = candidate !== panel;
+        });
+        initializePanelContents(panel);
+        if (options.focus) {
+          button.focus();
+        }
+      }
+
+      function initializeDashboardTabs(root = document) {
+        findAll(root, "[data-dashboard-tabs]").forEach((tablist) => {
+          if (tablist.dataset.tabsReady !== "true") {
+            tablist.dataset.tabsReady = "true";
+            const tabs = Array.from(tablist.querySelectorAll("[data-dashboard-tab]"));
+            tabs.forEach((tab, index) => {
+              tab.addEventListener("click", () => activateTab(tab));
+              tab.addEventListener("keydown", (event) => {
+                if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
+                  return;
+                }
+                event.preventDefault();
+                const lastIndex = tabs.length - 1;
+                let nextIndex = index;
+                if (event.key === "ArrowLeft") {
+                  nextIndex = index === 0 ? lastIndex : index - 1;
+                } else if (event.key === "ArrowRight") {
+                  nextIndex = index === lastIndex ? 0 : index + 1;
+                } else if (event.key === "Home") {
+                  nextIndex = 0;
+                } else if (event.key === "End") {
+                  nextIndex = lastIndex;
+                }
+                activateTab(tabs[nextIndex], { focus: true });
+              });
+            });
+          }
+          const view = tablist.closest(".portfolio-view");
+          if (view && !view.hidden) {
+            activateTab(tablist.querySelector('[aria-selected="true"]') || tablist.querySelector("[data-dashboard-tab]"));
+          }
+        });
+      }
+
+      function activateVisiblePortfolioTab() {
+        const view = document.querySelector(".portfolio-view:not([hidden])");
+        if (!view) {
+          return;
+        }
+        initializeDashboardTabs(view);
+        const selectedTab = view.querySelector('[data-dashboard-tab][aria-selected="true"]')
+          || view.querySelector("[data-dashboard-tab]");
+        activateTab(selectedTab);
       }
 
       function compactLabel(label) {
@@ -1332,11 +1470,19 @@
         element.classList.add("is-loaded");
       }
 
-      function initializeLoadingStates() {
-        document.querySelectorAll(".card.is-loading").forEach((card, index) => {
+      function initializeLoadingStates(root = document) {
+        findAll(root, ".card.is-loading").forEach((card, index) => {
           window.setTimeout(() => markLoaded(card), 120 + index * 45);
         });
-        document.querySelectorAll(".panel.is-loading").forEach((panel) => {
+        findAll(root, ".panel.is-loading").forEach((panel) => {
+          const lazy = panel.querySelector("[data-lazy-panel]");
+          if (panel.hidden || (lazy && lazy.dataset.hydrated !== "true")) {
+            return;
+          }
+          if (panel.dataset.loadingReady === "true") {
+            return;
+          }
+          panel.dataset.loadingReady = "true";
           const plot = panel.querySelector(".js-plotly-plot");
           if (!plot) {
             window.setTimeout(() => markLoaded(panel), 120);
@@ -1353,25 +1499,30 @@
         });
       }
 
-      function initializeLinkedPanels() {
-        Array.from(document.querySelectorAll(".js-plotly-plot")).forEach(initializePortfolioAllocation);
+      function initializeLinkedPanels(root = document) {
+        Array.from(root.querySelectorAll(".js-plotly-plot")).forEach(initializePortfolioAllocation);
       }
 
       if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", () => {
+          initializeDashboardTabs();
           initializeLinkedPanels();
           initializeLoadingStates();
           initializeSortableTables();
         });
       } else {
+        initializeDashboardTabs();
         initializeLinkedPanels();
         initializeLoadingStates();
         initializeSortableTables();
       }
+      document.addEventListener("qrp:portfolio-view-changed", activateVisiblePortfolioTab);
+      window.addEventListener("load", initializeDashboardTabs);
       window.addEventListener("load", initializeLinkedPanels);
       window.addEventListener("load", initializeLoadingStates);
       window.addEventListener("load", initializeSortableTables);
       [250, 1000, 2500].forEach((delay) => {
+        window.setTimeout(activateVisiblePortfolioTab, delay);
         window.setTimeout(initializeLinkedPanels, delay);
       });
     }());

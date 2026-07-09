@@ -318,6 +318,42 @@
       font-weight: 700;
       white-space: nowrap;
     }
+    .dashboard-tabs {
+      align-items: center;
+      background: color-mix(in srgb, var(--accent) 8%, transparent);
+      border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
+      border-radius: 999px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin: 20px 0 6px;
+      padding: 5px;
+    }
+    .dashboard-tab {
+      background: transparent;
+      border: 0;
+      border-radius: 999px;
+      color: var(--muted);
+      cursor: pointer;
+      font: 700 0.78rem "IBM Plex Sans", "Aptos", sans-serif;
+      letter-spacing: 0.06em;
+      min-height: 34px;
+      padding: 8px 12px;
+      text-transform: uppercase;
+      transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+    }
+    .dashboard-tab:hover {
+      background: color-mix(in srgb, var(--accent) 14%, transparent);
+      color: var(--accent);
+    }
+    .dashboard-tab[aria-selected="true"] {
+      background: color-mix(in srgb, var(--accent) 25%, transparent);
+      color: var(--accent);
+    }
+    .dashboard-tab:focus-visible {
+      outline: 2px solid color-mix(in srgb, var(--accent) 72%, transparent);
+      outline-offset: 2px;
+    }
     .card, .panel {
       backdrop-filter: blur(18px);
       background: var(--panel);
@@ -453,10 +489,25 @@
     .panel .js-plotly-plot {
       border-radius: 18px;
     }
+    .panel[hidden] {
+      display: none;
+    }
     .panel-body {
       min-height: 160px;
       position: relative;
       z-index: 1;
+    }
+    .panel-lazy-placeholder {
+      align-items: center;
+      border: 1px dashed color-mix(in srgb, var(--accent) 28%, var(--line));
+      border-radius: 18px;
+      color: var(--muted);
+      display: flex;
+      font: 700 0.86rem "IBM Plex Sans", "Aptos", sans-serif;
+      justify-content: center;
+      min-height: 220px;
+      padding: 24px;
+      text-align: center;
     }
     .panel-loading {
       align-items: center;
@@ -614,16 +665,34 @@
     .data-table tbody tr:nth-child(even) {
       background: var(--table-row-even);
     }
+    .sort-arrow {
+      display: inline-flex;
+      flex: 0 0 auto;
+      height: 14px;
+      margin-left: 2px;
+      position: relative;
+      width: 9px;
+    }
+    .sort-arrow::before,
     .sort-arrow::after {
-      color: var(--accent);
-      content: "\\2195";
-      font-size: 0.78rem;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      content: "";
+      left: 0;
+      opacity: 0.72;
+      position: absolute;
     }
-    .data-table th button[aria-sort="ascending"] .sort-arrow::after {
-      content: "\\2191";
+    .sort-arrow::before {
+      border-bottom: 5px solid var(--accent);
+      top: 1px;
     }
-    .data-table th button[aria-sort="descending"] .sort-arrow::after {
-      content: "\\2193";
+    .sort-arrow::after {
+      border-top: 5px solid var(--accent);
+      bottom: 1px;
+    }
+    .data-table th button[aria-sort="ascending"] .sort-arrow::after,
+    .data-table th button[aria-sort="descending"] .sort-arrow::before {
+      opacity: 0.22;
     }
     .status-pill {
       align-items: center;
@@ -678,6 +747,12 @@
       }
       .view-heading span {
         white-space: normal;
+      }
+      .dashboard-tabs {
+        border-radius: 18px;
+      }
+      .dashboard-tab {
+        flex: 1 1 150px;
       }
       .dashboard-shell {
         padding: 16px;
