@@ -1,12 +1,12 @@
 {
-  "combined_line_coverage_percent": 95.99,
-  "generated_at_utc": "2026-07-09T15:40:27+00:00",
+  "combined_line_coverage_percent": 95.25,
+  "generated_at_utc": "2026-07-09T16:07:57+00:00",
   "languages": [
     {
       "language": "C++",
-      "line_coverage_percent": 95.84,
-      "lines_covered": 5755,
-      "lines_valid": 6005,
+      "line_coverage_percent": 95.12,
+      "lines_covered": 7478,
+      "lines_valid": 7862,
       "status": "pass"
     },
     {
@@ -17,7 +17,7 @@
       "status": "pass"
     }
   ],
-  "lines_covered": 5984,
-  "lines_valid": 6234,
+  "lines_covered": 7707,
+  "lines_valid": 8091,
   "status": "pass"
 }
