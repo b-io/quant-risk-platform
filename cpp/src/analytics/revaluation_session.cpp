@@ -632,6 +632,9 @@ void RevaluationSession::build_dependency_index() const {
             add_forecast_curve(*swap, trade_currency, swap->floating_index);
         } else if (const auto* ois = dynamic_cast<const domain::OisSwapTrade*>(&trade)) {
             add_discount_curve(*ois, trade_currency);
+        } else if (const auto* callable_bond = dynamic_cast<const domain::CallableBondTrade*>(&trade)) {
+            add_discount_curve(*callable_bond, trade_currency);
+            add_direct_quote(*callable_bond, callable_bond->volatility_quote_id);
         } else if (const auto* bond = dynamic_cast<const domain::FixedRateBondTrade*>(&trade)) {
             add_discount_curve(*bond, trade_currency);
         } else if (const auto* frn = dynamic_cast<const domain::FloatingRateNoteTrade*>(&trade)) {

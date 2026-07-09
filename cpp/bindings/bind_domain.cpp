@@ -272,6 +272,7 @@ void bind_domain(py::module_& m) {
         .value("VanillaSwap", domain::TradeType::VanillaSwap)
         .value("OisSwap", domain::TradeType::OisSwap)
         .value("FixedRateBond", domain::TradeType::FixedRateBond)
+        .value("CallableBond", domain::TradeType::CallableBond)
         .value("FloatingRateNote", domain::TradeType::FloatingRateNote)
         .value("CapFloor", domain::TradeType::CapFloor)
         .value("EuropeanSwaption", domain::TradeType::EuropeanSwaption)
@@ -684,6 +685,16 @@ void bind_domain(py::module_& m) {
         .def_readwrite("maturity_date", &domain::FixedRateBondTrade::maturity_date)
         .def_readwrite("notional", &domain::FixedRateBondTrade::notional)
         .def_readwrite("start_date", &domain::FixedRateBondTrade::start_date);
+
+    py::class_<domain::CallableBondTrade, domain::FixedRateBondTrade, std::shared_ptr<domain::CallableBondTrade>>(
+        m,
+        "CallableBondTrade")
+        .def(py::init<>())
+        .def_readwrite("call_dates", &domain::CallableBondTrade::call_dates)
+        .def_readwrite("call_prices", &domain::CallableBondTrade::call_prices)
+        .def_readwrite("mean_reversion", &domain::CallableBondTrade::mean_reversion)
+        .def_readwrite("volatility", &domain::CallableBondTrade::volatility)
+        .def_readwrite("volatility_quote_id", &domain::CallableBondTrade::volatility_quote_id);
 
     py::class_<domain::FloatingRateNoteTrade, domain::Trade, std::shared_ptr<domain::FloatingRateNoteTrade>>(
         m,

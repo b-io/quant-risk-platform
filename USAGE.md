@@ -175,6 +175,11 @@ print(result.regression_diagnostics[0].r_squared)
 Python receives compact run diagnostics and path values, while C++ owns the stochastic process, exercise policy, and
 regression loop. This keeps the hot path out of Python callbacks.
 
+The same C++ exercise-policy layer is also used by production product paths. For example, a callable fixed-rate bond is
+entered as a normal portfolio trade; the rates factory projects deterministic bond cashflows, values the issuer call
+right with the one-factor LSMC rates driver, and reports the callable bond value through `price_portfolio(...)`.
+The platform demo builds a small straight-versus-callable bond comparison and prints the implied issuer-call value.
+
 ## Run The CLI
 
 The CLI persists data and results in `var/quant_risk_platform.sqlite`.
@@ -247,9 +252,10 @@ Common local outputs are:
 
 ## Product And Analytics Coverage
 
-Supported product families include rates, FX, credit, equities, and commodities. Supported analytics include valuation,
-risk sensitivities, C++-owned revaluation sessions, historical stress, historical VaR/ES, VaR/ES contributions, P&L
-explain, LSMC exercise-policy helpers, Monte Carlo simulation, and persisted run reporting.
+Supported product families include rates, FX, credit, equities, and commodities. Rates coverage includes callable
+fixed-rate bonds alongside the vanilla cash, swap, bond, cap/floor, and swaption paths. Supported analytics include
+valuation, risk sensitivities, C++-owned revaluation sessions, historical stress, historical VaR/ES, VaR/ES
+contributions, P&L explain, LSMC exercise-policy helpers, Monte Carlo simulation, and persisted run reporting.
 
 For detailed product coverage, see [docs/asset-classes/INDEX.md](docs/asset-classes/INDEX.md). For risk conventions,
 see [docs/risk/INDEX.md](docs/risk/INDEX.md).

@@ -730,7 +730,22 @@ def run_pnl_explain(portfolio, market_path):
     return pnl_results
 
 
-def run_lsmc_exercise_policy_demo():
+def make_rates_bond_trade(trade):
+    trade.asset_class = "rates"
+    trade.asset_class_type = qrp.AssetClass.Rates
+    trade.currency = "USD"
+    trade.direction = "long"
+    trade.book = "BOOK:DEMO"
+    trade.strategy = "LSMC_DEMO"
+    trade.notional = 2_000_000.0
+    trade.start_date = "2026-03-26"
+    trade.maturity_date = "2031-03-26"
+    trade.coupon_rate = 0.0650
+    trade.frequency = "Annual"
+    return trade
+
+
+def run_lsmc_exercise_policy_demo(market):
     section("9. LSMC Exercise Policy")
     request = qrp.AmericanOptionLsmcRequest()
     request.spot = 100.0
@@ -759,6 +774,30 @@ def run_lsmc_exercise_policy_demo():
         f"exercise={first_step.exercise_count}"
     )
     print(f"Config tags:        seed={result.config_tags['seed']} paths={result.config_tags['num_paths']}")
+
+    straight_bond = make_rates_bond_trade(qrp.FixedRateBondTrade())
+    straight_bond.id = "LSMC_STRAIGHT_BOND"
+
+    callable_bond = make_rates_bond_trade(qrp.CallableBondTrade())
+    callable_bond.id = "LSMC_CALLABLE_BOND"
+    callable_bond.call_dates = ["2027-03-26", "2028-03-26", "2029-03-26", "2030-03-26"]
+    callable_bond.call_prices = [101.0, 100.75, 100.5, 100.0]
+    callable_bond.mean_reversion = 0.03
+    callable_bond.volatility = 0.012
+
+    bond_portfolio = qrp.Portfolio()
+    bond_portfolio.portfolio_id = "lsmc_callable_bond_demo"
+    bond_portfolio.trades = [straight_bond, callable_bond]
+    bond_results = {item.trade_id: item for item in qrp.price_portfolio(bond_portfolio, market)}
+    straight_value = bond_results["LSMC_STRAIGHT_BOND"].npv
+    callable_value = bond_results["LSMC_CALLABLE_BOND"].npv
+    if callable_value > straight_value + 1.0e-8:
+        raise AssertionError("Callable bond should not value above the matching straight bond")
+    print(
+        "Callable bond:      "
+        f"straight={straight_value:,.2f} callable={callable_value:,.2f} "
+        f"issuer_call={straight_value - callable_value:,.2f}"
+    )
     return result
 
 
@@ -1219,7 +1258,7 @@ def run_demo(dashboard=False):
     run_var_contributions(portfolio, stress_results, scenarios)
     risk_results = run_risk(portfolio, market, factors, bindings)
     pnl_results = run_pnl_explain(portfolio, market_path)
-    run_lsmc_exercise_policy_demo()
+    run_lsmc_exercise_policy_demo(market)
     mc_results = run_monte_carlo(portfolio, market, factors, bindings)
     validate_golden_outputs(
         golden,

@@ -56,6 +56,18 @@ inline std::vector<std::string> optional_string_vector(const nlohmann::json& j,
     return {};
 }
 
+/**
+ * @brief Reads an optional numeric-vector detail, returning an empty vector when absent.
+ */
+inline std::vector<double> optional_double_vector(const nlohmann::json& j, std::initializer_list<std::string> fields) {
+    for (const auto& field : fields) {
+        if (j.contains(field)) {
+            return j.at(field).get<std::vector<double>>();
+        }
+    }
+    return {};
+}
+
 } // namespace portfolio_detail
 
 /**
@@ -98,6 +110,7 @@ enum class TradeType {
     VanillaSwap,
     OisSwap,
     FixedRateBond,
+    CallableBond,
     FloatingRateNote,
     CapFloor,
     EuropeanSwaption,
@@ -164,6 +177,8 @@ inline TradeType parse_trade_type(const std::string& value) {
         return TradeType::OisSwap;
     if (value == "fixed_rate_bond")
         return TradeType::FixedRateBond;
+    if (value == "callable_bond")
+        return TradeType::CallableBond;
     if (value == "floating_rate_note")
         return TradeType::FloatingRateNote;
     if (value == "cap_floor")
@@ -234,6 +249,8 @@ inline std::string to_string(TradeType type) {
             return "ois_swap";
         case TradeType::FixedRateBond:
             return "fixed_rate_bond";
+        case TradeType::CallableBond:
+            return "callable_bond";
         case TradeType::FloatingRateNote:
             return "floating_rate_note";
         case TradeType::CapFloor:
@@ -307,6 +324,8 @@ inline ProductType product_type_from_trade_type(TradeType type) {
             return ProductType::OisSwap;
         case TradeType::FixedRateBond:
             return ProductType::FixedRateBond;
+        case TradeType::CallableBond:
+            return ProductType::CallableBond;
         case TradeType::FloatingRateNote:
             return ProductType::FloatingRateNote;
         case TradeType::CapFloor:
@@ -569,6 +588,49 @@ struct FixedRateBondTrade : public Trade {
         const auto& details = j.at("details");
         details.at("coupon_rate").get_to(coupon_rate);
         details.at("frequency").get_to(frequency);
+    }
+};
+
+/**
+ * @brief Fixed-rate bond with issuer call rights.
+ */
+struct CallableBondTrade : public FixedRateBondTrade {
+    /**
+     * @brief Initializes taxonomy fields for callable bonds.
+     */
+    CallableBondTrade() {
+        trade_type = TradeType::CallableBond;
+        product_type = product_type_from_trade_type(trade_type);
+        type = to_string(trade_type);
+    }
+
+    std::vector<std::string> call_dates; // Dates on which the issuer may call the bond.
+    std::vector<double> call_prices;     // Call prices as percentages of par, aligned with call_dates.
+    double mean_reversion = 0.03;        // One-factor rates-driver mean-reversion parameter.
+    double volatility = 0.01;            // Fallback short-rate volatility.
+    std::string volatility_quote_id;     // Optional rates-volatility quote id.
+
+    /**
+     * @brief Reads callable-bond economics and shared trade fields from JSON.
+     */
+    void from_json(const nlohmann::json& j) override {
+        FixedRateBondTrade::from_json(j);
+        trade_type = TradeType::CallableBond;
+        product_type = product_type_from_trade_type(trade_type);
+        type = to_string(trade_type);
+
+        const auto& details = j.at("details");
+        call_dates = portfolio_detail::optional_string_vector(details, {"call_dates", "exercise_dates"});
+        call_prices = portfolio_detail::optional_double_vector(details, {"call_prices", "exercise_prices"});
+        if (call_prices.empty() && details.contains("call_price")) {
+            call_prices.assign(call_dates.size(), details.at("call_price").get<double>());
+        }
+        if (call_prices.empty() && !call_dates.empty()) {
+            call_prices.assign(call_dates.size(), 100.0);
+        }
+        mean_reversion = portfolio_detail::optional_double(details, {"mean_reversion"}, mean_reversion);
+        volatility = portfolio_detail::optional_double(details, {"volatility"}, volatility);
+        volatility_quote_id = portfolio_detail::optional_string(details, {"volatility_quote_id", "vol_quote_id"});
     }
 };
 
@@ -1754,6 +1816,8 @@ inline std::shared_ptr<Trade> make_trade(TradeType type) {
             return std::make_shared<OisSwapTrade>();
         case TradeType::FixedRateBond:
             return std::make_shared<FixedRateBondTrade>();
+        case TradeType::CallableBond:
+            return std::make_shared<CallableBondTrade>();
         case TradeType::FloatingRateNote:
             return std::make_shared<FloatingRateNoteTrade>();
         case TradeType::CapFloor:

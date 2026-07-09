@@ -128,8 +128,9 @@ Validation standard:
 Current implementation checkpoint:
 
 - Deposits, FRAs, interest-rate futures, vanilla swaps, OIS swaps, fixed-rate
-  bonds, floating-rate notes, caps/floors, European swaptions, and Bermudan
-  swaptions are represented in the canonical portfolio DTO.
+  bonds, callable fixed-rate bonds, floating-rate notes, caps/floors, European
+  swaptions, and Bermudan swaptions are represented in the canonical portfolio
+  DTO.
 - These products are wired into the product-pricing registry and covered by the
   multi-asset demo portfolio and portfolio-backed golden fixtures.
 - Rates valuation uses bootstrapped discount/projection curves, quote handles,
@@ -406,11 +407,14 @@ Current implementation checkpoint:
   helper rather than a product-local exercise tree.
 - Bermudan swaption pricing uses the shared exercise-policy adapter with a
   compact one-factor swap-rate approximation.
+- Callable fixed-rate bond pricing uses deterministic projected bond cashflows
+  plus the shared exercise-policy adapter for the issuer call right under a
+  compact one-factor rates driver.
 - Commodity swing/storage products still use product-specific approximations or
   partial support rather than the shared LSMC exercise-policy layer.
-- The remaining model-integration work is connecting the reusable engine to all
-  remaining early-exercise and physical-flexibility product paths, starting with
-  callable bonds and commodity swing/storage contracts.
+- The remaining model-integration work is connecting the reusable engine to the
+  physical-flexibility product paths, starting with commodity swing and then gas
+  storage contracts.
 
 ## Phase 11: Production Controls
 

@@ -19,8 +19,8 @@ The C++ core owns the analytics. Python is the interface layer for demos, orches
   and risk factor.
 - Explain P&L with carry, market move, realized deposit maturity cash, residual reconciliation, and persisted
   components.
-- Run a C++-managed LSMC American option exercise-policy helper from Python with path, basis, and regression
-  diagnostics.
+- Run C++-managed LSMC exercise-policy valuation for American options and product paths such as Bermudan swaptions and
+  callable bonds.
 - Reuse a C++-owned revaluation session from Python for fast quote updates, scenario revaluation, dependency-graph
   diagnostics, and restored market checks without exposing raw QuantLib handles.
 - Persist market data, portfolios, scenarios, valuation runs, risk runs, HVaR runs, and P&L explain runs in SQLite.
@@ -189,8 +189,8 @@ The C++ CLI stores results in `var/quant_risk_platform.sqlite` by default.
 
 Implemented product coverage includes:
 
-- rates: deposits, FRAs, interest-rate futures, vanilla swaps, OIS swaps, fixed-rate bonds, floating-rate notes,
-  cap/floors, European swaptions, and Bermudan swaptions;
+- rates: deposits, FRAs, interest-rate futures, vanilla swaps, OIS swaps, fixed-rate bonds, callable fixed-rate bonds,
+  floating-rate notes, cap/floors, European swaptions, and Bermudan swaptions;
 - FX: spot, forwards, swaps, NDFs, and options;
 - credit: bonds, CDS, CDS indices, CDS options, and credit index options;
 - equities: spot, forwards, futures, and options;
@@ -203,9 +203,9 @@ and demo dashboards.
 Known boundaries:
 
 - Monte Carlo and parametric VaR contribution decomposition are not yet first-class outputs.
-- LSMC is exposed through C++-managed exercise-policy helpers with diagnostics and is used by American equity options
-  and Bermudan swaptions; wiring the shared layer into callable and physical-flexibility product paths remains a
-  hardening area.
+- LSMC is exposed through C++-managed exercise-policy helpers with diagnostics and is used by American equity options,
+  Bermudan swaptions, and callable fixed-rate bonds; wiring the shared layer into physical-flexibility product paths
+  remains a hardening area.
 - Realized event-source integration does not yet cover every coupon, fixing, exercise, and settlement source.
 - A reusable revaluation-session cache exists for quote and scenario workflows; a shared built-position cache across all
   analytics services is still a hardening area.

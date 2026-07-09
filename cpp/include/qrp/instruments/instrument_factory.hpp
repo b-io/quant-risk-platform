@@ -206,6 +206,12 @@ public:
                                                                        const analytics::PricingContext& context);
 
     /**
+     * @brief Creates an LSMC-priced callable fixed-rate bond instrument.
+     */
+    static QuantLib::ext::shared_ptr<QuantLib::Instrument>
+    create_callable_bond(const domain::CallableBondTrade& trade, const analytics::PricingContext& context);
+
+    /**
      * @brief Creates a QuantLib floating-rate note instrument.
      */
     static QuantLib::ext::shared_ptr<QuantLib::Instrument>

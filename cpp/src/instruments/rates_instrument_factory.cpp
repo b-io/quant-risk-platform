@@ -12,6 +12,7 @@
 #include <memory>
 #include <random>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace qrp::instruments {
@@ -91,9 +92,9 @@ private:
     QuantLib::ext::shared_ptr<QuantLib::SimpleQuote> market_quote_;
 };
 
-class MeanRevertingSwapRateProcess final : public analytics::simulation::StochasticProcess {
+class MeanRevertingRateProcess final : public analytics::simulation::StochasticProcess {
 public:
-    MeanRevertingSwapRateProcess(double initial_rate, double mean_reversion, double volatility)
+    MeanRevertingRateProcess(double initial_rate, double mean_reversion, double volatility)
         : initial_rate_(initial_rate), mean_reversion_(mean_reversion), volatility_(volatility) {}
 
     std::size_t dimension() const override {
@@ -233,7 +234,7 @@ protected:
             discount_handle_->zeroRate(times.back(), QuantLib::Continuous, QuantLib::Annual).rate();
 
         analytics::simulation::TimeGrid time_grid(times);
-        MeanRevertingSwapRateProcess process(initial_swap_rate, mean_reversion_, volatility_);
+        MeanRevertingRateProcess process(initial_swap_rate, mean_reversion_, volatility_);
         auto policy = std::make_shared<BermudanSwaptionExercisePolicy>(fixed_rate_, payer_, annuities);
         analytics::exercise::ExercisePolicyDecisionProblem problem(policy, times.size() - 1U);
 
@@ -263,6 +264,192 @@ private:
     QuantLib::Schedule fixed_schedule_;
     QuantLib::DayCounter fixed_day_count_;
     QuantLib::Handle<QuantLib::YieldTermStructure> discount_handle_;
+};
+
+struct CallableBondCallDate {
+    QuantLib::Date date;
+    double price = 100.0;
+};
+
+struct CallableBondCashflow {
+    QuantLib::Date payment_date;
+    double time = 0.0;
+    double amount = 0.0;
+};
+
+double par_percent_to_amount(double notional, double price) {
+    return notional * price / 100.0;
+}
+
+class CallableBondExercisePolicy final : public analytics::exercise::ExercisePolicy {
+public:
+    CallableBondExercisePolicy(std::vector<double> exercise_times,
+                               std::vector<double> call_payoffs,
+                               std::vector<CallableBondCashflow> cashflows)
+        : exercise_times_(std::move(exercise_times)), call_payoffs_(std::move(call_payoffs)),
+          cashflows_(std::move(cashflows)) {}
+
+    bool canExercise(const analytics::dynamic_programming::State& state, std::size_t time_index) const override {
+        return !state.market_variables.empty() && time_index > 0U && time_index < call_payoffs_.size() &&
+               call_payoffs_[time_index] > 0.0;
+    }
+
+    double exerciseValue(const analytics::dynamic_programming::State& state, std::size_t time_index) const override {
+        if (!canExercise(state, time_index)) {
+            return 0.0;
+        }
+        const double continuation_value = projected_bond_value(state.market_variables[0], exercise_times_[time_index]);
+        return std::max(continuation_value - call_payoffs_[time_index], 0.0);
+    }
+
+    std::vector<double> regressionFeatures(const analytics::dynamic_programming::State& state,
+                                           std::size_t) const override {
+        const double short_rate = state.market_variables.empty() ? 0.0 : state.market_variables[0];
+        return {1.0, short_rate, short_rate * short_rate};
+    }
+
+    std::vector<std::string> regressionFeatureNames(std::size_t) const override {
+        return {"1", "short_rate", "short_rate^2"};
+    }
+
+    double terminalValue(const analytics::dynamic_programming::State& state, std::size_t time_index) const override {
+        return exerciseValue(state, time_index);
+    }
+
+private:
+    double projected_bond_value(double short_rate, double exercise_time) const {
+        double value = 0.0;
+        const double rate = std::max(short_rate, -0.02);
+        for (const auto& cashflow : cashflows_) {
+            if (cashflow.time <= exercise_time + 1.0e-10) {
+                continue;
+            }
+            value += cashflow.amount * std::exp(-rate * (cashflow.time - exercise_time));
+        }
+        return value;
+    }
+
+    std::vector<double> exercise_times_;
+    std::vector<double> call_payoffs_;
+    std::vector<CallableBondCashflow> cashflows_;
+};
+
+class CallableBondLsmcInstrument final : public QuantLib::Instrument {
+public:
+    CallableBondLsmcInstrument(double notional,
+                               double coupon_rate,
+                               double mean_reversion,
+                               double volatility,
+                               QuantLib::Date maturity_date,
+                               std::vector<CallableBondCallDate> call_schedule,
+                               QuantLib::Schedule coupon_schedule,
+                               QuantLib::DayCounter coupon_day_count,
+                               QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> discount_curve)
+        : notional_(notional), coupon_rate_(coupon_rate), mean_reversion_(mean_reversion), volatility_(volatility),
+          maturity_date_(std::move(maturity_date)), call_schedule_(std::move(call_schedule)),
+          coupon_schedule_(std::move(coupon_schedule)), coupon_day_count_(std::move(coupon_day_count)),
+          discount_curve_(std::move(discount_curve)) {
+        if (discount_curve_) {
+            registerWith(discount_curve_);
+        }
+    }
+
+    bool isExpired() const override {
+        return maturity_date_ <= QuantLib::Settings::instance().evaluationDate();
+    }
+
+protected:
+    void performCalculations() const override {
+        const auto valuation_date = QuantLib::Settings::instance().evaluationDate();
+        const QuantLib::Actual365Fixed time_day_count;
+        const auto cashflows = projected_cashflows(valuation_date, time_day_count);
+        const double straight_value = discounted_cashflow_value(cashflows);
+
+        std::vector<double> exercise_times{0.0};
+        std::vector<double> call_payoffs{0.0};
+        for (const auto& call : call_schedule_) {
+            if (call.date <= valuation_date || call.date >= maturity_date_) {
+                continue;
+            }
+            exercise_times.push_back(time_day_count.yearFraction(valuation_date, call.date));
+            call_payoffs.push_back(par_percent_to_amount(notional_, call.price));
+        }
+
+        if (exercise_times.size() <= 1U || cashflows.empty()) {
+            NPV_ = straight_value;
+            errorEstimate_ = 0.0;
+            valuationDate_ = valuation_date;
+            return;
+        }
+
+        const double maturity_time = std::max(time_day_count.yearFraction(valuation_date, maturity_date_), 1.0e-8);
+        const double initial_rate =
+            std::max(discount_curve_->zeroRate(maturity_time, QuantLib::Continuous, QuantLib::Annual).rate(), 1.0e-6);
+        const double discount_rate =
+            discount_curve_->zeroRate(exercise_times.back(), QuantLib::Continuous, QuantLib::Annual).rate();
+
+        analytics::simulation::TimeGrid time_grid(exercise_times);
+        MeanRevertingRateProcess process(initial_rate, mean_reversion_, std::max(volatility_, 1.0e-8));
+        auto policy = std::make_shared<CallableBondExercisePolicy>(exercise_times, call_payoffs, cashflows);
+        analytics::exercise::ExercisePolicyDecisionProblem problem(policy, exercise_times.size() - 1U);
+
+        analytics::lsmc::LsmcConfig config;
+        config.discount_rate = discount_rate;
+        config.num_paths = 4096;
+        config.seed = 42;
+
+        analytics::lsmc::LsmcEngine engine(config);
+        analytics::dynamic_programming::State initial_state{{initial_rate}, {}};
+        const auto result = engine.run(time_grid, process, problem, initial_state);
+        const double issuer_call_value = std::clamp(result.value, 0.0, std::max(straight_value, 0.0));
+
+        NPV_ = straight_value - issuer_call_value;
+        errorEstimate_ = result.standard_error;
+        valuationDate_ = valuation_date;
+    }
+
+private:
+    std::vector<CallableBondCashflow> projected_cashflows(const QuantLib::Date& valuation_date,
+                                                          const QuantLib::DayCounter& time_day_count) const {
+        std::vector<CallableBondCashflow> cashflows;
+        for (QuantLib::Size i = 1; i < coupon_schedule_.size(); ++i) {
+            const auto accrual_start = coupon_schedule_[i - 1U];
+            const auto payment_date = coupon_schedule_[i];
+            if (payment_date <= valuation_date) {
+                continue;
+            }
+            const double accrual = coupon_day_count_.yearFraction(accrual_start, payment_date);
+            cashflows.push_back({payment_date,
+                                 time_day_count.yearFraction(valuation_date, payment_date),
+                                 notional_ * coupon_rate_ * accrual});
+        }
+        if (maturity_date_ > valuation_date) {
+            cashflows.push_back(
+                {maturity_date_, time_day_count.yearFraction(valuation_date, maturity_date_), notional_});
+        }
+        std::sort(cashflows.begin(), cashflows.end(), [](const auto& lhs, const auto& rhs) {
+            return lhs.payment_date < rhs.payment_date;
+        });
+        return cashflows;
+    }
+
+    double discounted_cashflow_value(const std::vector<CallableBondCashflow>& cashflows) const {
+        double value = 0.0;
+        for (const auto& cashflow : cashflows) {
+            value += cashflow.amount * discount_curve_->discount(cashflow.payment_date);
+        }
+        return value;
+    }
+
+    double notional_;
+    double coupon_rate_;
+    double mean_reversion_;
+    double volatility_;
+    QuantLib::Date maturity_date_;
+    std::vector<CallableBondCallDate> call_schedule_;
+    QuantLib::Schedule coupon_schedule_;
+    QuantLib::DayCounter coupon_day_count_;
+    QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> discount_curve_;
 };
 
 QuantLib::ext::shared_ptr<QuantLib::VanillaSwap> make_vanilla_swap(double notional,
@@ -458,6 +645,52 @@ RatesInstrumentFactory::create_bond(const domain::FixedRateBondTrade& trade, con
     bond->setPricingEngine(QuantLib::ext::make_shared<QuantLib::DiscountingBondEngine>(
         QuantLib::Handle<QuantLib::YieldTermStructure>(curve)));
     return bond;
+}
+
+QuantLib::ext::shared_ptr<QuantLib::Instrument>
+RatesInstrumentFactory::create_callable_bond(const domain::CallableBondTrade& trade,
+                                             const analytics::PricingContext& context) {
+    const auto start = market::CurveBuilder::parse_date(trade.start_date);
+    const auto maturity = market::CurveBuilder::parse_date(trade.maturity_date);
+    const auto currency_code = domain::from_string(trade.currency);
+    auto curve = discount_curve(context, currency_code);
+    if (!curve) {
+        return nullptr;
+    }
+
+    const auto convention = rates_convention(currency_code, "OIS");
+    const auto calendar = market::CurveBuilder::parse_calendar(convention.calendar);
+    const auto bdc = market::CurveBuilder::parse_business_day_convention(convention.business_day_convention);
+    const auto frequency =
+        market::CurveBuilder::parse_frequency(parse_frequency_string(trade.frequency, domain::Frequency::Annual));
+    const auto day_count = market::CurveBuilder::parse_day_count(domain::DayCount::Thirty360);
+
+    std::vector<CallableBondCallDate> call_schedule;
+    call_schedule.reserve(trade.call_dates.size());
+    for (std::size_t i = 0; i < trade.call_dates.size(); ++i) {
+        double call_price = 100.0;
+        if (i < trade.call_prices.size()) {
+            call_price = trade.call_prices[i];
+        } else if (!trade.call_prices.empty()) {
+            call_price = trade.call_prices.back();
+        }
+        call_schedule.push_back({market::CurveBuilder::parse_date(trade.call_dates[i]), call_price});
+    }
+    std::sort(call_schedule.begin(), call_schedule.end(), [](const auto& lhs, const auto& rhs) {
+        return lhs.date < rhs.date;
+    });
+
+    const double volatility = quote_or_default_volatility(context, trade.volatility_quote_id, trade.volatility, 0.01);
+    return QuantLib::ext::make_shared<CallableBondLsmcInstrument>(
+        trade.notional,
+        trade.coupon_rate,
+        trade.mean_reversion,
+        volatility,
+        maturity,
+        call_schedule,
+        make_schedule(start, maturity, frequency, calendar, bdc, QuantLib::DateGeneration::Backward),
+        day_count,
+        curve);
 }
 
 QuantLib::ext::shared_ptr<QuantLib::Instrument>

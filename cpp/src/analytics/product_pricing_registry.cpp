@@ -305,6 +305,12 @@ QuantLib::ext::shared_ptr<QuantLib::Instrument> build_fixed_rate_bond(const doma
     return typed ? instruments::RatesInstrumentFactory::create_bond(*typed, context) : nullptr;
 }
 
+QuantLib::ext::shared_ptr<QuantLib::Instrument> build_callable_bond(const domain::Trade& trade,
+                                                                    const PricingContext& context) {
+    const auto* typed = dynamic_cast<const domain::CallableBondTrade*>(&trade);
+    return typed ? instruments::RatesInstrumentFactory::create_callable_bond(*typed, context) : nullptr;
+}
+
 QuantLib::ext::shared_ptr<QuantLib::Instrument> build_floating_rate_note(const domain::Trade& trade,
                                                                          const PricingContext& context) {
     const auto* typed = dynamic_cast<const domain::FloatingRateNoteTrade*>(&trade);
@@ -391,8 +397,14 @@ const std::map<domain::ProductType, ProductPricingDefinition>& definitions() {
                                   "one-factor LSMC approximation",
                                   domain::SupportStatus::Supported}},
         {domain::ProductType::CallableBond,
-         unsupported_definition(domain::ProductType::CallableBond,
-                                "Product is declared in the taxonomy but no pricing model is registered yet")},
+         ProductPricingDefinition{no_realized_cashflows,
+                                  build_callable_bond,
+                                  "QRP::CallableBondLsmcInstrument/one-factor LSMC",
+                                  default_pricing_profile,
+                                  domain::ProductType::CallableBond,
+                                  "Callable fixed-rate bond pricing is supported with deterministic cashflows and "
+                                  "a one-factor LSMC issuer-call policy",
+                                  domain::SupportStatus::Supported}},
         {domain::ProductType::CapFloor,
          ProductPricingDefinition{no_realized_cashflows,
                                   build_cap_floor,

@@ -260,7 +260,8 @@ Current state:
 - Monte Carlo supports horizon-shock and aged-horizon factor revaluation modes rather than a general multi-step exotic
   path engine,
 - LSMC exposes C++-managed exercise-policy helpers to Python with path values, basis labels, run configuration, and
-  regression diagnostics, and American equity options plus Bermudan swaptions use the shared helper in product paths,
+  regression diagnostics, and American equity options, Bermudan swaptions, plus callable fixed-rate bonds use the shared
+  helper in product paths,
 - historical VaR and Expected Shortfall contribution analytics report trade, book, strategy, currency, asset-class, and
   risk-factor contributions,
 - realized cash explain currently includes deposit maturities, while coupons, fixings, exercises, and settlement events
@@ -273,7 +274,7 @@ flowchart LR
     A[Convention gaps] --> B[Hardcoded schedules and day counts]
     B --> C[No built-portfolio cache]
     C --> D[Limited event-source integration]
-    D --> E[Monte Carlo contributions and LSMC integration]
+    D --> E[Monte Carlo contributions and flexibility LSMC integration]
 ```
 
 The main boundaries are:
@@ -282,7 +283,7 @@ The main boundaries are:
 2. **Instrument construction still contains hardcoded schedule and day-count assumptions.**
 3. **The analytics services do not yet share a platform-wide built-position cache.**
 4. **PnL explain needs broader product event sources beyond deposit maturities.**
-5. **Monte Carlo contribution decomposition, product-wide LSMC integration, and production controls are not yet
+5. **Monte Carlo contribution decomposition, commodity flexibility LSMC integration, and production controls are not yet
    first-class across the platform.**
 
 ## 9. Extension Areas
@@ -303,7 +304,7 @@ The main boundaries are:
 
 ### Exercise and simulation architecture
 
-- LSMC exercise-policy helpers wired into remaining early-exercise and physical-flexibility product pricing paths,
+- LSMC exercise-policy helpers wired into remaining physical-flexibility product pricing paths,
 - Monte Carlo path engine separated from one-step factor simulation,
 - cached factor mappings and parallel scenario execution,
 - production controls for manifests, lineage, benchmark portfolios, and performance gates.
