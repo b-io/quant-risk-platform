@@ -1,13 +1,18 @@
 // Implements rates instrument construction.
 
+#include <qrp/analytics/exercise_policy.hpp>
 #include <qrp/analytics/lsmc/lsmc_engine.hpp>
 #include <qrp/analytics/simulation/stochastic_process.hpp>
 #include <qrp/instruments/instrument_factory.hpp>
 #include <qrp/instruments/instrument_factory_common.hpp>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <memory>
 #include <random>
+#include <string>
+#include <vector>
 
 namespace qrp::instruments {
 namespace {
@@ -128,39 +133,21 @@ private:
     double volatility_;
 };
 
-class BermudanSwaptionDecisionProblem final : public analytics::dynamic_programming::DecisionProblem {
+class BermudanSwaptionExercisePolicy final : public analytics::exercise::ExercisePolicy {
 public:
-    BermudanSwaptionDecisionProblem(double strike_rate, bool payer, std::vector<double> exercise_annuities)
+    BermudanSwaptionExercisePolicy(double strike_rate, bool payer, std::vector<double> exercise_annuities)
         : strike_rate_(strike_rate), payer_(payer), exercise_annuities_(std::move(exercise_annuities)) {}
 
-    std::vector<analytics::dynamic_programming::Action> feasibleActions(const analytics::dynamic_programming::State&,
-                                                                        std::size_t time_index) const override {
-        if (time_index == 0 || time_index >= exercise_annuities_.size() || exercise_annuities_[time_index] <= 0.0) {
-            return {{0, "Continue", {}}};
-        }
-        return {{0, "Continue", {}}, {1, "Exercise", {}}};
+    bool canExercise(const analytics::dynamic_programming::State& state, std::size_t time_index) const override {
+        return !state.market_variables.empty() && time_index > 0U && time_index < exercise_annuities_.size() &&
+               exercise_annuities_[time_index] > 0.0;
     }
 
-    double immediateCashflow(const analytics::dynamic_programming::State& state,
-                             const analytics::dynamic_programming::Action& action,
-                             std::size_t time_index) const override {
-        if (action.id != 1) {
+    double exerciseValue(const analytics::dynamic_programming::State& state, std::size_t time_index) const override {
+        if (!canExercise(state, time_index)) {
             return 0.0;
         }
         return exercise_payoff(state.market_variables[0], time_index);
-    }
-
-    analytics::dynamic_programming::State nextState(const analytics::dynamic_programming::State&,
-                                                    const analytics::dynamic_programming::Action&,
-                                                    const std::vector<double>& market_variables_next,
-                                                    std::size_t) const override {
-        return {market_variables_next, {}};
-    }
-
-    bool isTerminalAction(const analytics::dynamic_programming::State&,
-                          const analytics::dynamic_programming::Action& action,
-                          std::size_t) const override {
-        return action.id == 1;
     }
 
     std::vector<double> regressionFeatures(const analytics::dynamic_programming::State& state,
@@ -169,7 +156,11 @@ public:
         return {1.0, rate, rate * rate};
     }
 
-    double terminalValue(const analytics::dynamic_programming::State& state) const override {
+    std::vector<std::string> regressionFeatureNames(std::size_t) const override {
+        return {"1", "swap_rate", "swap_rate^2"};
+    }
+
+    double terminalValue(const analytics::dynamic_programming::State& state, std::size_t) const override {
         return exercise_payoff(state.market_variables[0], exercise_annuities_.size() - 1);
     }
 
@@ -243,7 +234,8 @@ protected:
 
         analytics::simulation::TimeGrid time_grid(times);
         MeanRevertingSwapRateProcess process(initial_swap_rate, mean_reversion_, volatility_);
-        BermudanSwaptionDecisionProblem problem(fixed_rate_, payer_, annuities);
+        auto policy = std::make_shared<BermudanSwaptionExercisePolicy>(fixed_rate_, payer_, annuities);
+        analytics::exercise::ExercisePolicyDecisionProblem problem(policy, times.size() - 1U);
 
         analytics::lsmc::LsmcConfig config;
         config.discount_rate = discount_rate;

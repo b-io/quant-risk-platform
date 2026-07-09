@@ -194,8 +194,8 @@ and demo dashboards.
 Known boundaries:
 
 - Monte Carlo and parametric VaR contribution decomposition are not yet first-class outputs.
-- LSMC is exposed through a C++-managed American option helper with diagnostics and is used by American equity options;
-  wiring the shared exercise-policy layer into Bermudan, callable, and physical-flexibility product paths remains a
+- LSMC is exposed through C++-managed exercise-policy helpers with diagnostics and is used by American equity options
+  and Bermudan swaptions; wiring the shared layer into callable and physical-flexibility product paths remains a
   hardening area.
 - Realized event-source integration does not yet cover every coupon, fixing, exercise, and settlement source.
 - A reusable revaluation-session cache exists for quote and scenario workflows; a shared built-position cache across all

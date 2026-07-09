@@ -255,6 +255,33 @@ TEST(RatesProductsTest, PricesRatesProducts) {
     EXPECT_GE(by_trade.at("bermudan_swaption_usd").npv, 0.0);
 }
 
+TEST(RatesProductsTest, BermudanSwaptionsUseReproducibleExercisePolicyLsmcPath) {
+    qrp::market::MarketSnapshot market(make_rates_market());
+    qrp::analytics::PricingContext context(market.built_state());
+
+    auto bermudan_swaption = make_rates_trade<qrp::domain::BermudanSwaptionTrade>("bermudan_swaption_usd", "payer");
+    bermudan_swaption->notional = 4'000'000.0;
+    bermudan_swaption->start_date = "2026-06-24";
+    bermudan_swaption->maturity_date = "2031-06-24";
+    bermudan_swaption->fixed_rate = 0.0520;
+    bermudan_swaption->floating_index = "USD_LIBOR_3M";
+    bermudan_swaption->volatility = 0.0120;
+    bermudan_swaption->exercise_dates = {"2026-06-24", "2027-06-24", "2028-06-24", "2029-06-24"};
+
+    const auto first = qrp::instruments::RatesInstrumentFactory::create_bermudan_swaption(*bermudan_swaption, context);
+    const auto second = qrp::instruments::RatesInstrumentFactory::create_bermudan_swaption(*bermudan_swaption, context);
+    ASSERT_TRUE(first);
+    ASSERT_TRUE(second);
+
+    const double first_npv = first->NPV();
+    const double first_error = first->errorEstimate();
+
+    EXPECT_DOUBLE_EQ(first_npv, second->NPV());
+    EXPECT_DOUBLE_EQ(first_error, second->errorEstimate());
+    EXPECT_GT(first_npv, 0.0);
+    EXPECT_GT(first_error, 0.0);
+}
+
 TEST(RatesProductsTest, PricesAlternativeDirectionsAndFallbackInputs) {
     auto market_dto = make_rates_market();
     market_dto.quotes.push_back(make_quote("USD_IR_FUT_DEC26",

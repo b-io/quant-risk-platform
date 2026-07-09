@@ -44,7 +44,8 @@ Current limitations:
 - historical VaR and Expected Shortfall contribution analytics are first-class service outputs, while Monte Carlo and
   parametric contribution decomposition are not dedicated service outputs,
 - LSMC exposes a C++-managed American option exercise-policy helper to Python with basis, path, and regression
-  diagnostics, and American equity options use the shared helper in the product path,
+  diagnostics, and American equity options plus Bermudan swaptions use the shared exercise-policy layer in product
+  paths,
 - there is no platform-wide built portfolio cache shared by all analytics.
 
 ## 3. Target service split
@@ -95,9 +96,10 @@ The engine supports:
 - **Aged horizon revaluation**: Age to a horizon date, compute frozen aging P&L, apply factor shocks, and report market
   and total P&L diagnostics.
 
-The reusable LSMC module handles exercise-policy examples, Python-facing American option valuation, and American equity
-option product valuation. Some remaining early-exercise and physical-flexibility products still use product-specific
-approximations. A general multi-step exposure cube and path-dependent pricing service remains an extension area.
+The reusable LSMC module handles exercise-policy examples, Python-facing American option valuation, American equity
+option product valuation, and Bermudan swaption product valuation through the shared exercise-policy adapter. Some
+remaining early-exercise and physical-flexibility products still use product-specific approximations. A general
+multi-step exposure cube and path-dependent pricing service remains an extension area.
 
 ## 4. Architectural choice: Handle-based vs. Brute-force
 
@@ -119,7 +121,7 @@ This design choice is fundamental to the project.
 1. Built-instrument and built-portfolio caching are not shared service capabilities.
 2. Monte Carlo and parametric VaR contribution decomposition are not yet first-class outputs.
 3. Monte Carlo has horizon-shock and aged-horizon modes, but not a general multi-step path/exposure service.
-4. LSMC is exposed through a C++-managed helper and American equity product path, but the shared exercise-policy layer is
-   not yet wired across every early-exercise or physical-flexibility product.
+4. LSMC is exposed through a C++-managed helper and shared American equity/Bermudan swaption product paths, but the
+   shared exercise-policy layer is not yet wired across every early-exercise or physical-flexibility product.
 5. Product event-source integration for realized cashflow explain is limited.
 6. Production controls, manifests, lineage reports, and benchmark governance remain hardening areas.

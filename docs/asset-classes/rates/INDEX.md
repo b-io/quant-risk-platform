@@ -51,7 +51,7 @@ Rates product coverage is organized around these product families:
 7. floating-rate notes;
 8. caps and floors;
 9. European swaptions;
-10. Bermudan swaptions, with reusable LSMC identified as the broader exercise-engine integration.
+10. Bermudan swaptions, using the reusable LSMC exercise-policy layer with a compact one-factor approximation.
 
 Current platform coverage:
 
@@ -62,8 +62,9 @@ Current platform coverage:
   using bootstrapped rates curves, quote handles, and volatility inputs where
   applicable.
 - Caps/floors and European swaptions use Black-style volatility inputs.
-- Bermudan swaptions are represented and priced with the current early-exercise
-  approximation. Broader reusable LSMC integration remains a model-integration
+- Bermudan swaptions are represented and priced through the reusable LSMC
+  exercise-policy layer. The current model is a compact one-factor swap-rate
+  approximation; richer calibrated rates models remain a model-integration
   boundary rather than a trade-model gap.
 
 ## Shared References

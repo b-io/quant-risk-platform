@@ -404,13 +404,13 @@ Current implementation checkpoint:
   prints an American option LSMC run with basis and regression diagnostics.
 - American equity options route through the shared C++ LSMC exercise-policy
   helper rather than a product-local exercise tree.
-- Bermudan swaption pricing already uses the generic LSMC engine through a
-  product-specific one-factor approximation.
+- Bermudan swaption pricing uses the shared exercise-policy adapter with a
+  compact one-factor swap-rate approximation.
 - Commodity swing/storage products still use product-specific approximations or
   partial support rather than the shared LSMC exercise-policy layer.
 - The remaining model-integration work is connecting the reusable engine to all
   remaining early-exercise and physical-flexibility product paths, starting with
-  Bermudan swaptions, callable bonds, and commodity swing/storage contracts.
+  callable bonds and commodity swing/storage contracts.
 
 ## Phase 11: Production Controls
 

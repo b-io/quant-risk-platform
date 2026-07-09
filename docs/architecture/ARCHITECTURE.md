@@ -260,7 +260,7 @@ Current state:
 - Monte Carlo supports horizon-shock and aged-horizon factor revaluation modes rather than a general multi-step exotic
   path engine,
 - LSMC exposes C++-managed exercise-policy helpers to Python with path values, basis labels, run configuration, and
-  regression diagnostics, and American equity options use the shared helper in the product path,
+  regression diagnostics, and American equity options plus Bermudan swaptions use the shared helper in product paths,
 - historical VaR and Expected Shortfall contribution analytics report trade, book, strategy, currency, asset-class, and
   risk-factor contributions,
 - realized cash explain currently includes deposit maturities, while coupons, fixings, exercises, and settlement events
