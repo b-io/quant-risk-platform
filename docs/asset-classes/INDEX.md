@@ -69,15 +69,15 @@ historical VaR/Expected Shortfall contribution analytics, and PnL explain all
 share the same multi-asset coverage.
 The Python bindings also expose `RevaluationSession`, which reuses one built
 market state and instrument cache for quote updates and factor-scenario
-revaluation across those same product families.
+revaluation across those same product families. LSMC and dynamic-programming
+helpers are exposed and used by American equity options, Bermudan swaptions,
+callable fixed-rate bonds, commodity swing contracts, and gas storage inventory
+optionality.
 
 Known boundaries are:
 
 - Monte Carlo and parametric VaR contribution decomposition are not yet
   first-class outputs;
-- LSMC and dynamic-programming helpers are exposed and used by American equity
-  options, Bermudan swaptions, callable fixed-rate bonds, commodity swing
-  contracts, and gas storage inventory optionality;
 - shared built-position caching across every analytics service is not yet
   generalized beyond the revaluation-session API;
 - production controls and validation reports remain hardening areas.

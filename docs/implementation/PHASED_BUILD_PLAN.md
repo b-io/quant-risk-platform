@@ -222,7 +222,7 @@ Deliverables:
 - Futures strips.
 - Options on futures.
 - Calendar spread options.
-- Swing and storage contracts using LSMC.
+- Swing and storage contracts using shared dynamic-programming policies.
 - Later multi-commodity spread options.
 
 Validation standard:
@@ -383,7 +383,7 @@ Deliverables:
 - Integrate LSMC into American equity options.
 - Integrate LSMC into Bermudan swaptions.
 - Integrate LSMC into callable bonds.
-- Integrate LSMC into commodity swing and gas storage products.
+- Integrate shared dynamic-programming policy paths into commodity swing and gas storage products.
 - Add convergence tests, basis-function tests, seed reproducibility tests, and
   regression benchmarks.
 

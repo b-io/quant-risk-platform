@@ -144,7 +144,9 @@ This keeps Python ergonomic without exposing raw QuantLib handles or requiring
 Python callers to manage observer lifetimes. The LSMC binding follows the same
 principle: Python configures a typed request and receives compact diagnostics,
 while path simulation, basis evaluation, regression, and exercise decisions stay
-inside C++.
+inside C++. Production early-exercise and flexibility products are still entered
+as normal trade DTOs and priced through `price_portfolio(...)`; Python does not
+provide arbitrary exercise callbacks on the hot path.
 
 ## 9. Choosing the split in practice
 

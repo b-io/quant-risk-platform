@@ -259,9 +259,9 @@ Current state:
   scenarios, pricing, reset, base/shocked/restored reporting, opt-in impact previews, and candidate-only diff reports,
 - Monte Carlo supports horizon-shock and aged-horizon factor revaluation modes rather than a general multi-step exotic
   path engine,
-- LSMC exposes C++-managed exercise-policy helpers to Python with path values, basis labels, run configuration, and
-  regression diagnostics, and American equity options, Bermudan swaptions, plus callable fixed-rate bonds use the shared
-  helper in product paths,
+- LSMC and dynamic-programming helpers expose C++-managed exercise-policy diagnostics to Python with path values, basis
+  labels, run configuration, and regression diagnostics, while American equity options, Bermudan swaptions, callable
+  fixed-rate bonds, commodity swing contracts, and gas storage contracts use C++-owned product paths,
 - historical VaR and Expected Shortfall contribution analytics report trade, book, strategy, currency, asset-class, and
   risk-factor contributions,
 - realized cash explain currently includes deposit maturities, while coupons, fixings, exercises, and settlement events
@@ -274,7 +274,7 @@ flowchart LR
     A[Convention gaps] --> B[Hardcoded schedules and day counts]
     B --> C[No built-portfolio cache]
     C --> D[Limited event-source integration]
-    D --> E[Monte Carlo contributions and flexibility LSMC integration]
+    D --> E[Monte Carlo contributions and production controls]
 ```
 
 The main boundaries are:
@@ -283,8 +283,7 @@ The main boundaries are:
 2. **Instrument construction still contains hardcoded schedule and day-count assumptions.**
 3. **The analytics services do not yet share a platform-wide built-position cache.**
 4. **PnL explain needs broader product event sources beyond deposit maturities.**
-5. **Monte Carlo contribution decomposition, commodity flexibility LSMC integration, and production controls are not yet
-   first-class across the platform.**
+5. **Monte Carlo contribution decomposition and production controls are not yet first-class across the platform.**
 
 ## 9. Extension Areas
 

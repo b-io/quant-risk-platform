@@ -47,12 +47,14 @@ platform. A reusable C++ `RevaluationSession` is exposed to Python for fast
 quote updates and scenario revaluation over cached instruments, with opt-in
 dependency-graph and impact-diff diagnostics for Python workflows. PnL explain
 is persisted with component reconciliation, sequential factor revaluation, and
-realized deposit maturity cash support.
+realized deposit maturity cash support. C++-managed exercise and
+dynamic-programming paths are wired for American equity options, Bermudan
+swaptions, callable fixed-rate bonds, commodity swing contracts, and gas storage
+contracts.
 
-Known boundaries are remaining product-path LSMC migration beyond American
-equity options and Bermudan swaptions, broader realized-event sources,
-platform-wide built-portfolio caching beyond the revaluation-session API,
-Monte Carlo contribution decomposition, and production-control hardening.
+Known boundaries are broader realized-event sources, platform-wide
+built-portfolio caching beyond the revaluation-session API, Monte Carlo
+contribution decomposition, and production-control hardening.
 
 ## Reading Paths
 
